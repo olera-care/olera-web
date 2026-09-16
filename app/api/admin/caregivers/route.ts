@@ -53,7 +53,9 @@ async function fetchAllStudents(
   db: DB,
   activeOnly: boolean,
   pausedOnly: boolean,
-  cityFilter: string
+  cityFilter: string,
+  fromDate: string,
+  toDate: string
 ): Promise<StudentQueryResult[]> {
   const PAGE_SIZE = 1000;
   const allStudents: StudentQueryResult[] = [];
@@ -80,6 +82,14 @@ async function fetchAllStudents(
       query = query.is("city", null);
     } else if (cityFilter) {
       query = query.eq("city", cityFilter);
+    }
+
+    // Date range filter
+    if (fromDate) {
+      query = query.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      query = query.lte("created_at", toDate);
     }
 
     const { data, error } = await query;
@@ -144,6 +154,8 @@ export async function GET(request: NextRequest) {
     const eduOnly = searchParams.get("edu_only") === "true";
     const nonEduOnly = searchParams.get("non_edu_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
+    const fromDate = searchParams.get("from_date")?.trim() || "";
+    const toDate = searchParams.get("to_date")?.trim() || "";
 
     const db = getServiceClient();
 
@@ -196,6 +208,14 @@ export async function GET(request: NextRequest) {
         query = query.eq("city", cityFilter);
       }
 
+      // Date range filter
+      if (fromDate) {
+        query = query.gte("created_at", fromDate);
+      }
+      if (toDate) {
+        query = query.lte("created_at", toDate);
+      }
+
       const from = (page - 1) * perPage;
       const to = from + perPage - 1;
       query = query.range(from, to);
@@ -209,7 +229,7 @@ export async function GET(request: NextRequest) {
       // When filtering by paused/notLive/pendingReview, we need inactive profiles, so don't pass pausedOnly to DB
       const dbActiveOnly = activeOnly;
       const dbInactiveOnly = pausedOnly || notLiveOnly || pendingReviewOnly;
-      data = await fetchAllStudents(db, dbActiveOnly, dbInactiveOnly, cityFilter);
+      data = await fetchAllStudents(db, dbActiveOnly, dbInactiveOnly, cityFilter, fromDate, toDate);
       count = data.length;
     }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { StudentMetadata } from "@/lib/types";
+import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
 type FilterTab = "all" | "pendingReview" | "hasInterviews" | "complete" | "incomplete" | "nonEdu";
 
@@ -70,6 +71,11 @@ export default function AdminStudentsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: "all",
+    from: null,
+    to: null,
+  });
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -99,7 +105,7 @@ export default function AdminStudentsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filter]);
+  }, [filter, dateRange]);
 
   const fetchStudents = useCallback(async () => {
     setLoading(true);
@@ -120,6 +126,11 @@ export default function AdminStudentsPage() {
         params.set("edu_only", "true");
       }
 
+      // Date range filter
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+
       const res = await fetch(`/api/admin/caregivers?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -131,11 +142,16 @@ export default function AdminStudentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filter, page]);
+  }, [debouncedSearch, filter, page, dateRange]);
 
   const fetchTabCounts = useCallback(async () => {
     try {
-      const statsRes = await fetch("/api/admin/caregivers/stats");
+      const params = new URLSearchParams();
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+
+      const statsRes = await fetch(`/api/admin/caregivers/stats?${params}`);
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setTabCounts({
@@ -154,7 +170,7 @@ export default function AdminStudentsPage() {
         });
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [dateRange]);
 
   useEffect(() => {
     fetchTabCounts();
@@ -269,13 +285,16 @@ export default function AdminStudentsPage() {
       )}
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Students</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {filter === "nonEdu"
-            ? "Students who signed up with non-.edu emails"
-            : "Verified MedJobs student applicants (.edu emails)"}
-        </p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Students</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {filter === "nonEdu"
+              ? "Students who signed up with non-.edu emails"
+              : "Verified MedJobs student applicants (.edu emails)"}
+          </p>
+        </div>
+        <DateRangePopover value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Stats Cards */}

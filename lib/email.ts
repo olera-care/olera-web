@@ -182,7 +182,6 @@ const SUPPRESSION_EXEMPT_TYPES = new Set<string>([
   "verification_decision",
   "verification_rejected",
   "verification_pending_review",
-  "student_activation",
   "student_account_created",
 ]);
 

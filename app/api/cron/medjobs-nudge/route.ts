@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { profileIncompleteNudgeEmail } from "@/lib/medjobs-email-templates";
-import { medjobsReviewNudgeEmail } from "@/lib/email-templates";
+import { profileIncompleteNudgeEmail, medjobsReviewNudgeEmail } from "@/lib/medjobs-email-templates";
 import { calculateCompleteness, getIncompleteSections } from "@/lib/medjobs-completeness";
 import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import type { StudentMetadata } from "@/lib/types";

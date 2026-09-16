@@ -87,6 +87,38 @@ function graizeSignature(): string {
     </table>`;
 }
 
+/**
+ * Logan + TJ author byline block — the trust signature used across student
+ * lifecycle emails. Photos must be Supabase-hosted (olera.care/images/* is
+ * WAF-challenged for email image proxies).
+ *
+ * Note: This version omits the "Not the right contact?" line since students
+ * are individuals, not organizations with teams.
+ */
+function authorBylineBlock(opts: { topBorder?: boolean } = {}): string {
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  const wrapStyle = opts.topBorder
+    ? "margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"
+    : "margin:24px 0 0;";
+  return `
+    <div style="${wrapStyle}">
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">
+            <p style="margin:0;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care easier to understand and compare.</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us</a>
+    </p>`;
+}
+
 // ── Bidirectional "ready" notifications (Graize-signed) ───────────────
 
 /**
@@ -246,6 +278,7 @@ export function studentWelcomeEmail({
         </ol>
       </td></tr>
     </table>
+    ${authorBylineBlock()}
   `);
 }
 
@@ -288,56 +321,7 @@ export function studentAccountCreatedEmail({
     <p style="margin:0 0 16px;">
       ${button("Complete My Profile", completeProfileUrl)}
     </p>
-  `);
-}
-
-/**
- * Sent when a student's profile reaches 100% completeness.
- * Celebrates, tells them they're live, encourages proactive outreach.
- */
-export function studentActivationEmail({
-  studentName,
-  city,
-  profileUrl,
-  magicLink,
-}: {
-  studentName: string;
-  city?: string;
-  profileUrl: string;
-  magicLink?: string;
-}): string {
-  const safeName = escapeHtml(firstName(studentName, "there"));
-  const locationLine = city ? ` in ${escapeHtml(city)}` : "";
-  const dashboardUrl = magicLink || `${BASE_URL}/medjobs/providers`;
-  const safeProfileUrl = escapeHtml(profileUrl);
-
-  return layout(`
-    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${safeName}!</h2>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Congratulations — your MedJobs profile is 100% complete and verified. Providers${locationLine} can now find you and reach out via the platform, email, or phone.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
-      <tr><td>
-        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 8px;">What happens now?</p>
-        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
-          <li>Providers can view your profile and reach out to you</li>
-          <li>You can browse providers hiring near you and ask to be introduced</li>
-          <li>Reaching out directly often leads to conversations faster</li>
-        </ol>
-      </td></tr>
-    </table>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
-      <strong>Your profile link:</strong>
-    </p>
-    <p style="font-size:13px;margin:0 0 20px;">
-      <a href="${safeProfileUrl}" style="color:${BRAND_COLOR};">${safeProfileUrl}</a>
-    </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
-      Share this link when reaching out — it shows your video, availability, and background at a glance.
-    </p>
-    <p style="margin:0 0 16px;">
-      ${button("See providers hiring near you", dashboardUrl)}
-    </p>
+    ${authorBylineBlock()}
   `);
 }
 
@@ -363,7 +347,107 @@ export function studentReturningEmail({
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">
       If you didn&apos;t request this, you can safely ignore this email.
     </p>
+    ${authorBylineBlock()}
   `);
+}
+
+// ── Student Profile Review Emails ──────────────────────────────────
+
+/** Email sent to student when their profile is approved by admin */
+export function medjobsProfileApprovedEmail(opts: {
+  studentName: string;
+  profileUrl: string;
+  portalUrl: string;
+}): string {
+  const safeName = escapeHtml(opts.studentName);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Congratulations, ${safeName}! Your MedJobs profile has been approved and is now visible to healthcare providers.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 6px;">What happens next?</p>
+        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
+          <li>Providers in your area can now discover your profile</li>
+          <li>Keep your availability up to date to get the best matches</li>
+          <li>You&apos;ll receive an email when a provider reaches out</li>
+        </ol>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("View Your Profile", opts.profileUrl)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      You can manage your profile visibility anytime from your <a href="${escapeHtml(opts.portalUrl)}" style="color:${BRAND_COLOR};text-decoration:underline;">portal</a>.
+    </p>
+    ${authorBylineBlock()}
+  `, `Your MedJobs profile is now live`);
+}
+
+/** Email sent to student when their profile review is rejected by admin */
+export function medjobsProfileRejectedEmail(opts: {
+  studentName: string;
+  reason?: string;
+  portalUrl: string;
+}): string {
+  const safeName = escapeHtml(opts.studentName);
+  const safeReason = opts.reason ? escapeHtml(opts.reason) : null;
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Profile Review Update</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeName}, we&apos;ve reviewed your MedJobs profile and it needs a few updates before we can make it live.
+    </p>
+    ${safeReason ? `
+    <table cellpadding="0" cellspacing="0" style="background:#fef2f2;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#991b1b;margin:0 0 6px;">Feedback</p>
+        <p style="font-size:13px;color:#991b1b;margin:0;line-height:1.6;">${safeReason}</p>
+      </td></tr>
+    </table>
+    ` : ""}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
+      Make the suggested improvements and request another review when you&apos;re ready.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Update Your Profile", opts.portalUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `Your MedJobs profile needs some updates`);
+}
+
+/** Email to nudge student to request review when profile is 100% complete */
+export function medjobsReviewNudgeEmail(opts: {
+  studentName: string;
+  portalUrl: string;
+}): string {
+  const safeName = escapeHtml(opts.studentName);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is ready to go live!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Great work, ${safeName}! You&apos;ve completed your MedJobs profile. There&apos;s just one more step: request a review so providers can start discovering you.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 8px;">What happens next?</p>
+        <ul style="font-size:13px;color:#6b7280;margin:0;padding-left:16px;line-height:1.8;">
+          <li>Our team reviews your profile for quality</li>
+          <li>Once approved, you&apos;ll be visible to healthcare providers</li>
+          <li>You can start receiving interview requests</li>
+        </ul>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("Request Review", opts.portalUrl)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      The review process typically takes 1-2 business days.
+    </p>
+    ${authorBylineBlock()}
+  `, `Your MedJobs profile is 100% complete - request a review to go live`);
 }
 
 export function applicationReceivedEmail({
@@ -538,6 +622,7 @@ export function profileIncompleteNudgeEmail({
     <p style="margin:0;">
       ${button("Complete Your Profile", completeProfileUrl)}
     </p>
+    ${authorBylineBlock()}
     ${studentUnsubscribeFooter(unsubscribeId)}
   `);
 }
@@ -625,9 +710,7 @@ export function invitationReceivedEmail({
     <p style="margin:0 0 16px;">
       ${button("View Invitation", `${BASE_URL}/medjobs/jobs`)}
     </p>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
-    </p>
+    ${authorBylineBlock()}
     ${studentUnsubscribeFooter(unsubscribeId)}
   `, `${safeProviderName} invited you to apply for ${safeJobTitle}`);
 }

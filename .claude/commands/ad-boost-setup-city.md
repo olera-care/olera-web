@@ -91,6 +91,8 @@ Use equivalent reporting windows where possible; a later Nextdoor launch is a di
 
 ### Advanced-mode execution and recovery (verified September 9, 2026)
 
+Apply the parent command’s **Authorization and scope continuity** and **Codex native browser recovery and write verification** sections first. Routine account setup is not a blanket founder handoff; conflicting screenshot/AX state requires recovery before further writes. Added based on the September 16, 2026 post-mortem.
+
 - Save updates persists group geography. Verify selected chip labels and 0 countries; a populated search input is not a selected city. Exact queries such as `Concord, NC` reduce ambiguous matches. Native AX result clicks sometimes only closed the menu; screenshot-based result clicks worked.
 - Create in Advanced mode when an explicit end time is required. Quick/Advanced mode switches can reset location, budget, dates and creative; after switching, verify every field. Saved images can be reused through Add media > Saved images, then inspect the placement crop. Text-area writes must update the preview and character count, not just appear in an input.
 - Campaign duplication copies groups and ads. Before launching a second city, replace every copied location, rename campaign/group/ad, and use **Actions > Clone creative** before changing city copy/URL so the original creative remains independent.

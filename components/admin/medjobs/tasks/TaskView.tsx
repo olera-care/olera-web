@@ -38,6 +38,7 @@ export default function TaskView({
   onStop,
   onNote,
   onField,
+  onFound,
   onReopen,
   onAgain,
 }: {
@@ -50,6 +51,8 @@ export default function TaskView({
   onStop: (reason: string) => void;
   onNote: (text: string) => void;
   onField: (field: ContactField, value: string) => void;
+  /** Research rungs: the names found, which become records on finishing. */
+  onFound: (names: string[]) => void;
   onReopen: () => void;
   onAgain: () => void;
 }) {
@@ -60,11 +63,24 @@ export default function TaskView({
   // "They replied" is the one outcome that carries information nobody can
   // reconstruct later, so it asks for it before moving on.
   const [replying, setReplying] = useState(false);
+  const [draftName, setDraftName] = useState("");
 
   const rung = rungAt(task.section, task.step, task.round);
   if (!rung) return null;
   const ladder = LADDERS[record.section];
   const firstName = (record.contact || "there").split(" ")[0];
+
+  // A research rung fans out into whatever the operator found, so the
+  // ladder's names are suggestions rather than the answer.
+  const found = task.found ?? [];
+  const suggestions = (rung.fanout ?? []).filter((n) => !found.includes(n));
+  const addName = (raw: string) => {
+    const name = raw.trim();
+    if (!name || found.includes(name)) return;
+    onFound([...found, name]);
+    setDraftName("");
+  };
+  const needsNames = Boolean(rung.fanout) && found.length === 0;
 
   const contactLine = [
     record.contact,
@@ -208,13 +224,68 @@ export default function TaskView({
 
           {rung.fanout && (
             <div className="mt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Found</p>
-              {rung.fanout.map((n) => (
-                <p key={n} className="text-[13.5px] text-gray-700">
-                  • {n}
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                What you found
+              </p>
+              {found.length === 0 ? (
+                <p className="mt-0.5 text-[12.5px] text-gray-500">
+                  Add each one you found. Every name becomes its own record with its own
+                  outreach.
                 </p>
-              ))}
-              <p className="text-[13.5px] text-gray-400">+ add another</p>
+              ) : (
+                <ul className="mt-1">
+                  {found.map((n, i) => (
+                    <li
+                      key={`${n}-${i}`}
+                      className="flex items-center gap-2 border-b border-gray-100 py-1.5 last:border-b-0"
+                    >
+                      <span className="flex-1 text-[13.5px] text-gray-900">{n}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${n}`}
+                        onClick={() => onFound(found.filter((_, j) => j !== i))}
+                        className="px-1 text-[15px] leading-none text-gray-400 hover:text-error-700"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <form
+                className="mt-2 flex gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addName(draftName);
+                }}
+              >
+                <input
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  placeholder="Name it and press Add"
+                  className="min-w-0 flex-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
+                />
+                <button type="submit" disabled={!draftName.trim()} className={draftName.trim() ? BTN : `${BTN} cursor-not-allowed opacity-40`}>
+                  Add
+                </button>
+              </form>
+
+              {suggestions.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[12px] text-gray-400">Common here:</span>
+                  {suggestions.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => addName(n)}
+                      className="rounded-full border border-gray-300 px-2.5 py-1 text-[12px] text-gray-600 hover:border-primary-600 hover:text-primary-700"
+                    >
+                      + {n}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -243,16 +314,22 @@ export default function TaskView({
           {!replying && <Note value={task.note} onChange={onNote} />}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
-            {rung.actions.map((a, i) => (
-              <button
-                key={a.label}
-                type="button"
-                onClick={() => onAct(i)}
-                className={i === 0 ? BTN_GO : a.outcome === "closed" ? BTN_BAD : BTN}
-              >
-                {a.label}
-              </button>
-            ))}
+            {rung.actions.map((a, i) => {
+              const blocked = needsNames && a.outcome === "fanout";
+              return (
+                <button
+                  key={a.label}
+                  type="button"
+                  disabled={blocked}
+                  onClick={() => onAct(i)}
+                  className={`${i === 0 ? BTN_GO : a.outcome === "closed" ? BTN_BAD : BTN} ${
+                    blocked ? "cursor-not-allowed opacity-40" : ""
+                  }`}
+                >
+                  {a.label}
+                </button>
+              );
+            })}
             {rung.reply && (
               <button
                 type="button"

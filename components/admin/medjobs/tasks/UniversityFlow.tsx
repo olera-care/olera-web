@@ -155,6 +155,10 @@ export default function UniversityFlow({
             record[f] = v;
             force((n) => n + 1);
           }}
+          onFound={(names) => {
+            task.found = names;
+            force((n) => n + 1);
+          }}
           onReopen={() => {
             reopen(record, task);
             redraw();

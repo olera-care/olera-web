@@ -37,6 +37,9 @@ export interface BoardTask {
   spawnedRecords: string[];
   /** A deliberate repeat: records itself and generates nothing. */
   redo?: boolean;
+  /** On a research rung: the names the operator actually found. Each one
+   *  becomes its own record when the task is finished. */
+  found?: string[];
   /** Nth reschedule round after a no-show. */
   resched?: number;
   /** Where the record stood before this task completed. */
@@ -341,7 +344,10 @@ export function complete(
       case "fanout": {
         const after = task.step + 1;
         const startRound = ladder.steps[after]?.rounds ? 1 : 0;
-        const born = (rung?.fanout ?? []).map((name) => {
+        // What the operator typed, not the examples on the rung. A research
+        // task that found nothing should create nothing.
+        const names = (task.found ?? []).map((n) => n.trim()).filter(Boolean);
+        const born = names.map((name) => {
           const r = makeRecord(record.section, name, after, startRound, 0);
           (u.records[record.section] ??= []).push(r);
           task.spawnedRecords.push(r.id);

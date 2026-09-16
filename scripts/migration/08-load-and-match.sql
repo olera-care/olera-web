@@ -38,6 +38,10 @@ CREATE TABLE medjobs_migration_staging (
   call3 DATE, remark3 TEXT,
   call4 DATE, remark4 TEXT,
   -- filled in by the resolve step below
+  -- The directory row this sheet row matched, whether or not anybody has
+  -- a record for it. Kept separate from matched_provider_id, which means
+  -- something narrower: matched AND already on a campus board.
+  dir_provider_id     TEXT,
   matched_provider_id TEXT,
   candidates          INT,
   outreach_id         UUID,
@@ -537,6 +541,17 @@ UPDATE medjobs_migration_staging s
    SET candidates = c.n
   FROM (SELECT id, count(*) AS n FROM _hits GROUP BY id) c
  WHERE c.id = s.id;
+
+-- The directory match on its own, recorded even when no board carries it.
+-- Without this the "in the directory but on no board" rows have nothing to
+-- point at, and anything downstream that looks for them finds nothing.
+UPDATE medjobs_migration_staging s
+   SET dir_provider_id = h.provider_id
+  FROM (
+    SELECT id, (array_agg(provider_id))[1] AS provider_id
+      FROM _hits GROUP BY id HAVING count(*) = 1
+  ) h
+ WHERE h.id = s.id;
 UPDATE medjobs_migration_staging SET candidates = 0 WHERE candidates IS NULL;
 
 -- Exactly one board record: this is the only case we overlay onto.

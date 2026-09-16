@@ -101,7 +101,7 @@ BEGIN
     s.sheet_name,
     s.phone,
     s.email,
-    s.matched_provider_id,
+    s.dir_provider_id,
     s.plan_action,
     s.call1, s.remark1, s.call2, s.remark2,
     s.call3, s.remark3, s.call4, s.remark4,
@@ -159,7 +159,7 @@ BEGIN
              sin(radians(cm.lat)) * sin(radians(p.lat)))) AS miles
       FROM "olera-providers" p
       CROSS JOIN _campus cm
-     WHERE p.provider_id = s.matched_provider_id
+     WHERE p.provider_id = s.dir_provider_id
        AND p.lat IS NOT NULL AND p.lon IS NOT NULL
      ORDER BY miles
      LIMIT 1
@@ -181,7 +181,7 @@ BEGIN
   SELECT
     sc.id, 'provider', NULL, t.sheet_name, 'researched', 0,
     jsonb_build_object(
-      'olera_provider_id', t.matched_provider_id,
+      'olera_provider_id', t.dir_provider_id,
       'migration_batch',   v_batch,
       'source',            'in_the_directory_but_was_not_on_a_board',
       'sheet_row',         t.row_no,
@@ -192,7 +192,7 @@ BEGIN
   FROM _todo t
   JOIN student_outreach_campuses sc ON sc.slug = t.campus_slug
   WHERE NOT t.is_stakeholder AND NOT t.is_person
-    AND t.matched_provider_id IS NOT NULL
+    AND t.dir_provider_id IS NOT NULL
     AND NOT EXISTS (
       SELECT 1 FROM student_outreach so
        WHERE so.research_data->>'sheet_key' = t.sheet_key
@@ -204,7 +204,7 @@ BEGIN
   SELECT count(*) INTO n_dir
     FROM _todo
    WHERE NOT is_stakeholder AND NOT is_person
-     AND matched_provider_id IS NULL;
+     AND dir_provider_id IS NULL;
 
   -- ── advisors ───────────────────────────────────────────────────────────
   INSERT INTO student_outreach

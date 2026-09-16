@@ -28,10 +28,10 @@ WITH campus (slug, lat, lon) AS (
     ('indiana-bloomington', 39.1653, -86.5264), ('u-florida', 29.6483, -82.3494)
 ),
 rows_left AS (
-  SELECT s.id, s.sheet_name, s.matched_provider_id
+  SELECT s.id, s.sheet_name, s.dir_provider_id
     FROM medjobs_migration_staging s
    WHERE s.outreach_id IS NULL
-     AND s.matched_provider_id IS NOT NULL
+     AND s.dir_provider_id IS NOT NULL
      AND s.plan_action NOT LIKE 'tie%'
 ),
 detail AS (
@@ -42,7 +42,7 @@ detail AS (
     near.slug,
     near.miles
   FROM rows_left r
-  JOIN "olera-providers" p ON p.provider_id = r.matched_provider_id
+  JOIN "olera-providers" p ON p.provider_id = r.dir_provider_id
   LEFT JOIN LATERAL (
     SELECT c.slug,
            3959 * acos(least(1,

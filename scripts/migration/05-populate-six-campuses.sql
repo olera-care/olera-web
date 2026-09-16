@@ -177,15 +177,35 @@ BEGIN
     DROP TABLE _new;
   END LOOP;
 
-  RAISE NOTICE '─────────────────────────────────────────────';
-  RAISE NOTICE 'campuses created   %', v_campuses;
-  RAISE NOTICE 'channels created   %', v_channels;
-  RAISE NOTICE 'records created    %', v_records;
-  RAISE NOTICE 'opening tasks      %', v_tasks;
-  RAISE NOTICE 'left alone         %  (already on the campus)', v_skipped;
-  RAISE NOTICE '─────────────────────────────────────────────';
-
+  -- The Supabase SQL editor does not display RAISE NOTICE. In rehearsal
+  -- the totals therefore ride on the exception itself, which it does
+  -- display; after a real run the SELECT below reports the same thing
+  -- from the database.
   IF NOT v_apply THEN
-    RAISE EXCEPTION 'REHEARSAL — nothing was saved. Set v_apply := TRUE to commit.';
+    RAISE EXCEPTION
+      'REHEARSAL, nothing saved — campuses % · channels % · records % · tasks % · left alone %. Set v_apply := TRUE to commit.',
+      v_campuses, v_channels, v_records, v_tasks, v_skipped;
   END IF;
+
+  RAISE NOTICE 'applied — campuses % channels % records % tasks %',
+    v_campuses, v_channels, v_records, v_tasks;
 END $$;
+
+-- ── what is actually there now ───────────────────────────────────────────
+-- Runs only after a committed run; a rehearsal stops at the exception above.
+SELECT
+  sc.slug,
+  sc.name,
+  count(DISTINCT so.id)                                        AS provider_records,
+  count(DISTINCT t.id) FILTER (WHERE t.status = 'pending')     AS open_tasks,
+  min((so.research_data->>'distance_miles')::numeric)          AS nearest_mi,
+  max((so.research_data->>'distance_miles')::numeric)          AS furthest_mi,
+  (SELECT count(*) FROM campus_channels cc WHERE cc.campus_id = sc.id) AS channels
+FROM student_outreach_campuses sc
+LEFT JOIN student_outreach so
+       ON so.campus_id = sc.id AND so.kind = 'provider'
+LEFT JOIN student_outreach_tasks t ON t.outreach_id = so.id
+WHERE sc.slug IN ('u-utah','arizona-state','uw-madison',
+                  'florida-state','indiana-bloomington','u-florida')
+GROUP BY sc.id, sc.slug, sc.name
+ORDER BY provider_records DESC;

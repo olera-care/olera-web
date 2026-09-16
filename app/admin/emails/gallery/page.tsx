@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 interface VariantMeta {
   id: string;
-  audience: "family" | "provider" | "transactional";
+  audience: "family" | "provider" | "student" | "transactional";
   group: string;
   label: string;
   subject: string;
@@ -13,8 +13,8 @@ interface VariantMeta {
   cron: string | null;
 }
 
-type AudienceFilter = "all" | "family" | "provider" | "transactional";
-const AUDIENCES: AudienceFilter[] = ["all", "family", "provider", "transactional"];
+type AudienceFilter = "all" | "family" | "provider" | "student" | "transactional";
+const AUDIENCES: AudienceFilter[] = ["all", "family", "provider", "student", "transactional"];
 
 /** Auto-size a same-origin iframe to its rendered email height on load. */
 function PreviewFrame({ id, width }: { id: string; width: number }) {

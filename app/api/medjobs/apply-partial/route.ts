@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { studentAccountCreatedEmail } from "@/lib/medjobs-email-templates";
+import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 import { sanitizeReferral } from "@/lib/medjobs/apply-link";
 
@@ -188,14 +189,22 @@ export async function POST(req: NextRequest) {
       console.error("[medjobs/apply-partial] account creation error:", err);
     }
 
-    // Fire-and-forget: account created email
+    // Fire-and-forget: account created email with one-click magic link
     try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const magicLink = generateStudentPortalUrl(
+        normalizedEmail,
+        "/portal/medjobs",
+        siteUrl
+      );
+
       await sendEmail({
         to: normalizedEmail,
         subject: "Welcome to MedJobs — complete your profile to connect with providers",
         html: studentAccountCreatedEmail({
           studentName: displayName.trim(),
           city: city?.trim() || undefined,
+          magicLink,
         }),
         emailType: "student_account_created",
       });

@@ -203,9 +203,24 @@ export default function AdminStudentDetailPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
-        <div className="flex items-center gap-3 mt-2">
+      <div className="mb-6 flex items-start gap-4">
+        {/* Profile Photo */}
+        {student.image_url ? (
+          <img
+            src={student.image_url}
+            alt={student.display_name}
+            className="w-20 h-20 rounded-xl object-cover border border-gray-200"
+          />
+        ) : (
+          <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
+          <div className="flex items-center gap-3 mt-2">
           <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
             Student
           </span>
@@ -228,6 +243,7 @@ export default function AdminStudentDetailPage() {
           <span className="text-sm text-gray-500">
             {connectionCount} application{connectionCount !== 1 ? "s" : ""}
           </span>
+        </div>
         </div>
       </div>
 
@@ -330,12 +346,7 @@ export default function AdminStudentDetailPage() {
         <Section title="Education">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ReadOnlyField label="University" value={meta.university} />
-              <ReadOnlyField label="Campus" value={meta.campus} />
               <ReadOnlyField label="Major" value={meta.major} />
-              <ReadOnlyField label="Graduation Year" value={meta.graduation_year?.toString()} />
-              <ReadOnlyField label="GPA" value={meta.gpa?.toFixed(2)} />
-              <ReadOnlyField label="Program Track" value={meta.program_track} />
-              <ReadOnlyField label="Intended Professional School" value={meta.intended_professional_school} />
             </div>
           </Section>
 
@@ -345,18 +356,6 @@ export default function AdminStudentDetailPage() {
             <ReadOnlyField
               label="Certifications"
               value={meta.certifications?.length ? meta.certifications.join(", ") : null}
-            />
-            <ReadOnlyField
-              label="Years of Experience"
-              value={meta.years_caregiving?.toString()}
-            />
-            <ReadOnlyField
-              label="Languages"
-              value={meta.languages?.length ? meta.languages.join(", ") : null}
-            />
-            <ReadOnlyField
-              label="Care Experience Types"
-              value={meta.care_experience_types?.length ? meta.care_experience_types.join(", ") : null}
             />
             <ReadOnlyField
               label="Skills"
@@ -388,108 +387,185 @@ export default function AdminStudentDetailPage() {
           )}
         </Section>
 
-        {/* Availability */}
-        <Section title="Availability">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField label="Availability Type" value={meta.availability_type} />
-            <ReadOnlyField label="Hours Per Week" value={meta.hours_per_week?.toString() || meta.hours_per_week_range} />
-            <ReadOnlyField label="Available Start" value={meta.available_start} />
-            <ReadOnlyField label="Duration Commitment" value={meta.duration_commitment} />
-            <ReadOnlyField label="Has Transportation" value={meta.transportation ? "Yes" : meta.transportation === false ? "No" : null} />
-            <ReadOnlyField label="Willing to Relocate" value={meta.willing_to_relocate ? "Yes" : meta.willing_to_relocate === false ? "No" : null} />
-            <ReadOnlyField label="Max Commute" value={meta.max_commute_miles ? `${meta.max_commute_miles} miles` : null} />
-            <ReadOnlyField label="Seeking Status" value={meta.seeking_status} />
-          </div>
-          {meta.availability_notes && (
-            <div className="mt-4">
-              <ReadOnlyField label="Availability Notes" value={meta.availability_notes} />
-            </div>
+        {/* Why Caregiving */}
+        <Section title="Why I Want to Be a Caregiver">
+          {meta.why_caregiving ? (
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{meta.why_caregiving}</p>
+          ) : (
+            <p className="text-sm text-gray-400 italic">Not provided</p>
           )}
         </Section>
 
-        {/* Documents & Media */}
-        {(meta.resume_url || meta.video_intro_url || meta.linkedin_url || meta.drivers_license_url) && (
-          <Section title="Documents & Media">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {meta.resume_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Resume</p>
-                  <a
-                    href={meta.resume_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-700"
-                  >
-                    View Resume →
-                  </a>
-                </div>
-              )}
-              {meta.video_intro_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Video Intro</p>
-                  <a
-                    href={meta.video_intro_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-700"
-                  >
-                    Watch Video →
-                  </a>
-                </div>
-              )}
-              {meta.linkedin_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">LinkedIn</p>
-                  <a
-                    href={meta.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-700"
-                  >
-                    View Profile →
-                  </a>
-                </div>
-              )}
-              {meta.drivers_license_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Driver&apos;s License</p>
-                  <p className="text-sm text-gray-600">
-                    Uploaded {meta.drivers_license_uploaded_at ? new Date(meta.drivers_license_uploaded_at).toLocaleDateString() : ""}
-                    {meta.drivers_license_expiration && ` · Expires ${meta.drivers_license_expiration}`}
+        {/* Screening Questions (Scenario Responses) */}
+        <Section title="Screening Questions">
+          {meta.scenario_responses && meta.scenario_responses.length > 0 ? (
+            <div className="space-y-4">
+              {meta.scenario_responses.map((response, index) => (
+                <div key={index} className="border-l-2 border-primary-200 pl-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">{response.question}</p>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {response.answer || <span className="text-gray-400 italic">No answer provided</span>}
                   </p>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No screening questions answered</p>
+          )}
+        </Section>
+
+        {/* Availability */}
+        <Section title="Availability">
+          <div className="mt-0">
+            <ReadOnlyField label="Availability Notes" value={meta.availability_notes} />
+          </div>
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-500 mb-2">Commitment Statement</p>
+            {meta.commitment_statement ? (
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{meta.commitment_statement}</p>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Not provided</p>
+            )}
+          </div>
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-500 mb-3">Seasonal Availability</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {(["spring", "summer", "fall", "winter"] as const).map((season) => {
+                const data = meta.year_round_availability?.[season];
+                const statusColors = {
+                  available: "bg-green-100 text-green-700 border-green-200",
+                  limited: "bg-amber-100 text-amber-700 border-amber-200",
+                  unavailable: "bg-gray-100 text-gray-500 border-gray-200",
+                };
+                return (
+                  <div
+                    key={season}
+                    className={`p-3 rounded-lg border ${data ? (statusColors[data.status as keyof typeof statusColors] || statusColors.unavailable) : "bg-gray-50 border-gray-200"}`}
+                  >
+                    <p className="text-sm font-medium capitalize">{season}</p>
+                    <p className={`text-xs capitalize ${data ? "" : "text-gray-400 italic"}`}>
+                      {data?.status || "Not set"}
+                    </p>
+                    {data?.notes && <p className="text-xs mt-1 opacity-75">{data.notes}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-500 mb-3">Weekly Schedule</p>
+            {meta.availability_schedule && Object.keys(meta.availability_schedule).length > 0 ? (
+              <div className="grid grid-cols-7 gap-1 text-xs">
+                {(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const).map((day) => {
+                  const slots = meta.availability_schedule?.[day] || [];
+                  return (
+                    <div key={day} className="text-center">
+                      <p className="font-medium text-gray-600 capitalize mb-1">{day.slice(0, 3)}</p>
+                      {slots.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {slots.map((slot, i) => (
+                            <p key={i} className="text-gray-500 bg-primary-50 rounded px-1 py-0.5">
+                              {typeof slot === "string" ? slot : `${slot.start}–${slot.end}`}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-300">—</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Not provided</p>
+            )}
+          </div>
+        </Section>
+
+        {/* Documents & Media */}
+        <Section title="Documents & Media">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">Resume</p>
+              {meta.resume_url ? (
+                <a
+                  href={meta.resume_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  View Resume →
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not uploaded</p>
               )}
             </div>
-          </Section>
-        )}
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">Video Intro</p>
+              {meta.video_intro_url ? (
+                <a
+                  href={meta.video_intro_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  Watch Video →
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">LinkedIn</p>
+              {meta.linkedin_url ? (
+                <a
+                  href={meta.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  View Profile →
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not provided</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">Driver&apos;s License</p>
+              {meta.drivers_license_url ? (
+                <p className="text-sm text-gray-600">
+                  Uploaded {meta.drivers_license_uploaded_at ? new Date(meta.drivers_license_uploaded_at).toLocaleDateString() : ""}
+                  {meta.drivers_license_expiration && ` · Expires ${meta.drivers_license_expiration}`}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">Car Insurance</p>
+              {meta.car_insurance_url ? (
+                <p className="text-sm text-gray-600">
+                  Uploaded {meta.car_insurance_uploaded_at ? new Date(meta.car_insurance_uploaded_at).toLocaleDateString() : ""}
+                  {meta.car_insurance_expiration && ` · Expires ${meta.car_insurance_expiration}`}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+              )}
+            </div>
+          </div>
+        </Section>
 
         {/* Commitments & Pledges */}
-        {(meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing) && (
-          <Section title="Commitments & Pledges">
-            <div className="flex flex-wrap gap-2">
-              {meta.ncns_pledge && (
-                <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm">
-                  ✓ No Call No Show Pledge
-                </span>
-              )}
-              {meta.school_balance_pledge && (
-                <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm">
-                  ✓ School Balance Pledge
-                </span>
-              )}
-              {meta.advance_notice_pledge && (
-                <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm">
-                  ✓ Advance Notice Pledge
-                </span>
-              )}
-              {meta.prn_willing && (
-                <span className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm">
-                  PRN Available
-                </span>
-              )}
-            </div>
-          </Section>
-        )}
+        <Section title="Commitments & Pledges">
+          <div className="flex flex-wrap gap-2">
+            <span className={`px-3 py-1.5 rounded-full text-sm ${meta.advance_notice_pledge ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
+              {meta.advance_notice_pledge ? "✓" : "○"} Advance Notice Pledge
+            </span>
+            <span className={`px-3 py-1.5 rounded-full text-sm ${meta.prn_willing ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-400"}`}>
+              {meta.prn_willing ? "✓" : "○"} PRN Available
+            </span>
+          </div>
+        </Section>
 
         {/* Interview History */}
         {interviews.length > 0 && (

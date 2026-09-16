@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
@@ -25,18 +25,32 @@ interface StudentProfile {
 /**
  * Fetch all student profiles to calculate completeness counts.
  */
-async function fetchAllStudents(db: DB): Promise<StudentProfile[]> {
+async function fetchAllStudents(
+  db: DB,
+  fromDate: string,
+  toDate: string
+): Promise<StudentProfile[]> {
   const PAGE_SIZE = 1000;
   const allProfiles: StudentProfile[] = [];
   let offset = 0;
   let hasMore = true;
 
   while (hasMore) {
-    const { data, error } = await db
+    let query = db
       .from("business_profiles")
       .select("id, display_name, email, phone, image_url, city, state, is_active, created_at, metadata")
       .eq("type", "student")
       .range(offset, offset + PAGE_SIZE - 1);
+
+    // Date range filter
+    if (fromDate) {
+      query = query.gte("created_at", fromDate);
+    }
+    if (toDate) {
+      query = query.lte("created_at", toDate);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("fetchAllStudents error:", error);
@@ -76,7 +90,7 @@ function computeProfileCompleteness(profile: StudentProfile): number {
  *
  * Returns counts for student filter tabs.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -84,10 +98,25 @@ export async function GET() {
     const adminUser = await getAdminUser(user.id);
     if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
+    const { searchParams } = new URL(request.url);
+    const fromDate = searchParams.get("from_date")?.trim() || "";
+    const toDate = searchParams.get("to_date")?.trim() || "";
+
     const db = getServiceClient();
 
     // Fetch all students for counts (need metadata for application_completed)
-    const allStudents = await fetchAllStudents(db);
+    const allStudents = await fetchAllStudents(db, fromDate, toDate);
+
+    // Fetch students with pending interviews (proposed or confirmed, not completed/cancelled)
+    const { data: studentsWithInterviews } = await db
+      .from("interviews")
+      .select("student_profile_id")
+      .in("status", ["proposed", "confirmed"])
+      .not("student_profile_id", "is", null);
+
+    const studentIdsWithInterviews = new Set(
+      (studentsWithInterviews || []).map((i) => i.student_profile_id)
+    );
 
     // Cutoff for "this week" calculation
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -144,12 +173,17 @@ export async function GET() {
     // Count .edu students created this week
     const thisWeekCount = eduStudents.filter((p) => p.created_at >= oneWeekAgo).length;
 
+    // Count .edu students with pending interviews
+    const hasInterviewsCount = eduStudents.filter((p) => studentIdsWithInterviews.has(p.id)).length;
+
     return NextResponse.json({
       total,
-      active: activeCount,
+      live: activeCount, // Renamed for clarity (is_active = true)
+      active: activeCount, // Keep for backwards compatibility
       paused: pausedCount,
       notLive: notLiveCount,
       pendingReview: pendingReviewCount,
+      hasInterviews: hasInterviewsCount,
       complete: completeCount,
       incomplete: incompleteCount,
       thisWeek: thisWeekCount,

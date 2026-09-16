@@ -10,10 +10,26 @@ const FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
-/** Hidden preheader text for inbox preview */
+/** Hidden preheader text for inbox preview — matches the polished version in email-templates.tsx */
 function preheaderHtml(text: string): string {
+  if (!text) return "";
   const escaped = escapeHtml(text);
-  return `<div style="display:none;font-size:1px;color:#f9fafb;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escaped}</div>`;
+  // 80 zero-width joiners after the preheader — pushes body chars out
+  // of the preview window so inboxes don't append e.g. "Olera ..." to it.
+  const spacer = "&zwnj;&nbsp;".repeat(80);
+  return `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f9fafb;opacity:0;">${escaped}${spacer}</div>`;
+}
+
+/**
+ * Student unsubscribe footer for lifecycle/nudge emails (CAN-SPAM compliance).
+ * Links to the public unsubscribe page keyed by the student profile id.
+ */
+function studentUnsubscribeFooter(unsubscribeId?: string): string {
+  const unsubscribeUrl = unsubscribeId
+    ? `${BASE_URL}/unsubscribe/medjobs?id=${encodeURIComponent(unsubscribeId)}`
+    : `${BASE_URL}/account/settings`;
+  return `<div style="height:1px;background:#eef1f0;margin:28px 0 0;"></div>
+    <p style="font-size:12px;color:#9ca3af;margin:14px 0 0;line-height:1.5;">You're getting this because you signed up for Olera MedJobs. <a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a> from MedJobs updates.</p>`;
 }
 
 function layout(body: string, preheader?: string): string {
@@ -152,11 +168,13 @@ export function jobReadyEmail({
   campus,
   providerName,
   viewUrl,
+  unsubscribeId,
 }: {
   studentName?: string | null;
   campus?: string | null;
   providerName?: string | null;
   viewUrl: string;
+  unsubscribeId?: string;
 }): string {
   const safeStudent = studentName ? escapeHtml(firstName(studentName, "there")) : "there";
   const where = campus ? `near ${escapeHtml(campus)}` : "near you";
@@ -171,6 +189,7 @@ export function jobReadyEmail({
     </p>
     <p style="margin:0;">${button("See the opportunity", viewUrl)}</p>
     ${graizeSignature()}
+    ${studentUnsubscribeFooter(unsubscribeId)}
   `, `A caregiver job ${where} just opened`);
 }
 
@@ -237,12 +256,15 @@ export function studentWelcomeEmail({
 export function studentAccountCreatedEmail({
   studentName,
   city,
+  magicLink,
 }: {
   studentName: string;
   city?: string;
+  magicLink?: string;
 }): string {
   const firstName = studentName.split(" ")[0];
   const locationLine = city ? ` in ${city}` : "";
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${firstName}!</h2>
@@ -264,7 +286,7 @@ export function studentAccountCreatedEmail({
       Providers reviewing candidates prioritize complete profiles. The more thorough your profile, the more likely you are to hear from hiring providers.
     </p>
     <p style="margin:0 0 16px;">
-      ${button("Complete My Profile", `${BASE_URL}/portal/medjobs`)}
+      ${button("Complete My Profile", completeProfileUrl)}
     </p>
   `);
 }
@@ -487,11 +509,13 @@ export function profileIncompleteNudgeEmail({
   completeness,
   missingItems,
   magicLink,
+  unsubscribeId,
 }: {
   studentName: string;
   completeness: number;
   missingItems: string[];
   magicLink?: string;
+  unsubscribeId?: string;
 }): string {
   const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs/profile`;
   const safeName = escapeHtml(firstName(studentName, "there"));
@@ -514,6 +538,7 @@ export function profileIncompleteNudgeEmail({
     <p style="margin:0;">
       ${button("Complete Your Profile", completeProfileUrl)}
     </p>
+    ${studentUnsubscribeFooter(unsubscribeId)}
   `);
 }
 
@@ -573,12 +598,14 @@ export function invitationReceivedEmail({
   jobTitle,
   hoursLabel,
   payRange,
+  unsubscribeId,
 }: {
   studentName: string;
   providerName: string;
   jobTitle: string;
   hoursLabel: string;
   payRange: string;
+  unsubscribeId?: string;
 }): string {
   const safeStudentName = escapeHtml(firstName(studentName, "there"));
   const safeProviderName = escapeHtml(providerName);
@@ -601,6 +628,7 @@ export function invitationReceivedEmail({
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
+    ${studentUnsubscribeFooter(unsubscribeId)}
   `, `${safeProviderName} invited you to apply for ${safeJobTitle}`);
 }
 

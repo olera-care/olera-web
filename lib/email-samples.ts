@@ -83,11 +83,22 @@ import {
   adBoostLeadOutcomeEmail,
 } from "@/lib/email-templates";
 import { renderEmail as renderProviderOutreachEmail } from "@/lib/provider-outreach/email-utils";
+import {
+  // student emails
+  studentWelcomeEmail,
+  studentAccountCreatedEmail,
+  studentActivationEmail,
+  studentReturningEmail,
+  profileIncompleteNudgeEmail,
+  invitationReceivedEmail,
+  jobReadyEmail,
+  candidateReadyEmail,
+} from "@/lib/medjobs-email-templates";
 
 export interface EmailVariant {
   /** Stable slug — used in URLs and the automations ?variant= param. */
   id: string;
-  audience: "family" | "provider" | "transactional";
+  audience: "family" | "provider" | "student" | "transactional";
   /** Display grouping in the gallery, e.g. "Family · Compare cascade". */
   group: string;
   label: string;
@@ -179,6 +190,22 @@ const OUTREACH_CTX = {
   remove_url: "https://olera.care/remove?tok=sample",
   unsubscribe_url: "https://olera.care/unsubscribe?tok=sample",
   mailing_address: "340 S Lemon Ave #1439, Walnut, CA 91789",
+};
+
+// ── Student fixtures (MedJobs) ───────────────────────────────────────────────
+const SAMPLE_STUDENT = {
+  studentName: "Jessica Chen",
+  university: "Texas A&M University",
+  city: "College Station",
+  profileSlug: "jessica-chen-tamu",
+  profileUrl: "https://olera.care/medjobs/candidates/jessica-chen-tamu",
+  magicLink: "https://olera.care/portal/medjobs?tok=sample",
+};
+const SAMPLE_MEDJOBS_PROVIDER = {
+  providerName: "Comfort Care Home Health",
+  jobTitle: "Part-Time Student Caregiver",
+  hoursLabel: "10-15 hrs/week",
+  payRange: "$15-18/hr",
 };
 
 export const EMAIL_VARIANTS: EmailVariant[] = [
@@ -1209,6 +1236,150 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     who: "Provider who hasn't claimed after the demand loss email.",
     why: "Incentive offer — free ad to get more families to find them.",
     render: () => renderProviderOutreachEmail("final", OUTREACH_CTX).html,
+  },
+
+  // ─────────────── Student · MedJobs onboarding ───────────────
+  {
+    id: "student_account_created",
+    audience: "student",
+    group: "Student · Onboarding",
+    label: "Account created",
+    subject: `Welcome to MedJobs, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
+    emailType: "student_account_created",
+    timing: "Immediately after Step 1 of onboarding",
+    who: "Student who just created an account via Step 1 of onboarding.",
+    why: "Orient the user, explain MedJobs, and drive them back to complete their profile.",
+    render: () => studentAccountCreatedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      city: SAMPLE_STUDENT.city,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_welcome",
+    audience: "student",
+    group: "Student · Onboarding",
+    label: "Welcome email",
+    subject: `Welcome to MedJobs, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
+    emailType: "student_welcome",
+    timing: "After account creation",
+    who: "Student who created an account.",
+    why: "Welcome the student, explain next steps to activate their profile.",
+    render: () => studentWelcomeEmail({
+      studentName: SAMPLE_STUDENT.studentName.split(" ")[0],
+      university: SAMPLE_STUDENT.university,
+      profileSlug: SAMPLE_STUDENT.profileSlug,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_returning",
+    audience: "student",
+    group: "Student · Onboarding",
+    label: "Returning student",
+    subject: `Welcome back, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
+    emailType: "student_returning",
+    timing: "When student returns with existing account",
+    who: "Student who already started an application and is returning.",
+    why: "Acknowledge their existing progress and encourage them to continue.",
+    render: () => studentReturningEmail({
+      studentName: SAMPLE_STUDENT.studentName.split(" ")[0],
+      profileSlug: SAMPLE_STUDENT.profileSlug,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_activation",
+    audience: "student",
+    group: "Student · Lifecycle",
+    label: "Profile activated (100% complete)",
+    subject: `Your profile is live, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
+    emailType: "student_activation",
+    timing: "When profile reaches 100% completeness",
+    who: "Student whose profile just reached 100% completeness.",
+    why: "Celebrate the milestone, explain what happens next, encourage proactive outreach.",
+    render: () => studentActivationEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      city: SAMPLE_STUDENT.city,
+      profileUrl: SAMPLE_STUDENT.profileUrl,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_profile_incomplete_nudge",
+    audience: "student",
+    group: "Student · Lifecycle",
+    label: "Profile incomplete nudge",
+    subject: "Complete Your Profile",
+    emailType: "student_profile_incomplete_nudge",
+    timing: "After account created, profile still incomplete",
+    who: "Student with incomplete profile.",
+    why: "Nudge them to finish their profile so providers can find them.",
+    render: () => profileIncompleteNudgeEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      completeness: 65,
+      missingItems: ["Intro video", "Driver's license", "Car insurance"],
+      magicLink: SAMPLE_STUDENT.magicLink,
+      unsubscribeId: "sample-id",
+    }),
+  },
+
+  // ─────────────── Student · Invitations ───────────────
+  {
+    id: "student_invitation_received",
+    audience: "student",
+    group: "Student · Invitations",
+    label: "Invitation received",
+    subject: "You've been invited to apply!",
+    emailType: "student_invitation_received",
+    timing: "When provider invites student to apply",
+    who: "Student who received an invitation from a provider.",
+    why: "Notify them of the opportunity and encourage them to apply.",
+    render: () => invitationReceivedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      jobTitle: SAMPLE_MEDJOBS_PROVIDER.jobTitle,
+      hoursLabel: SAMPLE_MEDJOBS_PROVIDER.hoursLabel,
+      payRange: SAMPLE_MEDJOBS_PROVIDER.payRange,
+      unsubscribeId: "sample-id",
+    }),
+  },
+  {
+    id: "student_job_ready",
+    audience: "student",
+    group: "Student · Opportunities",
+    label: "New job opportunity nearby",
+    subject: `A caregiver job near ${SAMPLE_STUDENT.university} is open`,
+    emailType: "student_job_ready",
+    timing: "When a provider opens an opportunity near student's campus",
+    who: "Live students near a provider who just opened a caregiver opportunity.",
+    why: "Alert students to new opportunities in their area.",
+    render: () => jobReadyEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      campus: SAMPLE_STUDENT.university,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      viewUrl: "https://olera.care/medjobs/providers/comfort-care-home-health",
+      unsubscribeId: "sample-id",
+    }),
+  },
+
+  // ─────────────── Student · Provider notifications (about students) ───────────────
+  {
+    id: "medjobs_candidate_ready",
+    audience: "provider",
+    group: "MedJobs · Provider notifications",
+    label: "New candidate ready for interview",
+    subject: `Ready for interview: a student caregiver candidate near ${SAMPLE_STUDENT.university}`,
+    emailType: "medjobs_candidate_ready",
+    timing: "When a student goes live near a provider",
+    who: "Providers in the catchment area when a student activates their profile.",
+    why: "Alert providers to new candidates they can interview.",
+    render: () => candidateReadyEmail({
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      campus: SAMPLE_STUDENT.university,
+      candidateName: SAMPLE_STUDENT.studentName,
+      viewUrl: SAMPLE_STUDENT.profileUrl,
+    }),
   },
 ];
 

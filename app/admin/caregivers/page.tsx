@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { StudentMetadata } from "@/lib/types";
+import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
-type FilterTab = "all" | "pendingReview" | "complete" | "incomplete" | "nonEdu";
+type FilterTab = "all" | "pendingReview" | "hasInterviews" | "complete" | "incomplete" | "nonEdu";
 
 interface StudentRow {
   id: string;
@@ -27,14 +28,17 @@ interface StudentRow {
   created_at: string;
   profile_completeness: number;
   university: string | null;
+  pending_interview_count: number;
 }
 
 interface TabCounts {
   total: number;
+  live: number;
   active: number;
   paused: number;
   notLive: number;
   pendingReview: number;
+  hasInterviews: number;
   complete: number;
   incomplete: number;
   thisWeek: number;
@@ -67,6 +71,11 @@ export default function AdminStudentsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: "all",
+    customFrom: "",
+    customTo: "",
+  });
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -96,7 +105,7 @@ export default function AdminStudentsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [filter]);
+  }, [filter, dateRange]);
 
   const fetchStudents = useCallback(async () => {
     setLoading(true);
@@ -106,6 +115,7 @@ export default function AdminStudentsPage() {
       params.set("per_page", String(PAGE_SIZE));
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filter === "pendingReview") params.set("pending_review_only", "true");
+      if (filter === "hasInterviews") params.set("has_interviews_only", "true");
       if (filter === "complete") params.set("complete_only", "true");
       if (filter === "incomplete") params.set("incomplete_only", "true");
 
@@ -115,6 +125,11 @@ export default function AdminStudentsPage() {
       } else {
         params.set("edu_only", "true");
       }
+
+      // Date range filter
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
 
       const res = await fetch(`/api/admin/caregivers?${params}`);
       if (res.ok) {
@@ -127,19 +142,26 @@ export default function AdminStudentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filter, page]);
+  }, [debouncedSearch, filter, page, dateRange]);
 
   const fetchTabCounts = useCallback(async () => {
     try {
-      const statsRes = await fetch("/api/admin/caregivers/stats");
+      const params = new URLSearchParams();
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+
+      const statsRes = await fetch(`/api/admin/caregivers/stats?${params}`);
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setTabCounts({
           total: statsData.total ?? 0,
+          live: statsData.live ?? 0,
           active: statsData.active ?? 0,
           paused: statsData.paused ?? 0,
           notLive: statsData.notLive ?? 0,
           pendingReview: statsData.pendingReview ?? 0,
+          hasInterviews: statsData.hasInterviews ?? 0,
           complete: statsData.complete ?? 0,
           incomplete: statsData.incomplete ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
@@ -148,7 +170,7 @@ export default function AdminStudentsPage() {
         });
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [dateRange]);
 
   useEffect(() => {
     fetchTabCounts();
@@ -243,6 +265,7 @@ export default function AdminStudentsPage() {
   const tabs: { label: string; value: FilterTab; count: number | null }[] = [
     { label: "All", value: "all", count: tabCounts?.total ?? null },
     { label: "Pending Review", value: "pendingReview", count: tabCounts?.pendingReview ?? null },
+    { label: "Has Interviews", value: "hasInterviews", count: tabCounts?.hasInterviews ?? null },
     { label: "Complete", value: "complete", count: tabCounts?.complete ?? null },
     { label: "Incomplete", value: "incomplete", count: tabCounts?.incomplete ?? null },
     { label: "Non-.edu", value: "nonEdu", count: tabCounts?.nonEdu ?? null },
@@ -262,13 +285,40 @@ export default function AdminStudentsPage() {
       )}
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Students</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {filter === "nonEdu"
-            ? "Students who signed up with non-.edu emails"
-            : "Verified MedJobs student applicants (.edu emails)"}
-        </p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Students</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {filter === "nonEdu"
+              ? "Students who signed up with non-.edu emails"
+              : "Verified MedJobs student applicants (.edu emails)"}
+          </p>
+        </div>
+        <DateRangePopover value={dateRange} onChange={setDateRange} />
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm font-medium text-gray-500">Total Students</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{tabCounts?.total ?? "—"}</p>
+          <p className="text-xs text-gray-400 mt-1">+{tabCounts?.thisWeek ?? 0} this week</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm font-medium text-gray-500">Live</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">{tabCounts?.live ?? "—"}</p>
+          <p className="text-xs text-gray-400 mt-1">Approved & active</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm font-medium text-gray-500">Pending Review</p>
+          <p className="text-2xl font-bold text-orange-600 mt-1">{tabCounts?.pendingReview ?? "—"}</p>
+          <p className="text-xs text-gray-400 mt-1">Awaiting approval</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm font-medium text-gray-500">Has Interviews</p>
+          <p className="text-2xl font-bold text-primary-600 mt-1">{tabCounts?.hasInterviews ?? "—"}</p>
+          <p className="text-xs text-gray-400 mt-1">Pending provider requests</p>
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -307,12 +357,13 @@ export default function AdminStudentsPage() {
         {/* Header */}
         <div className={`grid gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide ${
           filter === "pendingReview"
-            ? "grid-cols-[2fr_1.5fr_100px_120px_140px]"
-            : "grid-cols-[2fr_1.5fr_100px_120px_32px]"
+            ? "grid-cols-[2fr_1.5fr_80px_80px_100px_140px]"
+            : "grid-cols-[2fr_1.5fr_80px_80px_100px_32px]"
         }`}>
           <div>Student</div>
           <div>School & Location</div>
           <div className="text-center">Status</div>
+          <div className="text-center">Interviews</div>
           <div className="text-right">{filter === "pendingReview" ? "Requested" : "Joined"}</div>
           <div className={filter === "pendingReview" ? "text-right" : ""}>{filter === "pendingReview" ? "Actions" : ""}</div>
         </div>
@@ -333,8 +384,8 @@ export default function AdminStudentsPage() {
                   key={student.id}
                   className={`group grid gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer items-center ${
                     isPendingMode
-                      ? "grid-cols-[2fr_1.5fr_100px_120px_140px]"
-                      : "grid-cols-[2fr_1.5fr_100px_120px_32px]"
+                      ? "grid-cols-[2fr_1.5fr_80px_80px_100px_140px]"
+                      : "grid-cols-[2fr_1.5fr_80px_80px_100px_32px]"
                   }`}
                   onClick={() => router.push(`/admin/caregivers/${student.id}`)}
                 >
@@ -388,6 +439,18 @@ export default function AdminStudentsPage() {
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
                         Not Live
                       </span>
+                    )}
+                  </div>
+
+                  {/* Interviews */}
+                  <div className="text-center">
+                    {student.pending_interview_count > 0 ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
+                        {student.pending_interview_count}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-300">—</span>
                     )}
                   </div>
 

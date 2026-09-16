@@ -105,6 +105,12 @@ export async function GET(request: NextRequest) {
       }
 
       const meta = (student.metadata || {}) as StudentMetadata;
+
+      // Skip if student has unsubscribed from nudge emails
+      if ((meta as Record<string, unknown>).nudges_unsubscribed) {
+        skipped++;
+        continue;
+      }
       const hasPhoto = !!student.image_url;
       const hasBasicInfo = {
         hasName: !!student.display_name?.trim(),
@@ -259,6 +265,7 @@ export async function GET(request: NextRequest) {
             completeness,
             missingItems: incompleteSections.slice(0, 5),
             magicLink,
+            unsubscribeId: student.id,
           }),
           emailType: "profile_incomplete_nudge",
           recipientType: "student",

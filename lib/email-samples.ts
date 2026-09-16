@@ -1322,6 +1322,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       completeness: 65,
       missingItems: ["Intro video", "Driver's license", "Car insurance"],
       magicLink: SAMPLE_STUDENT.magicLink,
+      unsubscribeId: "sample-id",
     }),
   },
 
@@ -1389,6 +1390,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       jobTitle: SAMPLE_MEDJOBS_PROVIDER.jobTitle,
       hoursLabel: SAMPLE_MEDJOBS_PROVIDER.hoursLabel,
       payRange: SAMPLE_MEDJOBS_PROVIDER.payRange,
+      unsubscribeId: "sample-id",
     }),
   },
   {
@@ -1406,6 +1408,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       campus: SAMPLE_STUDENT.university,
       providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
       viewUrl: "https://olera.care/medjobs/providers/comfort-care-home-health",
+      unsubscribeId: "sample-id",
     }),
   },
 

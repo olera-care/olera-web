@@ -4,7 +4,7 @@ import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
 
 // Completeness threshold - profiles at or above this are considered complete
-const COMPLETENESS_THRESHOLD = 80;
+const COMPLETENESS_THRESHOLD = 100;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;

@@ -4,7 +4,7 @@ import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
 
 // Must match the threshold in the main route
-const INCOMPLETE_THRESHOLD = 80;
+const INCOMPLETE_THRESHOLD = 100;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;

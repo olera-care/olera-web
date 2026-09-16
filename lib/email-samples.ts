@@ -81,13 +81,32 @@ import {
   adBoostTractionEmail,
   adBoostPromoCompleteEmail,
   adBoostLeadOutcomeEmail,
+  // interview emails
+  interviewProposedEmail,
+  interviewConfirmedEmail,
+  interviewCancelledEmail,
+  interviewReminderEmail,
 } from "@/lib/email-templates";
 import { renderEmail as renderProviderOutreachEmail } from "@/lib/provider-outreach/email-utils";
+import {
+  // student emails
+  studentWelcomeEmail,
+  studentAccountCreatedEmail,
+  studentReturningEmail,
+  profileIncompleteNudgeEmail,
+  invitationReceivedEmail,
+  jobReadyEmail,
+  candidateReadyEmail,
+  // profile review emails
+  medjobsProfileApprovedEmail,
+  medjobsProfileRejectedEmail,
+  medjobsReviewNudgeEmail,
+} from "@/lib/medjobs-email-templates";
 
 export interface EmailVariant {
   /** Stable slug — used in URLs and the automations ?variant= param. */
   id: string;
-  audience: "family" | "provider" | "transactional";
+  audience: "family" | "provider" | "student" | "transactional";
   /** Display grouping in the gallery, e.g. "Family · Compare cascade". */
   group: string;
   label: string;
@@ -179,6 +198,36 @@ const OUTREACH_CTX = {
   remove_url: "https://olera.care/remove?tok=sample",
   unsubscribe_url: "https://olera.care/unsubscribe?tok=sample",
   mailing_address: "340 S Lemon Ave #1439, Walnut, CA 91789",
+};
+
+// ── Student fixtures (MedJobs) ───────────────────────────────────────────────
+const SAMPLE_STUDENT = {
+  studentName: "Jessica Chen",
+  university: "Texas A&M University",
+  city: "College Station",
+  profileSlug: "jessica-chen-tamu",
+  profileUrl: "https://olera.care/medjobs/candidates/jessica-chen-tamu",
+  magicLink: "https://olera.care/portal/medjobs?tok=sample",
+};
+const SAMPLE_MEDJOBS_PROVIDER = {
+  providerName: "Comfort Care Home Health",
+  jobTitle: "Part-Time Student Caregiver",
+  hoursLabel: "10-15 hrs/week",
+  payRange: "$15-18/hr",
+};
+
+// ── Interview fixtures (MedJobs) ────────────────────────────────────────────
+const SAMPLE_INTERVIEW = {
+  proposedTime: "Friday, July 11 at 2:00 PM CDT",
+  alternativeTime: "Monday, July 14 at 10:00 AM CDT",
+  confirmedTime: "Friday, July 11, 2025 at 2:00 PM CDT",
+  interviewType: "Video",
+  durationMinutes: 30,
+  location: null,
+  notes: "Looking forward to meeting you! Please have your resume ready.",
+  viewUrl: "https://olera.care/portal/medjobs/interviews?tok=sample",
+  providerViewUrl: "https://olera.care/provider/caregivers?tok=sample",
+  magicLinkUrl: "https://olera.care/portal/medjobs?tok=sample",
 };
 
 export const EMAIL_VARIANTS: EmailVariant[] = [
@@ -1209,6 +1258,313 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     who: "Provider who hasn't claimed after the demand loss email.",
     why: "Incentive offer — free ad to get more families to find them.",
     render: () => renderProviderOutreachEmail("final", OUTREACH_CTX).html,
+  },
+
+  // ─────────────── Student · MedJobs onboarding ───────────────
+  {
+    id: "student_account_created",
+    audience: "student",
+    group: "Student · Onboarding",
+    label: "Account created",
+    subject: `Welcome to MedJobs, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
+    emailType: "student_account_created",
+    timing: "Immediately after Step 1 of onboarding",
+    who: "Student who just created an account via Step 1 of onboarding.",
+    why: "Orient the user, explain MedJobs, and drive them back to complete their profile.",
+    render: () => studentAccountCreatedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      city: SAMPLE_STUDENT.city,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_welcome",
+    audience: "student",
+    group: "Student · Onboarding",
+    label: "Welcome email",
+    subject: `Welcome to MedJobs, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
+    emailType: "student_welcome",
+    timing: "After account creation",
+    who: "Student who created an account.",
+    why: "Welcome the student, explain next steps to activate their profile.",
+    render: () => studentWelcomeEmail({
+      studentName: SAMPLE_STUDENT.studentName.split(" ")[0],
+      university: SAMPLE_STUDENT.university,
+      profileSlug: SAMPLE_STUDENT.profileSlug,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_returning",
+    audience: "student",
+    group: "Student · Onboarding",
+    label: "Returning student",
+    subject: `Welcome back, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
+    emailType: "student_returning",
+    timing: "When student returns with existing account",
+    who: "Student who already started an application and is returning.",
+    why: "Acknowledge their existing progress and encourage them to continue.",
+    render: () => studentReturningEmail({
+      studentName: SAMPLE_STUDENT.studentName.split(" ")[0],
+      profileSlug: SAMPLE_STUDENT.profileSlug,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_profile_incomplete_nudge",
+    audience: "student",
+    group: "Student · Lifecycle",
+    label: "Profile incomplete nudge",
+    subject: "Complete Your Profile",
+    emailType: "student_profile_incomplete_nudge",
+    timing: "After account created, profile still incomplete",
+    who: "Student with incomplete profile.",
+    why: "Nudge them to finish their profile so providers can find them.",
+    render: () => profileIncompleteNudgeEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      completeness: 65,
+      missingItems: ["Intro video", "Driver's license", "Car insurance"],
+      magicLink: SAMPLE_STUDENT.magicLink,
+      unsubscribeId: "sample-id",
+    }),
+  },
+
+  // ─────────────── Student · Profile Review ───────────────
+  {
+    id: "student_review_nudge",
+    audience: "student",
+    group: "Student · Profile Review",
+    label: "Ready for review nudge",
+    subject: "Your profile is ready to go live!",
+    emailType: "medjobs_review_nudge",
+    timing: "When profile is 100% complete but not yet submitted for review",
+    who: "Student who completed their profile but hasn't requested review.",
+    why: "Nudge them to request admin review so they can go live.",
+    render: () => medjobsReviewNudgeEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      portalUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_profile_approved",
+    audience: "student",
+    group: "Student · Profile Review",
+    label: "Profile approved",
+    subject: "Your MedJobs profile is live!",
+    emailType: "medjobs_profile_approved",
+    timing: "When admin approves student's profile review request",
+    who: "Student whose profile was just approved by admin.",
+    why: "Celebrate approval, explain what happens next, link to their live profile.",
+    render: () => medjobsProfileApprovedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      profileUrl: SAMPLE_STUDENT.profileUrl,
+      portalUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_profile_rejected",
+    audience: "student",
+    group: "Student · Profile Review",
+    label: "Profile needs updates",
+    subject: "Your MedJobs profile needs some updates",
+    emailType: "medjobs_profile_rejected",
+    timing: "When admin rejects student's profile review request",
+    who: "Student whose profile was rejected with feedback.",
+    why: "Explain what needs improvement and encourage them to resubmit.",
+    render: () => medjobsProfileRejectedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      reason: "Please re-record your intro video with better lighting and ensure your face is clearly visible throughout. Also, your driver's license photo is blurry — please upload a clearer image.",
+      portalUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+
+  // ─────────────── Student · Invitations ───────────────
+  {
+    id: "student_invitation_received",
+    audience: "student",
+    group: "Student · Invitations",
+    label: "Invitation received",
+    subject: "You've been invited to apply!",
+    emailType: "student_invitation_received",
+    timing: "When provider invites student to apply",
+    who: "Student who received an invitation from a provider.",
+    why: "Notify them of the opportunity and encourage them to apply.",
+    render: () => invitationReceivedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      jobTitle: SAMPLE_MEDJOBS_PROVIDER.jobTitle,
+      hoursLabel: SAMPLE_MEDJOBS_PROVIDER.hoursLabel,
+      payRange: SAMPLE_MEDJOBS_PROVIDER.payRange,
+      unsubscribeId: "sample-id",
+    }),
+  },
+  {
+    id: "student_job_ready",
+    audience: "student",
+    group: "Student · Opportunities",
+    label: "New job opportunity nearby",
+    subject: `A caregiver job near ${SAMPLE_STUDENT.university} is open`,
+    emailType: "student_job_ready",
+    timing: "When a provider opens an opportunity near student's campus",
+    who: "Live students near a provider who just opened a caregiver opportunity.",
+    why: "Alert students to new opportunities in their area.",
+    render: () => jobReadyEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      campus: SAMPLE_STUDENT.university,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      viewUrl: "https://olera.care/medjobs/providers/comfort-care-home-health",
+      unsubscribeId: "sample-id",
+    }),
+  },
+
+  // ─────────────── Student · Interviews ───────────────
+  {
+    id: "interview_proposed_to_student",
+    audience: "student",
+    group: "Student · Interviews",
+    label: "Interview request received",
+    subject: `${SAMPLE_MEDJOBS_PROVIDER.providerName} wants to schedule an interview with you`,
+    emailType: "interview_proposed",
+    timing: "When provider schedules an interview",
+    who: "Student who received an interview request from a provider.",
+    why: "Notify them of the interview request and drive them to confirm/decline.",
+    render: () => interviewProposedEmail({
+      proposerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      proposedTime: SAMPLE_INTERVIEW.proposedTime,
+      alternativeTime: SAMPLE_INTERVIEW.alternativeTime,
+      notes: SAMPLE_INTERVIEW.notes,
+      viewUrl: SAMPLE_INTERVIEW.viewUrl,
+    }),
+  },
+  {
+    id: "interview_confirmed_student",
+    audience: "student",
+    group: "Student · Interviews",
+    label: "Interview confirmed (student)",
+    subject: `Your interview with ${SAMPLE_MEDJOBS_PROVIDER.providerName} is confirmed`,
+    emailType: "interview_confirmed",
+    timing: "When student confirms interview",
+    who: "Student who just confirmed an interview.",
+    why: "Confirm the interview details and provide calendar invite.",
+    render: () => interviewConfirmedEmail({
+      otherName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      confirmedTime: SAMPLE_INTERVIEW.confirmedTime,
+      durationMinutes: SAMPLE_INTERVIEW.durationMinutes,
+      location: SAMPLE_INTERVIEW.location,
+      viewUrl: SAMPLE_INTERVIEW.viewUrl,
+    }),
+  },
+  {
+    id: "interview_confirmed_provider",
+    audience: "provider",
+    group: "MedJobs · Interviews",
+    label: "Interview confirmed (provider)",
+    subject: `Your interview with ${SAMPLE_STUDENT.studentName} is confirmed`,
+    emailType: "interview_confirmed",
+    timing: "When student confirms interview",
+    who: "Provider whose interview request was confirmed by student.",
+    why: "Confirm the interview details and provide calendar invite.",
+    render: () => interviewConfirmedEmail({
+      otherName: SAMPLE_STUDENT.studentName,
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      confirmedTime: SAMPLE_INTERVIEW.confirmedTime,
+      durationMinutes: SAMPLE_INTERVIEW.durationMinutes,
+      location: SAMPLE_INTERVIEW.location,
+      viewUrl: SAMPLE_INTERVIEW.providerViewUrl,
+    }),
+  },
+  {
+    id: "interview_cancelled_student",
+    audience: "student",
+    group: "Student · Interviews",
+    label: "Interview cancelled (student)",
+    subject: `Your interview with ${SAMPLE_MEDJOBS_PROVIDER.providerName} has been cancelled`,
+    emailType: "interview_cancelled",
+    timing: "When interview is cancelled",
+    who: "Student whose interview was cancelled.",
+    why: "Inform them the interview is no longer happening.",
+    render: () => interviewCancelledEmail({
+      otherName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      viewUrl: SAMPLE_INTERVIEW.viewUrl,
+    }),
+  },
+  {
+    id: "interview_cancelled_provider",
+    audience: "provider",
+    group: "MedJobs · Interviews",
+    label: "Interview cancelled (provider)",
+    subject: `Your interview with ${SAMPLE_STUDENT.studentName} has been cancelled`,
+    emailType: "interview_cancelled",
+    timing: "When interview is cancelled",
+    who: "Provider whose interview was cancelled.",
+    why: "Inform them the interview is no longer happening.",
+    render: () => interviewCancelledEmail({
+      otherName: SAMPLE_STUDENT.studentName,
+      viewUrl: SAMPLE_INTERVIEW.providerViewUrl,
+    }),
+  },
+  {
+    id: "interview_reminder_student",
+    audience: "student",
+    group: "Student · Interviews",
+    label: "Interview reminder (student)",
+    subject: `Reminder: Interview with ${SAMPLE_MEDJOBS_PROVIDER.providerName} tomorrow`,
+    emailType: "interview_reminder",
+    timing: "24 hours before confirmed interview",
+    cron: "medjobs-interview-reminders",
+    who: "Student with a confirmed interview tomorrow.",
+    why: "Remind them about the upcoming interview so they don't miss it.",
+    render: () => interviewReminderEmail({
+      recipientName: SAMPLE_STUDENT.studentName,
+      otherName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      confirmedTime: SAMPLE_INTERVIEW.confirmedTime,
+      durationMinutes: SAMPLE_INTERVIEW.durationMinutes,
+      location: SAMPLE_INTERVIEW.location,
+      viewUrl: SAMPLE_INTERVIEW.viewUrl,
+    }),
+  },
+  {
+    id: "interview_reminder_provider",
+    audience: "provider",
+    group: "MedJobs · Interviews",
+    label: "Interview reminder (provider)",
+    subject: `Reminder: Interview with ${SAMPLE_STUDENT.studentName} tomorrow`,
+    emailType: "interview_reminder",
+    timing: "24 hours before confirmed interview",
+    cron: "medjobs-interview-reminders",
+    who: "Provider with a confirmed interview tomorrow.",
+    why: "Remind them about the upcoming interview so they don't miss it.",
+    render: () => interviewReminderEmail({
+      recipientName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      otherName: SAMPLE_STUDENT.studentName,
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      confirmedTime: SAMPLE_INTERVIEW.confirmedTime,
+      durationMinutes: SAMPLE_INTERVIEW.durationMinutes,
+      location: SAMPLE_INTERVIEW.location,
+      viewUrl: SAMPLE_INTERVIEW.providerViewUrl,
+    }),
+  },
+
+  // ─────────────── Student · Provider notifications (about students) ───────────────
+  {
+    id: "medjobs_candidate_ready",
+    audience: "provider",
+    group: "MedJobs · Provider notifications",
+    label: "New candidate ready for interview",
+    subject: `Ready for interview: a student caregiver candidate near ${SAMPLE_STUDENT.university}`,
+    emailType: "medjobs_candidate_ready",
+    timing: "When a student goes live near a provider",
+    who: "Providers in the catchment area when a student activates their profile.",
+    why: "Alert providers to new candidates they can interview.",
+    render: () => candidateReadyEmail({
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      campus: SAMPLE_STUDENT.university,
+      candidateName: SAMPLE_STUDENT.studentName,
+      viewUrl: SAMPLE_STUDENT.profileUrl,
+    }),
   },
 ];
 

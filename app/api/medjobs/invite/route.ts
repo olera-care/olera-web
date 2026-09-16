@@ -90,6 +90,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
+    // Check if student has unsubscribed from MedJobs emails
+    const studentMeta = (studentProfile.metadata || {}) as Record<string, unknown>;
+
     // Dedup: prevent duplicate invitation for same provider + student + posting
     const { data: existing } = await admin
       .from("connections")
@@ -148,8 +151,8 @@ export async function POST(req: NextRequest) {
 
     const hoursLabel = HOURS_LABELS[posting.hoursPerWeek] || posting.hoursPerWeek;
 
-    // Fire-and-forget: email to student
-    if (studentProfile.email) {
+    // Fire-and-forget: email to student (skip if unsubscribed)
+    if (studentProfile.email && !studentMeta.nudges_unsubscribed) {
       try {
         await sendEmail({
           to: studentProfile.email,
@@ -160,6 +163,7 @@ export async function POST(req: NextRequest) {
             jobTitle: posting.title,
             hoursLabel,
             payRange: `$${posting.payMin}–$${posting.payMax}/hr`,
+            unsubscribeId: studentProfileId,
           }),
           emailType: "invitation_received",
           recipientType: "student",

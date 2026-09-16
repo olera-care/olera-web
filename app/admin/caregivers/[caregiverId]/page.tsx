@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
@@ -70,6 +70,8 @@ export default function AdminStudentDetailPage() {
   const { caregiverId: studentId } = useParams<{ caregiverId: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -77,6 +79,8 @@ export default function AdminStudentDetailPage() {
   const [rejectReason, setRejectReason] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [student, setStudent] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [originalData, setOriginalData] = useState<Record<string, unknown>>({});
   const [connections, setConnections] = useState<ConnectionRow[]>([]);
   const [invitations, setInvitations] = useState<InvitationRow[]>([]);
   const [interviews, setInterviews] = useState<InterviewRow[]>([]);
@@ -95,6 +99,27 @@ export default function AdminStudentDetailPage() {
       setInvitations(data.invitations ?? []);
       setInterviews(data.interviews ?? []);
       setConnectionCount(data.connectionCount ?? 0);
+
+      // Initialize form data from student
+      const meta = (data.student?.metadata || {}) as StudentMetadata;
+      const initial: Record<string, unknown> = {
+        display_name: data.student?.display_name || "",
+        email: data.student?.email || "",
+        phone: data.student?.phone || "",
+        city: data.student?.city || "",
+        state: data.student?.state || "",
+        is_active: data.student?.is_active ?? true,
+        university: meta.university || "",
+        major: meta.major || "",
+        certifications: meta.certifications || [],
+        skills: meta.skills || [],
+        why_caregiving: meta.why_caregiving || "",
+        resume_url: meta.resume_url || "",
+        video_intro_url: meta.video_intro_url || "",
+        linkedin_url: meta.linkedin_url || "",
+      };
+      setFormData(initial);
+      setOriginalData(initial);
     } catch (err) {
       console.error("Failed to fetch student:", err);
     } finally {
@@ -106,8 +131,93 @@ export default function AdminStudentDetailPage() {
     fetchStudent();
   }, [fetchStudent]);
 
+  // Dirty tracking
+  const isDirty = useMemo(() => {
+    for (const key of Object.keys(formData)) {
+      const current = formData[key];
+      const original = originalData[key];
+      // Handle array comparison
+      if (Array.isArray(current) && Array.isArray(original)) {
+        if (JSON.stringify(current) !== JSON.stringify(original)) return true;
+      } else if (current !== original) {
+        return true;
+      }
+    }
+    return false;
+  }, [formData, originalData]);
+
+  // Warn on navigation when dirty
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  function updateField(field: string, value: unknown) {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveMessage(null);
+
+    // Compute delta
+    const delta: Record<string, unknown> = {};
+    for (const key of Object.keys(formData)) {
+      const current = formData[key];
+      const original = originalData[key];
+      if (Array.isArray(current) && Array.isArray(original)) {
+        if (JSON.stringify(current) !== JSON.stringify(original)) {
+          delta[key] = current;
+        }
+      } else if (current !== original) {
+        delta[key] = current;
+      }
+    }
+
+    if (Object.keys(delta).length === 0) {
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/caregivers/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(delta),
+      });
+
+      if (res.ok) {
+        setOriginalData({ ...formData });
+        // Also update the student object for display
+        setStudent((prev: typeof student) => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(delta).filter(([k]) => ["display_name", "email", "phone", "city", "state", "is_active"].includes(k))
+          ),
+        }));
+        setSaveMessage({ type: "success", text: "Changes saved successfully." });
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        const err = await res.json();
+        setSaveMessage({ type: "error", text: err.error || "Failed to save." });
+      }
+    } catch {
+      setSaveMessage({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleDelete() {
-    if (!confirm(`Permanently delete "${student?.display_name}"? This will also delete all their applications. This cannot be undone.`)) return;
+    const name = (formData.display_name as string) || student?.display_name || "this student";
+    if (isDirty) {
+      if (!confirm("You have unsaved changes that will be lost. Continue with delete?")) return;
+    }
+    if (!confirm(`Permanently delete "${name}"? This will also delete all their applications. This cannot be undone.`)) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/admin/caregivers/${studentId}`, { method: "DELETE" });
@@ -122,7 +232,11 @@ export default function AdminStudentDetailPage() {
   }
 
   async function handleApprove() {
-    if (!confirm(`Approve "${student?.display_name}"? Their profile will become visible to providers.`)) return;
+    if (isDirty) {
+      if (!confirm("You have unsaved changes. Approving will discard them. Continue?")) return;
+    }
+    const name = (formData.display_name as string) || student?.display_name || "this student";
+    if (!confirm(`Approve "${name}"? Their profile will become visible to providers.`)) return;
     setApproving(true);
     try {
       const res = await fetch(`/api/admin/caregivers/${studentId}/approve`, { method: "POST" });
@@ -137,6 +251,13 @@ export default function AdminStudentDetailPage() {
     } finally {
       setApproving(false);
     }
+  }
+
+  function openRejectModal() {
+    if (isDirty) {
+      if (!confirm("You have unsaved changes. Rejecting will discard them. Continue?")) return;
+    }
+    setShowRejectModal(true);
   }
 
   async function handleReject() {
@@ -200,12 +321,56 @@ export default function AdminStudentDetailPage() {
           </svg>
           Back to Students
         </Link>
+        <div className="flex items-center gap-3">
+          {saveMessage && (
+            <span className={`text-sm ${saveMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+              {saveMessage.text}
+            </span>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={!isDirty || saving}
+            className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
       </div>
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
-        <div className="flex items-center gap-3 mt-2">
+      <div className="mb-6 flex items-start gap-4">
+        {/* Profile Photo */}
+        {student.image_url ? (
+          <img
+            src={student.image_url}
+            alt={student.display_name}
+            className="w-20 h-20 rounded-xl object-cover border border-gray-200"
+          />
+        ) : (
+          <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        )}
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
+            <a
+              href={`/admin/caregivers/${studentId}/portal-preview`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              title="Preview student portal view"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Portal Preview
+            </a>
+          </div>
+          <div className="flex items-center gap-3 mt-2">
           <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
             Student
           </span>
@@ -229,6 +394,7 @@ export default function AdminStudentDetailPage() {
             {connectionCount} application{connectionCount !== 1 ? "s" : ""}
           </span>
         </div>
+        </div>
       </div>
 
       {/* Review Status Banner */}
@@ -251,7 +417,7 @@ export default function AdminStudentDetailPage() {
             </div>
             <div className="flex items-center gap-3 sm:shrink-0">
               <button
-                onClick={() => setShowRejectModal(true)}
+                onClick={openRejectModal}
                 disabled={rejecting}
                 className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
@@ -311,56 +477,53 @@ export default function AdminStudentDetailPage() {
         {/* Identity */}
         <Section title="Identity">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField label="Name" value={student.display_name} />
-            <ReadOnlyField label="Email" value={student.email} />
-            <ReadOnlyField label="Phone" value={student.phone} />
-            <ReadOnlyField
-              label="Location"
-              value={student.city && student.state ? `${student.city}, ${student.state}` : student.city || student.state}
-            />
+            <FieldInput label="Name" value={formData.display_name as string} onChange={(v) => updateField("display_name", v)} />
+            <FieldInput label="Email" value={formData.email as string} onChange={(v) => updateField("email", v)} />
+            <FieldInput label="Phone" value={formData.phone as string} onChange={(v) => updateField("phone", v)} />
+            <FieldInput label="City" value={formData.city as string} onChange={(v) => updateField("city", v)} />
+            <FieldInput label="State" value={formData.state as string} onChange={(v) => updateField("state", v)} />
             <ReadOnlyField label="Source" value={student.source} />
             <ReadOnlyField
               label="Profile Completeness"
               value={meta.profile_completeness ? `${meta.profile_completeness}%` : null}
             />
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.is_active as boolean}
+                  onChange={(e) => updateField("is_active", e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Active</span>
+              </label>
+            </div>
           </div>
         </Section>
 
         {/* Education */}
         <Section title="Education">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <ReadOnlyField label="University" value={meta.university} />
-              <ReadOnlyField label="Campus" value={meta.campus} />
-              <ReadOnlyField label="Major" value={meta.major} />
-              <ReadOnlyField label="Graduation Year" value={meta.graduation_year?.toString()} />
-              <ReadOnlyField label="GPA" value={meta.gpa?.toFixed(2)} />
-              <ReadOnlyField label="Program Track" value={meta.program_track} />
-              <ReadOnlyField label="Intended Professional School" value={meta.intended_professional_school} />
+              <FieldInput label="University" value={formData.university as string} onChange={(v) => updateField("university", v)} />
+              <FieldInput label="Major" value={formData.major as string} onChange={(v) => updateField("major", v)} />
             </div>
           </Section>
 
         {/* Experience */}
         <Section title="Experience">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField
+            <FieldInput
               label="Certifications"
-              value={meta.certifications?.length ? meta.certifications.join(", ") : null}
+              value={(formData.certifications as string[])?.join(", ") || ""}
+              onChange={(v) => updateField("certifications", v ? v.split(",").map(s => s.trim()).filter(Boolean) : [])}
+              placeholder="CNA, CPR, BLS (comma-separated)"
             />
-            <ReadOnlyField
-              label="Years of Experience"
-              value={meta.years_caregiving?.toString()}
-            />
-            <ReadOnlyField
-              label="Languages"
-              value={meta.languages?.length ? meta.languages.join(", ") : null}
-            />
-            <ReadOnlyField
-              label="Care Experience Types"
-              value={meta.care_experience_types?.length ? meta.care_experience_types.join(", ") : null}
-            />
-            <ReadOnlyField
+            <FieldInput
               label="Skills"
-              value={meta.skills?.length ? meta.skills.join(", ") : null}
+              value={(formData.skills as string[])?.join(", ") || ""}
+              onChange={(v) => updateField("skills", v ? v.split(",").map(s => s.trim()).filter(Boolean) : [])}
+              placeholder="Patient care, Medication (comma-separated)"
             />
           </div>
           {meta.experience_entries && meta.experience_entries.length > 0 && (
@@ -388,108 +551,208 @@ export default function AdminStudentDetailPage() {
           )}
         </Section>
 
-        {/* Availability */}
-        <Section title="Availability">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField label="Availability Type" value={meta.availability_type} />
-            <ReadOnlyField label="Hours Per Week" value={meta.hours_per_week?.toString() || meta.hours_per_week_range} />
-            <ReadOnlyField label="Available Start" value={meta.available_start} />
-            <ReadOnlyField label="Duration Commitment" value={meta.duration_commitment} />
-            <ReadOnlyField label="Has Transportation" value={meta.transportation ? "Yes" : meta.transportation === false ? "No" : null} />
-            <ReadOnlyField label="Willing to Relocate" value={meta.willing_to_relocate ? "Yes" : meta.willing_to_relocate === false ? "No" : null} />
-            <ReadOnlyField label="Max Commute" value={meta.max_commute_miles ? `${meta.max_commute_miles} miles` : null} />
-            <ReadOnlyField label="Seeking Status" value={meta.seeking_status} />
-          </div>
-          {meta.availability_notes && (
-            <div className="mt-4">
-              <ReadOnlyField label="Availability Notes" value={meta.availability_notes} />
+        {/* Why Caregiving */}
+        <Section title="Why I Want to Be a Caregiver">
+          <textarea
+            value={(formData.why_caregiving as string) || ""}
+            onChange={(e) => updateField("why_caregiving", e.target.value)}
+            rows={4}
+            placeholder="Student's motivation for caregiving..."
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          />
+        </Section>
+
+        {/* Screening Questions (Scenario Responses) */}
+        <Section title="Screening Questions">
+          {meta.scenario_responses && meta.scenario_responses.length > 0 ? (
+            <div className="space-y-4">
+              {meta.scenario_responses.map((response, index) => (
+                <div key={index} className="border-l-2 border-primary-200 pl-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">{response.question}</p>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {response.answer || <span className="text-gray-400 italic">No answer provided</span>}
+                  </p>
+                </div>
+              ))}
             </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No screening questions answered</p>
           )}
         </Section>
 
+        {/* Availability */}
+        <Section title="Availability">
+          <div className="mt-0">
+            <ReadOnlyField label="Availability Notes" value={meta.availability_notes} />
+          </div>
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-500 mb-2">Commitment Statement</p>
+            {meta.commitment_statement ? (
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{meta.commitment_statement}</p>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Not provided</p>
+            )}
+          </div>
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-500 mb-3">Seasonal Availability</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {(["spring", "summer", "fall", "winter"] as const).map((season) => {
+                const data = meta.year_round_availability?.[season];
+                const statusColors = {
+                  available: "bg-green-100 text-green-700 border-green-200",
+                  limited: "bg-amber-100 text-amber-700 border-amber-200",
+                  unavailable: "bg-gray-100 text-gray-500 border-gray-200",
+                };
+                return (
+                  <div
+                    key={season}
+                    className={`p-3 rounded-lg border ${data ? (statusColors[data.status as keyof typeof statusColors] || statusColors.unavailable) : "bg-gray-50 border-gray-200"}`}
+                  >
+                    <p className="text-sm font-medium capitalize">{season}</p>
+                    <p className={`text-xs capitalize ${data ? "" : "text-gray-400 italic"}`}>
+                      {data?.status || "Not set"}
+                    </p>
+                    {data?.notes && <p className="text-xs mt-1 opacity-75">{data.notes}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-500 mb-3">Weekly Schedule</p>
+            {meta.availability_schedule && Object.keys(meta.availability_schedule).length > 0 ? (
+              <div className="grid grid-cols-7 gap-1 text-xs">
+                {(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const).map((day) => {
+                  const slots = meta.availability_schedule?.[day] || [];
+                  return (
+                    <div key={day} className="text-center">
+                      <p className="font-medium text-gray-600 capitalize mb-1">{day.slice(0, 3)}</p>
+                      {slots.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {slots.map((slot, i) => (
+                            <p key={i} className="text-gray-500 bg-primary-50 rounded px-1 py-0.5">
+                              {typeof slot === "string" ? slot : `${slot.start}–${slot.end}`}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-300">—</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Not provided</p>
+            )}
+          </div>
+        </Section>
+
         {/* Documents & Media */}
-        {(meta.resume_url || meta.video_intro_url || meta.linkedin_url || meta.drivers_license_url) && (
-          <Section title="Documents & Media">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {meta.resume_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Resume</p>
+        <Section title="Documents & Media">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Resume URL</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={(formData.resume_url as string) || ""}
+                  onChange={(e) => updateField("resume_url", e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                {typeof formData.resume_url === "string" && formData.resume_url && (
                   <a
-                    href={meta.resume_url}
+                    href={formData.resume_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-700"
+                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    View Resume →
+                    View →
                   </a>
-                </div>
-              )}
-              {meta.video_intro_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Video Intro</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Video Intro URL</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={(formData.video_intro_url as string) || ""}
+                  onChange={(e) => updateField("video_intro_url", e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                {typeof formData.video_intro_url === "string" && formData.video_intro_url && (
                   <a
-                    href={meta.video_intro_url}
+                    href={formData.video_intro_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-700"
+                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    Watch Video →
+                    View →
                   </a>
-                </div>
-              )}
-              {meta.linkedin_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">LinkedIn</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">LinkedIn URL</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={(formData.linkedin_url as string) || ""}
+                  onChange={(e) => updateField("linkedin_url", e.target.value)}
+                  placeholder="https://linkedin.com/in/..."
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                {typeof formData.linkedin_url === "string" && formData.linkedin_url && (
                   <a
-                    href={meta.linkedin_url}
+                    href={formData.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-700"
+                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    View Profile →
+                    View →
                   </a>
-                </div>
-              )}
-              {meta.drivers_license_url && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Driver&apos;s License</p>
-                  <p className="text-sm text-gray-600">
-                    Uploaded {meta.drivers_license_uploaded_at ? new Date(meta.drivers_license_uploaded_at).toLocaleDateString() : ""}
-                    {meta.drivers_license_expiration && ` · Expires ${meta.drivers_license_expiration}`}
-                  </p>
-                </div>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">Driver&apos;s License</p>
+              {meta.drivers_license_url ? (
+                <p className="text-sm text-gray-600">
+                  Uploaded {meta.drivers_license_uploaded_at ? new Date(meta.drivers_license_uploaded_at).toLocaleDateString() : ""}
+                  {meta.drivers_license_expiration && ` · Expires ${meta.drivers_license_expiration}`}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not uploaded</p>
               )}
             </div>
-          </Section>
-        )}
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-500">Car Insurance</p>
+              {meta.car_insurance_url ? (
+                <p className="text-sm text-gray-600">
+                  Uploaded {meta.car_insurance_uploaded_at ? new Date(meta.car_insurance_uploaded_at).toLocaleDateString() : ""}
+                  {meta.car_insurance_expiration && ` · Expires ${meta.car_insurance_expiration}`}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+              )}
+            </div>
+          </div>
+        </Section>
 
         {/* Commitments & Pledges */}
-        {(meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing) && (
-          <Section title="Commitments & Pledges">
-            <div className="flex flex-wrap gap-2">
-              {meta.ncns_pledge && (
-                <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm">
-                  ✓ No Call No Show Pledge
-                </span>
-              )}
-              {meta.school_balance_pledge && (
-                <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm">
-                  ✓ School Balance Pledge
-                </span>
-              )}
-              {meta.advance_notice_pledge && (
-                <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm">
-                  ✓ Advance Notice Pledge
-                </span>
-              )}
-              {meta.prn_willing && (
-                <span className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm">
-                  PRN Available
-                </span>
-              )}
-            </div>
-          </Section>
-        )}
+        <Section title="Commitments & Pledges">
+          <div className="flex flex-wrap gap-2">
+            <span className={`px-3 py-1.5 rounded-full text-sm ${meta.advance_notice_pledge ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
+              {meta.advance_notice_pledge ? "✓" : "○"} Advance Notice Pledge
+            </span>
+            <span className={`px-3 py-1.5 rounded-full text-sm ${meta.prn_willing ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-400"}`}>
+              {meta.prn_willing ? "✓" : "○"} PRN Available
+            </span>
+          </div>
+        </Section>
 
         {/* Interview History */}
         {interviews.length > 0 && (
@@ -650,6 +913,20 @@ export default function AdminStudentDetailPage() {
         </div>
       </div>
 
+      {/* Bottom save bar */}
+      {isDirty && (
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 py-4 mt-6 -mx-4 px-4 sm:-mx-6 sm:px-6 flex items-center justify-end gap-3">
+          <span className="text-sm text-amber-600">You have unsaved changes</span>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      )}
+
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -710,6 +987,33 @@ function ReadOnlyField({ label, value }: { label: string; value: string | null |
     <div className="space-y-1">
       <p className="text-sm font-medium text-gray-500">{label}</p>
       <p className="text-sm text-gray-900">{value || <span className="text-gray-400">Not provided</span>}</p>
+    </div>
+  );
+}
+
+function FieldInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+}: {
+  label: string;
+  value: string | null | undefined;
+  onChange: (val: string) => void;
+  type?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <input
+        type={type}
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+      />
     </div>
   );
 }

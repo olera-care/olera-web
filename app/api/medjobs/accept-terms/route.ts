@@ -173,6 +173,8 @@ async function notifyCatchmentStudents(
   let sent = 0;
   for (const s of students as Array<{ id: string; email: string | null; display_name: string | null; metadata: Record<string, unknown> | null }>) {
     if (!s.email) continue;
+    // Skip students who have unsubscribed from MedJobs emails
+    if (s.metadata?.nudges_unsubscribed) continue;
     // campus = PartnerUniversity slug (eligibility funnel); university = display
     // name (legacy apply funnel). campusKeys holds both forms, so accept either.
     const campusVal = (s.metadata?.campus as string | undefined) || (s.metadata?.university as string | undefined);
@@ -190,6 +192,7 @@ async function notifyCatchmentStudents(
           campus: campusLabel,
           providerName: provider.displayName,
           viewUrl,
+          unsubscribeId: s.id,
         }),
         emailType: "medjobs_job_ready",
         recipientType: "student",

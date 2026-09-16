@@ -21,6 +21,10 @@
       "schedule": "0 15 * * *"
     },
     {
+      "path": "/api/cron/medjobs-interview-reminders",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/matches-nudge",
       "schedule": "0 14 * * *"
     },

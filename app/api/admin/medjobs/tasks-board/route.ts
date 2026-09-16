@@ -94,7 +94,7 @@ export async function GET() {
       db
         .from("student_outreach")
         .select("id, campus_id, kind, stakeholder_type, organization_name, status, cadence_day, notes"),
-      db.from("student_outreach_contacts").select("outreach_id, name, first_name, last_name, email, phone"),
+      db.from("student_outreach_contacts").select("outreach_id, name, first_name, last_name, role, email, phone"),
       db
         .from("student_outreach_tasks")
         .select("id, outreach_id, task_type, due_at, status, payload, notes, completed_at")
@@ -118,12 +118,17 @@ export async function GET() {
   }
 
   // ── contacts, one per record: the first with anything usable on it ──
-  const contactOf = new Map<string, { contact: string; email: string; phone: string }>();
+  const contactOf = new Map<string, { contact: string; role: string; email: string; phone: string }>();
   for (const c of contactsRes.data ?? []) {
     if (contactOf.has(c.outreach_id)) continue;
     const name = c.name || [c.first_name, c.last_name].filter(Boolean).join(" ");
     if (!name && !c.email && !c.phone) continue;
-    contactOf.set(c.outreach_id, { contact: name ?? "", email: c.email ?? "", phone: c.phone ?? "" });
+    contactOf.set(c.outreach_id, {
+      contact: name ?? "",
+      role: c.role ?? "",
+      email: c.email ?? "",
+      phone: c.phone ?? "",
+    });
   }
 
   // ── tasks, grouped by what they hang off ──────────────────────────
@@ -203,6 +208,7 @@ export async function GET() {
         section,
         name: row.organization_name ?? "Unnamed",
         contact: c?.contact ?? "",
+        role: c?.role ?? "",
         phone: c?.phone ?? "",
         email: c?.email ?? "",
         // Position is derived from the work in flight, not stored twice.
@@ -228,6 +234,7 @@ export async function GET() {
         section: "jobboard",
         name: "University job board",
         contact: "",
+        role: "",
         phone: "",
         email: "",
         step: ch.status === "live" ? null : pending[0]?.step ?? 0,
@@ -253,7 +260,7 @@ export async function GET() {
         .filter((t) => t.record_id === rec.id)
         .map((t) => siteTask(t, section));
       const pending = tasks.filter((t) => !t.done);
-      const contact = ((rec.contacts ?? []) as Array<{ name?: string; email?: string; phone?: string }>)[0];
+      const contact = ((rec.contacts ?? []) as Array<{ name?: string; role?: string; email?: string; phone?: string }>)[0];
       const done = rec.status === "live" || rec.status === "declined";
 
       records[section].push({
@@ -261,6 +268,7 @@ export async function GET() {
         section,
         name: rec.name,
         contact: contact?.name ?? "",
+        role: (contact as { role?: string } | undefined)?.role ?? "",
         phone: contact?.phone ?? "",
         email: contact?.email ?? "",
         step: done ? null : pending[0]?.step ?? 0,
@@ -284,6 +292,7 @@ export async function GET() {
         section,
         name: ladder.label,
         contact: "",
+        role: "",
         phone: "",
         email: "",
         step: 0,

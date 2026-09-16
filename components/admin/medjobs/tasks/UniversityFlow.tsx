@@ -136,6 +136,7 @@ export default function UniversityFlow({
       {view.kind === "task" && record && task ? (
         <TaskView
           universityName={university.name}
+          universitySlug={university.slug}
           record={record}
           task={task}
           onOpenRecord={() => setView({ kind: "record", recordId: record.id })}

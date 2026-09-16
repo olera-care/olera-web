@@ -54,6 +54,8 @@ export interface BoardRecord {
   section: SectionKey;
   name: string;
   contact: string;
+  /** What the contact is to the organisation — president, chair, director. */
+  role: string;
   phone: string;
   email: string;
   /** Null once the record has stopped climbing — reached its goal or stopped. */
@@ -89,6 +91,9 @@ export const DEFERRALS: Array<{ label: string; days: number }> = [
   { label: "In 3 days", days: 3 },
   { label: "Next week", days: 7 },
   { label: "Next month", days: 30 },
+  // A missed career fair is not a next-month problem. Roughly a term out,
+  // which is when the same event comes round again.
+  { label: "Next season", days: 120 },
 ];
 
 // ── dates ────────────────────────────────────────────────────────────
@@ -214,6 +219,7 @@ export function makeRecord(
     section,
     name,
     contact: "",
+    role: "",
     phone: "",
     email: "",
     step,

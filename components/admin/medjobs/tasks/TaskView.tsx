@@ -24,12 +24,26 @@ import {
 
 const FIELD_LABEL: Record<ContactField, string> = {
   contact: "Contact name",
+  role: "Role",
   phone: "Phone",
   email: "Email",
 };
 
+const FIELD_HINT: Partial<Record<ContactField, string>> = {
+  role: "President, outreach chair…",
+};
+
+/**
+ * Fill the copy from the record. Every token has a fallback that still
+ * reads as a sentence, so a half-filled record never sends "Hi ,".
+ */
+function fill(text: string, ctx: Record<string, string>): string {
+  return text.replace(/\{(\w+)\}/g, (_, key: string) => ctx[key] ?? "");
+}
+
 export default function TaskView({
   universityName,
+  universitySlug,
   record,
   task,
   onOpenRecord,
@@ -44,6 +58,7 @@ export default function TaskView({
   onAgain,
 }: {
   universityName: string;
+  universitySlug: string;
   record: BoardRecord;
   task: BoardTask;
   onOpenRecord: () => void;
@@ -71,7 +86,22 @@ export default function TaskView({
   const rung = rungAt(task.section, task.step, task.round);
   if (!rung) return null;
   const ladder = LADDERS[record.section];
-  const firstName = (record.contact || "there").split(" ")[0];
+
+  // The flyer is a live URL, not an attachment name. Providers and everyone
+  // reaching students get the audience the PDF is written for.
+  const flyer = `${typeof window === "undefined" ? "" : window.location.origin}/api/medjobs/program-pdf?university=${
+    encodeURIComponent(universitySlug)
+  }&audience=${record.section === "students" ? "student" : "provider"}`;
+
+  const ctx: Record<string, string> = {
+    university: universityName,
+    org: record.name,
+    contact: record.contact || record.name,
+    first: (record.contact || "there").split(" ")[0],
+    role: record.role,
+    approver: task.fields?.approver || "your department",
+    flyer,
+  };
 
   // A research rung fans out into whatever the operator found, so the
   // ladder's names are suggestions rather than the answer.
@@ -206,18 +236,33 @@ export default function TaskView({
               {showEmail && (
                 <div className="mt-2 space-y-2">
                   {rung.script && (
-                    <p className="whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
+                    <p className="max-h-52 overflow-y-auto whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
                       {rung.script}
                     </p>
                   )}
                   {rung.email && (
                     <>
-                      <p className="whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
-                        {`Subject: Student Caregiver Program — ${universityName}\n\nHi ${firstName},\n\nI'm reaching out from Dr. Logan DuBose's office about the Student Caregiver Program at ${universityName}…\n\n📎 program-flyer.pdf`}
-                      </p>
-                      <p className="text-[12px] text-gray-400">
-                        Send it from your own inbox so the reply comes back to you.
-                      </p>
+                      <div className="rounded-md border border-gray-200 bg-gray-50">
+                        <p className="border-b border-gray-200 px-3 py-2 text-[12.5px] font-semibold text-gray-900">
+                          {fill(rung.email.subject, ctx)}
+                        </p>
+                        <p className="max-h-72 overflow-y-auto whitespace-pre-wrap px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
+                          {fill(rung.email.body, ctx)}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <a
+                          href={flyer}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
+                        >
+                          Open the flyer
+                        </a>
+                        <span className="text-[12px] text-gray-400">
+                          Send it from your own inbox so the reply comes back to you.
+                        </span>
+                      </div>
                     </>
                   )}
                 </div>
@@ -298,7 +343,7 @@ export default function TaskView({
               <input
                 value={record[f]}
                 onChange={(e) => onField(f, e.target.value)}
-                placeholder="—"
+                placeholder={FIELD_HINT[f] ?? "—"}
                 className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
               />
             </label>

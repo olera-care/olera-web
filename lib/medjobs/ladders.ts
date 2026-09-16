@@ -43,7 +43,18 @@ export type Outcome =
   | "fanout";
 
 /** A field the rung exists to find, written onto the record. */
-export type ContactField = "contact" | "phone" | "email";
+export type ContactField = "contact" | "role" | "phone" | "email";
+
+/**
+ * The copy an operator sends. Tokens are filled at render time:
+ *   {university} {org} {contact} {first} {role} {flyer} {approver}
+ * A token with nothing behind it falls back to something that still reads
+ * as a sentence, so a half-filled record never produces "Hi ,".
+ */
+export interface LadderEmail {
+  subject: string;
+  body: string;
+}
 
 export interface LadderInput {
   /** Stable key the value is stored under on the task. */
@@ -68,8 +79,8 @@ export interface LadderRung {
   why: string;
   steps: string[];
   script?: string;
-  /** Renders the suggested email, addressed to the record's contact. */
-  email?: boolean;
+  /** The email to send, with tokens filled from the record. */
+  email?: LadderEmail;
   /** Offers "They replied", which breaks out of a follow-up block. */
   reply?: boolean;
   /** Contact fields this rung collects, written onto the record. */
@@ -119,8 +130,23 @@ export function followUp(n: number, who: string): LadderRung {
     what: "The two-day check on this contact.",
     why: "No reply yet.",
     steps: ["Check your inbox first.", "No reply — call, then email."],
-    script: `"Hi, this is [your name] from Dr. DuBose's office — I emailed ${who} about the Student Caregiver Program. Did that reach the right person?"`,
-    email: true,
+    script: `"Hi, this is [your name] from Dr. DuBose's office. I emailed ${who} last week about our Student Caregiver Program — students who work paid caregiving shifts around their classes. Did that reach the right person, or is there someone better I should send it to?"`,
+    email: {
+      subject: "Following up — Student Caregiver Program at {university}",
+      body: `Hi {first},
+
+Following up on my note about the Student Caregiver Program. The short version: we place pre-health students at {university} into paid caregiving shifts that work around their class schedule, and they come to you screened and ready.
+
+There is nothing to sign up front — a short call is enough to see whether it fits.
+
+Is there a day this week or next that works?
+
+The one-page overview is here if it is easier to forward: {flyer}
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+    },
     reply: true,
     actions: [{ label: "Log call and email", outcome: "next", delay: 2 }],
   };
@@ -149,8 +175,29 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         title: "Send the program info",
         what: "The first email to this provider, sent by you from your own inbox.",
         why: "It comes from a real person, so replies land in your inbox.",
-        steps: ["Copy the email below.", "Attach the flyer.", "Send it, then log it."],
-        email: true,
+        steps: ["Copy the email below.", "Check the flyer link opens.", "Send it, then log it."],
+        email: {
+          subject: "Pre-health students looking for caregiving shifts — {university}",
+          body: `Hi {first},
+
+I am writing from Dr. Logan DuBose's office about the Student Caregiver Program at {university}.
+
+We work with pre-health students — pre-med, pre-nursing, pre-PA — who want paid, hands-on caregiving experience before they apply to professional school. They are motivated, they are local, and they are looking for shifts that fit around classes.
+
+What it means for {org}:
+
+  · Screened students, matched to your openings
+  · They work your shifts, on your terms
+  · No cost to you, and nothing to sign to start
+
+One-page overview: {flyer}
+
+If it is worth fifteen minutes, I will find a time that suits you.
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
       },
       { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "your agency") },
@@ -211,7 +258,20 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Chase whatever is missing from their profile.",
         why: "An incomplete application can't be sent to a provider.",
         steps: ["Check what's missing.", "Email or call them for it.", "Log it when complete."],
-        email: true,
+        email: {
+          subject: "One thing left on your Olera application",
+          body: `Hi {first},
+
+Thanks for applying to the Student Caregiver Program. Your profile is nearly there — there is one piece still outstanding before we can put you in front of a provider.
+
+Once that is in, I can start matching you to shifts near campus.
+
+Reply here and I will walk you through it.
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Application complete", outcome: "next", delay: 0 }],
       },
       {
@@ -253,7 +313,24 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Ask the university to post the Olera listing on their job board.",
         why: "The job board is where students find us without us finding them.",
         steps: ["Find the posting request form or contact.", "Submit the listing.", "Log it."],
-        email: true,
+        email: {
+          subject: "Job posting request — paid caregiving roles for pre-health students",
+          body: `Hello,
+
+I would like to post a role on the {university} student job board.
+
+  Position    Student Caregiver (part-time, paid)
+  Employer    Olera, on behalf of local licensed care providers
+  Who it fits Pre-health students — pre-med, pre-nursing, pre-PA
+  Schedule    Flexible shifts built around class timetables
+  Apply       {flyer}
+
+Students are screened by us and placed with licensed providers in the area. Happy to send anything else your posting process needs.
+
+Thank you,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Request submitted", outcome: "next", delay: 3, ticks: ["submitted"] }],
       },
       {
@@ -288,7 +365,20 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "The posting dropped off. Put it back.",
         why: "Every day it's down is a day students can't find us.",
         steps: ["Contact the job board owner.", "Resubmit.", "Confirm it's back."],
-        email: true,
+        email: {
+          subject: "Re-posting the Student Caregiver role — {university}",
+          body: `Hello,
+
+Our Student Caregiver posting appears to have expired from the {university} job board. Students are still applying through other channels, so we would like it back up.
+
+Same role as before — part-time paid caregiving shifts for pre-health students, flexible around classes. Details here: {flyer}
+
+Is there anything you need from me to renew it?
+
+Thank you,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Back up", outcome: "goal", delay: 0, ticks: ["visible"] }],
       },
     ],
@@ -312,7 +402,22 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "The first email to this office, sent by you from your own inbox.",
         why: "There is nothing to follow up on until something has been sent.",
         steps: ["Copy the email below.", "Attach the flyer.", "Send it, then log it."],
-        email: true,
+        email: {
+          subject: "Paid caregiving shifts for your pre-health students — {university}",
+          body: `Hi {first},
+
+I am writing from Dr. Logan DuBose's office. We run the Student Caregiver Program, which places pre-health students at {university} into paid caregiving shifts with licensed local providers.
+
+It is built for the students you advise: paid hands-on patient contact, hours that work around a class schedule, and a reference and recommendation letter at the end. No cost to the student and no cost to the university.
+
+Would you be willing to pass the one-pager to your pre-health list? It is here: {flyer}
+
+Happy to talk it through first if that is easier.
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2, ticks: ["flyer_sent"] }],
       },
       { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "the advising office") },
@@ -351,7 +456,20 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Ask the office to send the flyer out again.",
         why: "A flyer sent last term isn't reaching this term's students.",
         steps: ["Email the office with the current flyer.", "Confirm it went out."],
-        email: true,
+        email: {
+          subject: "New term, new flyer — Student Caregiver Program",
+          body: `Hi {first},
+
+New term, so a fresh copy of the Student Caregiver flyer for your pre-health students: {flyer}
+
+Same programme — paid caregiving shifts with local licensed providers, built around a class schedule. Placements from last term are going well and we have openings again.
+
+Would you be able to send it out with your usual student mail?
+
+Thank you,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Logged", outcome: "goal", delay: 0, ticks: ["flyer_sent"] }],
       },
     ],
@@ -374,8 +492,12 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         title: "Identify a contact at the org",
         what: "Find the president or an officer.",
         why: "Orgs have no general inbox that anyone reads.",
-        steps: ["Check the org page and socials.", "Add a name and an email or phone."],
-        collects: ["contact", "email", "phone"],
+        steps: [
+          "Check the org page and socials.",
+          "Add their name and what they are to the org — president, vice-president, outreach chair.",
+          "Add an email, and a phone if you can find one.",
+        ],
+        collects: ["contact", "role", "email", "phone"],
         actions: [{ label: "Contact found", outcome: "next", delay: 0 }],
       },
       {
@@ -383,7 +505,25 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "The first email to the officer you just named.",
         why: "There is nothing to follow up on until something has been sent.",
         steps: ["Copy the email below.", "Attach the flyer.", "Send it, then log it."],
-        email: true,
+        email: {
+          subject: "Something for your members — paid caregiving shifts",
+          body: `Hi {first},
+
+I am writing from Dr. Logan DuBose's office about the Student Caregiver Program, and I think it fits {org} well.
+
+We place pre-health students into paid caregiving shifts with licensed providers near {university}. Members get real patient contact before they apply to professional school, paid, on a schedule that works around classes.
+
+Two ways we usually work with a group like yours:
+
+  · You share the one-pager with your members: {flyer}
+  · Or we come to a meeting and present for ten minutes
+
+Either is fine. Which suits {org} better?
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
       },
       { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "your organisation") },
@@ -403,7 +543,20 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Reach the org again for the new term.",
         why: "Presidents and officers change every year.",
         steps: ["Check the contact is still there.", "Ask for the flyer to go out again."],
-        email: true,
+        email: {
+          subject: "Checking in for the new term — {org}",
+          body: `Hi {first},
+
+New term, so checking in. Are you still the right person for {org}, or has the committee changed hands?
+
+The Student Caregiver Program is running again with openings near campus — paid caregiving shifts for pre-health students. Current flyer: {flyer}
+
+If you can send it round, or if a ten-minute slot at a meeting is easier, let me know which works.
+
+Thank you,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Logged", outcome: "goal", delay: 0 }],
       },
     ],
@@ -434,7 +587,23 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Find the events that aren't listed online.",
         why: "Advisors know about things the calendar never shows, and can help us run our own.",
         steps: ["Email the advising office.", "Ask what's coming and whether we could host something.", "Log what they say."],
-        email: true,
+        email: {
+          subject: "Anything coming up we should be at? — {university}",
+          body: `Hi {first},
+
+We are looking at which {university} events are worth attending this term for the Student Caregiver Program — career fairs, pre-health nights, anything where we would meet students face to face.
+
+Two questions:
+
+  1. Is there anything coming up that is not on the public calendar?
+  2. Would you ever co-host a short info session with us?
+
+We bring the material and the people; you bring the room and the students.
+
+Thank you,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Logged", outcome: "next", delay: 0 }],
       },
       {
@@ -491,7 +660,24 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         ],
         script:
           '"Hi, this is [your name] from Dr. DuBose\'s office. We run a Student Caregiver Program and we\'d like to let your faculty know about it — would you be comfortable authorising us to email them?"',
-        email: true,
+        email: {
+          subject: "Permission to contact faculty about a student programme",
+          body: `Dear {first},
+
+I am writing from Dr. Logan DuBose's office to ask permission before contacting any faculty in your department.
+
+We run the Student Caregiver Program: pre-health students take paid caregiving shifts with licensed providers near {university}, built around their class schedule. It gives them real patient contact before professional school.
+
+We would like to let a small number of faculty know, so they can mention it to students for whom it fits. One email each, once a term — we do not contact faculty repeatedly.
+
+Overview: {flyer}
+
+May we have your approval to do that? If you would rather we did not, tell me and we will close the file on faculty outreach here.
+
+With thanks,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         inputs: [{ key: "approver", label: "Who gave permission" }],
         actions: [
           { label: "Permission granted", outcome: "next", delay: 0, ticks: ["pathway", "approved"] },
@@ -511,7 +697,25 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "One email asking them to share the flyer and offering a class visit.",
         why: "Never more than one email per professor per season. That's the rule.",
         steps: ["Copy the email — it already names who authorised us.", "Send it from your own inbox.", "Log it."],
-        email: true,
+        email: {
+          subject: "For your students: paid caregiving shifts (approved by {approver})",
+          body: `Dear {first},
+
+{approver} approved us contacting faculty about this, so I am writing once with something that may suit your students.
+
+The Student Caregiver Program places pre-health students into paid caregiving shifts with licensed providers near {university}. Hands-on patient experience, paid, arranged around a class timetable — the kind of thing that strengthens a professional school application.
+
+Two offers, take either or neither:
+
+  · Share the one-pager with your class: {flyer}
+  · We come and speak for ten minutes at the start of a session
+
+This is the only email you will get from me this term.
+
+With thanks,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Log email sent", outcome: "goal", delay: 0 }],
       },
       {
@@ -520,7 +724,20 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "The one message this season.",
         why: "A new term means new students on the roster.",
         steps: ["Send the seasonal email.", "Log it."],
-        email: true,
+        email: {
+          subject: "New term — Student Caregiver Program at {university}",
+          body: `Dear {first},
+
+New term, so one note about the Student Caregiver Program: paid caregiving shifts for pre-health students with licensed providers near {university}, arranged around their classes.
+
+Current one-pager: {flyer}
+
+Same offer as before — share it with your students, or we will come and speak for ten minutes. Either way, this is my one email this term.
+
+With thanks,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [{ label: "Logged", outcome: "goal", delay: 0 }],
       },
     ],

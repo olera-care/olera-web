@@ -20,9 +20,10 @@ import {
  * Notes live here and only here. In the university list they were noise.
  */
 
-const FIELDS: ContactField[] = ["contact", "phone", "email"];
+const FIELDS: ContactField[] = ["contact", "role", "phone", "email"];
 const LABEL: Record<ContactField, string> = {
   contact: "Contact name",
+  role: "Role",
   phone: "Phone",
   email: "Email",
 };

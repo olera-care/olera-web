@@ -1,22 +1,21 @@
 -- ===========================================================================
--- Will the spreadsheet history land? — read-only
+-- Will the spreadsheet history land? — v2, fast
 -- ===========================================================================
--- 432 rows of real work from MEDJOBS_Graize_09.16.xlsx: 396 on the
--- providers tab, 36 on the partners tab. Every row here has a name and at
--- least one call, email or remark against it — the blank rows are gone.
+-- v1 timed out. It joined the 432 sheet rows against the whole directory on
+-- an OR across three columns, which Postgres cannot index: 432 x 75,000
+-- combinations, each running a regular expression. Locally that took 53
+-- seconds against a full-size table.
 --
--- The question this answers is the only one that matters before writing an
--- overlay: for each row, is there exactly one record in the board to
--- attach it to?
+-- This version normalises the directory once into a temp table, indexes the
+-- three match keys, and does three separate indexed lookups instead of one
+-- OR. Same answer, and it reads the directory a single time.
 --
--- Matching cascades, because no single key covers the sheet:
---   phone   298 of 396 provider rows, 33 of 36 partner rows
---   email   231 provider rows, 15 partner rows
---   name    the rest — 46 provider rows have neither
---
--- The ADDRESS column is empty in all 432 rows, so geography cannot place
--- anything. Where a row matches nothing, its area code is reported
--- instead, which is what tells us whose campus it belonged to.
+-- ── ON SAFETY ─────────────────────────────────────────────────────────
+-- This version DOES create tables, unlike v1 which was a single SELECT.
+-- They are TEMP tables: they live in this connection's private schema,
+-- they cannot collide with anything real, and they disappear when the
+-- session ends. Nothing in your schema is read-modified or written. The
+-- only statements against real data are SELECTs.
 --
 -- Outcomes, one row each:
 --   matched one       safe to overlay automatically
@@ -26,12 +25,12 @@
 --                     usually outside 40 miles
 --   no match          nothing in the directory. These are the rows that
 --                     would be silently lost, so they are counted loudly.
---
--- Nothing is inserted, updated or deleted.
 -- ===========================================================================
 
-WITH sheet (tab, row_no, name, phone, email) AS (
-  VALUES
+DROP TABLE IF EXISTS _sheet;
+CREATE TEMP TABLE _sheet (tab TEXT, row_no INT, name TEXT, phone TEXT, email TEXT);
+
+INSERT INTO _sheet (tab, row_no, name, phone, email) VALUES
     ('prov', 2, 'Unique In Home Personal Care', '', ''),
     ('prov', 3, 'Morgan''s Caring Connection', '6085989665', ''),
     ('prov', 4, 'Right at Home', '6088507335', 'erin.mckenna@rahmadison.com'),
@@ -463,78 +462,82 @@ WITH sheet (tab, row_no, name, phone, email) AS (
     ('partner', 34, 'Health Professions Programs IU School of Medicine Contact Us', '3174916969', 'nbrehl@iu.edu'),
     ('partner', 35, 'Kori Renn', '8128555317', 'hirekelley@iu.edu'),
     ('partner', 36, 'Eric Warner', '8015877672', 'eric.warner@hsc.utah.edu'),
-    ('partner', 37, 'Asian Pacific American Medical Student Association (APAMSA)', '', '')),
+    ('partner', 37, 'Asian Pacific American Medical Student Association (APAMSA)', '', '');
 
--- Every provider in the directory, with a comparable phone.
-dir AS (
-  SELECT
-    p.provider_id,
-    lower(regexp_replace(coalesce(p.provider_name,''), '\s+', ' ', 'g')) AS name_key,
-    regexp_replace(coalesce(p.phone,''), '\D', '', 'g')                   AS phone_raw,
-    lower(btrim(coalesce(p.email,'')))                                    AS email_key
-  FROM "olera-providers" p
-  WHERE p.deleted IS NULL OR p.deleted = false
-),
-dirn AS (
-  SELECT
-    provider_id, name_key, email_key,
-    CASE WHEN length(phone_raw) = 11 AND left(phone_raw,1) = '1'
-         THEN right(phone_raw,10) ELSE phone_raw END AS phone
-  FROM dir
-),
+-- Normalise the directory once. This is the only full scan.
+DROP TABLE IF EXISTS _dir;
+CREATE TEMP TABLE _dir AS
+SELECT
+  x.provider_id,
+  lower(regexp_replace(coalesce(x.provider_name,''), '\s+', ' ', 'g')) AS name_key,
+  lower(btrim(coalesce(x.email,'')))                                   AS email_key,
+  CASE WHEN length(x.d) = 11 AND left(x.d,1) = '1' THEN right(x.d,10) ELSE x.d END AS phone
+FROM (
+  SELECT provider_id, provider_name, email,
+         regexp_replace(coalesce(phone,''), '\D', '', 'g') AS d
+    FROM "olera-providers"
+   WHERE deleted IS NULL OR deleted = false
+) x;
 
--- Which directory providers are actually on a campus board right now.
-onboard AS (
-  SELECT DISTINCT so.research_data->>'olera_provider_id' AS provider_id
-    FROM student_outreach so
-   WHERE so.kind = 'provider'
-     AND so.research_data->>'olera_provider_id' IS NOT NULL
-),
+CREATE INDEX ON _dir (phone);
+CREATE INDEX ON _dir (email_key);
+CREATE INDEX ON _dir (name_key);
+ANALYZE _dir;
 
--- Candidates per sheet row, by whichever key is available.
-hits AS (
-  SELECT
-    s.tab, s.row_no, s.name, s.phone,
-    d.provider_id,
-    (d.provider_id IN (SELECT provider_id FROM onboard)) AS on_board
-  FROM sheet s
-  JOIN dirn d
-    ON (s.phone <> '' AND d.phone = s.phone)
-    OR (s.email <> '' AND d.email_key = s.email)
-    OR (s.phone = '' AND s.email = ''
-        AND d.name_key = lower(regexp_replace(s.name, '\s+', ' ', 'g')))
-),
+-- Which directory providers are on a campus board right now.
+DROP TABLE IF EXISTS _onboard;
+CREATE TEMP TABLE _onboard AS
+SELECT DISTINCT so.research_data->>'olera_provider_id' AS provider_id
+  FROM student_outreach so
+ WHERE so.kind = 'provider'
+   AND so.research_data->>'olera_provider_id' IS NOT NULL;
+CREATE INDEX ON _onboard (provider_id);
+ANALYZE _onboard;
 
-verdict AS (
-  SELECT
-    s.tab,
-    s.row_no,
-    s.name,
-    CASE WHEN s.phone = '' THEN '(none)' ELSE left(s.phone,3) END AS area,
-    count(h.provider_id)                                  AS candidates,
-    count(*) FILTER (WHERE h.on_board)                    AS on_board
-  FROM sheet s
-  LEFT JOIN hits h ON h.tab = s.tab AND h.row_no = s.row_no
-  GROUP BY s.tab, s.row_no, s.name, s.phone
-),
+-- Three indexed lookups instead of one un-indexable OR.
+DROP TABLE IF EXISTS _hits;
+CREATE TEMP TABLE _hits AS
+  SELECT s.tab, s.row_no, d.provider_id
+    FROM _sheet s JOIN _dir d ON d.phone = s.phone
+   WHERE s.phone <> ''
+UNION
+  SELECT s.tab, s.row_no, d.provider_id
+    FROM _sheet s JOIN _dir d ON d.email_key = s.email
+   WHERE s.email <> ''
+UNION
+  SELECT s.tab, s.row_no, d.provider_id
+    FROM _sheet s JOIN _dir d
+      ON d.name_key = lower(regexp_replace(s.name, '\s+', ' ', 'g'))
+   WHERE s.phone = '' AND s.email = '';
 
--- ── 1. the headline: what happens to all 432 ──────────────────────────
-block1 AS (
+DROP TABLE IF EXISTS _verdict;
+CREATE TEMP TABLE _verdict AS
+SELECT
+  s.tab,
+  s.row_no,
+  s.name,
+  CASE WHEN s.phone = '' THEN '(none)' ELSE left(s.phone,3) END AS area,
+  count(h.provider_id)                                            AS candidates,
+  count(*) FILTER (WHERE o.provider_id IS NOT NULL)               AS on_board
+FROM _sheet s
+LEFT JOIN _hits    h ON h.tab = s.tab AND h.row_no = s.row_no
+LEFT JOIN _onboard o ON o.provider_id = h.provider_id
+GROUP BY s.tab, s.row_no, s.name, s.phone;
+
+-- ── the report ───────────────────────────────────────────────────────────
+WITH block1 AS (
   SELECT
     '1 outcome'::text AS section,
     (CASE
-       WHEN on_board = 1                   THEN 'matched one — overlay it'
-       WHEN on_board > 1                   THEN 'matched several — needs a tie-break'
-       WHEN candidates > 0                 THEN 'in directory only — not on any board'
-       ELSE                                     'no match — would be lost'
-     END)::text     AS label,
-    tab::text       AS detail,
-    count(*)        AS n
-  FROM verdict
-  GROUP BY 1, 2, 3
+       WHEN on_board = 1   THEN 'matched one — overlay it'
+       WHEN on_board > 1   THEN 'matched several — needs a tie-break'
+       WHEN candidates > 0 THEN 'in directory only — not on any board'
+       ELSE                     'no match — would be lost'
+     END)::text AS label,
+    tab::text   AS detail,
+    count(*)    AS n
+  FROM _verdict GROUP BY 1,2,3
 ),
-
--- ── 2. where the unmatched work belongs, by area code ─────────────────
 block2 AS (
   SELECT
     '2 unmatched by area code'::text,
@@ -551,22 +554,16 @@ block2 AS (
        WHEN '(none)' THEN 'no phone on the row'
        ELSE 'elsewhere' END)::text,
     count(*)
-  FROM verdict
-  WHERE on_board = 0
-  GROUP BY area
+  FROM _verdict WHERE on_board = 0 GROUP BY area
 ),
-
--- ── 3. the ties, named, so they can be resolved by hand ───────────────
 block3 AS (
   SELECT
     '3 tie to break'::text,
     left(name, 44)::text,
     (on_board || ' records share this number')::text,
     on_board
-  FROM verdict
-  WHERE on_board > 1
+  FROM _verdict WHERE on_board > 1
 )
-
 SELECT * FROM block1
 UNION ALL SELECT * FROM block2
 UNION ALL SELECT * FROM block3

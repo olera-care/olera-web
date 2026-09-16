@@ -33,7 +33,7 @@ const SUBJECT: Record<AdBoostLifecycleKind, string> = {
   promo_complete: "Your starter campaign is complete",
 };
 
-type CampaignRow = {
+export type CampaignRow = {
   id: string;
   provider_id: string;
   provider_slug: string | null;

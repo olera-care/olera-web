@@ -25,6 +25,13 @@
 -- vocabulary — it is prose. Rows needing a judgement are flagged
 -- migration_review instead, so a person makes it.
 --
+-- Where several sheet rows name one record they can disagree. Two shapes
+-- occur. One row carrying an EMAIL SENT date while another does not is not
+-- really a disagreement: the furthest point reached is the truth, and the
+-- rung update only matches step 2 rows, so step 2 wins on its own. An
+-- archive row alongside a review row is a real one, and review wins — see
+-- the guard on the archive statement.
+--
 -- Everything is stamped research_data.migration_batch = 'sheet-overlay-v1',
 -- and every task payload carries "migrated": true, so the whole overlay
 -- can be found and removed without touching anything else.
@@ -114,7 +121,16 @@ BEGIN
                                  'sheet_row', s.row_no)
     FROM medjobs_migration_staging s
    WHERE so.id = s.outreach_id
-     AND s.plan_action LIKE 'archive —%';
+     AND s.plan_action LIKE 'archive —%'
+     -- A record can be named by several sheet rows. If any one of them
+     -- says a replacement number was found, the record is not a dead end
+     -- and must not be archived — archiving would discard the lead the
+     -- team went and found. The safe direction is always towards review.
+     AND NOT EXISTS (
+       SELECT 1 FROM medjobs_migration_staging s2
+        WHERE s2.outreach_id = s.outreach_id
+          AND s2.plan_action LIKE 'review%'
+     );
   GET DIAGNOSTICS n_arch = ROW_COUNT;
 
   UPDATE student_outreach_tasks t
@@ -122,7 +138,16 @@ BEGIN
     FROM medjobs_migration_staging s
    WHERE t.outreach_id = s.outreach_id
      AND t.status = 'pending'
-     AND s.plan_action LIKE 'archive —%';
+     AND s.plan_action LIKE 'archive —%'
+     -- A record can be named by several sheet rows. If any one of them
+     -- says a replacement number was found, the record is not a dead end
+     -- and must not be archived — archiving would discard the lead the
+     -- team went and found. The safe direction is always towards review.
+     AND NOT EXISTS (
+       SELECT 1 FROM medjobs_migration_staging s2
+        WHERE s2.outreach_id = s.outreach_id
+          AND s2.plan_action LIKE 'review%'
+     );
 
   -- ── 5. flag everything a person should look at ─────────────────────────
   UPDATE student_outreach so

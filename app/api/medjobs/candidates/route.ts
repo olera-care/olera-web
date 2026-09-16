@@ -91,9 +91,25 @@ export async function GET(req: NextRequest) {
     // directly (the medjobs_universities id students store). The magic-link
     // landing also resolves the provider's campus → universityId. Legacy
     // ?campus=<slug> is still resolved (bridge handles registry slug-drift).
+    // Also looks up university name to match students who have metadata.university
+    // but not metadata.university_id.
     const universityId = searchParams.get("universityId");
     if (universityId) {
-      query = query.filter("metadata->>university_id", "eq", universityId);
+      // Look up the university name for fallback matching
+      const { data: uniData } = await supabaseAdmin
+        .from("medjobs_universities")
+        .select("name")
+        .eq("id", universityId)
+        .single();
+      const universityName = uniData?.name;
+
+      if (universityName) {
+        // Match by university_id OR university name (for students without university_id)
+        query = query.or(`metadata->>university_id.eq.${universityId},metadata->>university.eq.${universityName}`);
+      } else {
+        // Fallback to just university_id if we can't find the name
+        query = query.filter("metadata->>university_id", "eq", universityId);
+      }
     } else if (campus) {
       const { university_id } = await resolveCampusUniversity(supabaseAdmin, campus);
       if (university_id) {

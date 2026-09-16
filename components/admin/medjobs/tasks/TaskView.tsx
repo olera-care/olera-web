@@ -39,6 +39,7 @@ export default function TaskView({
   onNote,
   onField,
   onFound,
+  onFieldValue,
   onReopen,
   onAgain,
 }: {
@@ -53,6 +54,8 @@ export default function TaskView({
   onField: (field: ContactField, value: string) => void;
   /** Research rungs: the names found, which become records on finishing. */
   onFound: (names: string[]) => void;
+  /** A typed value the rung asked for. */
+  onFieldValue: (key: string, value: string) => void;
   onReopen: () => void;
   onAgain: () => void;
 }) {
@@ -301,15 +304,18 @@ export default function TaskView({
             </label>
           ))}
 
-          {rung.input && (
-            <label className="mt-3 flex items-center gap-2.5">
-              <span className="w-20 shrink-0 text-[12px] text-gray-500">{rung.input}</span>
+          {(rung.inputs ?? []).map((f) => (
+            <label key={f.key} className="mt-3 flex items-center gap-2.5">
+              <span className="w-24 shrink-0 text-[12px] text-gray-500">{f.label}</span>
               <input
-                placeholder="—"
+                type={f.type ?? "text"}
+                value={task.fields?.[f.key] ?? ""}
+                onChange={(e) => onFieldValue(f.key, e.target.value)}
+                placeholder={f.type === "url" ? "https://…" : "—"}
                 className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
               />
             </label>
-          )}
+          ))}
 
           {!replying && <Note value={task.note} onChange={onNote} />}
 

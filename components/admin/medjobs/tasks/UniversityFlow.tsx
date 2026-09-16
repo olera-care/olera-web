@@ -159,6 +159,10 @@ export default function UniversityFlow({
             task.found = names;
             force((n) => n + 1);
           }}
+          onFieldValue={(key, value) => {
+            task.fields = { ...(task.fields ?? {}), [key]: value };
+            force((n) => n + 1);
+          }}
           onReopen={() => {
             reopen(record, task);
             redraw();

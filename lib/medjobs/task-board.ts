@@ -40,6 +40,9 @@ export interface BoardTask {
   /** On a research rung: the names the operator actually found. Each one
    *  becomes its own record when the task is finished. */
   found?: string[];
+  /** Typed values the rung asked for, keyed by LadderInput.key — a meeting
+   *  time, a posting link, hours worked. Read back in the record history. */
+  fields?: Record<string, string>;
   /** Nth reschedule round after a no-show. */
   resched?: number;
   /** Where the record stood before this task completed. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { LADDERS, type ContactField } from "@/lib/medjobs/ladders";
+import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
 import {
   dueLabel,
   isReady,
@@ -147,7 +147,21 @@ function Row({ task, done, onOpen }: { task: BoardTask; done?: boolean; onOpen: 
       {done && task.outcome && task.outcome !== "Logged" && (
         <p className="-mt-0.5 pb-2 pl-6 text-[12px] font-semibold text-gray-600">{task.outcome}</p>
       )}
+      {fieldLines(task).map((line) => (
+        <p key={line} className="-mt-0.5 pb-2 pl-6 text-[12px] text-gray-600">
+          {line}
+        </p>
+      ))}
       {task.note && <p className="-mt-0.5 pb-2 pl-6 text-[12px] leading-snug text-gray-500">{task.note}</p>}
     </div>
   );
+}
+
+/** What the task recorded — a meeting time, a posting link — read back. */
+function fieldLines(task: BoardTask): string[] {
+  const values = task.fields ?? {};
+  const rung = rungAt(task.section, task.step, task.round);
+  return (rung?.inputs ?? [])
+    .filter((f) => values[f.key]?.trim())
+    .map((f) => `${f.label}: ${values[f.key]}`);
 }

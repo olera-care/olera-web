@@ -45,6 +45,14 @@ export type Outcome =
 /** A field the rung exists to find, written onto the record. */
 export type ContactField = "contact" | "phone" | "email";
 
+export interface LadderInput {
+  /** Stable key the value is stored under on the task. */
+  key: string;
+  label: string;
+  /** Defaults to a plain text field. */
+  type?: "text" | "datetime-local" | "url" | "number";
+}
+
 export interface LadderAction {
   label: string;
   outcome: Outcome;
@@ -66,8 +74,10 @@ export interface LadderRung {
   reply?: boolean;
   /** Contact fields this rung collects, written onto the record. */
   collects?: ContactField[];
-  /** A one-line value recorded on the task itself. */
-  input?: string;
+  /** Values the rung records on the task itself. Typed, so a date is a date
+   *  picker and a link is a link field rather than a box you can put
+   *  anything in. */
+  inputs?: LadderInput[];
   /** A longer note recorded on the task itself. */
   textarea?: string;
   /** Names this rung would find. Each becomes its own record. */
@@ -149,7 +159,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Get a time on the calendar with the sales team.",
         why: "They replied and they're interested. This is the handover.",
         steps: ["Offer two or three times.", "Confirm one.", "Put it in the calendar."],
-        input: "Meeting date and time",
+        inputs: [{ key: "meeting_at", label: "Meeting date and time", type: "datetime-local" }],
         actions: [{ label: "Meeting booked", outcome: "next", delay: 0 }],
       },
       {
@@ -227,7 +237,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "The monthly check on hours.",
         why: "Hours worked is how we know the placement is real and holding.",
         steps: ["Ask the student how many hours this month.", "Type the number.", "Log it."],
-        input: "Hours this month",
+        inputs: [{ key: "hours", label: "Hours this month", type: "number" }],
         actions: [{ label: "Logged", outcome: "repeat", delay: 30 }],
       },
     ],
@@ -251,7 +261,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Check the university approved and posted the listing.",
         why: "Submitting and posting are not the same thing.",
         steps: ["Look for the listing.", "Paste the link.", "Log it."],
-        input: "Posting link",
+        inputs: [{ key: "posting_url", label: "Posting link", type: "url" }],
         actions: [{ label: "Approved and live", outcome: "next", delay: 7, ticks: ["approved"] }],
       },
       {
@@ -320,7 +330,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "A conversation about raising awareness with students.",
         why: "The meeting is where the partnership actually forms.",
         steps: ["Offer times.", "Confirm one.", "Put it in the calendar."],
-        input: "Meeting date and time",
+        inputs: [{ key: "meeting_at", label: "Meeting date and time", type: "datetime-local" }],
         actions: [{ label: "Meeting booked", outcome: "next", delay: 0 }],
       },
       {
@@ -432,7 +442,10 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Lock the logistics — date, place, table, whatever it needs.",
         why: "An event nobody set up doesn't happen.",
         steps: ["Confirm date and location.", "Sort the logistics.", "Log it."],
-        input: "Date and location",
+        inputs: [
+          { key: "event_at", label: "Event date and time", type: "datetime-local" },
+          { key: "event_place", label: "Location" },
+        ],
         actions: [{ label: "Set up", outcome: "next", delay: 0 }],
       },
       {
@@ -440,7 +453,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "Everything needed before the day.",
         why: "Turning up unprepared wastes the slot.",
         steps: ["Assign a team member to lead.", "Build the collateral — deck, agenda, flyers."],
-        input: "Who's leading",
+        inputs: [{ key: "lead", label: "Who's leading" }],
         actions: [{ label: "Ready for the day", outcome: "next", delay: 0 }],
       },
       {
@@ -479,7 +492,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         script:
           '"Hi, this is [your name] from Dr. DuBose\'s office. We run a Student Caregiver Program and we\'d like to let your faculty know about it — would you be comfortable authorising us to email them?"',
         email: true,
-        input: "Who gave permission",
+        inputs: [{ key: "approver", label: "Who gave permission" }],
         actions: [
           { label: "Permission granted", outcome: "next", delay: 0, ticks: ["pathway", "approved"] },
           { label: "Refused — close this section", outcome: "closed", delay: 0 },

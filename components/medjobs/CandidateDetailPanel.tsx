@@ -114,6 +114,18 @@ export default function CandidateDetailPanel({
           </div>
         </div>
 
+        {/* About — shown first when available since it's often the most informative */}
+        {(meta.why_caregiving || candidate.description) && (
+          <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              About {firstName}
+            </h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {meta.why_caregiving || candidate.description}
+            </p>
+          </div>
+        )}
+
         {/* Availability */}
         {(hoursLabel || durationLabel || availabilityLabel) && (
           <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4">
@@ -141,32 +153,7 @@ export default function CandidateDetailPanel({
           </div>
         )}
 
-        {/* Qualifications */}
-        <div>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Qualifications</h3>
-          <div className="space-y-2.5">
-            {meta.major && (
-              <div>
-                <p className="text-xs text-gray-500">Major</p>
-                <p className="text-sm font-medium text-gray-900">{meta.major}</p>
-              </div>
-            )}
-            {meta.years_caregiving != null && meta.years_caregiving > 0 && (
-              <div>
-                <p className="text-xs text-gray-500">Caregiving Experience</p>
-                <p className="text-sm font-medium text-gray-900">{meta.years_caregiving}+ years</p>
-              </div>
-            )}
-            {(meta.languages?.length ?? 0) > 0 && (
-              <div>
-                <p className="text-xs text-gray-500">Languages</p>
-                <p className="text-sm font-medium text-gray-900">{meta.languages!.join(", ")}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Certifications */}
+        {/* Certifications — moved up since it's a key hiring signal */}
         {(meta.certifications?.length ?? 0) > 0 && (
           <div>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Certifications</h3>
@@ -194,17 +181,44 @@ export default function CandidateDetailPanel({
           </div>
         )}
 
-        {/* Why caregiving */}
-        {(meta.why_caregiving || candidate.description) && (
+        {/* Qualifications */}
+        {(meta.major || (meta.years_caregiving != null && meta.years_caregiving > 0) || (meta.languages?.length ?? 0) > 0) && (
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              About {firstName}
-            </h3>
-            <p className="text-sm text-gray-700 leading-relaxed line-clamp-4">
-              {meta.why_caregiving || candidate.description}
-            </p>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Qualifications</h3>
+            <div className="space-y-2.5">
+              {meta.major && (
+                <div>
+                  <p className="text-xs text-gray-500">Major</p>
+                  <p className="text-sm font-medium text-gray-900">{meta.major}</p>
+                </div>
+              )}
+              {meta.years_caregiving != null && meta.years_caregiving > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500">Caregiving Experience</p>
+                  <p className="text-sm font-medium text-gray-900">{meta.years_caregiving}+ years</p>
+                </div>
+              )}
+              {(meta.languages?.length ?? 0) > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500">Languages</p>
+                  <p className="text-sm font-medium text-gray-900">{meta.languages!.join(", ")}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
+
+        {/* View full profile prompt */}
+        <div className="pt-2">
+          <a
+            href={`/medjobs/candidates/${candidate.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full py-3 text-center text-sm font-semibold text-primary-700 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
+          >
+            View full profile for more details →
+          </a>
+        </div>
       </div>
     </div>
   );

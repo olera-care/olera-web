@@ -328,7 +328,7 @@ export default function HireCaregiversBoard() {
         <div className="hidden lg:block">
           <div className="sticky top-24 h-[calc(100vh-7rem)]">
             {selectedCandidate ? (
-              <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 bg-white">
+              <div className="w-full h-full rounded-2xl shadow-sm border border-gray-200 bg-white overflow-y-auto">
                 <CandidateDetailPanel
                   candidate={selectedCandidate}
                   onClose={() => setSelectedCandidate(null)}

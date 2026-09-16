@@ -94,6 +94,7 @@ export async function GET(request: NextRequest) {
           hour: "numeric",
           minute: "2-digit",
           timeZoneName: "short",
+          timeZone: "America/Chicago",
         });
 
         // Generate view URLs

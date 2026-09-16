@@ -325,11 +325,13 @@ export async function POST(request: NextRequest) {
         const time = new Date(proposedTime).toLocaleString("en-US", {
           weekday: "long", month: "long", day: "numeric",
           hour: "numeric", minute: "2-digit", timeZoneName: "short",
+          timeZone: "America/Chicago",
         });
         const formattedAltTime = alternativeTime
           ? new Date(alternativeTime).toLocaleString("en-US", {
               weekday: "long", month: "long", day: "numeric",
               hour: "numeric", minute: "2-digit", timeZoneName: "short",
+              timeZone: "America/Chicago",
             })
           : null;
 
@@ -559,6 +561,7 @@ export async function PATCH(request: NextRequest) {
       const time = confirmedTime.toLocaleString("en-US", {
         weekday: "long", month: "long", day: "numeric",
         hour: "numeric", minute: "2-digit", timeZoneName: "short",
+        timeZone: "America/Chicago",
       });
 
       // Generate view URLs - both parties get a one-click magic link for auto-sign-in
@@ -647,6 +650,7 @@ export async function PATCH(request: NextRequest) {
         const time = new Date(newTime).toLocaleString("en-US", {
           weekday: "long", month: "long", day: "numeric",
           hour: "numeric", minute: "2-digit", timeZoneName: "short",
+          timeZone: "America/Chicago",
         });
 
         // Recipient gets a one-click magic link to their respective surface.

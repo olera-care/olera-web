@@ -489,7 +489,7 @@ export default function AdminStudentDetailPage() {
                         <div className="space-y-0.5">
                           {slots.map((slot, i) => (
                             <p key={i} className="text-gray-500 bg-primary-50 rounded px-1 py-0.5">
-                              {slot}
+                              {typeof slot === "string" ? slot : `${slot.start}–${slot.end}`}
                             </p>
                           ))}
                         </div>

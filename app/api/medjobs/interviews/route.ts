@@ -516,6 +516,12 @@ export async function PATCH(request: NextRequest) {
     const update: Record<string, unknown> = { status };
     if (status === "confirmed") {
       update.confirmed_time = interview.proposed_time;
+      // Clear reminder tracking so a new reminder can be sent for the new time
+      const currentMeta = (interview.metadata || {}) as Record<string, unknown>;
+      if (currentMeta.reminder_sent_at) {
+        const { reminder_sent_at, ...restMeta } = currentMeta;
+        update.metadata = restMeta;
+      }
     }
     if (status === "rescheduled" && newTime) {
       update.proposed_time = newTime;

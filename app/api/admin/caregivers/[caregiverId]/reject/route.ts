@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { medjobsProfileRejectedEmail } from "@/lib/email-templates";
+import { medjobsProfileRejectedEmail } from "@/lib/medjobs-email-templates";
 import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import type { StudentMetadata } from "@/lib/types";
 

@@ -93,6 +93,10 @@ import {
   invitationReceivedEmail,
   jobReadyEmail,
   candidateReadyEmail,
+  // profile review emails
+  medjobsProfileApprovedEmail,
+  medjobsProfileRejectedEmail,
+  medjobsReviewNudgeEmail,
 } from "@/lib/medjobs-email-templates";
 
 export interface EmailVariant {
@@ -1321,6 +1325,55 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       missingItems: ["Intro video", "Driver's license", "Car insurance"],
       magicLink: SAMPLE_STUDENT.magicLink,
       unsubscribeId: "sample-id",
+    }),
+  },
+
+  // ─────────────── Student · Profile Review ───────────────
+  {
+    id: "student_review_nudge",
+    audience: "student",
+    group: "Student · Profile Review",
+    label: "Ready for review nudge",
+    subject: "Your profile is ready to go live!",
+    emailType: "medjobs_review_nudge",
+    timing: "When profile is 100% complete but not yet submitted for review",
+    who: "Student who completed their profile but hasn't requested review.",
+    why: "Nudge them to request admin review so they can go live.",
+    render: () => medjobsReviewNudgeEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      portalUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_profile_approved",
+    audience: "student",
+    group: "Student · Profile Review",
+    label: "Profile approved",
+    subject: "Your MedJobs profile is live!",
+    emailType: "medjobs_profile_approved",
+    timing: "When admin approves student's profile review request",
+    who: "Student whose profile was just approved by admin.",
+    why: "Celebrate approval, explain what happens next, link to their live profile.",
+    render: () => medjobsProfileApprovedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      profileUrl: SAMPLE_STUDENT.profileUrl,
+      portalUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_profile_rejected",
+    audience: "student",
+    group: "Student · Profile Review",
+    label: "Profile needs updates",
+    subject: "Your MedJobs profile needs some updates",
+    emailType: "medjobs_profile_rejected",
+    timing: "When admin rejects student's profile review request",
+    who: "Student whose profile was rejected with feedback.",
+    why: "Explain what needs improvement and encourage them to resubmit.",
+    render: () => medjobsProfileRejectedEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      reason: "Please re-record your intro video with better lighting and ensure your face is clearly visible throughout. Also, your driver's license photo is blurry — please upload a clearer image.",
+      portalUrl: SAMPLE_STUDENT.magicLink,
     }),
   },
 

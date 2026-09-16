@@ -89,6 +89,17 @@ export async function GET() {
     // Fetch all students for counts (need metadata for application_completed)
     const allStudents = await fetchAllStudents(db);
 
+    // Fetch students with pending interviews (proposed or confirmed, not completed/cancelled)
+    const { data: studentsWithInterviews } = await db
+      .from("interviews")
+      .select("student_profile_id")
+      .in("status", ["proposed", "confirmed"])
+      .not("student_profile_id", "is", null);
+
+    const studentIdsWithInterviews = new Set(
+      (studentsWithInterviews || []).map((i) => i.student_profile_id)
+    );
+
     // Cutoff for "this week" calculation
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -144,12 +155,17 @@ export async function GET() {
     // Count .edu students created this week
     const thisWeekCount = eduStudents.filter((p) => p.created_at >= oneWeekAgo).length;
 
+    // Count .edu students with pending interviews
+    const hasInterviewsCount = eduStudents.filter((p) => studentIdsWithInterviews.has(p.id)).length;
+
     return NextResponse.json({
       total,
-      active: activeCount,
+      live: activeCount, // Renamed for clarity (is_active = true)
+      active: activeCount, // Keep for backwards compatibility
       paused: pausedCount,
       notLive: notLiveCount,
       pendingReview: pendingReviewCount,
+      hasInterviews: hasInterviewsCount,
       complete: completeCount,
       incomplete: incompleteCount,
       thisWeek: thisWeekCount,

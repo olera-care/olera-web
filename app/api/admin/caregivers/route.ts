@@ -138,6 +138,7 @@ export async function GET(request: NextRequest) {
     const pausedOnly = searchParams.get("paused_only") === "true";
     const notLiveOnly = searchParams.get("not_live_only") === "true";
     const pendingReviewOnly = searchParams.get("pending_review_only") === "true";
+    const hasInterviewsOnly = searchParams.get("has_interviews_only") === "true";
     const completeOnly = searchParams.get("complete_only") === "true";
     const incompleteOnly = searchParams.get("incomplete_only") === "true";
     const eduOnly = searchParams.get("edu_only") === "true";
@@ -151,7 +152,22 @@ export async function GET(request: NextRequest) {
     // - Filtering by paused/not_live/pendingReview (requires checking metadata fields)
     // - Searching (to include university from JSONB metadata)
     // - Filtering by .edu email domain (requires checking email suffix)
-    const needsClientSideFilter = completeOnly || incompleteOnly || pausedOnly || notLiveOnly || pendingReviewOnly || eduOnly || nonEduOnly || !!search;
+    // - Filtering by has_interviews (requires join with interviews table)
+    const needsClientSideFilter = completeOnly || incompleteOnly || pausedOnly || notLiveOnly || pendingReviewOnly || hasInterviewsOnly || eduOnly || nonEduOnly || !!search;
+
+    // Fetch pending interview counts per student (proposed or confirmed)
+    const { data: interviewCounts } = await db
+      .from("interviews")
+      .select("student_profile_id, status")
+      .in("status", ["proposed", "confirmed"])
+      .not("student_profile_id", "is", null);
+
+    // Build a map of student_id -> pending interview count
+    const interviewCountMap = new Map<string, number>();
+    for (const interview of interviewCounts || []) {
+      const studentId = interview.student_profile_id;
+      interviewCountMap.set(studentId, (interviewCountMap.get(studentId) || 0) + 1);
+    }
 
     let data: StudentQueryResult[] | null;
     let count: number | null;
@@ -212,6 +228,7 @@ export async function GET(request: NextRequest) {
       const completeness = computeProfileCompleteness(row);
       const applicationCompleted = !!meta.application_completed;
       const reviewRequestedAt = meta.review_requested_at ?? null;
+      const pendingInterviewCount = interviewCountMap.get(row.id) || 0;
 
       return {
         ...row,
@@ -219,6 +236,7 @@ export async function GET(request: NextRequest) {
         university,
         application_completed: applicationCompleted,
         review_requested_at: reviewRequestedAt,
+        pending_interview_count: pendingInterviewCount,
       };
     });
 
@@ -251,6 +269,11 @@ export async function GET(request: NextRequest) {
       students = students.filter((s) => s.email?.toLowerCase().endsWith(".edu"));
     } else if (nonEduOnly) {
       students = students.filter((s) => !s.email?.toLowerCase().endsWith(".edu"));
+    }
+
+    // Filter by has pending interviews
+    if (hasInterviewsOnly) {
+      students = students.filter((s) => s.pending_interview_count > 0);
     }
 
     // Calculate totals and pagination

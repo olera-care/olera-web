@@ -16,5 +16,5 @@ import { MedJobsTabPage } from "@/components/admin/medjobs/MedJobsTabPage";
  * work when Providers is empty.
  */
 export default function MedJobsInBasketPage() {
-  return <MedJobsTabPage initialTab="providers" title="MedJobs · In Basket" />;
+  return <MedJobsTabPage initialTab="tasks" title="MedJobs · In Basket" />;
 }

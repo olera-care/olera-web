@@ -110,8 +110,10 @@ export interface TabDef {
 //
 // Smart-hide tucks empty tabs away; the active tab anchors the bar.
 export const TABS: TabDef[] = [
-  { key: "activation",   label: "Universities", tooltip: "Every university: its providers, students, and the five channels you reach it through." },
-  { key: "tasks",        label: "Tasks",      tooltip: "Everything due — contact rounds, job board checks, and custom work, across every university." },
+  // Universities and Tasks were the same work seen twice — a roster you
+  // could not act from, and a list with no context. One tab now: the roster
+  // is the way in, and it hands over one task at a time.
+  { key: "tasks",        label: "Tasks",      tooltip: "Every university, what is waiting on it, and the five channels you reach it through. Open one and it hands you the work." },
   { key: "meetings",     label: "Meetings",   tooltip: "Booked, or coordinating a time." },
   { key: "archive",      label: "Archive",    tooltip: "Rounds ran out, or closed by hand. Revive one to start a fresh set." },
 ];

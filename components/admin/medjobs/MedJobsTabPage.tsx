@@ -56,7 +56,7 @@ import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTab
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
 import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import ActivationTab from "@/components/admin/medjobs/activation/ActivationTab";
-import TasksTab from "@/components/admin/medjobs/activation/TasksTab";
+import TasksBoard from "@/components/admin/medjobs/tasks/TasksBoard";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import { BulkReengageModal } from "@/components/admin/medjobs/BulkReengageModal";
 import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
@@ -94,7 +94,6 @@ export function MedJobsTabPage({
   const [tab, setTab] = useState<TabKey>(tabFromUrl ?? initialTab);
   // Set when a next-check date hands off from Universities to Tasks, so the
   // task opens expanded rather than leaving the manager to find it.
-  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
@@ -743,24 +742,15 @@ export function MedJobsTabPage({
             {" "}to review what you and the team finished.
           </p>
         </div>
-      ) : tab === "activation" ? (
-        // University Activation (ST3-ST7). Clicking a next-check date hands
-        // off to the Tasks tab with that task open, which is why both tabs
-        // share the deep-link state below rather than owning it themselves.
-        <ActivationTab
-          onOpenTask={(taskId) => {
-            setOpenTaskId(taskId);
-            setTab("tasks");
-          }}
-        />
       ) : tab === "tasks" ? (
-        <TasksTab
-          openTaskId={openTaskId}
-          onOpenUniversity={() => {
-            setOpenTaskId(null);
-            setTab("activation");
-          }}
-        />
+        // The board: every university, what is waiting, and the five channel
+        // dots. Clicking a row does not open another list — it hands over one
+        // task at a time until the university is clear.
+        <TasksBoard />
+      ) : tab === "activation" ? (
+        // The old channel-checklist view. Kept reachable by ?tab=activation
+        // while the ladder beds in; it is no longer in the tab bar.
+        <ActivationTab onOpenTask={() => {}} />
       ) : tab === "providers" ? (
         // Provider audience queue: prospecting (catchment agency prospects)
         // folded with active clients. Provider-kind materialized rows + virtual

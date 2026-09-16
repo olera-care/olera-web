@@ -569,6 +569,31 @@ UPDATE medjobs_migration_staging s
               THEN 'in directory, not on a board'
          WHEN s.outreach_id IS NULL
               THEN 'no match — create a new record'
+         -- Two guards, both added after the twenty-row check turned up
+         -- three matches that looked wrong out of twenty.
+         --
+         -- First: a phone on several directory rows is a franchise or
+         -- switchboard number. Only one branch is on a board, so it
+         -- resolves to exactly one record by luck rather than by evidence.
+         -- Village Caregiving matched a Madison record on 304-962-5877,
+         -- which is the franchise head office in West Virginia.
+         WHEN s.candidates > 1
+              THEN 'review — number is shared across directory rows'
+         -- Second: an area code from nowhere near the campus. The record
+         -- is on that board because its coordinates put it there, so a
+         -- distant area code means the phone probably belongs to a
+         -- different branch of the same brand.
+         WHEN s.campus_slug IS NOT NULL AND s.phone <> '' AND left(s.phone,3) <> ALL (
+                CASE s.campus_slug
+                  WHEN 'u-utah'              THEN ARRAY['801','385','435']
+                  WHEN 'arizona-state'       THEN ARRAY['480','602','623','928','520']
+                  WHEN 'uw-madison'          THEN ARRAY['608']
+                  WHEN 'florida-state'       THEN ARRAY['850']
+                  WHEN 'indiana-bloomington' THEN ARRAY['812','930']
+                  WHEN 'u-florida'           THEN ARRAY['352','386']
+                  ELSE ARRAY[]::text[]
+                END)
+              THEN 'review — area code is not local to the campus'
          -- A dead number only archives when the remark stops there. Eleven
          -- of the twenty-eight go on to say "search google, got a new
          -- number" — those are live leads, not dead ends, and archiving
@@ -604,6 +629,10 @@ UPDATE medjobs_migration_staging s
          WHEN s.plan_action = 'review — number dead but a replacement was mentioned'
               THEN 'out of service, but the remark names another number to try'
          WHEN s.plan_action = 'archive — wrong department' THEN 'a remark says wrong department'
+         WHEN s.plan_action = 'review — number is shared across directory rows'
+              THEN 'several directory rows carry this number, so the branch is a guess'
+         WHEN s.plan_action = 'review — area code is not local to the campus'
+              THEN 'the number is not from this campus region'
          WHEN s.plan_action = 'overlay — info already sent' THEN 'EMAIL SENT carries a date'
          WHEN s.plan_action = 'overlay — still finding the contact' THEN 'no EMAIL SENT date, so the contact was never found'
          ELSE 'no record on any board to attach to'

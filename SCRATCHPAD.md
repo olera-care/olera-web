@@ -37,6 +37,12 @@
 
 **Open PR:** **#1927** (`thirsty-payne`) — SCRATCHPAD + `/smartscript`, unmerged.
 
+**Late-session delta (after the save):**
+
+- **The guarantee decision now has evidence, and it points to "don't build it yet."** TJ's criterion was: did it contribute to Liz subscribing? Checked — **`/managed-ads-terms` has been viewed ZERO times by anyone, ever**, and her window was `14:54:23 plans_viewed → 14:54:44 checkout_started` = **21 seconds**, with no page_view in between. So it was on screen but not investigated. Cannot prove it did or didn't reassure her (a scan-line is meant to be scanned, not clicked). **Key reframe: removing it now does nothing for Liz — she bought under it, so 15 Oct is owed regardless and is a calendar check + manual Stripe credit, not code.** The forward policy is the only real decision and it binds on the *next* provider. **Resolution: ask her. "What made you decide to pay?" is now question 2 on the call card, asked open, with an explicit note not to name the guarantee/reviews/campaign because whatever you name she'll agree with.** Her wording decides whether it stays in the product.
+- **Call card simplified** to 6 numbered steps + Watch out + Log, with a scan legend (green bar = say it, bullets = riff, red = don't). Her Olera page / website / Google profile linked in the card header. The apologetic "That's on me, not on your page" was cut on TJ's instruction — replaced with what we actually did for her (three counties, second channel, Gulfport and Biloxi). Recorded in `fb:provider_comms_plain_not_hedged`: **thoughtful and bold, no self-blame.**
+- **Memo run through `/simplify-artifact`** (TJ pointed out I'd hand-simplified when the command exists — its own description says run it unprompted before sharing). 12 sections → 8, 18,466px → 7,576px. **Cut:** the whole Corrections section (process narration), the 6-row commit table, the January scorecard grid, the Franchil section (→ one clause), two of four exhibit images (email renders, also deleted from the artifact), the sources footer, the 3 collision cards (→ prose). **The 14 actions became one table** with #/action/status/owner so the plan reads at a glance. Two facts deliberately left only in SCRATCHPAD: the Nextdoor destination finding and the mobile-geo caveat.
+
 ---
 
 ### 2026-09-16 (am) — First paying provider: Hoop Cares $75/mo, and what the funnel actually shows (`thirsty-payne`, analysis only, no product code)

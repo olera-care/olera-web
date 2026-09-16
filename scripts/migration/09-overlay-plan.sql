@@ -9,9 +9,12 @@
 --   1 plan          how many rows land in each bucket, and why
 --   2 rung detail   where the matched records end up, and how many prior
 --                   calls each carries
---   3 check twenty  twenty matched rows shown beside the record they would
---                   attach to: sheet name and phone against directory name
---                   and phone, the campus, the calls, and the rung
+--   3 check twenty  twenty rows that WILL be written, beside the record
+--                   they attach to. An earlier version listed every row
+--                   with a matched record, which included the ones the
+--                   guards had already held back, so a caught row looked
+--                   exactly like an accepted one.
+--   4 held back     what the guards caught, so they can be judged too
 --
 -- Block 3 is the one to read carefully. If two of the twenty look wrong,
 -- stop: the matcher is wrong and the other four hundred will be wrong the
@@ -76,26 +79,42 @@ block2 AS (
 
 block3 AS (
   SELECT
-    '3 check twenty'::text,
+    '3 check twenty - THESE WILL BE WRITTEN'::text,
     (left(p.sheet_name, 30) || ' / ' || p.phone)::text AS label,
     ('MATCHED: ' || left(coalesce(op.provider_name, 'unknown'), 26)
       || ' / ' || coalesce(op.phone, 'no phone')
       || ' / ' || coalesce(p.campus_slug, 'no campus')
       || ' / calls ' || p.calls
       || ' / ' || (CASE
-                     WHEN p.plan_step = 0 THEN 'step 0'
                      WHEN p.plan_step = 2 THEN 'step 2 round 1'
-                     ELSE 'archived'
+                     ELSE 'step 0'
                    END))::text AS detail,
     p.calls
   FROM plan p
   LEFT JOIN "olera-providers" op ON op.provider_id = p.matched_provider_id
-  WHERE p.outreach_id IS NOT NULL
+  WHERE p.plan_action LIKE 'overlay%'
   ORDER BY p.id
   LIMIT 20
+),
+
+-- What the guards caught. These are NOT written as overlays; they get
+-- their history and a flag, and a person decides the rung. Shown so the
+-- guards can be judged too — a guard that fires on good rows is as bad as
+-- one that misses bad ones.
+block4 AS (
+  SELECT
+    '4 held back for review'::text,
+    (left(p.sheet_name, 30) || ' / ' || p.phone)::text,
+    (left(p.plan_action, 46) || ' / ' || coalesce(p.campus_slug, 'no campus'))::text,
+    p.calls
+  FROM plan p
+  WHERE p.plan_action LIKE 'review%'
+  ORDER BY p.id
+  LIMIT 15
 )
 
 SELECT * FROM block1
 UNION ALL SELECT * FROM block2
 UNION ALL SELECT * FROM block3
+UNION ALL SELECT * FROM block4
 ORDER BY 1, 4 DESC, 2;

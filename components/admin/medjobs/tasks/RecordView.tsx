@@ -31,13 +31,23 @@ const LABEL: Record<ContactField, string> = {
 export default function RecordView({
   record,
   onField,
+  onSaveFields,
   onOpenTask,
   onRevive,
+  onArchive,
+  onDelete,
+  busy,
 }: {
   record: BoardRecord;
   onField: (field: ContactField, value: string) => void;
+  /** Persist what was typed. Called on blur, not on every keystroke. */
+  onSaveFields: () => void;
   onOpenTask: (task: BoardTask) => void;
   onRevive: () => void;
+  onArchive: () => void;
+  /** Destroys the record. The caller confirms first. */
+  onDelete: () => void;
+  busy?: boolean;
 }) {
   const ladder = LADDERS[record.section];
   const ready = record.tasks.filter(isReady);
@@ -62,6 +72,7 @@ export default function RecordView({
             <input
               value={record[f]}
               onChange={(e) => onField(f, e.target.value)}
+              onBlur={onSaveFields}
               placeholder="—"
               className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
             />
@@ -78,6 +89,35 @@ export default function RecordView({
           Start this up again
         </button>
       )}
+
+      {/*
+        Archive and delete are different promises. Archive takes the record
+        off the board and keeps everything, and the catchment populate will
+        not put it back because the record still exists. Delete destroys it,
+        so it is behind a confirm and writes an exclusion row that stops the
+        populate recreating it.
+      */}
+      <div className="mt-4 flex items-center gap-2 border-t border-gray-100 pt-4">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onArchive}
+          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-[12.5px] font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+        >
+          Archive
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onDelete}
+          className="rounded-md border border-error-200 bg-white px-3 py-1.5 text-[12.5px] font-semibold text-error-700 hover:bg-error-50 disabled:opacity-50"
+        >
+          Delete
+        </button>
+        <span className="text-[11.5px] text-gray-400">
+          Archive hides it and keeps the history. Delete cannot be undone.
+        </span>
+      </div>
 
       <Band label="To do">
         {ready.map((t) => (

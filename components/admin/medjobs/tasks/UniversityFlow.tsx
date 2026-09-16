@@ -49,6 +49,7 @@ export default function UniversityFlow({
   const [view, setView] = useState<View>({ kind: "summary" });
   const [, force] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [cheer, setCheer] = useState<string | null>(null);
   const timers = useRef<number[]>([]);
 
@@ -67,6 +68,36 @@ export default function UniversityFlow({
   const say = (msg: string) => {
     setToast(msg);
     timers.current.push(window.setTimeout(() => setToast(null), 2200));
+  };
+
+  /**
+   * Everything that has to reach the database goes through here. The board
+   * is reloaded from the server afterwards rather than patched in memory,
+   * because a delete changes more than the record it names and guessing at
+   * the rest is how a screen starts lying about what is saved.
+   */
+  const send = async (payload: Record<string, unknown>, done: string) => {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/admin/medjobs/tasks-board/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        say(json.error ?? "That did not save");
+        return false;
+      }
+      say(done);
+      onChanged();
+      return true;
+    } catch {
+      say("Could not reach the server — nothing was saved");
+      return false;
+    } finally {
+      setBusy(false);
+    }
   };
 
   const celebrate = (msg: string) => {
@@ -177,15 +208,45 @@ export default function UniversityFlow({
       ) : view.kind === "record" && record ? (
         <RecordView
           record={record}
+          busy={busy}
           onField={(f, v) => {
             record[f] = v;
             force((n) => n + 1);
+          }}
+          onSaveFields={() => {
+            void send(
+              {
+                op: "save_fields",
+                recordId: record.id,
+                fields: {
+                  contact: record.contact,
+                  role: record.role,
+                  phone: record.phone,
+                  email: record.email,
+                },
+              },
+              "Saved",
+            );
           }}
           onOpenTask={(t: BoardTask) => setView({ kind: "task", recordId: record.id, taskId: t.id })}
           onRevive={() => {
             const t = revive(record);
             setView({ kind: "task", recordId: record.id, taskId: t.id });
             redraw();
+          }}
+          onArchive={() => {
+            void send({ op: "archive_record", recordId: record.id }, `${record.name} archived`)
+              .then((ok) => { if (ok) setView({ kind: "summary" }); });
+          }}
+          onDelete={() => {
+            // Destroying a record takes its call history with it, so the
+            // name has to be in front of the person clicking.
+            const sure = window.confirm(
+              `Delete ${record.name}?\n\nThis removes the record and everything logged against it, including any calls migrated from the spreadsheet. It cannot be undone.\n\nArchive instead if you only want it off the board.`,
+            );
+            if (!sure) return;
+            void send({ op: "delete_record", recordId: record.id }, `${record.name} deleted`)
+              .then((ok) => { if (ok) setView({ kind: "summary" }); });
           }}
         />
       ) : (

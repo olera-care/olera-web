@@ -118,6 +118,15 @@ BEGIN
          SELECT 1 FROM student_outreach so
           WHERE so.campus_id = v_campus.campus_id
             AND so.research_data->>'olera_provider_id' = p.provider_id
+       )
+       -- An admin deleted this one from this campus. Archiving needs no
+       -- entry here because an archived record still exists and is caught
+       -- by the check above; a deleted one leaves nothing behind, so
+       -- without this the next run brings it straight back.
+       AND NOT EXISTS (
+         SELECT 1 FROM medjobs_excluded_records x
+          WHERE x.campus_id = v_campus.campus_id
+            AND x.olera_provider_id = p.provider_id
        );
 
     INSERT INTO student_outreach

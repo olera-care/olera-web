@@ -198,6 +198,11 @@ export async function GET() {
           : STAKEHOLDER_SECTION[row.stakeholder_type ?? ""] ?? null;
       if (!section) continue;
 
+      // Archiving is the promise that a record leaves the board. It still
+      // exists, which is what stops the catchment populate recreating it,
+      // but it does not belong in a queue of work.
+      if (row.status === "archived") continue;
+
       const c = contactOf.get(row.id);
       const tasks = (tasksByOutreach.get(row.id) ?? []).map((t) => ({ ...t, section }));
       const pending = tasks.filter((t) => !t.done);

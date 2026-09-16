@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { IntendedProfessionalSchool } from "@/lib/types";
@@ -71,6 +72,7 @@ export default function StudentEligibilityModal({
   /** Called when the user already has an account — parent should open auth flow */
   onExistingUser?: (email: string) => void;
 }) {
+  const router = useRouter();
   const { refreshAccountData } = useAuth();
   const [step, setStep] = useState<Step>("q1");
   const [track, setTrack] = useState<IntendedProfessionalSchool | null>(null);
@@ -113,8 +115,9 @@ export default function StudentEligibilityModal({
           university: selectedUni?.name ?? context.universityName ?? undefined,
           universityId: context.universityId ?? undefined,
           campus: university,
-          city: context.city ?? undefined,
-          state: context.state ?? undefined,
+          // Auto-fill city/state from selected university if not in context
+          city: context.city ?? selectedUni?.city ?? undefined,
+          state: context.state ?? selectedUni?.state ?? undefined,
           referral: context.referral,
           website: honeypot,
         }),
@@ -145,8 +148,18 @@ export default function StudentEligibilityModal({
         });
         if (otpError) {
           console.warn("[student-eligibility] auto-sign-in failed:", otpError.message);
+          // Fallback: still try to complete in case session exists
+          await refreshAccountData();
+          await onComplete();
+          return;
         }
+        // Auth succeeded — redirect instantly, refresh in background
+        // Use replace so back button doesn't return to landing page
+        refreshAccountData();
+        router.replace("/portal/medjobs");
+        return;
       }
+      // No tokenHash (shouldn't happen for new users) — fallback
       await refreshAccountData();
       await onComplete();
     } catch {

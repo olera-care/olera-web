@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  sendAdBoostLifecycleEmail,
+  type CampaignRow,
+} from "@/lib/ad-boost/lifecycle-notifications.server";
 
 /**
  * Ingest for Google Ads campaign metrics, posted by a Google Ads Script.
@@ -25,9 +29,54 @@ import { createClient } from "@supabase/supabase-js";
  * this route reachable, and it is also why the bearer check below is the only
  * thing protecting it: the WAF is no longer in front of this path, deliberately,
  * because the WAF exists to block bots and our ingester is one.
+ *
+ * WHY THE TRACTION EMAIL FIRES HERE. It used to fire only inside the admin
+ * PATCH, gated on an operator hand-saving the metrics form. Once these figures
+ * started arriving from this script nobody opened that form again, so the email
+ * fired three times in the programme's life and not once after 14 Aug 2026 --
+ * while every row in /admin/ad-boost correctly reported "Traction email
+ * missing". The trigger belongs next to the numbers that justify it: the moment
+ * we learn a live campaign has spend or clicks is the moment the provider can
+ * be told it is working. The reservation inside sendAdBoostLifecycleEmail is
+ * atomic on traction_email_sent_at, so an hourly run cannot double-send.
  */
 
 export const dynamic = "force-dynamic";
+// Sends email, so it needs the same headroom every other sending route takes.
+// Without it this runs on the platform default, and a timeout AFTER the atomic
+// reservation is taken loses that email permanently: the rollback that clears
+// traction_email_sent_at only runs if sendEmail RETURNS, and a killed
+// invocation never returns.
+export const maxDuration = 300;
+
+/** The columns sendAdBoostLifecycleEmail needs, plus the three this route
+ *  decides on. Selected from the UPDATE so the values are post-write. */
+const TRACTION_ROW_SELECT =
+  "id, provider_id, provider_slug, display_name, requested_setup_week, flight_start_date, channel, campaign_tag, intended_monthly_budget, ad_spend_cents, ad_clicks, ad_impressions, metrics_source, provider_reported_outcome, created_at, status, traction_email_sent_at, provider_comms_paused_at";
+
+type TractionRow = CampaignRow & {
+  status: string | null;
+  traction_email_sent_at: string | null;
+  provider_comms_paused_at: string | null;
+};
+
+/** Serial, capped, and matched to the end-scheduler's shape. Resend's default
+ *  limit is 2 requests/second, so fanning these out concurrently would 429 most
+ *  of a catch-up batch. A failed send rolls its own reservation back and retries
+ *  next hour, so a cap costs nothing but noise. */
+const MAX_TRACTION_SENDS_PER_RUN = 10;
+
+/** "Getting activity" has to mean activity, not that a sync ran. Impressions
+ *  alone are excluded deliberately -- the email does not show them, so an ad
+ *  that was served and ignored would read as good news. A campaign under
+ *  experiment has provider comms paused (migration 204) and must not be told it
+ *  has traction until the review says so. */
+function tractionIsDue(row: TractionRow): boolean {
+  if (row.status !== "live") return false;
+  if (row.traction_email_sent_at) return false;
+  if (row.provider_comms_paused_at) return false;
+  return (row.ad_spend_cents ?? 0) > 0 || (row.ad_clicks ?? 0) > 0;
+}
 
 function getServiceDb() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -94,6 +143,7 @@ export async function POST(req: NextRequest) {
   const measuredAt = new Date().toISOString();
   const updatedProvider: string[] = [];
   const updatedCity: string[] = [];
+  const tractionDue: TractionRow[] = [];
   const unmatched: { id: string; name?: string }[] = [];
   const rejected: { id?: string; reason: string }[] = [];
   /** Mapped, but held back because a human verified those figures. Not an
@@ -149,7 +199,7 @@ export async function POST(req: NextRequest) {
       .update(patch)
       .eq("platform_campaign_id", id)
       .or(notVerified)
-      .select("id");
+      .select(TRACTION_ROW_SELECT);
 
     if (provErr) {
       rejected.push({ id, reason: `provider update failed: ${provErr.message}` });
@@ -157,6 +207,7 @@ export async function POST(req: NextRequest) {
     }
     if (prov && prov.length > 0) {
       updatedProvider.push(id);
+      for (const row of prov) if (tractionIsDue(row)) tractionDue.push(row);
       continue;
     }
 
@@ -212,11 +263,46 @@ export async function POST(req: NextRequest) {
     unmatched.push({ id, name: typeof item.name === "string" ? item.name : undefined });
   }
 
+  // Awaited, not fire-and-forget: a serverless invocation can be frozen the
+  // moment the response is returned, which would drop the send after the
+  // reservation had already been taken -- the one failure mode that loses the
+  // email permanently rather than retrying it next hour.
+  let tractionSent = 0;
+  for (const request of tractionDue.slice(0, MAX_TRACTION_SENDS_PER_RUN)) {
+    // Re-read immediately before sending. The ingest loop above runs for every
+    // campaign in the payload, and the hourly end-scheduler can flip a campaign
+    // to `ended` inside that window -- telling a finished campaign it is
+    // "getting activity" is the one wrong email this can produce, and the
+    // atomic reservation guards against double-sends, not against status moving.
+    const { data: fresh } = await db
+      .from("ad_campaign_requests")
+      .select("status, deleted_at, traction_email_sent_at, provider_comms_paused_at")
+      .eq("id", request.id)
+      .maybeSingle();
+    if (
+      !fresh ||
+      fresh.status !== "live" ||
+      fresh.deleted_at != null ||
+      fresh.traction_email_sent_at != null ||
+      fresh.provider_comms_paused_at != null
+    ) {
+      continue;
+    }
+
+    try {
+      const result = await sendAdBoostLifecycleEmail({ request, kind: "traction" });
+      if (result.sent) tractionSent++;
+    } catch (err) {
+      console.error("[ads/metrics] traction send threw:", request.id, err);
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     measuredAt,
     received: raw.length,
     updatedProvider: updatedProvider.length,
+    tractionEmailsSent: tractionSent,
     updatedCity: updatedCity.length,
     skippedVerified,
     unmatched,

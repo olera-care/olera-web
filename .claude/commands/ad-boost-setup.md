@@ -12,6 +12,16 @@ If the input and conversation do not identify the type, ask: **"What are we prom
 
 Existing session authorization persists. Do not ask TJ to repeat a type, channel, budget, or goal already agreed. Resolve routine choices within that agreement and present exact dates and platform settings at the final review. Publishing still requires the applicable final publish gate.
 
+## Authorization and scope continuity
+
+Added based on the September 16, 2026 Nextdoor setup post-mortem.
+
+- Maintain one current execution packet: eligible providers, channel, per-provider cap, total cap, flight, goal, and the latest user authorization. When TJ narrows scope, replace the active batch immediately; retain other packets only as excluded research. “All” means all providers meeting the stated eligibility rule, not the entire book. A unit-price approval is not permission to expand eligibility.
+- “Let's do it” after a concrete proposal authorizes its routine preparation and setup. Carry that approval forward. If TJ explicitly directs the agent to handle account setup, do not repeat a generic account/card handoff from this command. User instructions take precedence over this workflow's defaults; higher-priority tool and safety rules still apply.
+- Distinguish **routine account configuration**, **an actual identity/legal/payment gate**, and **campaign publication**. Opening a setup form is not by itself a payment or agreement. Read the real screen, complete authorized routine work, and ask only at a concrete remaining gate. Do not invent billing details or expose saved payment information.
+- A prior approval-review rejection is scoped to the action and authorization then available. Do not bypass it. If TJ subsequently explicitly authorizes the previously rejected routine action, reassess and submit that action normally for review. If rejected again, report the exact reason and finish unaffected work.
+- Do not ask TJ to repeat approved dollars, providers, or goals. Retain the final campaign publish review unless TJ explicitly overrides that workflow gate; any independent tool-required confirmation still applies. Complete the actual configuration before that review.
+
 ## Purpose
 
 Take one or more Ad Boost providers from "Requested" to published, policy-audited campaigns on **Google, Nextdoor, or both**. Drive the selected ad manager directly through the visible browser, with TJ approving every final Publish/Create action. The Google track encodes the flow proven on Miracle-Lightstar + Impact (2026-07-05); the Nextdoor track encodes the Graceful Homecare pilot (2026-08-14).
@@ -123,9 +133,21 @@ For each provider (from screenshot or $ARGUMENTS, matched against `ad_campaign_r
 
 ## Phase 2G — Build in Google Ads (Google selected only; chrome-devtools MCP)
 
+### Codex native browser recovery and write verification
+
+This section applies to both provider and city setup, and to audits. For Codex CUA, it takes precedence over the legacy CDP/shell instructions below. Use documented CUA APIs only; preserve the authenticated session.
+
+1. Use the browser the user selected and verify its returned identity. For the Codex in-app browser, reuse its documented browser/tab handles; do not require a native Chrome window. When native Chrome is actually selected, verify `com.google.Chrome`. A browser alias is not evidence of which application is controlled.
+2. After every navigation, dropdown selection, or focus-sensitive write, read current state before relying on indices again. Batch only actions whose targets remain stable. Prefer supported field setters where they work, and verify the actual values; React fields may ignore a setter. If clicks lag, stop batching click/type pairs. On September 16 an address was appended to the URL because focus arrived late.
+3. A click error or unchanged snapshot does not prove the write failed. Reconcile the account/campaign list and saved IDs before retrying a create or publish operation. A creation may succeed while the page remains on the previously selected advertiser. HomeWell `1028503664345483011` and LumiWell `1028505935233943519` were verified this way; these are historical examples, not instructions to create or target them.
+4. If screenshot and accessibility state disagree, stop writes. Neither representation is reliable enough for a consequential click until reconciled. Re-select the verified app, dismiss an open menu, raise the exposed window, and obtain fresh state. Use a fresh screenshot for coordinate fallbacks only when it agrees with the current page. Recover via a documented reload or reselect the same known page, accounting for unsaved form loss. A runtime reset may repair the connection; it does not restart Chrome or prove the page recovered.
+5. Bound recovery: after two unchanged attempts at one control, change the approach or observation rather than repeat it. Record the distinct recovery attempts. If reconnection, fresh observation and a supported reload still cannot establish consistent state, stop UI mutations, preserve completed IDs and form progress, and continue useful independent preparation. Do not kill the user's browser or change protections to repair control.
+6. In the in-app browser, use the documented filechooser API for uploads and inspect the saved crop. Account selection can be shared across tabs: verify the intended account before submitting each ad. A review screen’s Pending review label is only a preview; verify a saved dashboard row and creative ID after submission.
+7. If a user intervention is still necessary, request the smallest concrete action (for example, bring the verified Chrome window forward and reload once). Explain the observed tool fault without claiming its cause is known. Do not promise that refresh is the only intervention needed or that it will fix the fault. Never hand the whole account/campaign setup back because one control failed.
+
 ### Step A — prove the window is REAL and VISIBLE before touching the wizard (do this every session)
 
-**TJ has to watch this flow and personally complete the Publish click and any Google "Confirm it's you" re-auth. A window he cannot see makes the whole session worthless.** So the very first browser action of every session is a visibility check, not a navigation:
+**Keep the flow visible for review. The agent performs the final Publish click after the applicable publish gate; hand off an actual user-only re-auth challenge when encountered.** So the very first browser action of every session is a visibility check, not a navigation:
 
 ```
 evaluate_script: () => ({ innerW: innerWidth, innerH: innerHeight, outerW: outerWidth, outerH: outerHeight })
@@ -226,7 +248,7 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 
 ## Phase 2N — Build in Nextdoor Ads (Nextdoor selected only)
 
-Use the same visible browser requirement as Phase 2G Step A. Open `https://ads.nextdoor.com/v2` and confirm the selected advertiser account belongs to the provider being built. **Never put another provider’s campaign inside the Graceful Homecare advertiser account.** If a new advertiser account or payment method is required, prepare everything else and hand TJ the account-creation/card step; do not invent billing details.
+Use the same visible browser requirement as Phase 2G Step A. Open `https://ads.nextdoor.com/v2` and confirm the selected advertiser account belongs to the provider being built. **Never put another provider’s campaign inside the Graceful Homecare advertiser account.** Inspect the account switcher before creating anything. Within authorized setup, create missing provider advertiser accounts under Olera using verified business details. Verify each new account in the switcher and record its ID immediately. Inspect existing billing availability before claiming a new card is required. Hand off only an actual step requiring unavailable information or user action under the applicable tool rules; account creation is not a blanket TJ-only task. Do not invent billing details. The Authorization and scope continuity section governs later user instructions.
 
 ### Step A — objective + campaign shell
 

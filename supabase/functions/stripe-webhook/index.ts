@@ -266,6 +266,12 @@ async function activateAdBoostPlan(
     `[stripe-webhook] Ad Boost plan activated for request ${requestId} ($${planValue}/mo, sub=${subscriptionId})`,
   );
 
+  // Sync to provider_growth_tracking for real-time "Paying" tab updates.
+  // Non-blocking - errors are logged but don't fail the webhook.
+  if (row.provider_id) {
+    await syncProviderGrowthAdsStatus(row.provider_id, planValue);
+  }
+
   // Authoritative bottom-of-funnel event. Client-side return tracking can be
   // skipped by a closed tab or delayed redirect; Stripe completion is the
   // business fact. Best-effort so an analytics issue never rolls back an
@@ -474,6 +480,166 @@ async function deactivateMedjobsByCustomer(customerId: string) {
 
     console.log(
       `[stripe-webhook] Deactivated medjobs subscription for profile ${p.id}`,
+    );
+  }
+}
+
+/**
+ * Sync provider_growth_tracking when a provider subscribes to Ad Boost.
+ * This provides real-time sync (webhook-driven) complementing the hourly cron.
+ *
+ * @param providerId - The business_profiles.id (same as ad_campaign_requests.provider_id)
+ * @param planValue - Monthly subscription value in dollars
+ */
+async function syncProviderGrowthAdsStatus(
+  providerId: string,
+  planValue: number | null,
+) {
+  const now = new Date().toISOString();
+
+  // Check if tracking record exists
+  const { data: existing, error: selectErr } = await supabase
+    .from("provider_growth_tracking")
+    .select("id, ads_status")
+    .eq("business_profile_id", providerId)
+    .maybeSingle();
+
+  if (selectErr) {
+    console.error(
+      `[stripe-webhook] Provider growth tracking select failed for ${providerId}:`,
+      selectErr,
+    );
+    return; // Non-blocking - don't fail the webhook
+  }
+
+  if (existing) {
+    // Update existing record if not already subscribed
+    if (existing.ads_status === "subscribed") {
+      console.log(
+        `[stripe-webhook] Provider ${providerId} already marked as ads subscribed in growth tracking`,
+      );
+      return;
+    }
+
+    const { error: updateErr } = await supabase
+      .from("provider_growth_tracking")
+      .update({
+        ads_status: "subscribed",
+        ads_subscribed_at: now,
+        updated_at: now,
+      })
+      .eq("id", existing.id);
+
+    if (updateErr) {
+      console.error(
+        `[stripe-webhook] Provider growth tracking update failed for ${providerId}:`,
+        updateErr,
+      );
+      return;
+    }
+
+    // Create audit touchpoint
+    const { error: tpErr } = await supabase
+      .from("provider_growth_touchpoints")
+      .insert({
+        tracking_id: existing.id,
+        business_profile_id: providerId,
+        touchpoint_type: existing.ads_status === "free_intro" ? "ads_upgraded" : "ads_converted",
+        details: {
+          plan_value: planValue,
+          source: "stripe_webhook",
+          previous_status: existing.ads_status,
+          auto_synced: true,
+        },
+      });
+
+    if (tpErr) {
+      console.error(
+        `[stripe-webhook] Provider growth touchpoint insert failed for ${providerId}:`,
+        tpErr,
+      );
+    }
+
+    console.log(
+      `[stripe-webhook] Updated provider_growth_tracking for ${providerId}: ads_status=subscribed`,
+    );
+  } else {
+    // No tracking record exists - create one
+    // First, get provider info for claim_source and medjobs eligibility
+    const { data: profile, error: profileErr } = await supabase
+      .from("business_profiles")
+      .select("id, city, state, source, claim_state, created_at")
+      .eq("id", providerId)
+      .maybeSingle();
+
+    if (profileErr || !profile) {
+      console.error(
+        `[stripe-webhook] Business profile lookup failed for ${providerId}:`,
+        profileErr,
+      );
+      return;
+    }
+
+    // Only create tracking for claimed providers
+    if (profile.claim_state !== "claimed") {
+      console.log(
+        `[stripe-webhook] Provider ${providerId} not claimed, skipping growth tracking creation`,
+      );
+      return;
+    }
+
+    const { data: newTracking, error: insertErr } = await supabase
+      .from("provider_growth_tracking")
+      .insert({
+        business_profile_id: providerId,
+        claim_source: profile.source === "new_org_signup" ? "new_org_signup" : "email",
+        claimed_at: profile.created_at,
+        ads_status: "subscribed",
+        ads_subscribed_at: now,
+        pipeline_stage: "new_claim",
+        pipeline_stage_changed_at: profile.created_at,
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (insertErr) {
+      // Ignore duplicate key errors (race condition)
+      if (insertErr.code !== "23505") {
+        console.error(
+          `[stripe-webhook] Provider growth tracking insert failed for ${providerId}:`,
+          insertErr,
+        );
+      }
+      return;
+    }
+
+    if (newTracking) {
+      // Create audit touchpoint
+      const { error: tpErr } = await supabase
+        .from("provider_growth_touchpoints")
+        .insert({
+          tracking_id: newTracking.id,
+          business_profile_id: providerId,
+          touchpoint_type: "ads_converted",
+          details: {
+            plan_value: planValue,
+            source: "stripe_webhook",
+            previous_status: "none",
+            auto_synced: true,
+            tracking_created: true,
+          },
+        });
+
+      if (tpErr) {
+        console.error(
+          `[stripe-webhook] Provider growth touchpoint insert failed for ${providerId}:`,
+          tpErr,
+        );
+      }
+    }
+
+    console.log(
+      `[stripe-webhook] Created provider_growth_tracking for ${providerId}: ads_status=subscribed`,
     );
   }
 }

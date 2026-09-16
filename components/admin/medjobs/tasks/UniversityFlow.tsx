@@ -18,21 +18,23 @@ import {
   type Effect,
 } from "@/lib/medjobs/task-board";
 import RecordView from "./RecordView";
+import SummaryView from "./SummaryView";
 import TaskView from "./TaskView";
 
 /**
- * A university, opened. It hands you one task, and when you finish it, the
- * next one — the record in hand first, then the next record in ladder
- * order. There is no list in between, because the list was never the work.
+ * A university, opened.
  *
- * Closing to the record is the only detour, and it is one click on the
- * name at the top of the task.
+ * It opens on the summary — the seven sections and what each is waiting on
+ * — because an operator should be able to see the shape of a campus before
+ * working it. Start the next task and it runs them in a row, each one
+ * handing over the next without a list in between. The university name in
+ * the header always comes back here.
  */
 
 type View =
+  | { kind: "summary" }
   | { kind: "task"; recordId: string; taskId: string }
-  | { kind: "record"; recordId: string }
-  | { kind: "empty" };
+  | { kind: "record"; recordId: string };
 
 export default function UniversityFlow({
   university,
@@ -44,10 +46,7 @@ export default function UniversityFlow({
   /** The board behind needs its counts back after every change. */
   onChanged: () => void;
 }) {
-  const first = nextReady(university);
-  const [view, setView] = useState<View>(
-    first ? { kind: "task", recordId: first.record.id, taskId: first.task.id } : { kind: "empty" },
-  );
+  const [view, setView] = useState<View>({ kind: "summary" });
   const [, force] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [cheer, setCheer] = useState<string | null>(null);
@@ -80,17 +79,16 @@ export default function UniversityFlow({
   const task =
     view.kind === "task" && record ? record.tasks.find((t) => t.id === view.taskId) ?? null : null;
 
-  /** Where every change lands: the next task, or the end of the day. */
+  /** Where every change lands: the next task, or back to the summary. */
   const land = (effect: Effect) => {
     if (effect.landOn) {
       setView({ kind: "task", recordId: effect.landOn.record.id, taskId: effect.landOn.task.id });
     } else {
-      setView({ kind: "empty" });
+      setView({ kind: "summary" });
     }
     redraw();
     if (effect.universityCleared) {
       celebrate(`${university.name} is clear for today`);
-      timers.current.push(window.setTimeout(onClose, 1500));
     } else if (effect.recordCleared && record) {
       say(`${record.name} — done for today`);
     }
@@ -119,13 +117,13 @@ export default function UniversityFlow({
         <div className="min-w-0">
           <button
             type="button"
-            onClick={() => setView(pickUp())}
-            className="text-[12.5px] text-primary-700 hover:underline"
+            onClick={() => setView({ kind: "summary" })}
+            className="text-left text-[13px] font-semibold text-gray-900 hover:underline"
           >
-            {university.name}
+            {view.kind === "summary" ? university.name : `← ${university.name}`}
           </button>
           <p className="mt-0.5 text-[12px] text-gray-500">
-            {left ? `${left} to do` : "Nothing left today"}
+            {left ? `${left} task${left > 1 ? "s" : ""} waiting` : "Nothing left today"}
             {done ? ` · ${done} done` : ""}
           </p>
         </div>
@@ -182,10 +180,14 @@ export default function UniversityFlow({
           }}
         />
       ) : (
-        <div className="px-5 py-10 text-center">
-          <p className="text-[14px] font-medium text-gray-900">Nothing left here today</p>
-          <p className="mt-1 text-[13px] text-gray-500">Close this and take the next university.</p>
-        </div>
+        <SummaryView
+          university={university}
+          onStart={() => {
+            const nx = nextReady(university);
+            if (nx) setView({ kind: "task", recordId: nx.record.id, taskId: nx.task.id });
+          }}
+          onOpenRecord={(r) => setView({ kind: "record", recordId: r.id })}
+        />
       )}
 
       {toast && (
@@ -196,11 +198,6 @@ export default function UniversityFlow({
       {cheer && <Cheer message={cheer} />}
     </DrawerShell>
   );
-
-  function pickUp(): View {
-    const nx = nextReady(university, record);
-    return nx ? { kind: "task", recordId: nx.record.id, taskId: nx.task.id } : { kind: "empty" };
-  }
 }
 
 /** Finishing a university should feel like finishing something. */

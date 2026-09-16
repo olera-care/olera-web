@@ -54,7 +54,6 @@ import { CandidateCard } from "@/components/admin/medjobs/cards/SpecialtyCards";
 import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
-import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import ActivationTab from "@/components/admin/medjobs/activation/ActivationTab";
 import TasksBoard from "@/components/admin/medjobs/tasks/TasksBoard";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
@@ -621,7 +620,6 @@ export function MedJobsTabPage({
         <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
       </header>
 
-      <InBasketHero tabCounts={tabCounts} tabUnreadCounts={tabUnreadCounts} />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="min-w-[220px] flex-1">

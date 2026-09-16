@@ -12,7 +12,8 @@ import UniversityFlow from "./UniversityFlow";
  *
  * The table is the roster and has to survive being read at a glance across
  * dozens of rows, so it stayed as it was — one column added for the count.
- * Clicking a row does not open another list; it starts the work.
+ * Clicking a row opens the university on its summary, from which one button
+ * starts working through the tasks in a row.
  */
 
 const CHANNEL_OF: Partial<Record<SectionKey, "st3" | "st4" | "st5" | "st6" | "st7">> = {
@@ -73,9 +74,9 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
           <thead>
             <tr className="border-b border-gray-200">
               <th className={TH}>University</th>
-              <th className={`${TH} text-right`}>To do</th>
+              <th className={`${TH} text-center`}>Tasks</th>
               {SECTION_ORDER.map((s) => (
-                <th key={s} className={TH}>
+                <th key={s} className={`${TH} text-center`}>
                   {LADDERS[s].label}
                 </th>
               ))}
@@ -96,7 +97,7 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
                       <span className="text-[13px] font-medium text-gray-900">{u.name}</span>
                     </span>
                   </td>
-                  <td className="py-2.5 pr-3 text-right text-[13px] font-semibold tabular-nums text-warning-700">
+                  <td className="py-2.5 pr-3 text-center text-[13px] font-semibold tabular-nums text-warning-700">
                     {n || <span className="text-gray-300">·</span>}
                   </td>
                   {SECTION_ORDER.map((s) => {
@@ -107,7 +108,7 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
                     if (!channel) {
                       const waiting = sectionReady(u, s);
                       return (
-                        <td key={s} className="py-2.5 pr-3 text-[12px] tabular-nums text-gray-400">
+                        <td key={s} className="py-2.5 pr-3 text-center text-[12px] tabular-nums text-gray-400">
                           {waiting || "—"}
                         </td>
                       );
@@ -115,7 +116,7 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
                     const status = u.channels[channel] ?? "not_yet";
                     return (
                       <td key={s} className="py-2.5 pr-3">
-                        <span className="flex items-center" title={statusLabel(status)}>
+                        <span className="flex items-center justify-center" title={statusLabel(status)}>
                           <StatusDot status={status} />
                         </span>
                       </td>
@@ -129,7 +130,8 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
       </div>
 
       <p className="mt-3 text-[11px] text-gray-500">
-        A red dot means something is waiting. Click a university and it hands you one task at a time.
+        A red dot means something is waiting. Open a university to see its sections, then start
+        working through them one task at a time.
       </p>
 
       {open && (

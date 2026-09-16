@@ -35,6 +35,16 @@ Ask yourself:
 - **What assumption was wrong?** (About the data? The API? The UI behavior?)
 - **Was there a pattern I should have recognized?** (Similar bug elsewhere?)
 
+For agent-workflow failures, also ask:
+
+- Did a workflow default become an invented permission gate despite existing user authorization?
+- Did I preserve the user's eligibility and total-budget constraints, or broaden them while following a unit-price approval?
+- Did I distinguish a tool rejection from a product limitation, reassess after new explicit authorization, and avoid bypassing review?
+- Did I verify external writes before retrying, and stop blind writes when screenshot and accessibility state conflicted?
+- Is the operational issue actually resolved? Record partial success and unresolved tool faults separately from command/documentation fixes; do not invent a resolution time.
+
+Update the canonical shared command that caused the behavior, remove contradictory old wording, and inspect its linked workflows. A post-mortem entry alone is not prevention. Added based on the September 16, 2026 Nextdoor setup post-mortem.
+
 ### 3. Identify Tooling Improvements
 
 Consider updates to prevent recurrence:

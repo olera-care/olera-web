@@ -505,3 +505,25 @@ What that unlocked was not cosmetic. The audit's entire Nextdoor section had bee
 **Lesson**: "I can't reach it" is a claim about the tool as often as about the target, and the tool is usually the half you control. Before reporting a capability limit, check whether the constraint is something you chose — a browser, a profile, a port — rather than something you were handed.
 
 ---
+
+---
+
+### 2026-09-16: Nextdoor setup over-handoff, scope expansion and unreliable browser retries
+
+**Symptom**: TJ asked for paid traffic to providers with stalled traction. The agent expanded that to 19 providers/$950, then repeatedly asked the founder to create advertiser accounts after the plan was narrowed and approved at three providers/$150. Once TJ explicitly directed the agent to drive setup, two accounts were created without founder intervention; the third remained incomplete during a browser-control fault.
+
+**Root Cause**: The shared setup command mandated handing off any account/card step, contradicting its own persistent-authorization rule. The agent treated that procedural default as an absolute boundary, conflated routine account setup with billing/legal actions, and did not preserve the eligibility qualifier when interpreting “all providers.” Separately, delayed native clicks and inconsistent screenshot/accessibility observations led to repeated retries and one address appended to a URL. The underlying browser fault was not established.
+
+**Fix**: Explicit user authorization allowed normal account creation. HomeWell `1028503664345483011` and LumiWell `1028505935233943519` were verified in the account switcher; Rosemonte was not submitted. The malformed URL/address were corrected before any submission. Updated the canonical setup command to perform authorized routine setup, inspect concrete gates, reconcile writes before retrying, and bound native-browser recovery. Linked city setup to those rules. Updated audit-to-rollout selection guidance and the postmortem process itself.
+
+**Time to Resolution**: No reliable elapsed-time measurement. The authorization/process defect is corrected in the command text; browser reliability and the three-ad rollout remain unresolved. No new pilot ads were launched.
+
+**Process analysis**: The existing persistent-authorization sentence should have exposed the contradiction before the first handoff. Two successful account creations disproved the assumption that the founder was necessary. Existing notes already warned that returned tool success/failure is not saved platform state.
+
+**Prevention**: `.claude/commands/ad-boost-setup.md`, `ad-boost-setup-city.md`, `ad-boost-audit.md`, and `postmortem.md` now address authorization continuity, eligible-cohort scope, actual versus hypothetical gates, idempotent recovery and honest partial completion. Added based on this post-mortem. Documentation reviewed with targeted assertions and `git diff --check`; no application code changed.
+
+**Lesson**: Spend the founder's attention only on a concrete step the agent cannot complete, and carry forward both authorization and its scope.
+
+---
+
+**September 16 follow-through:** All three accounts and creatives were completed using the user-visible Codex in-app browser; documented filechooser upload resolved the native-picker failure. TJ added business billing. After explicit “publish,” all three ads were submitted at $50 lifetime each/$150 total and verified Pending review. Saved group budgets, ZIPs, dates and creative URLs were re-read. Groups still display Draft with disabled switches; approval/activation and delivery remain unverified. See `reports/ad-boost/2026-09-16/nextdoor-final-review.md`. Native-browser recovery guidance now respects the user-selected browser rather than requiring Chrome.

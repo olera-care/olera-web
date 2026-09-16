@@ -5410,6 +5410,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Decisions Made
 
+### 2026-09-16 — Nextdoor setup post-mortem
+
+- Added based on the Nextdoor over-handoff/scope-expansion post-mortem: routine authorized advertiser-account creation belongs to the agent; inspect real billing/legal/identity gates instead of handing back account setup wholesale. Carry forward new explicit authorization after a scoped tool rejection, without bypassing review.
+- Rescue eligibility persists through unit-price approval. Active pilot remains HomeWell East Tennessee, LumiWell and Rosemonte, $50 each/$150 total. No other providers are selected. Google flights are ended; this is stalled traffic, not proof of currently broken Google or failed Meta.
+- HomeWell Nextdoor account `1028503664345483011` and LumiWell `1028505935233943519` created and verified. Rosemonte form not submitted. No ads launched, billing unverified. Resume from `reports/ad-boost/2026-09-16/nextdoor-pilot-approved.md`; reconcile account list before retrying creation.
+- Shared setup/city/audit/postmortem commands updated for bounded browser recovery, mismatched screenshot/AX state and external-write verification. Browser-control fault remains unresolved; command fixes do not complete the rollout. See `docs/POSTMORTEMS.md`.
+
+
 - 2026-09-13: Provider banners use manual browsing, no auto-rotation. X dismisses one update per provider/browser until the next local day; it does not resolve underlying tasks. Creation-time watermarks let new inquiries/questions return without treating answers or removals as new activity.
 
 **2026-08-28 — Ad Boost**
@@ -5837,3 +5845,22 @@ Beefed up shared ad-boost-setup entry and city track: infer subject from context
 **Durable records:** 33 `ad_campaign_log` observations, all six `city_campaigns.admin_note` appended (prior text preserved), `~/Desktop/adboost-state-of-play.md` rewritten, memories `cpl_system_model` / `cheap_clicks_not_quality` / `metrics_sync_30day_window` / `city_lead_phone_validation` / `nextdoor_account_sweep`.
 
 **Next up:** TJ is sitting on the data to decide actions. When he returns, the ordered list is in the artifact's "Next steps" — email Jillanna, then the conversion signal on all three platforms (the gate), then reallocate, then the two page defects.
+
+
+### Nextdoor pilot execution update — 2026-09-16
+
+TJ resumed the three-provider/$150 pilot after the Graceful zero-question claim was corrected. All three advertiser accounts and campaign/ad-group drafts are now saved ($50 lifetime each). HomeWell/LumiWell Sep17–21 local midnight; Rosemonte Sep17–22 MST midnight. No ads published, no creative saved, no new pilot spend. Native image picker leaves Open disabled despite correct JPEG preview; required logo/image upload blocks creative completion. Business billing shows no saved payment method; TJ was asked to add it directly. Tracking/new Olera flight records and final page/contact/creative review remain pending. IDs, actual ZIP targets and progress in `reports/ad-boost/2026-09-16/nextdoor-pilot-approved.md` and `nextdoor-campaign-packets.json`. Do not recreate accounts or drafts.
+
+
+### Nextdoor payment/creative recovery — 2026-09-16
+
+TJ added payment; verified business method and selected Bill to Olera for all three accounts. In-app browser filechooser supports upload and resolves native-picker failure. All three creatives now at final review (tabs 1 HomeWell, 2 Rosemonte, 3 LumiWell), no Create ad submitted. Separate tracking records registered in requested state with email pause, prior Google preserved. See reports/ad-boost/2026-09-16/nextdoor-final-review.md. Account switch is shared across tabs: select matching account before final action. HomeWell review payment needs Back/Next refresh after selecting HomeWell.
+
+
+## 2026-09-16 — Nextdoor three-provider pilot submitted
+
+TJ explicitly said publish. Submitted HomeWell ad 1028560608959661348, LumiWell 1028562054744638504, Rosemonte 1028561483304273585. Each verified as a single saved Pending review creative, exact tagged provider URL. Reopened group settings: $50 lifetime each/$150 total; ZIPs 37830/93727/85024; Sep17–21 EDT/PDT and Sep17–22 MST respectively. Group dashboards still display Draft with disabled switches while ads await review; actual activation/serving unverified. Olera rows remain requested with provider comms paused. No additional spend/expansion, no provider emails. Next check approval, group activation and first delivery. Full record reports/ad-boost/2026-09-16/nextdoor-final-review.md.
+
+### Quicksave — 2026-09-16
+
+Branch `codex/nextdoor-pilot-save` from current origin/staging. Saved four shared command updates, postmortem, six audit/rollout artifacts and this log. Resolved the audit heading conflict while retaining staging’s ninth lesson. Verified JSON, $150 selected allocation, three unique ad IDs and tracking-tag matches; docs-only, no application tests needed. Next: confirm Nextdoor approval plus group/campaign activation and actual delivery before declaring live. No auto-merge.

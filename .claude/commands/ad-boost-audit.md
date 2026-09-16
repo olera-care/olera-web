@@ -21,6 +21,15 @@ A bare invocation runs the full book. A provider name runs targeted. **A targete
 
 Canonical references: `/ad-boost-setup` (locked invariants, URL table, campaign ID registry) · `/ad-boost-optimize` (browser mechanics, material-component quirks) · `~/Desktop/adboost-state-of-play.md` (the output format this command reproduces) · `docs/city-ads/CHANNEL-INFRASTRUCTURE.md` (the four collision files, locked attribution decisions) · memory `project_adboost_outcome_blindness`, `reference_ad_metrics_are_hand_typed`, `reference_chrome_devtools_attach_mode`, `project_city_ads_channel_infra`, `project_city_ads_meta_arm`, `reference_meta_business_account`.
 
+## Turning audit findings into a rescue pilot
+
+Added based on the September 16, 2026 Nextdoor post-mortem. Audit scope is not rollout scope. When TJ asks to rescue providers with no/broken traction, select on evidence and carry the eligibility constraint through every subsequent budget discussion.
+
+- Separate never launched, ended/stalled traffic, active delivery failure, and traffic without questions/inquiries. Zero recent visits after a flight ended does not prove the paid channel malfunctioned. Do not describe an untested Meta arm as failed.
+- Show the proposed eligible names, reason, observation window, per-provider cap and total before scaling. “$50 each, even all” does not remove an existing eligibility condition. Prefer a small bounded learning batch when asked for a pilot; do not quietly convert a zero-traffic rescue into an all-book spend plan.
+- Read question submissions, distinct askers and contactable leads separately. Missing question UTMs limit attribution; they do not prove ads generated no questions. Label evidence-based inference and uncertainty explicitly.
+- A request to proceed can transition into setup: apply `/ad-boost-setup` and retain the current authorization. Do not ask the same scope/budget questions again. Read its **Codex native browser recovery and write verification** section for browser faults; record partial progress without calling the audit or rollout complete.
+
 ## Nine ways this analysis has gone wrong
 
 Read these before forming any view. Each was a confident single-cause story that skipped a counter-example already in the data.

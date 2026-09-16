@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
         .eq("status", "confirmed")
         .gte("confirmed_time", windowStart)
         .lte("confirmed_time", windowEnd)
-        .limit(50);
+        .limit(500);
 
       if (error) {
         console.error("[cron/medjobs-interview-reminders] query error:", error);

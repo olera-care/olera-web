@@ -47,8 +47,6 @@ const EMAIL_TYPE_OPTIONS = [
   { value: "student_returning", label: "Student Returning" },
   { value: "student_activation", label: "Student Activation" },
   { value: "student_profile_incomplete_nudge", label: "Student Profile Incomplete" },
-  { value: "student_application_sent", label: "Student Application Sent" },
-  { value: "student_application_response", label: "Student Application Response" },
   { value: "student_invitation_received", label: "Student Invitation Received" },
   { value: "student_job_ready", label: "Student Job Ready" },
   { value: "medjobs_candidate_ready", label: "MedJobs Candidate Ready" },

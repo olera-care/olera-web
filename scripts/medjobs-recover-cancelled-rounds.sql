@@ -41,31 +41,38 @@ ORDER BY c.name, so.organization_name;
 
 
 -- ── 2. Put them back ────────────────────────────────────────────────────
--- Uncomment and run once the list above looks right.
+-- Run this once the list above looks right.
 --
--- Only restores tasks still in the future, or overdue by less than a week —
--- a round whose date passed long ago should not suddenly reappear as work.
+-- ONE statement on purpose, for two reasons. The Supabase SQL editor does not
+-- hold a transaction across statements, so a BEGIN/COMMIT wrapper there is
+-- fake safety; and a single statement is atomic on its own. It also RETURNS
+-- what it restored, so the editor shows you the result instead of a bare
+-- "UPDATE 2".
 --
--- BEGIN;
+-- Only restores rounds still in the future, or overdue by less than a week.
+-- A round whose date passed months ago should not reappear as work today.
+-- Records that already have pending work were superseded on purpose, not
+-- damaged, so they are left alone.
 --
--- UPDATE student_outreach_tasks t
---    SET status = 'pending'
---  WHERE t.status = 'cancelled'
---    AND t.task_type IN ('outreach_contact', 'outreach_email_send', 'outreach_followup_call')
---    AND t.due_at > NOW() - INTERVAL '7 days'
---    AND NOT EXISTS (
---      SELECT 1 FROM student_outreach_tasks p
---       WHERE p.outreach_id = t.outreach_id
---         AND p.status = 'pending'
---         AND p.task_type IN ('outreach_contact', 'outreach_email_send', 'outreach_followup_call')
---    );
---
--- -- Check before committing: every affected row should have work again.
--- SELECT so.organization_name, count(*) FILTER (WHERE t.status = 'pending') AS pending_now
---   FROM student_outreach so
---   JOIN student_outreach_tasks t ON t.outreach_id = so.id
---  GROUP BY so.organization_name
---  HAVING count(*) FILTER (WHERE t.status = 'pending') > 0
---  ORDER BY so.organization_name;
---
--- COMMIT;
+-- Verified against Postgres 16: restores the future rounds on a damaged
+-- record, leaves a long-overdue one cancelled, and does not touch a record
+-- that still has pending work.
+
+WITH restored AS (
+  UPDATE student_outreach_tasks t
+     SET status = 'pending'
+   WHERE t.status = 'cancelled'
+     AND t.task_type IN ('outreach_contact','outreach_email_send','outreach_followup_call')
+     AND t.due_at > NOW() - INTERVAL '7 days'
+     AND NOT EXISTS (
+       SELECT 1 FROM student_outreach_tasks p
+        WHERE p.outreach_id = t.outreach_id
+          AND p.status = 'pending'
+          AND p.task_type IN ('outreach_contact','outreach_email_send','outreach_followup_call'))
+  RETURNING t.outreach_id, t.task_type, t.due_at
+)
+SELECT c.name AS university, so.organization_name, r.task_type, r.due_at::date AS due
+FROM restored r
+JOIN student_outreach so ON so.id = r.outreach_id
+JOIN student_outreach_campuses c ON c.id = so.campus_id
+ORDER BY c.name, so.organization_name, r.due_at;

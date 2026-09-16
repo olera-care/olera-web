@@ -9,8 +9,6 @@ import {
   getTrackLabel,
   formatHoursPerWeek,
   formatDuration,
-  SEASON_LABELS,
-  getSeasonalStatusLabel,
   hasVideo,
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,

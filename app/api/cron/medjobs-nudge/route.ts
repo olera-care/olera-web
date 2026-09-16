@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { profileIncompleteNudgeEmail, studentActivationEmail } from "@/lib/medjobs-email-templates";
+import { profileIncompleteNudgeEmail } from "@/lib/medjobs-email-templates";
+import { medjobsReviewNudgeEmail } from "@/lib/email-templates";
 import { calculateCompleteness, getIncompleteSections } from "@/lib/medjobs-completeness";
 import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import type { StudentMetadata } from "@/lib/types";
@@ -19,6 +20,7 @@ interface StudentNudgeRow {
   image_url: string | null;
   metadata: StudentMetadata | null;
   created_at: string;
+  is_active: boolean;
 }
 
 /**
@@ -26,7 +28,7 @@ interface StudentNudgeRow {
  *
  * Runs daily at 10 AM CT (15:00 UTC).
  *
- * Nudge cadence:
+ * Nudge cadence for incomplete profiles (< 100%):
  *   Nudge 1: Day 1 (24hrs after signup)
  *   Nudge 2: Day 3
  *   Nudge 3: Day 5
@@ -34,11 +36,25 @@ interface StudentNudgeRow {
  *   Nudge 5-8: Every 2 weeks
  *   Stop after nudge 8 (~6 weeks)
  *
- * Anyone with < 100% completeness gets nudged.
+ * For 100% complete profiles (review nudge cadence):
+ *   - If already live (is_active) or approved → skip
+ *   - If review requested but not approved → skip (waiting for admin)
+ *   - Otherwise, nudge to request review:
+ *       Nudge 1: Day 0 (immediate)
+ *       Nudge 2: Day 2
+ *       Nudge 3: Day 5
+ *       Nudge 4: Day 10
+ *       Stop after nudge 4
  */
 
 const NUDGE_CADENCE_DAYS = [1, 3, 5, 7, 21, 35, 49, 63]; // Day thresholds for nudges 1-8
 const MAX_NUDGES = 8;
+
+// Review nudge cadence — less aggressive since profile is complete
+// Day 0: immediate, Day 2, Day 5, Day 10 (4 nudges total)
+const REVIEW_NUDGE_CADENCE_DAYS = [0, 2, 5, 10];
+const MAX_REVIEW_NUDGES = 4;
+
 const PAGE_SIZE = 500; // Fetch students in batches to handle >1000 students
 
 export async function GET(request: NextRequest) {
@@ -52,7 +68,7 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     let nudged = 0;
-    let activated = 0;
+    let reviewNudged = 0;
     let skipped = 0;
     let totalProcessed = 0;
     const now = Date.now();
@@ -64,7 +80,7 @@ export async function GET(request: NextRequest) {
     while (hasMore) {
       const { data: students, error } = await db
         .from("business_profiles")
-        .select("id, slug, display_name, email, phone, city, state, image_url, metadata, created_at")
+        .select("id, slug, display_name, email, phone, city, state, image_url, metadata, created_at, is_active")
         .eq("type", "student")
         .not("email", "is", null)
         .not("display_name", "is", null)
@@ -101,52 +117,106 @@ export async function GET(request: NextRequest) {
       // Recalculate completeness fresh (single source of truth)
       const completeness = calculateCompleteness(meta, hasPhoto, hasBasicInfo);
 
-      // If 100% complete — check if activation email needs to be sent
+      // If 100% complete — check review flow status
       if (completeness >= 100) {
-        const activationSent = (meta as Record<string, unknown>).activation_email_sent as boolean;
-        if (!activationSent) {
-          try {
-            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-            const profileUrl = `${siteUrl}/medjobs/candidates/${student.slug}`;
-
-            // Generate one-click sign-in URL with 15-day HMAC token
-            const magicLink = generateStudentPortalUrl(
-              student.email!,
-              "/portal/medjobs",
-              siteUrl
-            );
-
-            await sendEmail({
-              to: student.email!,
-              subject: "Your MedJobs profile is live!",
-              html: studentActivationEmail({
-                studentName: student.display_name,
-                city: student.city || undefined,
-                profileUrl,
-                magicLink,
-              }),
-              emailType: "student_activation",
-              recipientType: "student",
-            });
-
-            // Re-fetch metadata to reduce race condition risk
-            const { data: freshProfile } = await db
-              .from("business_profiles")
-              .select("metadata")
-              .eq("id", student.id)
-              .single();
-            const freshMeta = (freshProfile?.metadata || meta) as Record<string, unknown>;
-
-            await db.from("business_profiles").update({
-              metadata: { ...freshMeta, activation_email_sent: true },
-            }).eq("id", student.id);
-
-            activated++;
-          } catch (err) {
-            console.error(`[medjobs-nudge] activation email error for ${student.email}:`, err);
-          }
-        } else {
+        // If profile is already live (is_active), skip entirely
+        // This catches students approved before the review flow was implemented
+        if (student.is_active) {
           skipped++;
+          continue;
+        }
+
+        const metaRecord = meta as Record<string, unknown>;
+        const reviewRequestedAt = metaRecord.review_requested_at as string | undefined;
+        const approvedAt = metaRecord.approved_at as string | undefined;
+        const applicationCompleted = metaRecord.application_completed as boolean | undefined;
+        const reviewNudgeCount = (metaRecord.review_nudge_count as number) || 0;
+        const reviewNudgeFirstSentAt = metaRecord.review_nudge_first_sent_at as string | undefined;
+        const lastReviewNudgeSentAt = metaRecord.last_review_nudge_sent_at as string | undefined;
+
+        // If already approved or application completed, skip (profile is live)
+        if (approvedAt || applicationCompleted) {
+          skipped++;
+          continue;
+        }
+
+        // If review requested but not yet approved, skip (waiting for admin)
+        if (reviewRequestedAt) {
+          skipped++;
+          continue;
+        }
+
+        // Check if we've maxed out review nudges
+        if (reviewNudgeCount >= MAX_REVIEW_NUDGES) {
+          skipped++;
+          continue;
+        }
+
+        // Check if enough time has passed for the next review nudge
+        // First nudge: immediate (day 0). Subsequent: based on cadence from first nudge.
+        if (reviewNudgeCount > 0 && reviewNudgeFirstSentAt) {
+          const daysSinceFirstNudge = (now - new Date(reviewNudgeFirstSentAt).getTime()) / (1000 * 60 * 60 * 24);
+          const nextNudgeDay = REVIEW_NUDGE_CADENCE_DAYS[reviewNudgeCount] ?? Infinity;
+          if (daysSinceFirstNudge < nextNudgeDay) {
+            skipped++;
+            continue;
+          }
+        }
+
+        // Safety: don't send if we already sent today
+        if (lastReviewNudgeSentAt) {
+          const hoursSinceLastNudge = (now - new Date(lastReviewNudgeSentAt).getTime()) / (1000 * 60 * 60);
+          if (hoursSinceLastNudge < 20) {
+            skipped++;
+            continue;
+          }
+        }
+
+        // Send review nudge
+        try {
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+          // Generate one-click sign-in URL with 15-day HMAC token
+          const magicLink = generateStudentPortalUrl(
+            student.email!,
+            "/portal/medjobs",
+            siteUrl
+          );
+
+          await sendEmail({
+            to: student.email!,
+            subject: "Your profile is ready — request a review to go live",
+            html: medjobsReviewNudgeEmail({
+              studentName: student.display_name,
+              portalUrl: magicLink,
+            }),
+            emailType: "medjobs_review_nudge",
+            recipientType: "student",
+            recipientProfileId: student.id,
+          });
+
+          // Re-fetch metadata to reduce race condition risk
+          const { data: freshProfile } = await db
+            .from("business_profiles")
+            .select("metadata")
+            .eq("id", student.id)
+            .single();
+          const freshMeta = (freshProfile?.metadata || meta) as Record<string, unknown>;
+
+          const nowIso = new Date().toISOString();
+          await db.from("business_profiles").update({
+            metadata: {
+              ...freshMeta,
+              review_nudge_count: reviewNudgeCount + 1,
+              last_review_nudge_sent_at: nowIso,
+              // Only set first_sent_at on the first nudge
+              ...(reviewNudgeCount === 0 ? { review_nudge_first_sent_at: nowIso } : {}),
+            },
+          }).eq("id", student.id);
+
+          reviewNudged++;
+        } catch (err) {
+          console.error(`[medjobs-nudge] review nudge email error for ${student.email}:`, err);
         }
         continue;
       }
@@ -192,6 +262,7 @@ export async function GET(request: NextRequest) {
           }),
           emailType: "profile_incomplete_nudge",
           recipientType: "student",
+          recipientProfileId: student.id,
         });
 
         // Re-fetch metadata to reduce race condition risk
@@ -221,7 +292,7 @@ export async function GET(request: NextRequest) {
     }
     } // end while (hasMore)
 
-    return NextResponse.json({ nudged, activated, skipped, totalProcessed });
+    return NextResponse.json({ nudged, reviewNudged, skipped, totalProcessed });
   } catch (err) {
     console.error("[medjobs-nudge] unexpected error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

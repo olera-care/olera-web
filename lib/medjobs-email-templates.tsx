@@ -237,12 +237,15 @@ export function studentWelcomeEmail({
 export function studentAccountCreatedEmail({
   studentName,
   city,
+  magicLink,
 }: {
   studentName: string;
   city?: string;
+  magicLink?: string;
 }): string {
   const firstName = studentName.split(" ")[0];
   const locationLine = city ? ` in ${city}` : "";
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${firstName}!</h2>
@@ -264,7 +267,7 @@ export function studentAccountCreatedEmail({
       Providers reviewing candidates prioritize complete profiles. The more thorough your profile, the more likely you are to hear from hiring providers.
     </p>
     <p style="margin:0 0 16px;">
-      ${button("Complete My Profile", `${BASE_URL}/portal/medjobs`)}
+      ${button("Complete My Profile", completeProfileUrl)}
     </p>
   `);
 }

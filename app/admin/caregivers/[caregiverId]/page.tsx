@@ -203,9 +203,24 @@ export default function AdminStudentDetailPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
-        <div className="flex items-center gap-3 mt-2">
+      <div className="mb-6 flex items-start gap-4">
+        {/* Profile Photo */}
+        {student.image_url ? (
+          <img
+            src={student.image_url}
+            alt={student.display_name}
+            className="w-20 h-20 rounded-xl object-cover border border-gray-200"
+          />
+        ) : (
+          <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
+          <div className="flex items-center gap-3 mt-2">
           <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
             Student
           </span>
@@ -228,6 +243,7 @@ export default function AdminStudentDetailPage() {
           <span className="text-sm text-gray-500">
             {connectionCount} application{connectionCount !== 1 ? "s" : ""}
           </span>
+        </div>
         </div>
       </div>
 
@@ -388,6 +404,29 @@ export default function AdminStudentDetailPage() {
           )}
         </Section>
 
+        {/* Why Caregiving */}
+        {meta.why_caregiving && (
+          <Section title="Why I Want to Be a Caregiver">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{meta.why_caregiving}</p>
+          </Section>
+        )}
+
+        {/* Screening Questions (Scenario Responses) */}
+        {meta.scenario_responses && meta.scenario_responses.length > 0 && (
+          <Section title="Screening Questions">
+            <div className="space-y-4">
+              {meta.scenario_responses.map((response, index) => (
+                <div key={index} className="border-l-2 border-primary-200 pl-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">{response.question}</p>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {response.answer || <span className="text-gray-400 italic">No answer provided</span>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
         {/* Availability */}
         <Section title="Availability">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -405,10 +444,68 @@ export default function AdminStudentDetailPage() {
               <ReadOnlyField label="Availability Notes" value={meta.availability_notes} />
             </div>
           )}
+          {meta.commitment_statement && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-500 mb-2">Commitment Statement</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{meta.commitment_statement}</p>
+            </div>
+          )}
+          {meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-500 mb-3">Seasonal Availability</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {(["spring", "summer", "fall", "winter"] as const).map((season) => {
+                  const data = meta.year_round_availability?.[season];
+                  if (!data) return null;
+                  const statusColors = {
+                    available: "bg-green-100 text-green-700 border-green-200",
+                    limited: "bg-amber-100 text-amber-700 border-amber-200",
+                    unavailable: "bg-gray-100 text-gray-500 border-gray-200",
+                  };
+                  return (
+                    <div
+                      key={season}
+                      className={`p-3 rounded-lg border ${statusColors[data.status as keyof typeof statusColors] || statusColors.unavailable}`}
+                    >
+                      <p className="text-sm font-medium capitalize">{season}</p>
+                      <p className="text-xs capitalize">{data.status}</p>
+                      {data.notes && <p className="text-xs mt-1 opacity-75">{data.notes}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {meta.availability_schedule && Object.keys(meta.availability_schedule).length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-500 mb-3">Weekly Schedule</p>
+              <div className="grid grid-cols-7 gap-1 text-xs">
+                {(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const).map((day) => {
+                  const slots = meta.availability_schedule?.[day] || [];
+                  return (
+                    <div key={day} className="text-center">
+                      <p className="font-medium text-gray-600 capitalize mb-1">{day.slice(0, 3)}</p>
+                      {slots.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {slots.map((slot, i) => (
+                            <p key={i} className="text-gray-500 bg-primary-50 rounded px-1 py-0.5">
+                              {slot}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-300">—</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </Section>
 
         {/* Documents & Media */}
-        {(meta.resume_url || meta.video_intro_url || meta.linkedin_url || meta.drivers_license_url) && (
+        {(meta.resume_url || meta.video_intro_url || meta.linkedin_url || meta.drivers_license_url || meta.car_insurance_url) && (
           <Section title="Documents & Media">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {meta.resume_url && (
@@ -456,6 +553,15 @@ export default function AdminStudentDetailPage() {
                   <p className="text-sm text-gray-600">
                     Uploaded {meta.drivers_license_uploaded_at ? new Date(meta.drivers_license_uploaded_at).toLocaleDateString() : ""}
                     {meta.drivers_license_expiration && ` · Expires ${meta.drivers_license_expiration}`}
+                  </p>
+                </div>
+              )}
+              {meta.car_insurance_url && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-500">Car Insurance</p>
+                  <p className="text-sm text-gray-600">
+                    Uploaded {meta.car_insurance_uploaded_at ? new Date(meta.car_insurance_uploaded_at).toLocaleDateString() : ""}
+                    {meta.car_insurance_expiration && ` · Expires ${meta.car_insurance_expiration}`}
                   </p>
                 </div>
               )}

@@ -73,8 +73,8 @@ export default function AdminStudentsPage() {
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
   const [dateRange, setDateRange] = useState<DateRangeValue>({
     preset: "all",
-    from: null,
-    to: null,
+    customFrom: "",
+    customTo: "",
   });
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);

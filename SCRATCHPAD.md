@@ -221,6 +221,14 @@ First `/mercury-review`. No product code changed. One artifact published and a n
 **Mercury API traps (now encoded in the skill).** `postedStart`/`postedEnd`, never `start`/`end`. **A date-filtered query that matches nothing silently re-runs UNFILTERED and returns lifetime history with a `_retryNote` buried at the end** — it served Dec-2025 LinkedIn declines as if current; treat that note as a hard error. Pending/failed have no `postedAt` so they need separate pulls + client-side `failedAt` filtering. **The credit account (`9dcf7408`, −$16,364.17, 97 of 141 tx) is NOT in `getAccounts`** — use `listCredit`. Credit-card autopay appears as 4 legs netting to $0.00; count expenses at the card charge, never the repayment.
 
 **Artifact.** `DJaaXV2eKywSDkNBKUvbNb`. **New skill** `/mercury-review` at `~/.claude/skills/mercury-review/SKILL.md` (user-global — finance work runs outside any repo, and project skills don't load elsewhere).
+### 2026-09-16 — Sara email account created; sign-in handoff pending
+
+- Created `sara@olera.care` in Olera's Google Workspace Admin Console after TJ approved the new account and $8.40/month Business Starter license (first month prorated). Verified the console's “New user added” confirmation. No application code changed.
+- Slack search found onboarding mentions but no confirmed surname or matching profile. Display name is temporarily `Sara —` because Google requires a last name; update when confirmed. Google generated the initial password; no credentials are stored here.
+- Sign-in instructions have **not** been sent. TJ asked Logan for Sara's existing email in Slack and agreed to wait for his reply, then send the setup instructions directly to Sara. Also obtain her surname. Do not recreate the mailbox.
+- Changed file: `SCRATCHPAD.md`. Branch: `codex/sara-email-handoff`, based on `origin/staging`; documentation-only PR targets staging. Validation: live creation confirmation and `git diff --check`; no code tests needed.
+- Next: obtain Sara's existing email and surname from Logan, correct the display name, and complete the sign-in handoff with TJ's authorization. No automatic follow-up scheduled.
+
 ### 2026-09-15 — Dallas Meta native pilot published
 
 - Integration PR #1919 merged and promoted to main; migrations 231/232, Meta app/webhook and production settings complete. No code changes this save.

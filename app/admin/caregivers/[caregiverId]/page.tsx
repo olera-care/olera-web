@@ -346,12 +346,7 @@ export default function AdminStudentDetailPage() {
         <Section title="Education">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ReadOnlyField label="University" value={meta.university} />
-              <ReadOnlyField label="Campus" value={meta.campus} />
               <ReadOnlyField label="Major" value={meta.major} />
-              <ReadOnlyField label="Graduation Year" value={meta.graduation_year?.toString()} />
-              <ReadOnlyField label="GPA" value={meta.gpa?.toFixed(2)} />
-              <ReadOnlyField label="Program Track" value={meta.program_track} />
-              <ReadOnlyField label="Intended Professional School" value={meta.intended_professional_school} />
             </div>
           </Section>
 
@@ -361,18 +356,6 @@ export default function AdminStudentDetailPage() {
             <ReadOnlyField
               label="Certifications"
               value={meta.certifications?.length ? meta.certifications.join(", ") : null}
-            />
-            <ReadOnlyField
-              label="Years of Experience"
-              value={meta.years_caregiving?.toString()}
-            />
-            <ReadOnlyField
-              label="Languages"
-              value={meta.languages?.length ? meta.languages.join(", ") : null}
-            />
-            <ReadOnlyField
-              label="Care Experience Types"
-              value={meta.care_experience_types?.length ? meta.care_experience_types.join(", ") : null}
             />
             <ReadOnlyField
               label="Skills"
@@ -433,21 +416,9 @@ export default function AdminStudentDetailPage() {
 
         {/* Availability */}
         <Section title="Availability">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField label="Availability Type" value={meta.availability_type} />
-            <ReadOnlyField label="Hours Per Week" value={meta.hours_per_week?.toString() || meta.hours_per_week_range} />
-            <ReadOnlyField label="Available Start" value={meta.available_start} />
-            <ReadOnlyField label="Duration Commitment" value={meta.duration_commitment} />
-            <ReadOnlyField label="Has Transportation" value={meta.transportation ? "Yes" : meta.transportation === false ? "No" : null} />
-            <ReadOnlyField label="Willing to Relocate" value={meta.willing_to_relocate ? "Yes" : meta.willing_to_relocate === false ? "No" : null} />
-            <ReadOnlyField label="Max Commute" value={meta.max_commute_miles ? `${meta.max_commute_miles} miles` : null} />
-            <ReadOnlyField label="Seeking Status" value={meta.seeking_status} />
+          <div className="mt-0">
+            <ReadOnlyField label="Availability Notes" value={meta.availability_notes} />
           </div>
-          {meta.availability_notes && (
-            <div className="mt-4">
-              <ReadOnlyField label="Availability Notes" value={meta.availability_notes} />
-            </div>
-          )}
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm font-medium text-gray-500 mb-2">Commitment Statement</p>
             {meta.commitment_statement ? (
@@ -587,12 +558,6 @@ export default function AdminStudentDetailPage() {
         {/* Commitments & Pledges */}
         <Section title="Commitments & Pledges">
           <div className="flex flex-wrap gap-2">
-            <span className={`px-3 py-1.5 rounded-full text-sm ${meta.ncns_pledge ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
-              {meta.ncns_pledge ? "✓" : "○"} No Call No Show Pledge
-            </span>
-            <span className={`px-3 py-1.5 rounded-full text-sm ${meta.school_balance_pledge ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
-              {meta.school_balance_pledge ? "✓" : "○"} School Balance Pledge
-            </span>
             <span className={`px-3 py-1.5 rounded-full text-sm ${meta.advance_notice_pledge ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
               {meta.advance_notice_pledge ? "✓" : "○"} Advance Notice Pledge
             </span>

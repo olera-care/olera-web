@@ -4,7 +4,7 @@ import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
 
 // Must match the threshold in the main route
-const INCOMPLETE_THRESHOLD = 80;
+const INCOMPLETE_THRESHOLD = 100;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
@@ -103,13 +103,17 @@ export async function GET() {
     // Count all states by iterating through .edu profiles only
     // (non-.edu students are shown in their own separate tab)
     let activeCount = 0;
-    let pausedCount = 0;     // is_active=false AND application_completed=true
-    let notLiveCount = 0;    // is_active=false AND application_completed is falsy
+    let pausedCount = 0;        // is_active=false AND application_completed=true
+    let notLiveCount = 0;       // is_active=false AND application_completed is falsy AND no pending review
+    let pendingReviewCount = 0; // review_requested_at AND !application_completed
     let completeCount = 0;
     let incompleteCount = 0;
 
     for (const profile of eduStudents) {
-      const meta = (profile.metadata || {}) as StudentMetadata & { application_completed?: boolean };
+      const meta = (profile.metadata || {}) as StudentMetadata & {
+        application_completed?: boolean;
+        review_requested_at?: string;
+      };
       const completeness = computeProfileCompleteness(profile);
 
       // Completeness counts
@@ -125,8 +129,11 @@ export async function GET() {
       } else if (meta.application_completed) {
         // Was live, now paused
         pausedCount++;
+      } else if (meta.review_requested_at) {
+        // Requested review, awaiting approval
+        pendingReviewCount++;
       } else {
-        // Never went live
+        // Never went live, no pending review
         notLiveCount++;
       }
     }
@@ -142,6 +149,7 @@ export async function GET() {
       active: activeCount,
       paused: pausedCount,
       notLive: notLiveCount,
+      pendingReview: pendingReviewCount,
       complete: completeCount,
       incomplete: incompleteCount,
       thisWeek: thisWeekCount,

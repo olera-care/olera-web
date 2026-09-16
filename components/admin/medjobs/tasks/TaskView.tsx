@@ -1,0 +1,301 @@
+"use client";
+
+import { useState } from "react";
+import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
+import {
+  DEFERRALS,
+  STOP_REASONS,
+  canReopen,
+  shortDate,
+  taskTitle,
+  type BoardRecord,
+  type BoardTask,
+} from "@/lib/medjobs/task-board";
+
+/**
+ * One task. The record it belongs to is named at the top with its phone and
+ * email, because that is what you need in your hand before you press
+ * anything.
+ *
+ * Deferring lives here as one control rather than a "Not yet" button on
+ * every rung: putting something off is the same act everywhere, and it is
+ * not an outcome.
+ */
+
+const FIELD_LABEL: Record<ContactField, string> = {
+  contact: "Contact name",
+  phone: "Phone",
+  email: "Email",
+};
+
+export default function TaskView({
+  universityName,
+  record,
+  task,
+  onOpenRecord,
+  onAct,
+  onDefer,
+  onStop,
+  onNote,
+  onField,
+  onReopen,
+  onAgain,
+}: {
+  universityName: string;
+  record: BoardRecord;
+  task: BoardTask;
+  onOpenRecord: () => void;
+  onAct: (actionIndex: number) => void;
+  onDefer: (days: number) => void;
+  onStop: (reason: string) => void;
+  onNote: (text: string) => void;
+  onField: (field: ContactField, value: string) => void;
+  onReopen: () => void;
+  onAgain: () => void;
+}) {
+  const [showEmail, setShowEmail] = useState(false);
+  const [showDefer, setShowDefer] = useState(false);
+  const [showStop, setShowStop] = useState(false);
+
+  const rung = rungAt(task.section, task.step, task.round);
+  if (!rung) return null;
+  const ladder = LADDERS[record.section];
+  const firstName = (record.contact || "there").split(" ")[0];
+
+  const contactLine = [
+    record.contact,
+    record.phone ? (
+      <a key="p" href={`tel:${record.phone.replace(/[^\d+]/g, "")}`} className="text-primary-700 hover:underline">
+        {record.phone}
+      </a>
+    ) : null,
+    record.email ? (
+      <a key="e" href={`mailto:${record.email}`} className="text-primary-700 hover:underline">
+        {record.email}
+      </a>
+    ) : null,
+  ].filter(Boolean);
+
+  return (
+    <div className="px-5 py-4">
+      {/* Who this is with. */}
+      <button
+        type="button"
+        onClick={onOpenRecord}
+        className="block text-left text-[15px] font-semibold text-gray-900 hover:underline"
+      >
+        {record.name} <span className="font-normal text-gray-400">›</span>
+      </button>
+      {contactLine.length > 0 && (
+        <p className="mt-0.5 text-[12.5px] text-gray-500">
+          {contactLine.map((bit, i) => (
+            <span key={i}>
+              {i > 0 && <span className="px-1">·</span>}
+              {bit}
+            </span>
+          ))}
+        </p>
+      )}
+
+      {task.done ? (
+        <div className="mt-4">
+          <div className="rounded-md bg-gray-50 px-3 py-2.5 text-[13px] text-gray-700">
+            <b className="font-semibold text-gray-900">{task.outcome ?? "Logged"}</b>
+            {" · "}
+            {task.loggedOn ? shortDate(task.loggedOn) : "earlier"}
+          </div>
+          <h3 className="mt-4 text-[17px] font-semibold tracking-tight text-gray-900">
+            {taskTitle(task)}
+          </h3>
+          <p className="mt-1 text-[13.5px] text-gray-600">{rung.what}</p>
+          <Note value={task.note} onChange={onNote} />
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+            {canReopen(record, task) && (
+              <button type="button" onClick={onReopen} className={BTN_GO}>
+                Reopen it
+              </button>
+            )}
+            <button type="button" onClick={onAgain} className={BTN}>
+              Do it again
+            </button>
+          </div>
+          <p className="mt-2 text-[12.5px] text-gray-500">
+            {canReopen(record, task)
+              ? "Reopening puts this back as ready and removes whatever it queued."
+              : "Work has already moved on, so this one can't be unwound. Doing it again adds a fresh task for today."}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <h3 className="text-[17px] font-semibold tracking-tight text-gray-900">
+            {taskTitle(task)}
+            {rung.rounds ? <span className="ml-1 text-[14px] font-normal text-gray-400">of {rung.rounds}</span> : null}
+          </h3>
+          <p className="mt-1 text-[13.5px] text-gray-700">{rung.why}</p>
+
+          <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-[13.5px] text-gray-700">
+            {rung.steps.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ol>
+
+          {rung.script && (
+            <p className="mt-3 whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
+              {rung.script}
+            </p>
+          )}
+
+          {rung.email && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setShowEmail((v) => !v)}
+                className="text-[12.5px] text-gray-500 underline hover:text-gray-900"
+              >
+                {showEmail ? "Hide the email" : "Show the email"}
+              </button>
+              {showEmail && (
+                <>
+                  <p className="mt-2 whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
+                    {`Subject: Student Caregiver Program — ${universityName}\n\nHi ${firstName},\n\nI'm reaching out from Dr. Logan DuBose's office about the Student Caregiver Program at ${universityName}…\n\n📎 program-flyer.pdf`}
+                  </p>
+                  <p className="mt-1.5 text-[12px] text-gray-400">
+                    Send it from your own inbox so the reply comes back to you.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+
+          {rung.fanout && (
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Found</p>
+              {rung.fanout.map((n) => (
+                <p key={n} className="text-[13.5px] text-gray-700">
+                  • {n}
+                </p>
+              ))}
+              <p className="text-[13.5px] text-gray-400">+ add another</p>
+            </div>
+          )}
+
+          {(rung.collects ?? []).map((f) => (
+            <label key={f} className="mt-3 flex items-center gap-2.5">
+              <span className="w-20 shrink-0 text-[12px] text-gray-500">{FIELD_LABEL[f]}</span>
+              <input
+                value={record[f]}
+                onChange={(e) => onField(f, e.target.value)}
+                placeholder="—"
+                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+              />
+            </label>
+          ))}
+
+          {rung.input && (
+            <label className="mt-3 flex items-center gap-2.5">
+              <span className="w-20 shrink-0 text-[12px] text-gray-500">{rung.input}</span>
+              <input
+                placeholder="—"
+                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+              />
+            </label>
+          )}
+
+          <Note value={task.note} onChange={onNote} />
+
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+            {rung.actions.map((a, i) => (
+              <button
+                key={a.label}
+                type="button"
+                onClick={() => onAct(i)}
+                className={i === 0 ? BTN_GO : a.outcome === "closed" ? BTN_BAD : BTN}
+              >
+                {a.label}
+              </button>
+            ))}
+            {rung.reply && (
+              <button type="button" onClick={() => onAct(-1)} className={BTN}>
+                They replied
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setShowDefer((v) => !v);
+                setShowStop(false);
+              }}
+              className={BTN}
+            >
+              Not yet
+            </button>
+            <button
+              type="button"
+              aria-label="More"
+              onClick={() => {
+                setShowStop((v) => !v);
+                setShowDefer(false);
+              }}
+              className={`${BTN} tracking-widest text-gray-500`}
+            >
+              ···
+            </button>
+          </div>
+
+          {showDefer && (
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {DEFERRALS.map((d) => (
+                <button
+                  key={d.label}
+                  type="button"
+                  onClick={() => onDefer(d.days)}
+                  className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1.5 text-[12.5px] font-medium text-gray-700 hover:border-primary-600 hover:text-primary-700"
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {showStop && (
+            <div className="mt-2.5 overflow-hidden rounded-md border border-gray-200">
+              {STOP_REASONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => onStop(r)}
+                  className="block w-full border-b border-gray-100 px-3 py-2.5 text-left text-[12.5px] text-gray-700 last:border-b-0 hover:bg-gray-50"
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <p className="mt-3 text-[12px] text-gray-400">
+            {ladder.label} · goal is {ladder.goal}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Note({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Note"
+      rows={2}
+      className="mt-3 w-full resize-y rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
+    />
+  );
+}
+
+const BTN =
+  "rounded-md border border-gray-300 bg-white px-3 py-2 text-[12.5px] font-semibold text-gray-800 hover:bg-gray-50";
+const BTN_GO =
+  "rounded-md border border-primary-600 bg-primary-600 px-3 py-2 text-[12.5px] font-semibold text-white hover:bg-primary-700";
+const BTN_BAD =
+  "rounded-md border border-error-200 bg-white px-3 py-2 text-[12.5px] font-semibold text-error-700 hover:bg-error-50";

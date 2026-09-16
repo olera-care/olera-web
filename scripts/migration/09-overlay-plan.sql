@@ -18,13 +18,17 @@
 -- same way. The sample is ordered by id, so it is the same twenty on every
 -- run rather than a fresh draw that might hide a problem.
 --
--- Written without a single empty-string literal anywhere. An earlier version
--- built a label with CASE WHEN n = 1 THEN '' ELSE 's' END, and the editor
--- read the '' as an escaped quote rather than an empty string, which threw
--- the rest of the literal out of the string and left Postgres looking for
--- a table called "history". The directory phone is shown exactly as it is
--- stored, rather than stripped, which also removes the last '' and makes a
--- formatting mismatch visible while you check the twenty.
+-- Written without a single empty-string literal anywhere, including in
+-- these comments. An earlier version pluralised a label with a CASE that
+-- returned an empty string; read as an escaped quote rather than as an
+-- empty string, it threw the rest of the literal out of the string and
+-- left Postgres looking for a table named history. A comment carrying the
+-- same characters can trip a splitter that does not honour -- comments, so
+-- the explanation avoids them too.
+--
+-- The directory phone is shown exactly as stored rather than stripped,
+-- which removes the last one and makes a formatting mismatch visible while
+-- you check the twenty.
 -- ===========================================================================
 
 WITH plan AS (

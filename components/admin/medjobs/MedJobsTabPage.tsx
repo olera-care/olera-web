@@ -567,12 +567,16 @@ export function MedJobsTabPage({
   const visibleTabs = TABS;
 
   const isInboxEmpty = useMemo(() => {
+    // The Tasks board loads its own data and carries its own empty state, so
+    // the legacy queue counts — which know nothing about it — must never be
+    // able to hide it behind "Everything caught up".
+    if (tab === "tasks") return false;
     if (!tabCounts) return false;
     // Queued calls (even none due today) count as work, so the Calls tab —
     // with its "0/N" badge — stays visible.
     if ((callsTotal ?? 0) > 0) return false;
     return TABS.every((t) => (tabCounts[t.key] ?? 0) === 0);
-  }, [tabCounts, callsTotal]);
+  }, [tabCounts, callsTotal, tab]);
 
   const setTabAndUrl = useCallback(
     (next: TabKey) => {
@@ -601,6 +605,10 @@ export function MedJobsTabPage({
   // again because the URL is now explicit.
   useEffect(() => {
     if (!tabCounts) return;
+    // Tasks counts its own work. The legacy queue does not see the board, so
+    // reading 0 here means "unknown", not "empty" — pivoting off it would
+    // drop the operator onto Meetings the moment anything lands there.
+    if (tab === "tasks") return;
     if (tabFromUrl != null) return;
     if ((tabCounts[tab] ?? 0) > 0) return;
     const firstWithWork = TABS.find((t) => (tabCounts[t.key] ?? 0) > 0);
@@ -698,7 +706,7 @@ export function MedJobsTabPage({
                   }`}
                 >
                   {t.label}
-                  {(callsBadge ?? (count > 0 ? String(count) : null)) && (
+                  {t.key !== "tasks" && (callsBadge ?? (count > 0 ? String(count) : null)) && (
                     <span
                       className={`ml-1.5 text-xs tabular-nums ${
                         isUnreadTab

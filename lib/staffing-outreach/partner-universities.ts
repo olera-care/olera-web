@@ -27,6 +27,20 @@ export interface PartnerUniversity {
   name: string;     // display name in emails + admin UI
   city: string;     // university's own city
   state: string;
+  /**
+   * Campus coordinates. When present, the catchment is measured as a
+   * radius from here and `catchment` becomes a safety net rather than the
+   * definition — see `matchesCatchment` in lib/medjobs/catchment.ts.
+   *
+   * Measuring beats listing. The eleven cities hand-listed for Utah
+   * returned 14 non-medical providers; 40 miles from these coordinates
+   * returns 73. Millcreek and South Salt Lake both border Salt Lake City
+   * and neither was ever on the list.
+   */
+  lat?: number;
+  lon?: number;
+  /** Defaults to DEFAULT_RADIUS_MILES when lat/lon are set. */
+  radiusMiles?: number;
   catchment: CatchmentCity[];
 }
 
@@ -92,6 +106,8 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
     name: "University of Florida",
     city: "Gainesville",
     state: "FL",
+    lat: 29.6483,
+    lon: -82.3494,
     catchment: [
       { city: "Gainesville", state: "FL" },
       { city: "Alachua", state: "FL" },
@@ -110,6 +126,8 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
     name: "Florida State University",
     city: "Tallahassee",
     state: "FL",
+    lat: 30.4419,
+    lon: -84.2985,
     catchment: [
       { city: "Tallahassee", state: "FL" },
       { city: "Crawfordville", state: "FL" },
@@ -377,6 +395,8 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
     name: "University of Wisconsin-Madison",
     city: "Madison",
     state: "WI",
+    lat: 43.0753,
+    lon: -89.4034,
     catchment: [
       { city: "Madison", state: "WI" },
       { city: "Middleton", state: "WI" },
@@ -439,6 +459,8 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
     name: "Indiana University Bloomington",
     city: "Bloomington",
     state: "IN",
+    lat: 39.1653,
+    lon: -86.5264,
     catchment: [
       { city: "Bloomington", state: "IN" },
       { city: "Ellettsville", state: "IN" },
@@ -476,6 +498,8 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
     name: "Arizona State University",
     city: "Tempe",
     state: "AZ",
+    lat: 33.4242,
+    lon: -111.9281,
     catchment: [
       { city: "Tempe", state: "AZ" },
       { city: "Phoenix", state: "AZ" },
@@ -498,6 +522,8 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
     name: "University of Utah",
     city: "Salt Lake City",
     state: "UT",
+    lat: 40.7649,
+    lon: -111.8421,
     catchment: [
       { city: "Salt Lake City", state: "UT" },
       { city: "West Valley City", state: "UT" },

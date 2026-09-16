@@ -77,11 +77,96 @@ export function isNonMedicalCategory(category: string | null | undefined): boole
  * without a stable ORDER BY lets Postgres skip/duplicate rows across
  * pages, producing counts that drift run-to-run.
  */
+/**
+ * How far a student will drive for a shift. 40 miles, chosen by measuring:
+ * across the six live campuses the hand-written city lists find 165
+ * non-medical providers, 40 miles finds 289, and 60 miles starts pulling
+ * Indianapolis into Bloomington's list and Milwaukee's suburbs into
+ * Madison's — other metros, not commutable suburbs.
+ */
+export const DEFAULT_RADIUS_MILES = 40;
+
+const EARTH_MILES = 3959;
+const rad = (d: number) => (d * Math.PI) / 180;
+
+/** Great-circle distance in miles. */
+export function milesBetween(
+  aLat: number,
+  aLon: number,
+  bLat: number,
+  bLon: number,
+): number {
+  const c =
+    Math.cos(rad(aLat)) * Math.cos(rad(bLat)) * Math.cos(rad(bLon) - rad(aLon)) +
+    Math.sin(rad(aLat)) * Math.sin(rad(bLat));
+  // Guard acos against floating-point drift just past 1.0.
+  return EARTH_MILES * Math.acos(Math.min(1, c));
+}
+
+/**
+ * Is this row in the campus's catchment?
+ *
+ * A union, deliberately: inside the radius OR on the hand-written city
+ * list. Radius alone would be cleaner, but a row whose coordinates are
+ * missing or wrong would silently drop out of a catchment it has been in
+ * for months, and a provider an admin has already worked is not something
+ * to lose to a geocoding error. The list can only add, never subtract.
+ */
+export function matchesCatchment(
+  uni: PartnerUniversity,
+  row: { city?: string | null; state?: string | null; lat?: number | null; lon?: number | null },
+): boolean {
+  if (
+    uni.lat != null &&
+    uni.lon != null &&
+    row.lat != null &&
+    row.lon != null &&
+    milesBetween(uni.lat, uni.lon, row.lat, row.lon) <=
+      (uni.radiusMiles ?? DEFAULT_RADIUS_MILES)
+  ) {
+    return true;
+  }
+  if (!row.city || !row.state) return false;
+  const key = `${row.city.toLowerCase()}|${row.state}`;
+  return uni.catchment.some((c) => `${c.city.toLowerCase()}|${c.state}` === key);
+}
+
+/**
+ * A latitude/longitude box that contains the campus radius.
+ *
+ * Needed because the directory queries filter by state, and a radius does
+ * not respect state lines — Florida State sits about twenty miles from
+ * Georgia, so a state-filtered query cannot see providers a student would
+ * happily drive to. Padded by a mile to keep the box outside the circle.
+ */
+export function catchmentBounds(
+  uni: PartnerUniversity,
+): { latMin: number; latMax: number; lonMin: number; lonMax: number } | null {
+  if (uni.lat == null || uni.lon == null) return null;
+  const miles = (uni.radiusMiles ?? DEFAULT_RADIUS_MILES) + 1;
+  const dLat = miles / 69;
+  // Longitude degrees shrink toward the poles; floor the cosine so the box
+  // never collapses at extreme latitudes.
+  const dLon = miles / (69 * Math.max(0.1, Math.cos(rad(uni.lat))));
+  return {
+    latMin: uni.lat - dLat,
+    latMax: uni.lat + dLat,
+    lonMin: uni.lon - dLon,
+    lonMax: uni.lon + dLon,
+  };
+}
+
 const OLERA_PAGE = 1000;
 export async function fetchNonMedicalProviders<T = Record<string, unknown>>(
   db: SupabaseClient,
   columns: string,
   states?: string[],
+  /**
+   * Restrict to a lat/lon box instead of a state list. Rows with no
+   * coordinates cannot satisfy a box, so callers that still want the
+   * city-list fallback must fetch by state as well and merge.
+   */
+  bounds?: { latMin: number; latMax: number; lonMin: number; lonMax: number },
 ): Promise<T[]> {
   const out: T[] = [];
   for (let from = 0; ; from += OLERA_PAGE) {
@@ -91,7 +176,15 @@ export async function fetchNonMedicalProviders<T = Record<string, unknown>>(
       .ilike("provider_category", NON_MEDICAL_ILIKE)
       .or("deleted.is.null,deleted.eq.false")
       .order("provider_id", { ascending: true });
-    if (states && states.length) q = q.in("state", states);
+    if (bounds) {
+      q = q
+        .gte("lat", bounds.latMin)
+        .lte("lat", bounds.latMax)
+        .gte("lon", bounds.lonMin)
+        .lte("lon", bounds.lonMax);
+    } else if (states && states.length) {
+      q = q.in("state", states);
+    }
     const { data, error } = await q.range(from, from + OLERA_PAGE - 1);
     if (error) {
       console.error("[catchment] non-medical fetch error:", error);
@@ -118,7 +211,7 @@ export async function getProvidersInCatchment(slug: string) {
   const states = Array.from(new Set(uni.catchment.map((c) => c.state)));
   const { data, error } = await db
     .from("business_profiles")
-    .select("id, display_name, city, state, metadata, is_active, created_at")
+    .select("id, display_name, city, state, lat, lng, metadata, is_active, created_at")
     .in("type", ["organization", "caregiver"])
     .in("state", states);
 
@@ -127,23 +220,21 @@ export async function getProvidersInCatchment(slug: string) {
     return [];
   }
 
-  const cityKeys = new Set(
-    uni.catchment.map((c) => `${c.city.toLowerCase()}|${c.state}`),
-  );
-
   type Row = {
     id: string;
     display_name: string | null;
     city: string | null;
     state: string | null;
+    lat: number | null;
+    // business_profiles spells it lng; olera-providers spells it lon.
+    lng: number | null;
     metadata: ProviderMetadata | null;
     is_active: boolean;
     created_at: string;
   };
-  return ((data ?? []) as Row[]).filter((p) => {
-    if (!p.city || !p.state) return false;
-    return cityKeys.has(`${p.city.toLowerCase()}|${p.state}`);
-  });
+  return ((data ?? []) as Row[]).filter((p) =>
+    matchesCatchment(uni, { city: p.city, state: p.state, lat: p.lat, lon: p.lng }),
+  );
 }
 
 /**
@@ -165,6 +256,8 @@ export async function getProviderProspectsInCatchment(slug: string) {
     provider_name: string | null;
     city: string | null;
     state: string | null;
+    lat: number | null;
+    lon: number | null;
     email: string | null;
     website: string | null;
     phone: string | null;
@@ -172,25 +265,32 @@ export async function getProviderProspectsInCatchment(slug: string) {
     created_at: string | null;
   };
 
+  const columns =
+    "provider_id, provider_name, city, state, lat, lon, email, website, phone, slug, created_at";
+
   // Query olera-providers (the 75K+ provider directory), restricted to
   // non-medical home care — the only employer type MedJobs targets.
   // Paginated to defeat the PostgREST max-rows cap.
-  const data = await fetchNonMedicalProviders<Row>(
-    db,
-    "provider_id, provider_name, city, state, email, website, phone, slug, created_at",
-    states,
-  );
-
-  const cityKeys = new Set(
-    uni.catchment.map((c) => `${c.city.toLowerCase()}|${c.state}`),
-  );
+  //
+  // Two fetches when the campus has coordinates. The box catches providers
+  // the state filter cannot — Florida State is about twenty miles from
+  // Georgia — and the state fetch keeps rows whose coordinates are missing
+  // but whose city is on the list. Merged by provider_id; matchesCatchment
+  // decides. One fetch, by state, when there are no coordinates.
+  const bounds = catchmentBounds(uni);
+  const pages = await Promise.all([
+    fetchNonMedicalProviders<Row>(db, columns, states),
+    bounds
+      ? fetchNonMedicalProviders<Row>(db, columns, undefined, bounds)
+      : Promise.resolve([] as Row[]),
+  ]);
+  const byId = new Map<string, Row>();
+  for (const row of pages.flat()) byId.set(row.provider_id, row);
+  const data = Array.from(byId.values());
 
   // Map to the shape expected by provider-prospects endpoint
   return data
-    .filter((p) => {
-      if (!p.city || !p.state) return false;
-      return cityKeys.has(`${p.city.toLowerCase()}|${p.state}`);
-    })
+    .filter((p) => matchesCatchment(uni, p))
     .map((p) => ({
       id: p.provider_id,
       display_name: p.provider_name,

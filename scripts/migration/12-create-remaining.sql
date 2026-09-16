@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Step 3 — create records for the sheet rows that had nothing to attach to
+-- Step 3 — create the advisor records
 -- ===========================================================================
 -- WRITES. Rehearsal mode; one line commits.
 --
@@ -7,11 +7,12 @@
 -- handles what was left, so the team's work is on the board rather than
 -- only in a staging table.
 --
---   in directory, off board  create a provider record linked to the real
---                            directory row, on the nearest campus
---   not in the directory     skipped. The board is worked against the
---                            directory, so a provider with nothing behind
---                            it has nothing to enrich or convert later.
+--   providers                none. Script 10 already put Gracie's calls on
+--                            every provider sitting in a catchment. The 41
+--                            that matched the directory but no board are
+--                            all outside the forty mile ring, and none was
+--                            missed inside it — so there is nothing left
+--                            here that a student could drive to.
 --   stakeholder              create an advisor record, not a provider
 --   tie                      left alone. Ten rows where the number is
 --                            shared; a person picks the branch.
@@ -37,8 +38,8 @@ DO $$
 DECLARE
   v_apply  BOOLEAN := FALSE;        -- <<< the only line to change
   v_batch  TEXT    := 'sheet-create-v1';
-  n_prov   INT := 0;
-  n_dir    INT := 0;
+  n_prov_skipped INT := 0;
+
   n_adv    INT := 0;
   n_person INT := 0;
   n_task   INT := 0;
@@ -170,41 +171,18 @@ BEGIN
   SELECT count(*) INTO n_tie  FROM medjobs_migration_staging WHERE plan_action LIKE 'tie%';
   SELECT count(*) INTO n_skip FROM _todo WHERE campus_slug IS NULL;
 
-  -- ── providers ──────────────────────────────────────────────────────────
-  -- Only providers that exist in the directory. A row we called but that
-  -- is not in olera-providers is not carried onto the board: the board is
-  -- worked against the directory, and a record with nothing behind it
-  -- cannot be enriched, converted or reconciled later. Those rows stay in
-  -- staging and are counted below.
-  INSERT INTO student_outreach
-    (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
-  SELECT
-    sc.id, 'provider', NULL, t.sheet_name, 'researched', 0,
-    jsonb_build_object(
-      'olera_provider_id', t.dir_provider_id,
-      'migration_batch',   v_batch,
-      'source',            'in_the_directory_but_was_not_on_a_board',
-      'sheet_row',         t.row_no,
-      'sheet_key',         t.sheet_key,
-      'sheet_phone',       t.phone,
-      'placed_by',         t.placed_how,
-      'migration_review',  true)
-  FROM _todo t
-  JOIN student_outreach_campuses sc ON sc.slug = t.campus_slug
-  WHERE NOT t.is_stakeholder AND NOT t.is_person
-    AND t.dir_provider_id IS NOT NULL
-    AND NOT EXISTS (
-      SELECT 1 FROM student_outreach so
-       WHERE so.research_data->>'sheet_key' = t.sheet_key
-         AND so.research_data->>'migration_batch' = v_batch);
-  GET DIAGNOSTICS n_prov = ROW_COUNT;
-
-  -- Called by the team but absent from the directory, so deliberately not
-  -- created. Still in staging if we ever add them to the directory.
-  SELECT count(*) INTO n_dir
-    FROM _todo
-   WHERE NOT is_stakeholder AND NOT is_person
-     AND dir_provider_id IS NULL;
+  -- ── providers: none ───────────────────────────────────────────────────
+  -- There are none left to create, and that is a finding rather than an
+  -- omission. Every sheet row that matched a directory listing with no
+  -- board record — 41 of them — sits outside the forty mile ring, and all
+  -- 41 are already the right category. Nothing was missed inside the ring.
+  --
+  -- So script 10 finished the provider work: every provider in a catchment
+  -- that Gracie called now carries her calls. A provider she called that
+  -- is not in anybody's catchment is not somebody a student can drive to,
+  -- and is not carried onto the board.
+  SELECT count(*) INTO n_prov_skipped
+    FROM _todo WHERE NOT is_stakeholder AND NOT is_person;
 
   -- ── advisors ───────────────────────────────────────────────────────────
   INSERT INTO student_outreach
@@ -297,8 +275,8 @@ BEGIN
 
   IF NOT v_apply THEN
     RAISE EXCEPTION
-      'REHEARSAL, nothing saved — provider records % · providers skipped, not in the directory % · advisor records % · people held back for later % · history tasks % · open tasks % · skipped, area code is not one of the six % · ties left for a person %. Set v_apply := TRUE to commit.',
-      n_prov, n_dir, n_adv, n_person, n_hist, n_task, n_skip, n_tie;
+      'REHEARSAL, nothing saved — advisor records % · history tasks % · open tasks % · providers skipped, none are in a catchment % · people held back for later % · skipped, area code is not one of the six % · ties left for a person %. Set v_apply := TRUE to commit.',
+      n_adv, n_hist, n_task, n_prov_skipped, n_person, n_skip, n_tie;
   END IF;
 END $$;
 

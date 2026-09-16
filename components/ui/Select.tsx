@@ -383,7 +383,7 @@ export default function Select({
           disabled
             ? "opacity-50 cursor-not-allowed bg-gray-100"
             : "",
-          !value ? "text-gray-400" : "text-gray-900",
+          !selectedOption ? "text-gray-400" : "text-gray-900",
           "focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-400",
         ].filter(Boolean).join(" ")}
         aria-haspopup="listbox"

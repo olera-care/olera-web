@@ -7,7 +7,7 @@ import { generateMedJobsNotificationUrl, generateMedJobsStudentInterviewUrl } fr
 import { getAccessTier } from "@/lib/medjobs-access";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
-import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
+import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail, interviewRescheduleSentEmail, interviewCancelledAdminEmail } from "@/lib/email-templates";
 import { studentInterestColdEmail } from "@/lib/medjobs-email-templates";
 import { getUniversityBySlug } from "@/lib/staffing-outreach/partner-universities";
 import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
@@ -608,6 +608,10 @@ export async function PATCH(request: NextRequest) {
 
     if (status === "cancelled") {
       try {
+        // Determine who cancelled
+        const callerIsProvider = userProfileIds.includes(interview.provider_profile_id);
+        const cancelledBy = callerIsProvider ? "provider" : "student";
+
         // Generate view URLs - both parties get a one-click magic link for auto-sign-in
         const studentViewUrl = student.email
           ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
@@ -633,6 +637,30 @@ export async function PATCH(request: NextRequest) {
           html: interviewCancelledEmail({ otherName: student.display_name, viewUrl: providerViewUrl }),
           emailType: "interview_cancelled",
         });
+
+        // Notify admin team about the cancellation
+        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+        if (adminEmail) {
+          const interviewTime = new Date(interview.confirmed_time || interview.proposed_time).toLocaleString("en-US", {
+            weekday: "long", month: "long", day: "numeric",
+            hour: "numeric", minute: "2-digit", timeZoneName: "short",
+            timeZone: "America/Chicago",
+          });
+          const adminUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/admin/caregivers/${student.slug || interview.student_profile_id}`;
+          await sendEmail({
+            to: adminEmail,
+            subject: `Interview cancelled: ${provider.display_name} ↔ ${student.display_name}`,
+            html: interviewCancelledAdminEmail({
+              providerName: provider.display_name,
+              studentName: student.display_name,
+              cancelledBy,
+              interviewTime,
+              adminUrl,
+            }),
+            emailType: "interview_cancelled_admin",
+            recipientType: "admin",
+          });
+        }
       } catch (err) {
         console.error("[medjobs/interviews] cancel email error:", err);
       }
@@ -644,6 +672,7 @@ export async function PATCH(request: NextRequest) {
     if (status === "rescheduled" && newTime) {
       try {
         const callerIsProvider = userProfileIds.includes(interview.provider_profile_id);
+        const caller = callerIsProvider ? provider : student;
         const recipient = callerIsProvider ? student : provider;
         const proposerName = callerIsProvider ? provider.display_name : student.display_name;
         const typeLabel = interview.type === "video" ? "Video" : interview.type === "in_person" ? "In-Person" : "Phone";
@@ -654,7 +683,7 @@ export async function PATCH(request: NextRequest) {
         });
 
         // Recipient gets a one-click magic link to their respective surface.
-        const viewUrl = callerIsProvider
+        const recipientViewUrl = callerIsProvider
           ? (student.email
               ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
               : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`)
@@ -662,6 +691,16 @@ export async function PATCH(request: NextRequest) {
               ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
               : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`);
 
+        // Caller (rescheduler) gets a view URL too
+        const callerViewUrl = callerIsProvider
+          ? (provider.slug && provider.email
+              ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`)
+          : (student.email
+              ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`);
+
+        // Notify the recipient about the new proposed time
         if (recipient.email) {
           await sendEmail({
             to: recipient.email,
@@ -672,11 +711,28 @@ export async function PATCH(request: NextRequest) {
               proposedTime: time,
               alternativeTime: null,
               notes: interview.notes || null,
-              viewUrl,
+              viewUrl: recipientViewUrl,
             }),
             emailType: "interview_proposed",
             recipientType: callerIsProvider ? "student" : "provider",
             recipientProfileId: callerIsProvider ? interview.student_profile_id : interview.provider_profile_id,
+          });
+        }
+
+        // Send confirmation to the rescheduler that their new time was sent
+        if (caller.email) {
+          await sendEmail({
+            to: caller.email,
+            subject: `Your proposed time was sent to ${recipient.display_name}`,
+            html: interviewRescheduleSentEmail({
+              recipientName: caller.display_name,
+              otherName: recipient.display_name,
+              newTime: time,
+              viewUrl: callerViewUrl,
+            }),
+            emailType: "interview_reschedule_sent",
+            recipientType: callerIsProvider ? "provider" : "student",
+            recipientProfileId: callerIsProvider ? interview.provider_profile_id : interview.student_profile_id,
           });
         }
       } catch (err) {

@@ -650,7 +650,8 @@ function InterviewDetailModal({
   // Build footer actions
   const footerActions = (() => {
     // Reschedule panel takes over the footer while open (both directions).
-    if (showReschedule && interview.status === "proposed") {
+    // Allow reschedule for both "proposed" and "confirmed" interviews.
+    if (showReschedule && (interview.status === "proposed" || interview.status === "confirmed")) {
       return (
         <div className="space-y-3">
           <div className="flex gap-2">
@@ -796,14 +797,20 @@ function InterviewDetailModal({
               </button>
             </div>
           ) : null}
-          <button
-            type="button"
-            onClick={() => handleAction("cancelled")}
-            disabled={isLoading}
-            className="w-full py-3.5 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-xl text-base font-semibold text-gray-700 transition-colors"
-          >
-            {isLoading ? "Cancelling..." : "Cancel Interview"}
-          </button>
+          {/* Hide reschedule/cancel once placement is confirmed - the interview served its purpose */}
+          {!confirmedPlacement && (
+            <>
+              {rescheduleTrigger}
+              <button
+                type="button"
+                onClick={() => handleAction("cancelled")}
+                disabled={isLoading}
+                className="w-full py-3 text-gray-500 hover:text-red-600 text-sm font-medium transition-colors"
+              >
+                {isLoading ? "Cancelling..." : "Cancel Interview"}
+              </button>
+            </>
+          )}
         </div>
       );
     }

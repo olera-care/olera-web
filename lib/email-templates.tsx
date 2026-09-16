@@ -4471,6 +4471,67 @@ export function interviewReminderEmail(opts: {
   `, `Reminder: Interview with ${opts.otherName} tomorrow`);
 }
 
+/** Confirmation email sent to the person who proposed a new time (reschedule) */
+export function interviewRescheduleSentEmail(opts: {
+  recipientName: string;
+  otherName: string;
+  newTime: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">New time sent</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${escapeHtml(opts.recipientName.split(" ")[0] || "there")}, your proposed new time has been sent to <strong>${escapeHtml(opts.otherName)}</strong>.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Proposed Time</p>
+      <p style="font-size:15px;color:#111827;margin:0;font-weight:600;">
+        ${escapeHtml(opts.newTime)}
+      </p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You'll be notified when they respond.
+    </p>
+    <div style="margin:0 0 24px;">${button("View Interview", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your proposed time was sent to ${opts.otherName}`);
+}
+
+/** Admin notification when an interview is cancelled */
+export function interviewCancelledAdminEmail(opts: {
+  providerName: string;
+  studentName: string;
+  cancelledBy: "provider" | "student";
+  interviewTime: string;
+  adminUrl: string;
+}): string {
+  const cancellerName = opts.cancelledBy === "provider" ? opts.providerName : opts.studentName;
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Cancelled</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      An interview has been cancelled by <strong>${escapeHtml(cancellerName)}</strong>.
+    </p>
+    <div style="background:#fef2f2;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Provider:</strong> ${escapeHtml(opts.providerName)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Student:</strong> ${escapeHtml(opts.studentName)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Scheduled for:</strong> ${escapeHtml(opts.interviewTime)}
+      </p>
+      <p style="font-size:14px;color:#991b1b;margin:0;line-height:1.5;">
+        <strong>Cancelled by:</strong> ${opts.cancelledBy === "provider" ? "Provider" : "Student"}
+      </p>
+    </div>
+    <div style="margin:0 0 24px;">${button("View in Admin", opts.adminUrl)}</div>
+  `, `Interview cancelled: ${opts.providerName} ↔ ${opts.studentName}`);
+}
+
 /** Email to provider when they request to claim an existing listing */
 export function claimVerificationEmail(opts: {
   providerName: string;

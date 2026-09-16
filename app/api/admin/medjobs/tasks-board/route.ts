@@ -76,10 +76,21 @@ export async function GET() {
 
   const db = getServiceClient();
 
-  const [campusesRes, channelsRes, outreachRes, contactsRes, outreachTasksRes, siteTasksRes] =
+  const [
+    campusesRes,
+    channelsRes,
+    channelRecordsRes,
+    outreachRes,
+    contactsRes,
+    outreachTasksRes,
+    siteTasksRes,
+  ] =
     await Promise.all([
       db.from("student_outreach_campuses").select("id, slug, name").order("name"),
       db.from("campus_channels").select("id, campus_id, channel, status"),
+      db
+        .from("campus_channel_records")
+        .select("id, channel_id, kind, name, status, contacts"),
       db
         .from("student_outreach")
         .select("id, campus_id, kind, stakeholder_type, organization_name, status, cadence_day, notes"),
@@ -90,13 +101,14 @@ export async function GET() {
         .in("status", ["pending", "completed"]),
       db
         .from("site_tasks")
-        .select("id, campus_id, task_type, due_at, status, payload, notes, completed_at")
+        .select("id, campus_id, record_id, task_type, due_at, status, payload, notes, completed_at")
         .in("status", ["pending", "completed"]),
     ]);
 
   const firstError =
     campusesRes.error ??
     channelsRes.error ??
+    channelRecordsRes.error ??
     outreachRes.error ??
     contactsRes.error ??
     outreachTasksRes.error ??
@@ -135,6 +147,26 @@ export async function GET() {
     });
     tasksByOutreach.set(t.outreach_id, list);
   }
+
+  const siteTask = (
+    t: NonNullable<typeof siteTasksRes.data>[number],
+    section: SectionKey,
+  ): BoardTask => {
+    const payload = (t.payload ?? {}) as { step?: number; round?: number };
+    return {
+      id: t.id,
+      section,
+      step: typeof payload.step === "number" ? payload.step : 0,
+      round: typeof payload.round === "number" ? payload.round : 0,
+      dueAt: day(t.due_at),
+      done: t.status === "completed",
+      outcome: t.status === "completed" ? "Logged" : null,
+      note: t.notes ?? "",
+      loggedOn: t.completed_at ? day(t.completed_at) : null,
+      spawned: [],
+      spawnedRecords: [],
+    };
+  };
 
   const siteTasksByCampus = new Map<string, typeof siteTasksRes.data>();
   for (const t of siteTasksRes.data ?? []) {
@@ -181,30 +213,15 @@ export async function GET() {
       });
     }
 
-    // The channel itself is a record where the ladder has no stakeholder to
-    // hang off — the job board is a thing you do, not a person you chase.
+    // The job board has no person to chase, so the channel itself is the
+    // record. Its tasks are the campus-level site tasks — the ones not bound
+    // to a channel record.
     for (const ch of channelsRes.data ?? []) {
       if (ch.campus_id !== campus.id) continue;
-      const section = CHANNEL_SECTION[ch.channel];
-      if (section !== "jobboard") continue;
-      const tasks: BoardTask[] = (siteTasksByCampus.get(campus.id) ?? [])
-        .filter((t) => String(t.task_type).includes("job_board"))
-        .map((t) => {
-          const payload = (t.payload ?? {}) as { step?: number; round?: number };
-          return {
-            id: t.id,
-            section,
-            step: typeof payload.step === "number" ? payload.step : 0,
-            round: typeof payload.round === "number" ? payload.round : 0,
-            dueAt: day(t.due_at),
-            done: t.status === "completed",
-            outcome: t.status === "completed" ? "Logged" : null,
-            note: t.notes ?? "",
-            loggedOn: t.completed_at ? day(t.completed_at) : null,
-            spawned: [],
-            spawnedRecords: [],
-          };
-        });
+      if (CHANNEL_SECTION[ch.channel] !== "jobboard") continue;
+      const tasks = (siteTasksByCampus.get(campus.id) ?? [])
+        .filter((t) => !t.record_id)
+        .map((t) => siteTask(t, "jobboard"));
       const pending = tasks.filter((t) => !t.done);
       records.jobboard.push({
         id: ch.id,
@@ -217,6 +234,76 @@ export async function GET() {
         round: 0,
         state: ch.status === "live" ? LADDERS.jobboard.goal : null,
         tasks,
+      });
+    }
+
+    // Orgs, events and professors also exist as channel records — the
+    // activation ledger. An event in particular lives only here, because an
+    // event is not someone you run follow-up rounds at.
+    for (const rec of channelRecordsRes.data ?? []) {
+      const channel = (channelsRes.data ?? []).find((c) => c.id === rec.channel_id);
+      if (!channel || channel.campus_id !== campus.id) continue;
+      const section = RECORD_KIND_SECTION[rec.kind];
+      if (!section) continue;
+      // An org or professor already carried as an outreach row is the same
+      // thing twice; the outreach row wins, because it holds the cadence.
+      if (records[section].some((r) => r.name === rec.name)) continue;
+
+      const tasks = (siteTasksByCampus.get(campus.id) ?? [])
+        .filter((t) => t.record_id === rec.id)
+        .map((t) => siteTask(t, section));
+      const pending = tasks.filter((t) => !t.done);
+      const contact = ((rec.contacts ?? []) as Array<{ name?: string; email?: string; phone?: string }>)[0];
+      const done = rec.status === "live" || rec.status === "declined";
+
+      records[section].push({
+        id: rec.id,
+        section,
+        name: rec.name,
+        contact: contact?.name ?? "",
+        phone: contact?.phone ?? "",
+        email: contact?.email ?? "",
+        step: done ? null : pending[0]?.step ?? 0,
+        round: pending[0]?.round ?? 0,
+        state: done ? (rec.status === "live" ? LADDERS[section].goal : "declined") : null,
+        tasks,
+      });
+    }
+
+    // Every section a university needs starts itself. A campus with no
+    // student orgs yet does not need someone to press Start — it needs the
+    // first rung of the orgs ladder, which is "go and find them". Providers
+    // and students are excluded: those arrive from the catchment and from
+    // applications, so an empty section there is a fact, not a to-do.
+    for (const section of SECTION_ORDER) {
+      const ladder = LADDERS[section];
+      if (ladder.auto) continue;
+      if (records[section].length > 0) continue;
+      records[section].push({
+        id: `new:${campus.id}:${section}`,
+        section,
+        name: ladder.label,
+        contact: "",
+        phone: "",
+        email: "",
+        step: 0,
+        round: ladder.steps[0]?.rounds ? 1 : 0,
+        state: null,
+        tasks: [
+          {
+            id: `new:${campus.id}:${section}:0`,
+            section,
+            step: 0,
+            round: ladder.steps[0]?.rounds ? 1 : 0,
+            dueAt: day(null),
+            done: false,
+            outcome: null,
+            note: "",
+            loggedOn: null,
+            spawned: [],
+            spawnedRecords: [],
+          },
+        ],
       });
     }
 

@@ -54,8 +54,12 @@ export default function TaskView({
   onAgain: () => void;
 }) {
   const [showEmail, setShowEmail] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [showDefer, setShowDefer] = useState(false);
   const [showStop, setShowStop] = useState(false);
+  // "They replied" is the one outcome that carries information nobody can
+  // reconstruct later, so it asks for it before moving on.
+  const [replying, setReplying] = useState(false);
 
   const rung = rungAt(task.section, task.step, task.round);
   if (!rung) return null;
@@ -127,42 +131,77 @@ export default function TaskView({
         </div>
       ) : (
         <div className="mt-4">
-          <h3 className="text-[17px] font-semibold tracking-tight text-gray-900">
-            {taskTitle(task)}
-            {rung.rounds ? <span className="ml-1 text-[14px] font-normal text-gray-400">of {rung.rounds}</span> : null}
-          </h3>
-          <p className="mt-1 text-[13.5px] text-gray-700">{rung.why}</p>
+          <div className="flex items-start gap-1.5">
+            <h3 className="text-[17px] font-semibold tracking-tight text-gray-900">
+              {taskTitle(task)}
+              {rung.rounds ? <span className="ml-1 text-[14px] font-normal text-gray-400">of {rung.rounds}</span> : null}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowHelp((v) => !v)}
+              aria-label="What this task is"
+              aria-expanded={showHelp}
+              className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${
+                showHelp
+                  ? "border-primary-600 bg-primary-600 text-white"
+                  : "border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600"
+              }`}
+            >
+              i
+            </button>
+          </div>
 
-          <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-[13.5px] text-gray-700">
+          {showHelp && (
+            <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3.5 py-3">
+              <Help label="What this is">{rung.what}</Help>
+              <Help label="Why">{rung.why}</Help>
+              <Help label="What to do">
+                <ol className="list-decimal space-y-0.5 pl-4">
+                  {rung.steps.map((x) => (
+                    <li key={x}>{x}</li>
+                  ))}
+                </ol>
+              </Help>
+              <Help label={`Goal for ${ladder.label.toLowerCase()}`}>{ladder.goal}</Help>
+              <p className="mt-2.5 border-t border-gray-200 pt-2.5 text-[12px] text-gray-500">
+                Still not sure? Message the team in Slack and someone will pick it up.
+              </p>
+            </div>
+          )}
+
+          <ol className="mt-2.5 list-decimal space-y-0.5 pl-5 text-[13.5px] text-gray-700">
             {rung.steps.map((s) => (
               <li key={s}>{s}</li>
             ))}
           </ol>
 
-          {rung.script && (
-            <p className="mt-3 whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
-              {rung.script}
-            </p>
-          )}
-
-          {rung.email && (
-            <div className="mt-2">
+          {(rung.script || rung.email) && (
+            <div className="mt-2.5">
               <button
                 type="button"
                 onClick={() => setShowEmail((v) => !v)}
                 className="text-[12.5px] text-gray-500 underline hover:text-gray-900"
               >
-                {showEmail ? "Hide the email" : "Show the email"}
+                {showEmail ? "Hide suggested call script and email copy" : "Show suggested call script and email copy"}
               </button>
               {showEmail && (
-                <>
-                  <p className="mt-2 whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
-                    {`Subject: Student Caregiver Program — ${universityName}\n\nHi ${firstName},\n\nI'm reaching out from Dr. Logan DuBose's office about the Student Caregiver Program at ${universityName}…\n\n📎 program-flyer.pdf`}
-                  </p>
-                  <p className="mt-1.5 text-[12px] text-gray-400">
-                    Send it from your own inbox so the reply comes back to you.
-                  </p>
-                </>
+                <div className="mt-2 space-y-2">
+                  {rung.script && (
+                    <p className="whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
+                      {rung.script}
+                    </p>
+                  )}
+                  {rung.email && (
+                    <>
+                      <p className="whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
+                        {`Subject: Student Caregiver Program — ${universityName}\n\nHi ${firstName},\n\nI'm reaching out from Dr. Logan DuBose's office about the Student Caregiver Program at ${universityName}…\n\n📎 program-flyer.pdf`}
+                      </p>
+                      <p className="text-[12px] text-gray-400">
+                        Send it from your own inbox so the reply comes back to you.
+                      </p>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -201,7 +240,7 @@ export default function TaskView({
             </label>
           )}
 
-          <Note value={task.note} onChange={onNote} />
+          {!replying && <Note value={task.note} onChange={onNote} />}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
             {rung.actions.map((a, i) => (
@@ -215,7 +254,15 @@ export default function TaskView({
               </button>
             ))}
             {rung.reply && (
-              <button type="button" onClick={() => onAct(-1)} className={BTN}>
+              <button
+                type="button"
+                onClick={() => {
+                  setReplying(true);
+                  setShowDefer(false);
+                  setShowStop(false);
+                }}
+                className={BTN}
+              >
                 They replied
               </button>
             )}
@@ -241,6 +288,49 @@ export default function TaskView({
               ···
             </button>
           </div>
+
+          {replying && (
+            <div className="mt-3 rounded-md border border-primary-200 bg-primary-25 px-3.5 py-3">
+              <label
+                htmlFor="reply-note"
+                className="text-[11px] font-semibold uppercase tracking-wide text-primary-800"
+              >
+                What they said
+              </label>
+              <p className="mt-0.5 text-[12px] text-gray-600">
+                Paste their reply or write the gist, and anything they asked for. This is the
+                only record of it.
+              </p>
+              <textarea
+                id="reply-note"
+                autoFocus
+                value={task.note}
+                onChange={(e) => onNote(e.target.value)}
+                rows={4}
+                placeholder="Paste the reply here…"
+                className="mt-2 w-full resize-y rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
+              />
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!task.note.trim()}
+                  onClick={() => {
+                    setReplying(false);
+                    onAct(-1);
+                  }}
+                  className={task.note.trim() ? BTN_GO : `${BTN_GO} cursor-not-allowed opacity-40`}
+                >
+                  Save and move on
+                </button>
+                <button type="button" onClick={() => setReplying(false)} className={BTN}>
+                  Cancel
+                </button>
+                {!task.note.trim() && (
+                  <span className="text-[12px] text-gray-500">Write something first.</span>
+                )}
+              </div>
+            </div>
+          )}
 
           {showDefer && (
             <div className="mt-2.5 flex flex-wrap gap-2">
@@ -272,11 +362,17 @@ export default function TaskView({
             </div>
           )}
 
-          <p className="mt-3 text-[12px] text-gray-400">
-            {ladder.label} · goal is {ladder.goal}
-          </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function Help({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-2 last:mb-0">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+      <div className="text-[13px] leading-snug text-gray-700">{children}</div>
     </div>
   );
 }
@@ -286,7 +382,7 @@ function Note({ value, onChange }: { value: string; onChange: (v: string) => voi
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="Note"
+      placeholder="Please leave a note before logging."
       rows={2}
       className="mt-3 w-full resize-y rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
     />

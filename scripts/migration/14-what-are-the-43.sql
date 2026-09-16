@@ -2,7 +2,7 @@
 -- What are the providers that matched the directory but no board? — read-only
 -- ===========================================================================
 -- Script 10 already did the thing worth doing for providers: it found the
--- records sitting in a campus catchment and put Gracie's calls on them.
+-- records sitting in a campus catchment and put Gracies calls on them.
 -- That is finished.
 --
 -- What is left in the provider column is a smaller set: rows that match a
@@ -11,7 +11,7 @@
 -- for opposite answers:
 --
 --   too far     the provider is outside the 40 mile ring. It is not in
---               anybody's catchment and probably should not be worked.
+--               anybodys catchment and probably should not be worked.
 --   wrong type  the provider is inside the ring but its category is not
 --               "non-medical", so the populate skipped it. Gracie called
 --               it anyway. These are the interesting ones: either the

@@ -17,7 +17,7 @@
 --   C missing cities        inside 40 miles, absent from the list
 --   D overreach             on the list, beyond 60 miles
 --
--- 3959 = Earth's radius in miles. least(1, ...) guards acos against
+-- 3959 = Earths radius in miles. least(1, ...) guards acos against
 -- floating-point drift just past 1.0.
 --
 -- Nothing is inserted, updated or deleted.

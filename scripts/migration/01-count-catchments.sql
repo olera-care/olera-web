@@ -112,7 +112,7 @@ SELECT
     AS campus_row_exists,
   count(DISTINCT c2.city || '%' || c2.state) AS cities_in_catchment,
   count(DISTINCT m.provider_id)               AS providers_in_catchment,
-  -- What already exists, so the populate's "would add" is honest.
+  -- What already exists, so the populates "would add" is honest.
   (SELECT count(*)
      FROM student_outreach so
      JOIN student_outreach_campuses sc2 ON sc2.id = so.campus_id

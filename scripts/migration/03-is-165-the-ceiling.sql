@@ -5,20 +5,20 @@
 -- must be created. It also raised two questions that decide how many
 -- providers the populate should be creating.
 --
---   Utah. The eleven Salt Lake metro cities hold ~75% of the state's
+--   Utah. The eleven Salt Lake metro cities hold ~75% of the states
 --   population but only 17% of its non-medical rows (14 of 83). Every
---   other state's share tracks its geography. Either the catchment list is
---   short, a city name does not match, or Utah's rows really are elsewhere.
+--   other states share tracks its geography. Either the catchment list is
+--   short, a city name does not match, or Utahs rows really are elsewhere.
 --
 --   The cap. No city in block 4 exceeded 18, and Scottsdale (16) outranked
 --   Phoenix (11). A real market does not look like that. If the directory
 --   was built by a per-city scrape with a result limit, then "every
 --   provider in the catchment" means every provider the scrape found, and
---   the populate's totals are a floor, not a census.
+--   the populates totals are a floor, not a census.
 --
 -- Blocks:
 --   A all 56 catchment cities   exact count each, zeros included
---   B every Utah city           where Utah's rows actually are
+--   B every Utah city           where Utahs rows actually are
 --   C busiest cities nationally is there a per-city ceiling?
 --   D near-miss names           catchment city vs a similar directory city
 --

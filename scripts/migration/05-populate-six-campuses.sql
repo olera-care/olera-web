@@ -9,7 +9,7 @@
 --      slugs match lib/staffing-outreach/partner-universities.ts exactly,
 --      because every catchment lookup in the app joins on them.
 --   2. Creates the five activation channels (st3-st7) for each campus at
---      'not_yet', so the dots on the board and the Health / 30-day funnel
+--      not_yet, so the dots on the board and the Health / 30-day funnel
 --      readings have rows to read.
 --   3. Creates one student_outreach row per non-medical provider within
 --      40 miles of campus, skipping any provider already carried on that
@@ -27,11 +27,11 @@
 -- whole run can be found, audited or removed:
 --
 --   SELECT count(*) FROM student_outreach
---    WHERE research_data->>'migration_batch' = 'catchment-40mi-v1';
+--    WHERE research_data->>migration_batch = catchment-40mi-v1;
 --
 -- Each record also carries its city and its distance from campus, so an
 -- admin reviewing the board can see "Provo · 33 mi" and judge it. The
--- directory's coordinates and its city labels do not always agree, and
+-- directorys coordinates and its city labels do not always agree, and
 -- showing both is how a wrong one gets caught.
 --
 -- ── REHEARSAL ─────────────────────────────────────────────────────────

@@ -6,10 +6,10 @@
 -- board shows "Arizona State University" and "University of Utah" twice.
 -- This deletes the demo set and nothing else.
 --
--- Scoped entirely by slug LIKE 'demo-%'. The real six were created with
+-- Scoped entirely by slug LIKE demo-%. The real six were created with
 -- bare slugs (u-utah, arizona-state, ...) and cannot match.
 --
--- Order matters, and it is the order the demo seed's own cleanup uses:
+-- Order matters, and it is the order the demo seeds own cleanup uses:
 --
 --   · site_tasks before campus_channel_records, because site_tasks.record_id
 --     cascades from it — deleting the parent first hides the count.
@@ -17,7 +17,7 @@
 --     redirected_to_id, referred_from_id). Those links are broken first or
 --     the rows guard each other.
 --   · the append-only trigger on touchpoints is disabled for the delete and
---     re-enabled in an EXCEPTION block, so a rehearsal's deliberate failure
+--     re-enabled in an EXCEPTION block, so a rehearsals deliberate failure
 --     cannot leave the guard off.
 --
 -- ── REHEARSAL ─────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ BEGIN
   END IF;
 
 EXCEPTION WHEN OTHERS THEN
-  -- Never leave the append-only guard off, including on the rehearsal's
+  -- Never leave the append-only guard off, including on the rehearsals
   -- deliberate failure.
   ALTER TABLE student_outreach_touchpoints ENABLE TRIGGER student_outreach_touchpoints_no_mutate;
   RAISE;

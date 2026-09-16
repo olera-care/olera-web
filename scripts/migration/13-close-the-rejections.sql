@@ -5,8 +5,8 @@
 --
 -- Twenty-six rows in the spreadsheet record an explicit refusal, and most
 -- of them name the person who gave it: "Was able to talk to Sally and she
--- said they're not interested", "BRENT NOT INTERESTED", "Spoke with Tina
--- and she confirmed that they're not interested". The migration queued
+-- said theyre not interested", "BRENT NOT INTERESTED", "Spoke with Tina
+-- and she confirmed that theyre not interested". The migration queued
 -- every one of them for another call.
 --
 -- That is the worst thing the migration could do. Ringing a voicemail

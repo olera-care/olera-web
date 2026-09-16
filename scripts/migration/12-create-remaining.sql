@@ -4,10 +4,10 @@
 -- WRITES. Rehearsal mode; one line commits.
 --
 -- Script 10 overlaid the 214 rows that matched a record on the board. This
--- handles what was left, so the team's work is on the board rather than
+-- handles what was left, so the teams work is on the board rather than
 -- only in a staging table.
 --
---   providers                none. Script 10 already put Gracie's calls on
+--   providers                none. Script 10 already put Gracies calls on
 --                            every provider sitting in a catchment. The 41
 --                            that matched the directory but no board are
 --                            all outside the forty mile ring, and none was
@@ -23,13 +23,13 @@
 -- guessed at — that is the Virginia and Illinois work, which belongs to
 -- universities we are not running.
 --
--- Rows on the providers tab that are a person's name are held back, since
+-- Rows on the providers tab that are a persons name are held back, since
 -- professors are not being worked yet. Rows whose name is plainly academic — "Academic
--- Advising (Dean's Office)", "The Career Center" — are created as advisors
+-- Advising (Deans Office)", "The Career Center" — are created as advisors
 -- rather than providers, and flagged. The tab they arrived on is not
 -- reliable; 66 rows on the providers tab are campus offices.
 --
--- Everything created here is stamped migration_batch = 'sheet-create-v1'
+-- Everything created here is stamped migration_batch = sheet-create-v1
 -- and carries its sheet row, so it can be found or removed on its own,
 -- separately from the overlay.
 -- ===========================================================================
@@ -48,7 +48,7 @@ DECLARE
   n_tie    INT := 0;
 BEGIN
   -- Area code to campus, for rows with nothing better. Only codes whose
-  -- whole territory is inside a campus's commute are listed. Three are
+  -- whole territory is inside a campuss commute are listed. Three are
   -- deliberately absent because they are not:
   --   435  every part of Utah except the Wasatch Front — St George is four
   --        and a half hours from Salt Lake City
@@ -107,10 +107,10 @@ BEGIN
     s.call1, s.remark1, s.call2, s.remark2,
     s.call3, s.remark3, s.call4, s.remark4,
     -- Coordinates beat a phone number. A row that matched the directory is
-    -- placed by the provider's real position; everything else falls back to
+    -- placed by the providers real position; everything else falls back to
     -- the area code.
     -- Strongest signal first. A .edu domain names the university; a
-    -- provider's coordinates say where it is; an area code is a guess.
+    -- providers coordinates say where it is; an area code is a guess.
     -- A row whose .edu belongs to a university we do not run resolves to
     -- NULL here and is skipped, which is the point of listing them.
     (CASE WHEN edu.matched THEN edu.slug
@@ -119,7 +119,7 @@ BEGIN
     (CASE WHEN edu.matched THEN 'email domain ' || edu.domain
           WHEN geo.slug IS NOT NULL THEN 'coordinates, ' || round(geo.miles) || ' miles from campus'
           ELSE 'area code ' || left(s.phone, 3) END) AS placed_how,
-    -- A person's name and nothing else. Two or three capitalised words
+    -- A persons name and nothing else. Two or three capitalised words
     -- with no word from the care-business vocabulary in them. The second
     -- half matters: without it "Village Caregiving" reads as a person.
     (
@@ -179,7 +179,7 @@ BEGIN
   --
   -- So script 10 finished the provider work: every provider in a catchment
   -- that Gracie called now carries her calls. A provider she called that
-  -- is not in anybody's catchment is not somebody a student can drive to,
+  -- is not in anybodys catchment is not somebody a student can drive to,
   -- and is not carried onto the board.
   SELECT count(*) INTO n_prov_skipped
     FROM _todo WHERE NOT is_stakeholder AND NOT is_person;
@@ -209,7 +209,7 @@ BEGIN
   GET DIAGNOSTICS n_adv = ROW_COUNT;
 
   -- ── people: held back, not created ────────────────────────────────────
-  -- Twenty-eight rows on the providers tab are somebody's name — Dietmar W
+  -- Twenty-eight rows on the providers tab are somebodys name — Dietmar W
   -- Siemann, David C Bloom, Anthony Lanman. They are campus faculty, not
   -- employers. We are not doing professors yet, so they are counted and
   -- left in staging rather than created anywhere.

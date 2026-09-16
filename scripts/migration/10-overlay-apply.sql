@@ -9,7 +9,7 @@
 --
 -- What it writes, and nothing else:
 --
---   · one COMPLETED task per call in the sheet, carrying that call's real
+--   · one COMPLETED task per call in the sheet, carrying that calls real
 --     date and its remark verbatim. This is the history an admin reads
 --     before picking up the phone, and it is copied, never interpreted.
 --   · a contact row where the sheet has a real email address and the
@@ -32,7 +32,7 @@
 -- archive row alongside a review row is a real one, and review wins — see
 -- the guard on the archive statement.
 --
--- Everything is stamped research_data.migration_batch = 'sheet-overlay-v1',
+-- Everything is stamped research_data.migration_batch = sheet-overlay-v1,
 -- and every task payload carries "migrated": true, so the whole overlay
 -- can be found and removed without touching anything else.
 -- ===========================================================================
@@ -94,7 +94,7 @@ BEGIN
   -- the step 2 ones need their pending task moved.
   -- This task was created by the populate, not by the overlay. It is moved,
   -- not replaced, and it records where it came from — so undoing the
-  -- overlay restores its old rung instead of deleting the record's only
+  -- overlay restores its old rung instead of deleting the records only
   -- open task. Deleting it would leave that record with nothing to do.
   UPDATE student_outreach_tasks t
      SET payload = t.payload

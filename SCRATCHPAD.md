@@ -7,7 +7,39 @@
 
 ## Current Focus
 
-### 2026-09-16 — First paying provider: Hoop Cares $75/mo, and what the funnel actually shows (`thirsty-payne`, analysis only, no product code)
+### 2026-09-16 (pm) — Two paid-path defects shipped to PRODUCTION; Meta arm live; /smartscript added (`thirsty-payne`)
+
+**Shipped to prod** via promotion PR **#1932** (main now `ce7381498`). Delta was 10 commits / 36 files; two of the five PRs were mine, three were other people's student-profile + docs work that rode along (flagged to TJ before merging, he approved).
+
+**PR #1928 — end-scheduler paying guard (MERGED, IN PROD).** `ad-boost-end-scheduler` selected on `status="live"` with **no `plan_status` guard**, so any provider who subscribes mid-flight gets `ad_boost_promo_complete` ("Your starter campaign is complete" + subscribe ask) when their flight ends. **Hoop Cares would have received it 29 Sep, 16 days before her first renewal.** Both rungs guarded independently (a row can reach `ended` from an admin flip, skipping rung 1). `paying_held_open` added to the Slack summary. **The load-bearing detail:** SQL `plan_status NOT IN (...)` is NULL, not true, when the column is NULL — a bare `.not()` would have skipped the entire book. Predicate spells NULL out: `plan_status.is.null,plan_status.not.in.(active,past_due)`. Verified against prod on BOTH rungs (live 8→7, Hoop only exclusion; ended 12→12, none excluded).
+
+**PR #1931 — traction email moved to the metrics ingest (MERGED, IN PROD).** Trigger lived in the admin `PATCH`, gated on an operator hand-saving metrics. Since the Google Ads Script started writing those numbers nobody opens that form, so it fired **3× ever and not once after 14 Aug**. Now fires from `/api/ads/metrics` on the post-write row. `/pre-test` then caught **three real bugs in my own sending path**: (1) no `maxDuration` — every other sending route declares 300; a timeout after the atomic reservation loses the email permanently because the rollback only runs if `sendEmail` returns; (2) `Promise.allSettled` fan-out against Resend's 2 req/sec limit with **no 429 handling anywhere in `lib/email.ts`** — now serial, capped at 10, matching the end-scheduler; (3) no freshness re-check before send. Also exported `CampaignRow` and dropped an `as never` that was suppressing the call-site typecheck.
+**WATCH:** first prod metrics sync sends **8 catch-up traction emails** (Franchil, Hoop Cares, Miracle-Lightstar, Edmonds Villa, Assisting Hands, Pacesetter, Graceful, Happy Mountain).
+
+**Meta arm BUILT AND PUBLISHED.** Campaign `120251511370050487` / adset `120251511370060487` / ad `120251511370070487`, status Processing. **Ad account is `739297033485646`** — memory had `286830885921873` which is the *business portfolio*, and a bare Ads Manager URL redirects to TJ's unused personal account `1595131129078997`. Memory corrected. Traffic objective + **Maximise landing page views**, deliberately NOT Leads: the pixel's Lead event has **never fired** (388 PageView, 0 Lead lifetime, no CAPI token, no Meta App), so both city campaigns have been optimising toward an event that never happens. $2.50/day to 20 Oct, pixel `803096730985728`, browser call add-ons turned OFF (they overlay a call button = unmeasurable phone lead, the Franchil failure mode).
+
+**Her own flyer answered the service-area question** I had said only Liz could answer: *"SERVING JACKSON COUNTY, HARRISON COUNTY, GEORGE COUNTY."* Harrison = Gulfport + Biloxi, ~208k, bigger than Jackson. Meta widened to all three (audience 103k→**260,500–306,500**). **Google is still 20 mi Pascagoula — the loose end.**
+
+**Corrections made this session (all mine, all caught by pushing):**
+- **Nextdoor is NOT dead.** I claimed 135 landings → 0 engagement. That was *tagged-only*. Graceful got **7 questions on 14–16 Aug**, exactly the 3 days carrying 93 of the 135 landings, all untagged (metadata schema was enriched after 19 Aug). Nextdoor→**provider page** ≈5.2% engagement; Nextdoor→**city page** 0/168. **The axis is destination, not channel.** Codex flagged this and was right.
+- **Cost figures.** Tagged-only gave $26/contact; counting in-window regardless of tag gives **37 contacts, $16.26/contact**. But cost per exclusive inquiry is **$100**, not the $81 I published (all-time average vs $601.70 that ran inside real flights). Memo corrected.
+- **Geo false alarm.** Our analytics put all 4 Hoop clicks in AL/LA; Google attributes 4/4 to the 20 mi Pascagoula target and "Locations of interest" is empty. Mobile carrier NAT — **our `geo_city`/`geo_state` is unreliable for mobile**.
+- **Instant Form vs traffic was a false choice.** `lib/city-ads/meta-native.server.ts:37` hard-requires `routingMode === "concierge"`; an Instant Form can only land as a `city_lead`. There is **no path from a Meta form to a provider inbox**. The Dallas "pilot" has produced **zero real leads** — its only row is `is_test=true`, "Olera Integration Test".
+- **City lead quality is poor:** 4 real leads ever, 0 reached, 0 outcomes; one is a caregiver asking to be paid. Cuts against committing callbacks.
+
+**Item 08 deliberately deferred behind item 10.** Setting an end date flips status to `ended`, which **removes the in-product card** (needs `status=live`) and fires the 0-for-9 wrap-up. The card is the surface that works (26 of 27 pricing views). Traction had to land first. Most flights have already overspent the $50 intro — Graceful $78.82, Miracle $52.59.
+
+**Also shipped:** `/smartscript` (`.claude/commands/smartscript.md`, git-backed for Chantel/Grazie/Cess) — contextual call scripts built from the provider's own record, reusing the existing `/api/admin/provider-growth/<tracking_id>/briefing` endpoint rather than rebuilding it, plus live Google Places, their website and their marketing assets. Liz's call card is in the memo with her links.
+
+**Memory updated:** `ref:meta_business_account` (ad account vs portfolio, full CAPI detail restored after I briefly overwrote it), `fb:provider_comms_plain_not_hedged` (+ no self-blame: TJ cut "that's on me" — thoughtful and bold), `fb:dont_defend_unasked` (new), `visualize` skill gained "Don't argue with someone who isn't in the room".
+
+**Artifacts:** "First Paying Provider, and How We Keep Them and Get More" `G37yVugAErtDSAMNeHdTNg` (v15, all 14 actions now status-chipped, Liz call card inside) · "The Pascagoula Operation" `8MZ8UQxjd266Ukzu4ToHUJ`.
+
+**Open PR:** **#1927** (`thirsty-payne`) — SCRATCHPAD + `/smartscript`, unmerged.
+
+---
+
+### 2026-09-16 (am) — First paying provider: Hoop Cares $75/mo, and what the funnel actually shows (`thirsty-payne`, analysis only, no product code)
 
 **No product code changed.** Outputs are one artifact, one skill edit, one memory file.
 
@@ -5171,6 +5203,12 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Blocked / Needs Input
 
+- **Call Liz Hoop** (228) 990-9749 — script + her links in artifact `G37yVugAErtDSAMNeHdTNg` under item 03. 0 touches on record. Confirm service area, get 3 review-request names, ask if still hiring.
+- **Gulf Coast city campaign** — needs a named caller for ~3–8 callbacks over 4 weeks, or drop it. Note the 4 existing city leads are 0-reached / 0-outcome and one is a caregiver seeking pay.
+- **PR #1927** — SCRATCHPAD + `/smartscript`, awaiting merge.
+- **The guarantee** — what IS the offer? Credit, refund, or reword. Blocks item 2 above.
+
+
 - **Franchil Google campaign stuck `Pending`** (2026-08-28) — six days past start, ads Eligible, zero impressions. Needs Google support.
 - **Miracle-Lightstar zero-delivery cause still unresolved** — 8 days, 0 impressions, >90% lost IS to rank, every setting inspects clean. Bid-simulator floor test not yet run.
 - **Nextdoor vs Meta for the remaining $150** — deliberately parked until the CTA/instrumentation work lands.
@@ -5182,6 +5220,28 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+### Hoop Cares / Oct 15 renewal (29 days) — the live clock
+1. **Widen Google to Jackson + Harrison + George** (campaign `24235451655`, currently 20 mi Pascagoula). Her flyer authorises it and Meta already runs all three. Ops, minutes, mine.
+2. **The zero-inquiry guarantee — decide then build.** Promised in `BoostCampaignViews.tsx` AND `/managed-ads-terms` ("credited or refunded"); **nothing in the codebase computes it.** Needs TJ's call on what the offer actually is, then a renewal check that counts campaign-attributed inquiries and issues a Stripe credit at zero. Hard deadline 15 Oct.
+3. **Verify the Google end date actually saved** to 20 Oct — entered and saved but Google reporting lagged to 15 Sep, so unconfirmed. Re-check once reporting catches up.
+4. **Watch the first prod metrics sync** — 8 catch-up traction emails, and `/admin/ad-boost` rows should stop reading "Traction email missing".
+
+### Now unblocked (traction shipped)
+5. **Item 08 — real end dates on the 5 campaigns running to 31 Dec.** The ask headline interpolates `flight_end_date`, so they currently read "Keep your campaign running past Dec 31." Edmonds Villa has no end date at all.
+6. **Item 11 — abandoned-checkout alert.** `managed_ads_checkout_started` with no `managed_ads_subscribed` within the hour. Happened twice, nobody was told either time.
+
+### Calls (blocked on people, not code)
+7. Edmonds Villa + Assisting Hands have live campaigns and have **never seen a price** — run `/smartscript` for each.
+8. Happy Mountain: 4 price views, the only provider ever shown `result_kind: inquiries`, hasn't converted.
+9. Miracle-Lightstar: abandoned a $75 checkout 21 Aug, 6 price views since.
+10. Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.
+
+### Slower
+11. Item 09 — receipt granularity/delight; only two providers have seen the drawn receipt.
+12. Item 12 — price reconciliation: exclusive inquiry costs **$100**, Starter sells at $75 all-in with a refund guarantee attached.
+13. Items 13/14 — Hoop Cares into `docs/crp/evidence-ledger.md`, with the boundary stated (one customer, one charge, repeat purchase NOT evidenced until 15 Oct).
+
 
 - Provider banner updates: preview `/provider` on desktop/mobile; test browse/X without layout jumps, dismiss-all → reload → restore, fresh inquiry/question recovery, and matching mobile CTA. Use test records because staging shares production data. No merge without TJ's request.
 

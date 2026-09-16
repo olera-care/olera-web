@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
@@ -70,6 +70,8 @@ export default function AdminStudentDetailPage() {
   const { caregiverId: studentId } = useParams<{ caregiverId: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -77,6 +79,8 @@ export default function AdminStudentDetailPage() {
   const [rejectReason, setRejectReason] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [student, setStudent] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [originalData, setOriginalData] = useState<Record<string, unknown>>({});
   const [connections, setConnections] = useState<ConnectionRow[]>([]);
   const [invitations, setInvitations] = useState<InvitationRow[]>([]);
   const [interviews, setInterviews] = useState<InterviewRow[]>([]);
@@ -95,6 +99,27 @@ export default function AdminStudentDetailPage() {
       setInvitations(data.invitations ?? []);
       setInterviews(data.interviews ?? []);
       setConnectionCount(data.connectionCount ?? 0);
+
+      // Initialize form data from student
+      const meta = (data.student?.metadata || {}) as StudentMetadata;
+      const initial: Record<string, unknown> = {
+        display_name: data.student?.display_name || "",
+        email: data.student?.email || "",
+        phone: data.student?.phone || "",
+        city: data.student?.city || "",
+        state: data.student?.state || "",
+        is_active: data.student?.is_active ?? true,
+        university: meta.university || "",
+        major: meta.major || "",
+        certifications: meta.certifications || [],
+        skills: meta.skills || [],
+        why_caregiving: meta.why_caregiving || "",
+        resume_url: meta.resume_url || "",
+        video_intro_url: meta.video_intro_url || "",
+        linkedin_url: meta.linkedin_url || "",
+      };
+      setFormData(initial);
+      setOriginalData(initial);
     } catch (err) {
       console.error("Failed to fetch student:", err);
     } finally {
@@ -106,8 +131,93 @@ export default function AdminStudentDetailPage() {
     fetchStudent();
   }, [fetchStudent]);
 
+  // Dirty tracking
+  const isDirty = useMemo(() => {
+    for (const key of Object.keys(formData)) {
+      const current = formData[key];
+      const original = originalData[key];
+      // Handle array comparison
+      if (Array.isArray(current) && Array.isArray(original)) {
+        if (JSON.stringify(current) !== JSON.stringify(original)) return true;
+      } else if (current !== original) {
+        return true;
+      }
+    }
+    return false;
+  }, [formData, originalData]);
+
+  // Warn on navigation when dirty
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  function updateField(field: string, value: unknown) {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveMessage(null);
+
+    // Compute delta
+    const delta: Record<string, unknown> = {};
+    for (const key of Object.keys(formData)) {
+      const current = formData[key];
+      const original = originalData[key];
+      if (Array.isArray(current) && Array.isArray(original)) {
+        if (JSON.stringify(current) !== JSON.stringify(original)) {
+          delta[key] = current;
+        }
+      } else if (current !== original) {
+        delta[key] = current;
+      }
+    }
+
+    if (Object.keys(delta).length === 0) {
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/caregivers/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(delta),
+      });
+
+      if (res.ok) {
+        setOriginalData({ ...formData });
+        // Also update the student object for display
+        setStudent((prev: typeof student) => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(delta).filter(([k]) => ["display_name", "email", "phone", "city", "state", "is_active"].includes(k))
+          ),
+        }));
+        setSaveMessage({ type: "success", text: "Changes saved successfully." });
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        const err = await res.json();
+        setSaveMessage({ type: "error", text: err.error || "Failed to save." });
+      }
+    } catch {
+      setSaveMessage({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleDelete() {
-    if (!confirm(`Permanently delete "${student?.display_name}"? This will also delete all their applications. This cannot be undone.`)) return;
+    const name = (formData.display_name as string) || student?.display_name || "this student";
+    if (isDirty) {
+      if (!confirm("You have unsaved changes that will be lost. Continue with delete?")) return;
+    }
+    if (!confirm(`Permanently delete "${name}"? This will also delete all their applications. This cannot be undone.`)) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/admin/caregivers/${studentId}`, { method: "DELETE" });
@@ -122,7 +232,11 @@ export default function AdminStudentDetailPage() {
   }
 
   async function handleApprove() {
-    if (!confirm(`Approve "${student?.display_name}"? Their profile will become visible to providers.`)) return;
+    if (isDirty) {
+      if (!confirm("You have unsaved changes. Approving will discard them. Continue?")) return;
+    }
+    const name = (formData.display_name as string) || student?.display_name || "this student";
+    if (!confirm(`Approve "${name}"? Their profile will become visible to providers.`)) return;
     setApproving(true);
     try {
       const res = await fetch(`/api/admin/caregivers/${studentId}/approve`, { method: "POST" });
@@ -137,6 +251,13 @@ export default function AdminStudentDetailPage() {
     } finally {
       setApproving(false);
     }
+  }
+
+  function openRejectModal() {
+    if (isDirty) {
+      if (!confirm("You have unsaved changes. Rejecting will discard them. Continue?")) return;
+    }
+    setShowRejectModal(true);
   }
 
   async function handleReject() {
@@ -200,6 +321,20 @@ export default function AdminStudentDetailPage() {
           </svg>
           Back to Students
         </Link>
+        <div className="flex items-center gap-3">
+          {saveMessage && (
+            <span className={`text-sm ${saveMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+              {saveMessage.text}
+            </span>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={!isDirty || saving}
+            className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
       </div>
 
       {/* Header */}
@@ -218,8 +353,23 @@ export default function AdminStudentDetailPage() {
             </svg>
           </div>
         )}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
+            <a
+              href={`/admin/caregivers/${studentId}/portal-preview`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              title="Preview student portal view"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Portal Preview
+            </a>
+          </div>
           <div className="flex items-center gap-3 mt-2">
           <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
             Student
@@ -267,7 +417,7 @@ export default function AdminStudentDetailPage() {
             </div>
             <div className="flex items-center gap-3 sm:shrink-0">
               <button
-                onClick={() => setShowRejectModal(true)}
+                onClick={openRejectModal}
                 disabled={rejecting}
                 className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
@@ -327,39 +477,53 @@ export default function AdminStudentDetailPage() {
         {/* Identity */}
         <Section title="Identity">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField label="Name" value={student.display_name} />
-            <ReadOnlyField label="Email" value={student.email} />
-            <ReadOnlyField label="Phone" value={student.phone} />
-            <ReadOnlyField
-              label="Location"
-              value={student.city && student.state ? `${student.city}, ${student.state}` : student.city || student.state}
-            />
+            <FieldInput label="Name" value={formData.display_name as string} onChange={(v) => updateField("display_name", v)} />
+            <FieldInput label="Email" value={formData.email as string} onChange={(v) => updateField("email", v)} />
+            <FieldInput label="Phone" value={formData.phone as string} onChange={(v) => updateField("phone", v)} />
+            <FieldInput label="City" value={formData.city as string} onChange={(v) => updateField("city", v)} />
+            <FieldInput label="State" value={formData.state as string} onChange={(v) => updateField("state", v)} />
             <ReadOnlyField label="Source" value={student.source} />
             <ReadOnlyField
               label="Profile Completeness"
               value={meta.profile_completeness ? `${meta.profile_completeness}%` : null}
             />
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.is_active as boolean}
+                  onChange={(e) => updateField("is_active", e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Active</span>
+              </label>
+            </div>
           </div>
         </Section>
 
         {/* Education */}
         <Section title="Education">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <ReadOnlyField label="University" value={meta.university} />
-              <ReadOnlyField label="Major" value={meta.major} />
+              <FieldInput label="University" value={formData.university as string} onChange={(v) => updateField("university", v)} />
+              <FieldInput label="Major" value={formData.major as string} onChange={(v) => updateField("major", v)} />
             </div>
           </Section>
 
         {/* Experience */}
         <Section title="Experience">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField
+            <FieldInput
               label="Certifications"
-              value={meta.certifications?.length ? meta.certifications.join(", ") : null}
+              value={(formData.certifications as string[])?.join(", ") || ""}
+              onChange={(v) => updateField("certifications", v ? v.split(",").map(s => s.trim()).filter(Boolean) : [])}
+              placeholder="CNA, CPR, BLS (comma-separated)"
             />
-            <ReadOnlyField
+            <FieldInput
               label="Skills"
-              value={meta.skills?.length ? meta.skills.join(", ") : null}
+              value={(formData.skills as string[])?.join(", ") || ""}
+              onChange={(v) => updateField("skills", v ? v.split(",").map(s => s.trim()).filter(Boolean) : [])}
+              placeholder="Patient care, Medication (comma-separated)"
             />
           </div>
           {meta.experience_entries && meta.experience_entries.length > 0 && (
@@ -389,11 +553,13 @@ export default function AdminStudentDetailPage() {
 
         {/* Why Caregiving */}
         <Section title="Why I Want to Be a Caregiver">
-          {meta.why_caregiving ? (
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{meta.why_caregiving}</p>
-          ) : (
-            <p className="text-sm text-gray-400 italic">Not provided</p>
-          )}
+          <textarea
+            value={(formData.why_caregiving as string) || ""}
+            onChange={(e) => updateField("why_caregiving", e.target.value)}
+            rows={4}
+            placeholder="Student's motivation for caregiving..."
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          />
         </Section>
 
         {/* Screening Questions (Scenario Responses) */}
@@ -485,50 +651,71 @@ export default function AdminStudentDetailPage() {
         {/* Documents & Media */}
         <Section title="Documents & Media">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500">Resume</p>
-              {meta.resume_url ? (
-                <a
-                  href={meta.resume_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary-600 hover:text-primary-700"
-                >
-                  View Resume →
-                </a>
-              ) : (
-                <p className="text-sm text-gray-400 italic">Not uploaded</p>
-              )}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Resume URL</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={(formData.resume_url as string) || ""}
+                  onChange={(e) => updateField("resume_url", e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                {typeof formData.resume_url === "string" && formData.resume_url && (
+                  <a
+                    href={formData.resume_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    View →
+                  </a>
+                )}
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500">Video Intro</p>
-              {meta.video_intro_url ? (
-                <a
-                  href={meta.video_intro_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary-600 hover:text-primary-700"
-                >
-                  Watch Video →
-                </a>
-              ) : (
-                <p className="text-sm text-gray-400 italic">Not uploaded</p>
-              )}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Video Intro URL</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={(formData.video_intro_url as string) || ""}
+                  onChange={(e) => updateField("video_intro_url", e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                {typeof formData.video_intro_url === "string" && formData.video_intro_url && (
+                  <a
+                    href={formData.video_intro_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    View →
+                  </a>
+                )}
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500">LinkedIn</p>
-              {meta.linkedin_url ? (
-                <a
-                  href={meta.linkedin_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary-600 hover:text-primary-700"
-                >
-                  View Profile →
-                </a>
-              ) : (
-                <p className="text-sm text-gray-400 italic">Not provided</p>
-              )}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">LinkedIn URL</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={(formData.linkedin_url as string) || ""}
+                  onChange={(e) => updateField("linkedin_url", e.target.value)}
+                  placeholder="https://linkedin.com/in/..."
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                {typeof formData.linkedin_url === "string" && formData.linkedin_url && (
+                  <a
+                    href={formData.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    View →
+                  </a>
+                )}
+              </div>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-500">Driver&apos;s License</p>
@@ -726,6 +913,20 @@ export default function AdminStudentDetailPage() {
         </div>
       </div>
 
+      {/* Bottom save bar */}
+      {isDirty && (
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 py-4 mt-6 -mx-4 px-4 sm:-mx-6 sm:px-6 flex items-center justify-end gap-3">
+          <span className="text-sm text-amber-600">You have unsaved changes</span>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      )}
+
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -786,6 +987,33 @@ function ReadOnlyField({ label, value }: { label: string; value: string | null |
     <div className="space-y-1">
       <p className="text-sm font-medium text-gray-500">{label}</p>
       <p className="text-sm text-gray-900">{value || <span className="text-gray-400">Not provided</span>}</p>
+    </div>
+  );
+}
+
+function FieldInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+}: {
+  label: string;
+  value: string | null | undefined;
+  onChange: (val: string) => void;
+  type?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <input
+        type={type}
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+      />
     </div>
   );
 }

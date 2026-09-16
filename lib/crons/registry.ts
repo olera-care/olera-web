@@ -695,6 +695,20 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal: "Student completes their profile.",
     relatedAdminPath: "/admin/medjobs/candidates",
   },
+  {
+    id: "medjobs-interview-reminders",
+    name: "MedJobs interview reminders",
+    description: "Sends reminder emails 24 hours before confirmed interviews. Both student and provider receive a reminder with interview details.",
+    recipientCohort: "Students and providers with confirmed interviews in the next 24 hours.",
+    audience: "MedJobs",
+    fn: "nudge",
+    schedule: "0 * * * *",
+    humanSchedule: "Hourly, at minute 0",
+    path: "/api/cron/medjobs-interview-reminders",
+    emailTypes: ["interview_reminder"],
+    successSignal: "Both parties attend the interview.",
+    relatedAdminPath: "/admin/medjobs",
+  },
 
   // ── Students (campus recruiting) ───────────────────────────────────
   {

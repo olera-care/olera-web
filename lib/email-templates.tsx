@@ -4435,6 +4435,42 @@ export function interviewCancelledEmail(opts: {
   `, `Your interview with ${opts.otherName} has been cancelled`);
 }
 
+/** Reminder email sent 24 hours before a confirmed interview */
+export function interviewReminderEmail(opts: {
+  recipientName: string;
+  otherName: string;
+  interviewType: string;
+  confirmedTime: string;
+  durationMinutes: number;
+  location: string | null;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Reminder</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${escapeHtml(opts.recipientName.split(" ")[0] || "there")}, just a friendly reminder about your upcoming interview.
+    </p>
+    <div style="background:#f0fdf4;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#166534;margin:0 0 8px;font-weight:600;">
+        ${escapeHtml(opts.interviewType)} Interview with ${escapeHtml(opts.otherName)}
+      </p>
+      <p style="font-size:15px;color:#111827;margin:0 0 4px;font-weight:600;">
+        ${escapeHtml(opts.confirmedTime)}
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0;">
+        ${opts.durationMinutes} minutes${opts.location ? ` · ${escapeHtml(opts.location)}` : ""}
+      </p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Make sure you're ready a few minutes early. If something comes up and you need to reschedule, please do so as soon as possible.
+    </p>
+    <div style="margin:0 0 24px;">${button("View Interview Details", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Reminder: Interview with ${opts.otherName} tomorrow`);
+}
+
 /** Email to provider when they request to claim an existing listing */
 export function claimVerificationEmail(opts: {
   providerName: string;

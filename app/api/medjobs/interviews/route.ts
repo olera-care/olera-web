@@ -325,11 +325,13 @@ export async function POST(request: NextRequest) {
         const time = new Date(proposedTime).toLocaleString("en-US", {
           weekday: "long", month: "long", day: "numeric",
           hour: "numeric", minute: "2-digit", timeZoneName: "short",
+          timeZone: "America/Chicago",
         });
         const formattedAltTime = alternativeTime
           ? new Date(alternativeTime).toLocaleString("en-US", {
               weekday: "long", month: "long", day: "numeric",
               hour: "numeric", minute: "2-digit", timeZoneName: "short",
+              timeZone: "America/Chicago",
             })
           : null;
 
@@ -516,6 +518,12 @@ export async function PATCH(request: NextRequest) {
     const update: Record<string, unknown> = { status };
     if (status === "confirmed") {
       update.confirmed_time = interview.proposed_time;
+      // Clear reminder tracking so a new reminder can be sent for the new time
+      const currentMeta = (interview.metadata || {}) as Record<string, unknown>;
+      if (currentMeta.reminder_sent_at) {
+        const { reminder_sent_at, ...restMeta } = currentMeta;
+        update.metadata = restMeta;
+      }
     }
     if (status === "rescheduled" && newTime) {
       update.proposed_time = newTime;
@@ -553,6 +561,7 @@ export async function PATCH(request: NextRequest) {
       const time = confirmedTime.toLocaleString("en-US", {
         weekday: "long", month: "long", day: "numeric",
         hour: "numeric", minute: "2-digit", timeZoneName: "short",
+        timeZone: "America/Chicago",
       });
 
       // Generate view URLs - both parties get a one-click magic link for auto-sign-in
@@ -641,6 +650,7 @@ export async function PATCH(request: NextRequest) {
         const time = new Date(newTime).toLocaleString("en-US", {
           weekday: "long", month: "long", day: "numeric",
           hour: "numeric", minute: "2-digit", timeZoneName: "short",
+          timeZone: "America/Chicago",
         });
 
         // Recipient gets a one-click magic link to their respective surface.

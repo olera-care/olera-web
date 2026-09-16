@@ -7,6 +7,32 @@
 
 ## Current Focus
 
+### 2026-09-16 — First paying provider: Hoop Cares $75/mo, and what the funnel actually shows (`thirsty-payne`, analysis only, no product code)
+
+**No product code changed.** Outputs are one artifact, one skill edit, one memory file.
+
+**The fact.** Hoop Cares (`hoop-cares-pascagoula-ms`, request `967774ec`) subscribed to Ad Boost Starter at **$75/mo on 15 Sep 14:55 UTC**, self-serve, 73 seconds from first sight of a price to a paid invoice. Stripe live `sub_1UFxlSEiMFJD9MJ3C2FRMJcL` / `cus_VGUkYskmneUh2e` / invoice `L8VTHWZH-0001` paid, Visa ····5565 via Link, next invoice **15 Oct**. Webhook-written: `plan_status`/`plan_value` have exactly one writer. Swept the full Stripe successful-payments ledger — **the only non-test charge in the account's history**; everything else is $1 staging. No Franchil customer or charge exists (Franchil's was the free intro; terms say "no payment method is required to request it").
+
+**The funnel finding.** 82 real providers have opened the Ad Boost page; 20 requested a campaign; **7 have ever been shown a price**; 2 started checkout; 1 paid. Of those shown a price, 29% started checkout and 14% bought — the offer converts, the ask is almost never delivered. 26 of 27 `managed_ads_plans_viewed` events came from the in-product card on a *live* campaign (`source=live_campaign`); exactly 1 came from the wrap-up email. **Corrected mid-session:** do not read 0-from-9 on `ad_boost_promo_complete` as a conversion rate — at the card's own 1-in-26 price-view-to-sale rate a single wrap-up price view yields zero ~96% of the time. The email is well written; its *position* (once, after the flight ends) is the arguable part. Same error class as the 09-15 city A/B.
+
+**Likeliest cause of the sale.** The drawn receipt shipped **11–12 Sep** (`7f0ae5c1a`, `2916c2e30`, `a6616c0bb`, `2caa52dc2`, `b52a00877`, `ff870803e` — all in `origin/main`). Hoop Cares' boost-page views: 8 Jul, 8 Sep ×3, then 15 Sep 14:54. **Every visit before the 15th predates the receipt.** They bought on `result_kind: engagement_only` with 3 visitors / 0 questions / 0 leads. **Only two providers have seen the drawn receipt on a live campaign since it shipped** — Hoop Cares and Happy Mountain.
+
+**Live-campaign book.** Edmonds Villa (8 questions answered, 21/24 opens, first `talking` in programme history) and Assisting Hands (1 delivered lead) have live campaigns and have **never seen a price**. Happy Mountain has 4 price views and is the only provider ever shown `result_kind: inquiries`. Miracle-Lightstar abandoned a $75 checkout 21 Aug and has viewed the price 6× since; no abandoned-checkout recovery exists. Franchil is 0/9 on email opens.
+
+**Queue is photo-blocked, and email has failed at it.** Every `requested`-never-launched campaign sits at `photo_readiness_status = update_requested`: Senior Services (7 Aug, **40 days**), Living Angels (12 Aug), Caring Senior Service (17 Aug), Ama Vida (10 Sep). Each got a nudge *and* a reminder — **8 emails, 0 submissions**. Gate is stricter than the evidence justifies: Hoop Cares launched at 77% completeness and bought anyway.
+
+**Unit economics, stated honestly.** $811.94 across 20 tagged campaigns: $2.10 CPC (386 clicks), 522 landings, 19 questions + 10 inquiries = 29 family contacts, **$28.00 per contact, $81.19 per exclusive inquiry**. **The number we do NOT have is cost per placed client** — 2 campaign outcomes ever, both "no"; 26 outcome-check emails → 5 answers, none "client"; Franchil's July phone-confirmed client never recorded; one counted inquiry was a caregiver asking for a job. Cost-per-inquiry is not cost-per-converted-client and must not be substituted for it. That gap is the reason to keep spending.
+
+**Two open liabilities.** (1) `BoostCampaignViews.tsx` and `/managed-ads-terms` both promise "zero-inquiry months are free … credited or refunded" and **nothing in the codebase computes it**; Hoop Cares renews 15 Oct with 0 inquiries. (2) `tractionEmailDue` (`app/api/admin/ad-boost/route.ts:1043`) only fires inside the admin `PATCH` on a hand-saved metrics form; metrics now come from a sync script, so it has fired 3× ever and not since 14 Aug — every "Traction email missing" row is accurate.
+
+**Ops item found:** 5 live campaigns carry `flight_end_date = 2026-12-31` and one has none. The date is interpolated into the ask headline, so those providers read "Keep your campaign running past **Dec 31**." Hoop Cares read "past Sep 28" and bought four days later.
+
+**Artifact.** "First Paying Provider, and How We Keep Them and Get More" — `G37yVugAErtDSAMNeHdTNg` (v9). Carries 4 production renders (mid-flight card top + ask block from `/admin/ad-boost/preview`, wrap-up and traction emails from `/api/admin/emails/sample`), 3 objectives and 14 numbered actions.
+
+**Also shipped outside the repo:** `~/.claude/skills/visualize/SKILL.md` gained "Don't argue with someone who isn't in the room" (TJ: stop writing defenses to points nobody raised), and memory `fb:dont_defend_unasked`.
+
+**Next up:** acting on action 01 — pull every ad lever at Pascagoula before 15 Oct.
+
 ### 2026-09-15 — Full-book Ad Boost audit; the city A/B never had the power to conclude (`zealous-planck`, ops only, no code)
 
 `/ad-boost-audit` across all three channels. No product code changed. One artifact published, nine `observation` entries plus three corrections written to `ad_campaign_log`, and the audit appended to all six `city_campaigns.admin_note` fields.

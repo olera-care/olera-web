@@ -138,6 +138,27 @@
 
 **Next up:** acting on action 01 — pull every ad lever at Pascagoula before 15 Oct.
 
+### 2026-09-16 — Mercury transactions review, 16 Jul–15 Sep (`pleasant-pare`, ops only, no code)
+
+First `/mercury-review`. No product code changed. One artifact published and a new user-global skill written.
+
+**The headline is people, not SaaS.** 141 settled transactions: out **$89,511.34**, in **$52,369.64** (all HHS draws + $347.43 cashback), net **−$37,141.70**. Gusto + Upwork + IRS = **$77,367.03 = 86.4% of outflow**. Upwork alone **$29,169.66** and grew **23%** across the two halves ($13,070.67 → $16,098.99), which is two-thirds of the entire $4,554.66 spend increase. Every subscription cut found here is worth less than one week of Upwork. Recurring non-people commitments = **$1,609.89/mo** ($884.55 SaaS + $725.34 ads), ≈$19.3K/yr.
+
+**Confirmed waste.** **Loops is billed TWICE monthly** — two subscriptions, $49 each, different cards, different cycle days (11th on TJ debit `02d82f94`, 29th on Marketing credit `e7d0bf08`), running since ≥Jan 2026. Loops was **retired 21 Jun** ([[project_email_architecture]]); **6 charges = $294 posted after the retirement decision**. Also **two Google One subs** ($21.31 on the 17th, AI Tools card; $17.69 on the 14th, Data team card). Cancel both Loops + one Google One = **$1,388/yr**, no further investigation needed.
+
+**Claude = the largest controllable line.** Four concurrent subscriptions: $213.20 (5th), $212.00 (7th, **Logan's debit ••9463**), $212.00 (13th), $106.00 (28th) = **$743.20/mo = $8,918/yr**, plus ~$97/mo API. Decodes as **3 × Max 20x + 1 × Max 5x**. **Team is cheaper per seat but NOT like-for-like**: Team Premium = 5× a standard seat ≈ **6.25× Pro**; Max 20x = **20× Pro**. No Team seat matches Max 20x. 4 × Team Premium annual = $400/mo (saves $3,600/yr) but cuts the three heavy seats ~3×. **The decision is a capacity question — check who actually hits caps — not a price question.** We also pay monthly; Team annual is 20% off.
+
+**Ad spend does not reconcile.** Mercury shows **$1,450.66** across Google/Meta/Nextdoor in 62 days (Google $979.85, escalating $189.52 → $290.33 → $500.00 on 15 Sep). The 14 Sep audit documents ~**$1,119 lifetime**. Google bills on threshold not calendar, so timing explains some of it, not the magnitude. Settle before adding budget.
+
+**Do NOT re-report as anomalies.** **Cloudflare $255.84** is an *annual* renewal, identical for 3 straight years (2024/2025/2026). **Ambrosi Donahue $1,250** = **our accountants** (TJ confirmed 16 Sep) — not an unexplained payment. **ZeroBounce $69** is load-bearing (send-time suppression gate, [[project_email_architecture]]) — never list as a saving.
+
+**Still open.** JMIR $2,500 (2 Sep) — miscategorised *Entertainment* by MCC 5815, paid on Logan's **debit** card; confirm grant-allocable. Erin Antroinen $100 (23 Jul), no memo. Apollo $65 + Snov $41.34 — [[project_provider_outreach_enrichment]] says TJ chose Perplexity+Places *over* Apollo/Snov, but Apollo sits on Esther's card so ask before cutting. Twilio SendGrid $21.27 — a third sender absent from the email architecture. Slack renewed 2 Sep at **$1,255.73 vs $1,116.21** (+12.5% YoY, annual, seats added mid-cycle); Zoom $70.99 (Jan) → $106.62 (Sep).
+
+**Receipts are not tracked at all** — every sampled transaction returns `attachments: []` with `compliantWithReceiptPolicy: true` (no policy in force on the free tier). 1 note across 132 outflows.
+
+**Mercury API traps (now encoded in the skill).** `postedStart`/`postedEnd`, never `start`/`end`. **A date-filtered query that matches nothing silently re-runs UNFILTERED and returns lifetime history with a `_retryNote` buried at the end** — it served Dec-2025 LinkedIn declines as if current; treat that note as a hard error. Pending/failed have no `postedAt` so they need separate pulls + client-side `failedAt` filtering. **The credit account (`9dcf7408`, −$16,364.17, 97 of 141 tx) is NOT in `getAccounts`** — use `listCredit`. Credit-card autopay appears as 4 legs netting to $0.00; count expenses at the card charge, never the repayment.
+
+**Artifact.** `DJaaXV2eKywSDkNBKUvbNb`. **New skill** `/mercury-review` at `~/.claude/skills/mercury-review/SKILL.md` (user-global — finance work runs outside any repo, and project skills don't load elsewhere).
 ### 2026-09-15 — Full-book Ad Boost audit; the city A/B never had the power to conclude (`zealous-planck`, ops only, no code)
 
 `/ad-boost-audit` across all three channels. No product code changed. One artifact published, nine `observation` entries plus three corrections written to `ad_campaign_log`, and the audit appended to all six `city_campaigns.admin_note` fields.

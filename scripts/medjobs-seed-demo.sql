@@ -15,6 +15,10 @@
 -- Safe to run more than once: it deletes and rebuilds only the `demo-`
 -- campuses, never anything else.
 --
+-- Provider rows carry a synthetic research_data.olera_provider_id because
+-- migration 074 requires every kind='provider' row to reference an
+-- underlying provider one way or the other.
+--
 -- Run this whole file in the Supabase SQL editor. It is one DO block, so
 -- the editor runs it as one transaction and either all of it lands or none
 -- of it does.
@@ -82,8 +86,8 @@ BEGIN
   -- ═════════════════════════════════════════════════════════════════════
 
   -- A provider mid follow-ups: two rounds behind it, round 3 due today.
-  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day)
-    VALUES (busy_id, 'provider', NULL, 'Desert Bloom Home Care', 'outreach_sent', 6)
+  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
+    VALUES (busy_id, 'provider', NULL, 'Desert Bloom Home Care', 'outreach_sent', 6, '{"olera_provider_id":"demo-desert-bloom"}')
     RETURNING id INTO rec_id;
   INSERT INTO student_outreach_contacts (outreach_id, name, first_name, last_name, email, phone)
     VALUES (rec_id, 'Denise Alvarez', 'Denise', 'Alvarez', 'denise@desertbloom.example', '(602) 555-0118');
@@ -95,8 +99,8 @@ BEGIN
     (rec_id, 'outreach_contact', 'pending',   today,     '{"step":2,"round":3}', NULL, NULL);
 
   -- A provider at rung one: nothing behind it, the first call due today.
-  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day)
-    VALUES (busy_id, 'provider', NULL, 'Saguaro Senior Services', 'researched', 0)
+  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
+    VALUES (busy_id, 'provider', NULL, 'Saguaro Senior Services', 'researched', 0, '{"olera_provider_id":"demo-saguaro"}')
     RETURNING id INTO rec_id;
   INSERT INTO student_outreach_contacts (outreach_id, name, first_name, last_name, email, phone)
     VALUES (rec_id, '', NULL, NULL, NULL, '(602) 555-0142');
@@ -104,8 +108,8 @@ BEGIN
     VALUES (rec_id, 'outreach_contact', 'pending', today, '{"step":0,"round":0}');
 
   -- A provider already signed up: the goal, nothing waiting.
-  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day)
-    VALUES (busy_id, 'provider', NULL, 'Copper State Caregivers', 'active_partner', 12)
+  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
+    VALUES (busy_id, 'provider', NULL, 'Copper State Caregivers', 'active_partner', 12, '{"olera_provider_id":"demo-copper-state"}')
     RETURNING id INTO rec_id;
   INSERT INTO student_outreach_contacts (outreach_id, name, first_name, last_name, email, phone)
     VALUES (rec_id, 'Rita Nguyen', 'Rita', 'Nguyen', 'rita@copperstate.example', '(602) 555-0177');
@@ -162,16 +166,16 @@ BEGIN
   -- FRESH CAMPUS — everything at rung one, nothing behind it
   -- ═════════════════════════════════════════════════════════════════════
 
-  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day)
-    VALUES (fresh_id, 'provider', NULL, 'Buckeye Home Health', 'researched', 0)
+  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
+    VALUES (fresh_id, 'provider', NULL, 'Buckeye Home Health', 'researched', 0, '{"olera_provider_id":"demo-buckeye"}')
     RETURNING id INTO rec_id;
   INSERT INTO student_outreach_contacts (outreach_id, name, first_name, last_name, email, phone)
     VALUES (rec_id, '', NULL, NULL, NULL, '(614) 555-0110');
   INSERT INTO student_outreach_tasks (outreach_id, task_type, status, due_at, payload)
     VALUES (rec_id, 'outreach_contact', 'pending', today, '{"step":0,"round":0}');
 
-  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day)
-    VALUES (fresh_id, 'provider', NULL, 'Golden Years Home Care', 'researched', 0)
+  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
+    VALUES (fresh_id, 'provider', NULL, 'Golden Years Home Care', 'researched', 0, '{"olera_provider_id":"demo-golden-years"}')
     RETURNING id INTO rec_id;
   INSERT INTO student_outreach_contacts (outreach_id, name, first_name, last_name, email, phone)
     VALUES (rec_id, '', NULL, NULL, NULL, '(614) 555-0142');
@@ -191,8 +195,8 @@ BEGIN
   -- FINISHED CAMPUS — goals reached, nothing waiting
   -- ═════════════════════════════════════════════════════════════════════
 
-  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day)
-    VALUES (done_id, 'provider', NULL, 'A Caring Hand', 'active_partner', 12)
+  INSERT INTO student_outreach (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
+    VALUES (done_id, 'provider', NULL, 'A Caring Hand', 'active_partner', 12, '{"olera_provider_id":"demo-a-caring-hand"}')
     RETURNING id INTO rec_id;
   INSERT INTO student_outreach_contacts (outreach_id, name, first_name, last_name, email, phone)
     VALUES (rec_id, 'Bev Lindqvist', 'Bev', 'Lindqvist', 'office@acaringhand.example', '(801) 555-0100');

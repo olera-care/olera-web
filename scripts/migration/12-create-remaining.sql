@@ -195,10 +195,22 @@ BEGIN
   GET DIAGNOSTICS n_hist = ROW_COUNT;
 
   -- ── the open task, so the record is workable ───────────────────────────
+  -- The opening rung differs by ladder, and getting this wrong would put
+  -- records on a step that means something else.
+  --
+  --   Providers  step 0 is "Call to get the right email" — exactly where a
+  --              named agency with no known contact belongs.
+  --   Advisors   step 0 is "Research the advising offices", a discovery
+  --              rung whose action spawns the office records. An office we
+  --              already have a name and number for must not sit there; it
+  --              belongs at step 1, "Send the program info".
   INSERT INTO student_outreach_tasks
     (outreach_id, task_type, status, due_at, payload, notes, completed_at)
   SELECT so.id, 'outreach_contact', 'pending', CURRENT_DATE,
-         jsonb_build_object('step', 0, 'round', 0, 'migration_batch', v_batch),
+         jsonb_build_object(
+           'step',  CASE WHEN so.kind = 'advisor' THEN 1 ELSE 0 END,
+           'round', 0,
+           'migration_batch', v_batch),
          NULL, NULL
     FROM student_outreach so
    WHERE so.research_data->>'migration_batch' = v_batch

@@ -44,16 +44,32 @@ DECLARE
   n_skip   INT := 0;
   n_tie    INT := 0;
 BEGIN
-  -- Area code to campus. Deliberately tight: 520 (Tucson) and 386 outside
-  -- the Gainesville ring are left out rather than stretched to fit.
+  -- Area code to campus, for rows with nothing better. Only codes whose
+  -- whole territory is inside a campus's commute are listed. Three are
+  -- deliberately absent because they are not:
+  --   435  every part of Utah except the Wasatch Front — St George is four
+  --        and a half hours from Salt Lake City
+  --   928  northern and rural Arizona: Flagstaff, Yuma, Prescott
+  --   386  Daytona Beach and Palatka as well as Lake City
+  --   520  Tucson
+  -- Rows carrying those are skipped and counted, not filed under the
+  -- nearest plausible campus.
   CREATE TEMP TABLE _area (area TEXT PRIMARY KEY, slug TEXT) ON COMMIT DROP;
   INSERT INTO _area VALUES
-    ('801','u-utah'), ('385','u-utah'), ('435','u-utah'),
-    ('480','arizona-state'), ('602','arizona-state'), ('623','arizona-state'), ('928','arizona-state'),
+    ('801','u-utah'), ('385','u-utah'),
+    ('480','arizona-state'), ('602','arizona-state'), ('623','arizona-state'),
     ('608','uw-madison'),
     ('850','florida-state'),
-    ('352','u-florida'), ('386','u-florida'),
+    ('352','u-florida'),
     ('812','indiana-bloomington'), ('930','indiana-bloomington');
+
+  -- Campus coordinates, so a row that matched the directory can be placed
+  -- by where the provider actually is rather than by its phone number.
+  CREATE TEMP TABLE _campus (slug TEXT, lat NUMERIC, lon NUMERIC) ON COMMIT DROP;
+  INSERT INTO _campus VALUES
+    ('u-utah', 40.7649, -111.8421), ('arizona-state', 33.4242, -111.9281),
+    ('uw-madison', 43.0753, -89.4034), ('florida-state', 30.4419, -84.2985),
+    ('indiana-bloomington', 39.1653, -86.5264), ('u-florida', 29.6483, -82.3494);
 
   -- Every row still to place, with the campus it belongs to and whether it
   -- reads as a campus office rather than an employer.
@@ -70,7 +86,13 @@ BEGIN
     s.plan_action,
     s.call1, s.remark1, s.call2, s.remark2,
     s.call3, s.remark3, s.call4, s.remark4,
-    a.slug AS campus_slug,
+    -- Coordinates beat a phone number. A row that matched the directory is
+    -- placed by the provider's real position; everything else falls back to
+    -- the area code.
+    coalesce(geo.slug, a.slug) AS campus_slug,
+    (CASE WHEN geo.slug IS NOT NULL
+          THEN 'coordinates, ' || round(geo.miles) || ' miles from campus'
+          ELSE 'area code ' || left(s.phone, 3) END) AS placed_how,
     -- A person's name and nothing else. Two or three capitalised words
     -- with no word from the care-business vocabulary in them. The second
     -- half matters: without it "Village Caregiving" reads as a person.
@@ -92,6 +114,19 @@ BEGIN
     ) AS is_stakeholder
   FROM medjobs_migration_staging s
   LEFT JOIN _area a ON a.area = left(s.phone, 3)
+  LEFT JOIN LATERAL (
+    SELECT cm.slug,
+           3959 * acos(least(1,
+             cos(radians(cm.lat)) * cos(radians(p.lat)) *
+             cos(radians(p.lon) - radians(cm.lon)) +
+             sin(radians(cm.lat)) * sin(radians(p.lat)))) AS miles
+      FROM "olera-providers" p
+      CROSS JOIN _campus cm
+     WHERE p.provider_id = s.matched_provider_id
+       AND p.lat IS NOT NULL AND p.lon IS NOT NULL
+     ORDER BY miles
+     LIMIT 1
+  ) geo ON geo.miles <= 60
   WHERE s.outreach_id IS NULL
     AND s.plan_action NOT LIKE 'tie%';
 
@@ -115,7 +150,7 @@ BEGIN
       'sheet_row',         t.row_no,
       'sheet_key',         t.sheet_key,
       'sheet_phone',       t.phone,
-      'placed_by',         'area code ' || left(t.phone, 3),
+      'placed_by',         t.placed_how,
       'migration_review',  true)
   FROM _todo t
   JOIN student_outreach_campuses sc ON sc.slug = t.campus_slug
@@ -143,7 +178,7 @@ BEGIN
       'sheet_row',        t.row_no,
       'sheet_key',        t.sheet_key,
       'sheet_phone',      t.phone,
-      'placed_by',        'area code ' || left(t.phone, 3),
+      'placed_by',        t.placed_how,
       'migration_review', true)
   FROM _todo t
   JOIN student_outreach_campuses sc ON sc.slug = t.campus_slug

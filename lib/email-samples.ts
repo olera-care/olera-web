@@ -82,7 +82,6 @@ import {
   adBoostPromoCompleteEmail,
   adBoostLeadOutcomeEmail,
   // interview emails
-  interviewRequestEmail,
   interviewProposedEmail,
   interviewConfirmedEmail,
   interviewCancelledEmail,
@@ -1419,25 +1418,6 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
 
   // ─────────────── Student · Interviews ───────────────
-  {
-    id: "interview_request_sent",
-    audience: "provider",
-    group: "MedJobs · Interviews",
-    label: "Interview request sent (provider confirmation)",
-    subject: `Your interview request to ${SAMPLE_STUDENT.studentName} was sent`,
-    emailType: "interview_request",
-    timing: "Immediately after provider schedules interview",
-    who: "Provider who just scheduled an interview with a student.",
-    why: "Confirm their request was delivered and they'll be notified when the student responds.",
-    render: () => interviewRequestEmail({
-      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
-      studentName: SAMPLE_STUDENT.studentName,
-      interviewType: SAMPLE_INTERVIEW.interviewType,
-      dateTime: SAMPLE_INTERVIEW.proposedTime,
-      notes: SAMPLE_INTERVIEW.notes,
-      magicLinkUrl: SAMPLE_INTERVIEW.magicLinkUrl,
-    }),
-  },
   {
     id: "interview_proposed_to_student",
     audience: "student",

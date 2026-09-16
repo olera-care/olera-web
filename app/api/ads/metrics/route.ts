@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notifications.server";
+import {
+  sendAdBoostLifecycleEmail,
+  type CampaignRow,
+} from "@/lib/ad-boost/lifecycle-notifications.server";
 
 /**
  * Ingest for Google Ads campaign metrics, posted by a Google Ads Script.
@@ -39,20 +42,29 @@ import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notification
  */
 
 export const dynamic = "force-dynamic";
+// Sends email, so it needs the same headroom every other sending route takes.
+// Without it this runs on the platform default, and a timeout AFTER the atomic
+// reservation is taken loses that email permanently: the rollback that clears
+// traction_email_sent_at only runs if sendEmail RETURNS, and a killed
+// invocation never returns.
+export const maxDuration = 300;
 
 /** The columns sendAdBoostLifecycleEmail needs, plus the three this route
  *  decides on. Selected from the UPDATE so the values are post-write. */
 const TRACTION_ROW_SELECT =
   "id, provider_id, provider_slug, display_name, requested_setup_week, flight_start_date, channel, campaign_tag, intended_monthly_budget, ad_spend_cents, ad_clicks, ad_impressions, metrics_source, provider_reported_outcome, created_at, status, traction_email_sent_at, provider_comms_paused_at";
 
-type TractionRow = {
+type TractionRow = CampaignRow & {
   status: string | null;
-  ad_spend_cents: number | null;
-  ad_clicks: number | null;
   traction_email_sent_at: string | null;
   provider_comms_paused_at: string | null;
-  [k: string]: unknown;
 };
+
+/** Serial, capped, and matched to the end-scheduler's shape. Resend's default
+ *  limit is 2 requests/second, so fanning these out concurrently would 429 most
+ *  of a catch-up batch. A failed send rolls its own reservation back and retries
+ *  next hour, so a cap costs nothing but noise. */
+const MAX_TRACTION_SENDS_PER_RUN = 10;
 
 /** "Getting activity" has to mean activity, not that a sync ran. Impressions
  *  alone are excluded deliberately -- the email does not show them, so an ad
@@ -256,15 +268,32 @@ export async function POST(req: NextRequest) {
   // reservation had already been taken -- the one failure mode that loses the
   // email permanently rather than retrying it next hour.
   let tractionSent = 0;
-  if (tractionDue.length > 0) {
-    const results = await Promise.allSettled(
-      tractionDue.map((request) =>
-        sendAdBoostLifecycleEmail({ request: request as never, kind: "traction" }),
-      ),
-    );
-    for (const r of results) {
-      if (r.status === "fulfilled") tractionSent++;
-      else console.error("[ads/metrics] traction send failed:", r.reason);
+  for (const request of tractionDue.slice(0, MAX_TRACTION_SENDS_PER_RUN)) {
+    // Re-read immediately before sending. The ingest loop above runs for every
+    // campaign in the payload, and the hourly end-scheduler can flip a campaign
+    // to `ended` inside that window -- telling a finished campaign it is
+    // "getting activity" is the one wrong email this can produce, and the
+    // atomic reservation guards against double-sends, not against status moving.
+    const { data: fresh } = await db
+      .from("ad_campaign_requests")
+      .select("status, deleted_at, traction_email_sent_at, provider_comms_paused_at")
+      .eq("id", request.id)
+      .maybeSingle();
+    if (
+      !fresh ||
+      fresh.status !== "live" ||
+      fresh.deleted_at != null ||
+      fresh.traction_email_sent_at != null ||
+      fresh.provider_comms_paused_at != null
+    ) {
+      continue;
+    }
+
+    try {
+      const result = await sendAdBoostLifecycleEmail({ request, kind: "traction" });
+      if (result.sent) tractionSent++;
+    } catch (err) {
+      console.error("[ads/metrics] traction send threw:", request.id, err);
     }
   }
 

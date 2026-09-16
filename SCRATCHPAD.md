@@ -86,6 +86,15 @@
   - Reviews are strong but three years old; review-request tool offered, commitment unclear.
   - TJ drafted a team Slack update on this and **decided not to send it** — the touch log is the record. Worth remembering as the pattern: the CRM row is the artifact, not the broadcast.
 
+
+**Fourth delta — end of night, 16 Sep:**
+
+- **Cess's page is finished and handover-ready** — https://claude.ai/artifact/TUKxa2B9z1ERigQvtvqFHm. Real screenshots of `/admin/relationships` and the Log-a-touch form are in. **The form's labels differ from the code**, so the guidance was corrected against the live UI: it is **What happened** (not Summary), **We reached them / They reached us** (not out/in), and there is **no contact-name field** — it is *Address or number used*. Cess would have hit that mismatch on her first log.
+- **Two findings the admin panel handed us for free.** Contact names for four of the eight (Ashley Stackhouse / Living Angels, Amber Briongos / Ama Vida, Wesley Ngagnii-Wendy / Wescastle, Kola Jeffries-Cooper / Abode) are now in the call list. And **Wescastle and Legacy Haven are not receiving our email at all** — the last send to each one **failed outright**, not ignored. Senior Services and Ama Vida have three unopened in a row. Those calls are not "we were ignored," they are "we were undeliverable," which is its own argument for the phone.
+- **Google Ads radius NOT done.** The campaign settings editor would not render: header fine, then every lazy section including Locations stuck at `Loading name / Loading summary` under a visible "Turn off ad blockers" H1, with a Dart console error `Failed to inject root provider … Null check operator used on a null value`. Ruled out, each separately: network blocking (all ad domains fetch, 42/42 requests 200), automation detection (`navigator.webdriver` false), extensions (same with `--disable-extensions`), and profile state (same in a brand-new profile after a fresh sign-in). **The same editor worked that morning**, so the cause is unknown and likely transient — noted in `ref:google_ads_settings_editor_cdp` as a troubleshooting note, deliberately NOT as a rule, after TJ flagged that a binary rule from one incident rests on a false premise. **Retry it first tomorrow.** Useful either way: settings is `/aw/settings/campaign/search?campaignId=<id>&ocid=<ocid>`; `/aw/campaigns/settings?...` is a 404.
+- **Two more Hoop gaps surfaced while in the account:** budget still **$3.50/day** (~$106/mo against a $75 all-in plan), and the account carries an "Improve account security" warning.
+- Browser shut down with **SIGTERM** so both new sign-ins flushed — the olera.care admin session and a clean `chrome-profile-gads-clean` Google Ads session are on disk for tomorrow.
+
 ---
 
 ### 2026-09-16 (am) — First paying provider: Hoop Cares $75/mo, and what the funnel actually shows (`thirsty-payne`, analysis only, no product code)
@@ -5271,7 +5280,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ## Next Up
 
 ### Hoop Cares / Oct 15 renewal (29 days) — the live clock
-1. **Widen Google to Harrison + Jackson + George** (campaign `24235451655`, currently 20 mi Pascagoula). **Confirmed by Liz herself on the 16 Sep call**, not just inferred from her flyer. Meta already runs all three. Needs TJ signed into Google Ads. Also open from that call: **Nextdoor was promised and is not running**, and two screenshot slots in Cess's page need an olera.care admin session (`/admin/relationships` + the Log-a-touch form).
+1. **Widen Google to Harrison + Jackson + George** (campaign `24235451655`, currently 20 mi Pascagoula). Confirmed by Liz herself on the 16 Sep call. Meta already runs all three. **Blocked on the settings editor rendering — retry it first, see the fourth delta.** If it still stalls, TJ makes the edit in his own Chrome and Claude verifies from the Locations report, which renders fine. Also open from that call: **Nextdoor was promised and is not running**, and her **budget is $3.50/day against a $75/mo plan**.
 2. **The zero-inquiry guarantee → reframed as THE STARTER DECISION.** See the second delta above and artifact `5i3AaAiEhEtK9V3dRtteK6`. Order of work: **(a)** pin what "inquiry" means in `/managed-ads-terms` by event type — mine, ~1h, unconditional; **(b)** make the guarantee detect itself — a check at each paid month's close, flag in the admin queue + Slack, credit stays manual — mine, ~half a day, unconditional; **(c)** TJ asks Liz why she paid (question 2 on her card) — blocks (d); **(d)** decide whether Starter stays a paid tier. Liz's own month is owed either way: manual Stripe credit, 15 Oct.
 3. **Verify the Google end date actually saved** to 20 Oct — entered and saved but Google reporting lagged to 15 Sep, so unconfirmed. Re-check once reporting catches up.
 4. **Watch the first prod metrics sync** — 8 catch-up traction emails, and `/admin/ad-boost` rows should stop reading "Traction email missing".

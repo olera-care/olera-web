@@ -1,18 +1,18 @@
 -- ===========================================================================
 -- Seed three demo universities for walking the Tasks flow
 -- ===========================================================================
--- ADDITIVE. Deletes nothing. Creates three universities whose names all
--- begin with "ZZ Demo" so they sort to the bottom of the board, sit
--- obviously apart from real campuses, and can be removed in one statement
--- (see the bottom of this file).
+-- Creates three universities for walking the flow. They carry real names so
+-- the screens read the way they will in use, and slugs beginning `demo-` so
+-- they are identifiable in the data and removable in one statement (see the
+-- bottom of this file).
 --
 -- They cover the three states worth feeling:
 --
---   ZZ Demo · Busy Campus     lots waiting, several sections mid-ladder
---   ZZ Demo · Fresh Campus    just added, everything at rung one
---   ZZ Demo · Finished Campus nothing waiting, goals reached
+--   Arizona State University   busy — lots waiting, several sections mid-ladder
+--   Ohio State University      fresh — just added, everything at rung one
+--   University of Utah         finished — nothing waiting, goals reached
 --
--- Safe to run more than once: it deletes and rebuilds only the ZZ Demo
+-- Safe to run more than once: it deletes and rebuilds only the `demo-`
 -- campuses, never anything else.
 --
 -- Run this whole file in the Supabase SQL editor. It is one DO block, so
@@ -36,7 +36,9 @@ BEGIN
   ALTER TABLE student_outreach_touchpoints DISABLE TRIGGER student_outreach_touchpoints_no_mutate;
 
   CREATE TEMP TABLE IF NOT EXISTS _demo_campus ON COMMIT DROP AS
-    SELECT id FROM student_outreach_campuses WHERE name LIKE 'ZZ Demo%';
+    -- 'zz-demo-%' is an earlier naming of the same thing; matched so a
+    -- re-run cannot leave a stale copy behind.
+    SELECT id FROM student_outreach_campuses WHERE slug LIKE 'demo-%' OR slug LIKE 'zz-demo-%';
   CREATE TEMP TABLE IF NOT EXISTS _demo_rows ON COMMIT DROP AS
     SELECT id FROM student_outreach WHERE campus_id IN (SELECT id FROM _demo_campus);
 
@@ -51,11 +53,11 @@ BEGIN
 
   -- ── the campuses ─────────────────────────────────────────────────────
   INSERT INTO student_outreach_campuses (name, slug)
-    VALUES ('ZZ Demo · Busy Campus', 'zz-demo-busy') RETURNING id INTO busy_id;
+    VALUES ('Arizona State University', 'demo-arizona-state') RETURNING id INTO busy_id;
   INSERT INTO student_outreach_campuses (name, slug)
-    VALUES ('ZZ Demo · Fresh Campus', 'zz-demo-fresh') RETURNING id INTO fresh_id;
+    VALUES ('Ohio State University', 'demo-ohio-state') RETURNING id INTO fresh_id;
   INSERT INTO student_outreach_campuses (name, slug)
-    VALUES ('ZZ Demo · Finished Campus', 'zz-demo-finished') RETURNING id INTO done_id;
+    VALUES ('University of Utah', 'demo-utah') RETURNING id INTO done_id;
 
   -- ── channel dots ─────────────────────────────────────────────────────
   INSERT INTO campus_channels (campus_id, channel, status, criteria) VALUES
@@ -204,7 +206,7 @@ BEGIN
     VALUES (rec_id, 'outreach_contact', 'completed', today - 40, '{"step":5,"round":0}', today - 40);
 
   ALTER TABLE student_outreach_touchpoints ENABLE TRIGGER student_outreach_touchpoints_no_mutate;
-  RAISE NOTICE 'Seeded three ZZ Demo campuses.';
+  RAISE NOTICE 'Seeded three demo campuses.';
 EXCEPTION WHEN OTHERS THEN
   -- Never leave the trigger off. The transaction rolls back either way, but
   -- being explicit means a partial run cannot quietly weaken the table.
@@ -223,7 +225,7 @@ END $$;
 --   FROM student_outreach_campuses c
 --   LEFT JOIN student_outreach so ON so.campus_id = c.id
 --   LEFT JOIN student_outreach_tasks t ON t.outreach_id = so.id
---  WHERE c.name LIKE 'ZZ Demo%'
+--  WHERE c.slug LIKE 'demo-%'
 --  GROUP BY c.name
 --  ORDER BY c.name;
 
@@ -232,4 +234,4 @@ END $$;
 -- ===========================================================================
 -- One statement. Everything else cascades from the campus.
 --
--- DELETE FROM student_outreach_campuses WHERE name LIKE 'ZZ Demo%';
+-- DELETE FROM student_outreach_campuses WHERE slug LIKE 'demo-%' OR slug LIKE 'zz-demo-%';

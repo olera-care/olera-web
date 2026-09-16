@@ -43,10 +43,13 @@ What to look for:
 Structure, in this order:
 
 1. **Open on what is happening, never on what failed.** Lead with the live thing, the recent thing, the thing they did. `dont_lead_with_the_deficit` applies to calls exactly as it does to copy. "Your campaign has been running since the 11th" opens; "you've had zero leads" does not.
-2. **Earn the right to advise by proving you looked.** One or two specifics only they could have done. This is the whole difference between a cold call and this call.
-3. **Name the one thing that should happen next**, and why it follows from what they did. One. Not a menu.
-4. **Ask at most two questions, and make them count.** TJ's rule: people come to us to take the burden off them, not to be interrogated. A question we could have answered from our own data is a tell that we did not look.
-5. **Say what we will do**, with a date. The call should end with our obligation, not theirs.
+2. **Then hand them the floor, before you report anything.** One broad question about their own business — how it started, how it's going, what they're working on — and then stop talking. Do this even when the profile, the website and the flyer have already told you the care type. Two reasons, and neither is manners. **Everything we hold is a record of behaviour inside our product**: it cannot tell you capacity, whether they are taking clients this month, which of their businesses is the real one, or what they are short on — and we are usually about to spend money on their behalf against exactly those unknowns. And their own phrasing is better ad copy than ours, because so far every word written for them was written by us.
+
+   The line between this and interrogation is what the question is *for*. "Tell me about the business" gives them room. "What services do you offer, what's your service area, what are your hours" is data collection for facts we already hold, and that is what rule 5 below forbids. Same sentence shape, opposite move. Log what they say — it is the most valuable thing the call produces.
+3. **Earn the right to advise by proving you looked.** One or two specifics only they could have done. This is the whole difference between a cold call and this call.
+4. **Name the one thing that should happen next**, and why it follows from what they did. One. Not a menu.
+5. **Ask at most two further questions, and make them count.** TJ's rule: people come to us to take the burden off them, not to be interrogated. A question we could have answered from our own data is a tell that we did not look.
+6. **Say what we will do**, with a date. The call should end with our obligation, not theirs.
 
 Also produce: **what to listen for** (the answers that would change the plan), **what not to say** (claims our data does not support, and any live conflict they could catch us on), and **what to log afterwards** — write it to `provider_touches` / `family_touches` with `/touch`.
 

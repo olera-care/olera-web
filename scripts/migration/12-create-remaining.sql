@@ -7,9 +7,11 @@
 -- handles what was left, so the team's work is on the board rather than
 -- only in a staging table.
 --
---   no match                 create a provider record from the sheet row
 --   in directory, off board  create a provider record linked to the real
 --                            directory row, on the nearest campus
+--   not in the directory     skipped. The board is worked against the
+--                            directory, so a provider with nothing behind
+--                            it has nothing to enrich or convert later.
 --   stakeholder              create an advisor record, not a provider
 --   tie                      left alone. Ten rows where the number is
 --                            shared; a person picks the branch.
@@ -169,19 +171,19 @@ BEGIN
   SELECT count(*) INTO n_skip FROM _todo WHERE campus_slug IS NULL;
 
   -- ── providers ──────────────────────────────────────────────────────────
-  -- A row with no directory match still needs an olera_provider_id to
-  -- satisfy the kind_provider_link check, so it carries a synthetic one
-  -- naming the sheet row it came from.
+  -- Only providers that exist in the directory. A row we called but that
+  -- is not in olera-providers is not carried onto the board: the board is
+  -- worked against the directory, and a record with nothing behind it
+  -- cannot be enriched, converted or reconciled later. Those rows stay in
+  -- staging and are counted below.
   INSERT INTO student_outreach
     (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
   SELECT
     sc.id, 'provider', NULL, t.sheet_name, 'researched', 0,
     jsonb_build_object(
-      'olera_provider_id', coalesce(t.matched_provider_id, 'sheet:' || t.sheet_key),
+      'olera_provider_id', t.matched_provider_id,
       'migration_batch',   v_batch,
-      'source',            CASE WHEN t.matched_provider_id IS NOT NULL
-                                THEN 'sheet_row_matched_directory_only'
-                                ELSE 'sheet_row_no_directory_match' END,
+      'source',            'in_the_directory_but_was_not_on_a_board',
       'sheet_row',         t.row_no,
       'sheet_key',         t.sheet_key,
       'sheet_phone',       t.phone,
@@ -190,15 +192,19 @@ BEGIN
   FROM _todo t
   JOIN student_outreach_campuses sc ON sc.slug = t.campus_slug
   WHERE NOT t.is_stakeholder AND NOT t.is_person
+    AND t.matched_provider_id IS NOT NULL
     AND NOT EXISTS (
       SELECT 1 FROM student_outreach so
        WHERE so.research_data->>'sheet_key' = t.sheet_key
          AND so.research_data->>'migration_batch' = v_batch);
   GET DIAGNOSTICS n_prov = ROW_COUNT;
 
+  -- Called by the team but absent from the directory, so deliberately not
+  -- created. Still in staging if we ever add them to the directory.
   SELECT count(*) INTO n_dir
-    FROM _todo WHERE NOT is_stakeholder AND campus_slug IS NOT NULL
-      AND matched_provider_id IS NOT NULL;
+    FROM _todo
+   WHERE NOT is_stakeholder AND NOT is_person
+     AND matched_provider_id IS NULL;
 
   -- ── advisors ───────────────────────────────────────────────────────────
   INSERT INTO student_outreach
@@ -291,7 +297,7 @@ BEGIN
 
   IF NOT v_apply THEN
     RAISE EXCEPTION
-      'REHEARSAL, nothing saved — provider records % (of which % were in the directory) · advisor records % · people held back for later % · history tasks % · open tasks % · skipped, area code is not one of the six % · ties left for a person %. Set v_apply := TRUE to commit.',
+      'REHEARSAL, nothing saved — provider records % · providers skipped, not in the directory % · advisor records % · people held back for later % · history tasks % · open tasks % · skipped, area code is not one of the six % · ties left for a person %. Set v_apply := TRUE to commit.',
       n_prov, n_dir, n_adv, n_person, n_hist, n_task, n_skip, n_tie;
   END IF;
 END $$;

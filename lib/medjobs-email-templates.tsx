@@ -87,6 +87,38 @@ function graizeSignature(): string {
     </table>`;
 }
 
+/**
+ * Logan + TJ author byline block — the trust signature used across student
+ * lifecycle emails. Photos must be Supabase-hosted (olera.care/images/* is
+ * WAF-challenged for email image proxies).
+ *
+ * Note: This version omits the "Not the right contact?" line since students
+ * are individuals, not organizations with teams.
+ */
+function authorBylineBlock(opts: { topBorder?: boolean } = {}): string {
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  const wrapStyle = opts.topBorder
+    ? "margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"
+    : "margin:24px 0 0;";
+  return `
+    <div style="${wrapStyle}">
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">
+            <p style="margin:0;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care easier to understand and compare.</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us</a>
+    </p>`;
+}
+
 // ── Bidirectional "ready" notifications (Graize-signed) ───────────────
 
 /**
@@ -246,6 +278,7 @@ export function studentWelcomeEmail({
         </ol>
       </td></tr>
     </table>
+    ${authorBylineBlock()}
   `);
 }
 
@@ -288,6 +321,7 @@ export function studentAccountCreatedEmail({
     <p style="margin:0 0 16px;">
       ${button("Complete My Profile", completeProfileUrl)}
     </p>
+    ${authorBylineBlock()}
   `);
 }
 
@@ -338,6 +372,7 @@ export function studentActivationEmail({
     <p style="margin:0 0 16px;">
       ${button("See providers hiring near you", dashboardUrl)}
     </p>
+    ${authorBylineBlock()}
   `);
 }
 
@@ -363,6 +398,7 @@ export function studentReturningEmail({
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">
       If you didn&apos;t request this, you can safely ignore this email.
     </p>
+    ${authorBylineBlock()}
   `);
 }
 
@@ -538,6 +574,7 @@ export function profileIncompleteNudgeEmail({
     <p style="margin:0;">
       ${button("Complete Your Profile", completeProfileUrl)}
     </p>
+    ${authorBylineBlock()}
     ${studentUnsubscribeFooter(unsubscribeId)}
   `);
 }
@@ -625,9 +662,7 @@ export function invitationReceivedEmail({
     <p style="margin:0 0 16px;">
       ${button("View Invitation", `${BASE_URL}/medjobs/jobs`)}
     </p>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
-    </p>
+    ${authorBylineBlock()}
     ${studentUnsubscribeFooter(unsubscribeId)}
   `, `${safeProviderName} invited you to apply for ${safeJobTitle}`);
 }

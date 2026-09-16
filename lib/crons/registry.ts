@@ -691,7 +691,7 @@ export const CRON_REGISTRY: CronJob[] = [
     schedule: "0 15 * * *",
     humanSchedule: "Daily, 15:00 UTC (~10 AM CT)",
     path: "/api/cron/medjobs-nudge",
-    emailTypes: ["profile_incomplete_nudge", "student_activation"],
+    emailTypes: ["profile_incomplete_nudge", "medjobs_review_nudge"],
     successSignal: "Student completes their profile.",
     relatedAdminPath: "/admin/medjobs/candidates",
   },

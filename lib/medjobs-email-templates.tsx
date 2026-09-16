@@ -325,57 +325,6 @@ export function studentAccountCreatedEmail({
   `);
 }
 
-/**
- * Sent when a student's profile reaches 100% completeness.
- * Celebrates, tells them they're live, encourages proactive outreach.
- */
-export function studentActivationEmail({
-  studentName,
-  city,
-  profileUrl,
-  magicLink,
-}: {
-  studentName: string;
-  city?: string;
-  profileUrl: string;
-  magicLink?: string;
-}): string {
-  const safeName = escapeHtml(firstName(studentName, "there"));
-  const locationLine = city ? ` in ${escapeHtml(city)}` : "";
-  const dashboardUrl = magicLink || `${BASE_URL}/medjobs/providers`;
-  const safeProfileUrl = escapeHtml(profileUrl);
-
-  return layout(`
-    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${safeName}!</h2>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Congratulations — your MedJobs profile is 100% complete and verified. Providers${locationLine} can now find you and reach out via the platform, email, or phone.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
-      <tr><td>
-        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 8px;">What happens now?</p>
-        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
-          <li>Providers can view your profile and reach out to you</li>
-          <li>You can browse providers hiring near you and ask to be introduced</li>
-          <li>Reaching out directly often leads to conversations faster</li>
-        </ol>
-      </td></tr>
-    </table>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
-      <strong>Your profile link:</strong>
-    </p>
-    <p style="font-size:13px;margin:0 0 20px;">
-      <a href="${safeProfileUrl}" style="color:${BRAND_COLOR};">${safeProfileUrl}</a>
-    </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
-      Share this link when reaching out — it shows your video, availability, and background at a glance.
-    </p>
-    <p style="margin:0 0 16px;">
-      ${button("See providers hiring near you", dashboardUrl)}
-    </p>
-    ${authorBylineBlock()}
-  `);
-}
-
 export function studentReturningEmail({
   studentName,
   profileSlug,

@@ -87,7 +87,6 @@ import {
   // student emails
   studentWelcomeEmail,
   studentAccountCreatedEmail,
-  studentActivationEmail,
   studentReturningEmail,
   profileIncompleteNudgeEmail,
   invitationReceivedEmail,
@@ -1289,23 +1288,6 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => studentReturningEmail({
       studentName: SAMPLE_STUDENT.studentName.split(" ")[0],
       profileSlug: SAMPLE_STUDENT.profileSlug,
-      magicLink: SAMPLE_STUDENT.magicLink,
-    }),
-  },
-  {
-    id: "student_activation",
-    audience: "student",
-    group: "Student · Lifecycle",
-    label: "Profile activated (100% complete)",
-    subject: `Your profile is live, ${SAMPLE_STUDENT.studentName.split(" ")[0]}!`,
-    emailType: "student_activation",
-    timing: "When profile reaches 100% completeness",
-    who: "Student whose profile just reached 100% completeness.",
-    why: "Celebrate the milestone, explain what happens next, encourage proactive outreach.",
-    render: () => studentActivationEmail({
-      studentName: SAMPLE_STUDENT.studentName,
-      city: SAMPLE_STUDENT.city,
-      profileUrl: SAMPLE_STUDENT.profileUrl,
       magicLink: SAMPLE_STUDENT.magicLink,
     }),
   },

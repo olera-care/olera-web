@@ -39,14 +39,14 @@ BEGIN
     JOIN student_outreach_tasks t ON t.outreach_id = so.id
    WHERE so.research_data->>'migration_batch' IN ('sheet-overlay-v1', 'sheet-create-v1')
      AND coalesce((t.payload->>'migrated')::boolean, false)
-     AND t.notes ~* '(not interested|not into it|no thank you|declined|do not (call|contact) (us|them|again))'
+     AND t.notes ~* '(not interested|not into|no thank you|declined|do not call again|do not contact)'
      -- Somebody who declined and then had a later conversation that went
      -- somewhere is not closed on the strength of the earlier no.
      AND NOT EXISTS (
        SELECT 1 FROM student_outreach_tasks t2
         WHERE t2.outreach_id = so.id
           AND t2.completed_at > t.completed_at
-          AND t2.notes ~* '(interested|will (call|reach|get) back|send (it|the)|good email|best email|forward)'
+          AND t2.notes ~* '(interested|will call back|will reach back|will get back|good email|best email|forward)'
           AND t2.notes !~* 'not interested');
 
   SELECT count(*) INTO n_found FROM _said_no;
@@ -82,7 +82,7 @@ SELECT
   left(so.organization_name, 34) AS name,
   left((SELECT t.notes FROM student_outreach_tasks t
          WHERE t.outreach_id = so.id
-           AND t.notes ~* 'not interested|not into it'
+           AND t.notes ~* 'not interested|not into'
          ORDER BY t.completed_at DESC LIMIT 1), 62) AS what_they_said
 FROM student_outreach so
 JOIN student_outreach_campuses sc ON sc.id = so.campus_id

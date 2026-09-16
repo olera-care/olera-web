@@ -63,6 +63,23 @@ BEGIN
     ('352','u-florida'),
     ('812','indiana-bloomington'), ('930','indiana-bloomington');
 
+  -- A .edu address names the university outright, which beats every other
+  -- signal we have. 96 of the 432 rows carry one, either in the email
+  -- column or written into a remark. Three domains are listed so they are
+  -- recognised and then skipped: Utah State, Utah Tech and South Florida
+  -- are not universities we run.
+  CREATE TEMP TABLE _edu (domain TEXT PRIMARY KEY, slug TEXT) ON COMMIT DROP;
+  INSERT INTO _edu VALUES
+    ('iu.edu','indiana-bloomington'),
+    ('ufl.edu','u-florida'), ('advising.ufl.edu','u-florida'), ('honors.ufl.edu','u-florida'),
+    ('fsu.edu','florida-state'), ('med.fsu.edu','florida-state'), ('bio.fsu.edu','florida-state'),
+    ('sb.fsu.edu','florida-state'), ('nursing.fsu.edu','florida-state'),
+    ('utah.edu','u-utah'), ('hsc.utah.edu','u-utah'), ('health.utah.edu','u-utah'),
+    ('advising.utah.edu','u-utah'), ('nurs.utah.edu','u-utah'), ('disability.utah.edu','u-utah'),
+    ('wisc.edu','uw-madison'),
+    ('asu.edu','arizona-state'),
+    ('usu.edu', NULL), ('utahtech.edu', NULL), ('usf.edu', NULL);
+
   -- Campus coordinates, so a row that matched the directory can be placed
   -- by where the provider actually is rather than by its phone number.
   CREATE TEMP TABLE _campus (slug TEXT, lat NUMERIC, lon NUMERIC) ON COMMIT DROP;
@@ -89,9 +106,15 @@ BEGIN
     -- Coordinates beat a phone number. A row that matched the directory is
     -- placed by the provider's real position; everything else falls back to
     -- the area code.
-    coalesce(geo.slug, a.slug) AS campus_slug,
-    (CASE WHEN geo.slug IS NOT NULL
-          THEN 'coordinates, ' || round(geo.miles) || ' miles from campus'
+    -- Strongest signal first. A .edu domain names the university; a
+    -- provider's coordinates say where it is; an area code is a guess.
+    -- A row whose .edu belongs to a university we do not run resolves to
+    -- NULL here and is skipped, which is the point of listing them.
+    (CASE WHEN edu.matched THEN edu.slug
+          WHEN geo.slug IS NOT NULL THEN geo.slug
+          ELSE a.slug END) AS campus_slug,
+    (CASE WHEN edu.matched THEN 'email domain ' || edu.domain
+          WHEN geo.slug IS NOT NULL THEN 'coordinates, ' || round(geo.miles) || ' miles from campus'
           ELSE 'area code ' || left(s.phone, 3) END) AS placed_how,
     -- A person's name and nothing else. Two or three capitalised words
     -- with no word from the care-business vocabulary in them. The second
@@ -114,6 +137,18 @@ BEGIN
     ) AS is_stakeholder
   FROM medjobs_migration_staging s
   LEFT JOIN _area a ON a.area = left(s.phone, 3)
+  LEFT JOIN LATERAL (
+    -- Any .edu in the row: the email column or anything a caller typed into
+    -- a remark. Longest domain first so advising.utah.edu beats utah.edu.
+    SELECT true AS matched, e.slug, e.domain
+      FROM _edu e
+     WHERE concat_ws(' ', s.email, s.remark1, s.remark2, s.remark3, s.remark4)
+             ILIKE '%@' || e.domain
+        OR concat_ws(' ', s.email, s.remark1, s.remark2, s.remark3, s.remark4)
+             ILIKE '%@' || e.domain || '%'
+     ORDER BY length(e.domain) DESC
+     LIMIT 1
+  ) edu ON true
   LEFT JOIN LATERAL (
     SELECT cm.slug,
            3959 * acos(least(1,

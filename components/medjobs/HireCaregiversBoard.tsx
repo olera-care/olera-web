@@ -422,6 +422,23 @@ export default function HireCaregiversBoard() {
           ))}
         </div>
       </Modal>
+
+      {/* Mobile: Candidate detail bottom sheet (hidden on desktop where inline panel is used) */}
+      <div className="lg:hidden">
+        <Modal
+          isOpen={!!selectedCandidate && !isDemoEra}
+          onClose={() => setSelectedCandidate(null)}
+          size="fullscreen"
+        >
+          {selectedCandidate && (
+            <CandidateDetailPanel
+              candidate={selectedCandidate}
+              onClose={() => setSelectedCandidate(null)}
+              onSchedule={() => openSchedule(selectedCandidate)}
+            />
+          )}
+        </Modal>
+      </div>
     </div>
   );
 }

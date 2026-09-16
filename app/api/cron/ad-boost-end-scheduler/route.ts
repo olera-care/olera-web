@@ -28,6 +28,16 @@ import { etCalendarDate, nextBusinessSlotEt } from "@/lib/send-window";
  * entered and its absence means the flight window isn't known. The Slack
  * summary counts those so the gap stays visible.
  *
+ * A campaign on a PAID PLAN never auto-ends and never gets a wrap-up. The
+ * flight_end_date belongs to the free intro; once the provider subscribes the
+ * plan takes over from it, which is exactly what /provider/boost promises them
+ * ("Choose a monthly plan now and it takes over when your free intro ends").
+ * Ending it would flip a paying campaign to `ended` and schedule
+ * ad_boost_promo_complete — "Your starter campaign is complete", an email whose
+ * whole job is to ask for a subscription — at someone who already subscribed.
+ * Both rungs are guarded independently, because a row can also reach `ended`
+ * from an admin flipping it by hand, which skips rung 1 entirely.
+ *
  * The send reuses sendAdBoostLifecycleEmail, whose promo_complete_email_sent_at
  * reservation is atomic, so this can never double-email even if an admin flips
  * the same campaign by hand mid-run. Permanent skips (no provider email,
@@ -52,6 +62,17 @@ const MAX_SENDS_PER_RUN = 20;
  */
 const RETRYABLE_SKIPS = new Set(["send_failed", "reservation_failed", "nudge_cap"]);
 
+/** Plan states that mean the provider is paying: the intro is over and the
+ *  wrap-up's subscribe ask is the wrong message. `past_due` counts — Stripe is
+ *  still dunning an existing subscription, not an unsold campaign. A NULL or
+ *  `canceled` plan_status is not paying and ends normally. */
+const PAYING_PLAN_STATUSES = ["active", "past_due"] as const;
+/** PostgREST predicate for "not paying". NULL must be spelled out: in SQL,
+ *  `plan_status NOT IN (...)` is NULL — not true — when the column is NULL, so
+ *  a bare .not(...) filter would skip every unsold campaign, which is the
+ *  entire book. */
+const NOT_PAYING_FILTER = `plan_status.is.null,plan_status.not.in.(${PAYING_PLAN_STATUSES.join(",")})`;
+
 const SEND_ROW_SELECT =
   "id, provider_id, provider_slug, display_name, requested_setup_week, flight_start_date, channel, campaign_tag, intended_monthly_budget, ad_spend_cents, ad_clicks, ad_impressions, metrics_source, created_at";
 
@@ -70,7 +91,7 @@ export async function GET(request: NextRequest) {
     const nowIso = now.toISOString();
     const todayEt = etCalendarDate(now);
 
-    const counts = { ended: 0, due: 0, sent: 0, blocked: 0, live_without_end_date: 0 };
+    const counts = { ended: 0, due: 0, sent: 0, blocked: 0, live_without_end_date: 0, paying_held_open: 0 };
     const endedLines: string[] = [];
     const blockedLines: string[] = [];
 
@@ -80,6 +101,7 @@ export async function GET(request: NextRequest) {
       .select("id, display_name, provider_slug, flight_end_date, promo_complete_email_sent_at")
       .eq("status", "live")
       .is("deleted_at", null)
+      .or(NOT_PAYING_FILTER)
       .not("flight_end_date", "is", null)
       .lt("flight_end_date", todayEt)
       .limit(MAX_ENDS_PER_RUN);
@@ -125,6 +147,7 @@ export async function GET(request: NextRequest) {
       .select(SEND_ROW_SELECT)
       .eq("status", "ended")
       .is("deleted_at", null)
+      .or(NOT_PAYING_FILTER)
       .is("promo_complete_email_sent_at", null)
       .not("promo_complete_email_scheduled_at", "is", null)
       .lte("promo_complete_email_scheduled_at", nowIso)
@@ -201,6 +224,18 @@ export async function GET(request: NextRequest) {
       .is("flight_end_date", null);
     counts.live_without_end_date = undated ?? 0;
 
+    // Paying campaigns past their intro end date. They are deliberately held
+    // open, but the count keeps that visible rather than silent.
+    const { count: paying } = await db
+      .from("ad_campaign_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "live")
+      .is("deleted_at", null)
+      .in("plan_status", [...PAYING_PLAN_STATUSES])
+      .not("flight_end_date", "is", null)
+      .lt("flight_end_date", todayEt);
+    counts.paying_held_open = paying ?? 0;
+
     if (counts.ended > 0 || counts.sent > 0 || blockedLines.length > 0) {
       try {
         const siteUrl = getSiteUrl();
@@ -215,6 +250,10 @@ export async function GET(request: NextRequest) {
           );
         if (blockedLines.length > 0)
           parts.push(`⚠️ ${blockedLines.length} blocked: ${blockedLines.join("; ")}`);
+        if (counts.paying_held_open > 0)
+          parts.push(
+            `💳 ${counts.paying_held_open} paying campaign${counts.paying_held_open === 1 ? "" : "s"} past their intro end date, held open (no wrap-up sent)`,
+          );
         if (counts.live_without_end_date > 0)
           parts.push(
             `ℹ️ ${counts.live_without_end_date} live campaign${counts.live_without_end_date === 1 ? "" : "s"} still missing a flight end date (won't auto-end)`,

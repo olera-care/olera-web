@@ -81,15 +81,16 @@ export default function HireCaregiversBoard() {
   const [inCatchment, setInCatchment] = useState<boolean | null>(null);
   const autoFilteredRef = useRef(false);
 
-  // Universities for the dropdown + catchment id mapping.
+  // Universities for the dropdown — fetches universities that have students.
+  // Uses API route to bypass RLS restrictions on is_active.
   useEffect(() => {
-    const sb = createClient();
-    sb.from("medjobs_universities")
-      .select("id, name, state, lat, lng")
-      .eq("is_active", true)
-      .order("name")
-      .then(({ data }: { data: University[] | null }) => {
-        if (data) setUniversities(data);
+    fetch("/api/medjobs/universities")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.universities) setUniversities(data.universities);
+      })
+      .catch(() => {
+        // Fallback: silent fail, dropdown will just be empty
       });
   }, []);
 

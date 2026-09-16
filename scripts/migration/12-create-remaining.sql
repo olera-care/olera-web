@@ -20,8 +20,8 @@
 -- guessed at — that is the Virginia and Illinois work, which belongs to
 -- universities we are not running.
 --
--- Rows on the providers tab that are a person's name become professors,
--- and rows whose name is plainly academic — "Academic
+-- Rows on the providers tab that are a person's name are held back, since
+-- professors are not being worked yet. Rows whose name is plainly academic — "Academic
 -- Advising (Dean's Office)", "The Career Center" — are created as advisors
 -- rather than providers, and flagged. The tab they arrived on is not
 -- reliable; 66 rows on the providers tab are campus offices.
@@ -154,33 +154,12 @@ BEGIN
          AND so.research_data->>'migration_batch' = v_batch);
   GET DIAGNOSTICS n_adv = ROW_COUNT;
 
-  -- ── people ─────────────────────────────────────────────────────────────
-  -- Twenty-eight rows on the providers tab are a person's name: Dietmar W
+  -- ── people: held back, not created ────────────────────────────────────
+  -- Twenty-eight rows on the providers tab are somebody's name — Dietmar W
   -- Siemann, David C Bloom, Anthony Lanman. They are campus faculty, not
-  -- employers, and four of them share one Bloomington switchboard number.
-  -- Creating them as providers would put people in the employer list.
-  -- Professor is the closer ladder; review can move any that are really
-  -- advisors.
-  INSERT INTO student_outreach
-    (campus_id, kind, stakeholder_type, organization_name, status, cadence_day, research_data)
-  SELECT
-    sc.id, 'professor', 'professor', t.sheet_name, 'researched', 0,
-    jsonb_build_object(
-      'migration_batch',  v_batch,
-      'source',           'providers_tab_but_the_name_is_a_person',
-      'sheet_row',        t.row_no,
-      'sheet_key',        t.sheet_key,
-      'sheet_phone',      t.phone,
-      'placed_by',        'area code ' || left(t.phone, 3),
-      'migration_review', true)
-  FROM _todo t
-  JOIN student_outreach_campuses sc ON sc.slug = t.campus_slug
-  WHERE t.is_person
-    AND NOT EXISTS (
-      SELECT 1 FROM student_outreach so
-       WHERE so.research_data->>'sheet_key' = t.sheet_key
-         AND so.research_data->>'migration_batch' = v_batch);
-  GET DIAGNOSTICS n_person = ROW_COUNT;
+  -- employers. We are not doing professors yet, so they are counted and
+  -- left in staging rather than created anywhere.
+  SELECT count(*) INTO n_person FROM _todo WHERE is_person AND campus_slug IS NOT NULL;
 
   -- ── the contact, where the sheet has a real address ────────────────────
   INSERT INTO student_outreach_contacts (outreach_id, name, email, phone)
@@ -230,7 +209,7 @@ BEGIN
 
   IF NOT v_apply THEN
     RAISE EXCEPTION
-      'REHEARSAL, nothing saved — provider records % (of which % were in the directory) · advisor records % · professor records % · history tasks % · open tasks % · skipped, area code is not one of the six % · ties left for a person %. Set v_apply := TRUE to commit.',
+      'REHEARSAL, nothing saved — provider records % (of which % were in the directory) · advisor records % · people held back for later % · history tasks % · open tasks % · skipped, area code is not one of the six % · ties left for a person %. Set v_apply := TRUE to commit.',
       n_prov, n_dir, n_adv, n_person, n_hist, n_task, n_skip, n_tie;
   END IF;
 END $$;
@@ -240,7 +219,6 @@ SELECT
   sc.slug,
   count(*) FILTER (WHERE so.kind = 'provider')                        AS providers,
   count(*) FILTER (WHERE so.kind = 'advisor')                         AS advisors,
-  count(*) FILTER (WHERE so.kind = 'professor')                       AS professors,
   count(*) FILTER (WHERE so.research_data ? 'sheet_row')              AS from_the_sheet,
   count(*) FILTER (WHERE so.research_data ? 'migration_review')       AS need_review
 FROM student_outreach_campuses sc

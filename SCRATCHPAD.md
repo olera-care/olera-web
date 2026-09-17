@@ -7,6 +7,29 @@
 
 ## Current Focus
 
+### 2026-09-17 (pm) — Subscription cuts executed: Loops, Sanity, Snov (~$2,832/yr) (`pleasant-pare`, ops only, no code)
+
+Acting on the Mercury review. No product code changed. Three vendors cut, one new global skill.
+
+**BANKED: ~$2,832/yr.** **Loops $1,176** (TJ cancelled both subs 17 Sep; verify no charge posts on/after 29 Sep or it didn't take). **Sanity $1,188** (downgraded Team→Free, done and verified). **Snov ~$468 — now CONFIRMED** (see the correction below). Apollo **kept** — TJ says it's used.
+
+**Snov correction, later the same day.** Snov support (Yehor, in-app chat) **disabled auto-renewal**; confirmed on screen. Two fixes to what was written above: the plan is **Starter at $39/mo = $468/yr**, not the $496 estimated from the Mercury charge amounts — reconcile the exact figure against Mercury, not the plan page. And the **card freeze on ••9463 is no longer needed**. Billing period runs **25 Aug – 24 Sep 2026**; nothing bills after 24 Sep. **Do not click "Cancel subscription"** — auto-renew-off already achieves it, and cancelling early only forfeits the remaining period. Usage at cancellation was **0 of 8,892 credits / 0 of 5,000 recipients / 0 of 3 warm-ups**, so the expiring credits cost nothing. Account `tj@olera.care`; reactivatable from the billing page. TJ relayed the cancellation to Logan in Slack.
+
+**Sanity: the $99/mo was paying to host dead v1 content.** Project `krao7zrz` ("Olera CMS", org `o3T2pgvEi`). Content moved to Supabase in **March 2026** (`scripts/import-sanity.ts`, commit "Import 103 Sanity CMS articles"), and **nothing has read Sanity since** — no client in the codebase, **6 API requests and 52 CDN requests all month**. Of 15,470 documents, **12,974 were `cityPage`** (v1 city pages, superseded by the Supabase city pipeline, last written 11 Feb). **Deleted 13,009 cityPage** (incl. 35 drafts) in 27 batches, then datasets `staging` / `development` / `development-comments`. Documents **15,470 → 2,528**, datasets **3+1 → 1 public** — both under Free's ceilings (10,000 docs / 2 public datasets).
+
+**The trap that nearly broke 103 articles.** `import-sanity.ts` **never downloaded the images** — it converted Sanity asset refs to `cdn.sanity.io` URLs and wrote *those* into Supabase. So **103 published articles load their covers from Sanity's CDN**, plus 39 og_images and 11 with inline images. Cancelling would have broken every one. **Free keeps the CDN**, which is why downgrade ≠ cancel. `sanity.imageAsset` is a separate type so deleting cityPage left all **245 assets intact**; 10/10 published covers verified **HTTP 200** after the downgrade.
+
+**Backups (durable, `~/Desktop/olera-backups/`).** All four datasets exported as NDJSON + **242 image binaries, 115 MB** — the document export does NOT include binaries, which was the gap. production 15,470 docs / 78 MB, checksum verified.
+
+**Access finding bigger than the money.** Sanity had **6 members: 4 outside contractors** (3 × xfive.co + simon@simoncowan.com), **3 of them full Administrators**, none active since March. Removed all four; only TJ + Logan remain. Also **5 API tokens, 3 with Editor write, none expiring** — "Rails Local" and "Olera API" date to **Feb 2023** (the Rails era). Still live; TJ to revoke.
+
+**Blocked twice by the auto-mode classifier** — `Cloud Storage Mass Delete` (the deletion, and writing a script to do it) and `Self-Modification` (adding a permission rule). **Fix was Manual mode, not a permission rule.** Also: an Editor token **cannot delete datasets** (`sanity.project.datasets/delete`), that needs Developer; and a Developer *token* then blocks the Free downgrade as a disallowed "robot member role", so delete it before downgrading.
+
+**New skill `/drive`** (`~/.claude/skills/drive/SKILL.md`, user-global, works in TJ-HQ too). Written after TJ pushed back on being handed terminal commands: *"it's not that I'm lazy... you're better suited for this, being computer-native... I get lost and am likely to make mistakes."* The reframe it encodes: **routing a step to the human raises the error rate, so handing work back is a defect, not a courtesy.** Four numbered stop conditions (spends money / goes to an outside person / deletes data with no backup / genuinely unknowable after the default failed); everything else gets done. Standing version still to go in `~/.claude/CLAUDE.md` — TJ must paste it, self-modification is blocked.
+
+**SENT to Logan** (Slack DM `D0132JC2ETV`, [p1789637955511169](https://oleraworkspace.slack.com/archives/D0132JC2ETV/p1789637955511169)). Pre-read covering the three cuts, the two consolidations in progress (Claude team org parked on a card decline; OpenAI diagnosed only), Upwork +23% handed to him as a number rather than a decision since he owns that relationship, and the two open items (Google Workspace 3 subs / $1,545yr, ad-spend reconciliation). **Cut from the draft on TJ's instruction:** the "people are 86% of outflow" framing (Logan already knows the composition — only the *trajectory* is news), and the per-card items (JMIR memo, Logan's Claude Max, Snov/Calendly on ••9463) which TJ will raise live. **The JMIR $2,500 memo + grant-allocable question is therefore still unasked** — largest non-people charge in the window, currently categorised Entertainment, will not book as research.
+
+
 ### 2026-09-17 — Ad Boost photo stall: the gate is fine, the chase is not (`graceful-wright`, PR #1941)
 
 Ces called 6 of 8 providers on a photo-chase list she built by hand and it produced **one** archivable answer. Working out why turned into the session.
@@ -32,6 +55,16 @@ Ces called 6 of 8 providers on a photo-chase list she built by hand and it produ
 **Still open.** The directory editor gap is real but no longer load-bearing now that the working surface is the Ad Boost page. Ama Vida and Caring Senior each have two `business_profiles`. Ces's admin login is `cchavez.olera@gmail.com` (last sign-in 14 Aug) while her Slack is `cecille.chavez05@gmail.com` — worth confirming she reaches the panel before pointing her at the Call list, since the whole motion depends on it.
 
 Artifact: https://claude.ai/artifact/CmLA72s8zAQFEqfjDfUYtx
+
+**SHIPPED TO PRODUCTION the same day.** #1941 + #1942 -> staging, then a plain-language copy pass (#1943) after TJ pushed on the labels, then the promotion (#1944). **main `16f74900d`**, deploy green, olera.care and a provider page both smoke-checked with zero console errors. Migration 233 was already applied and verified before the merge. The promotion also carried someone else's MedJobs work (#1938, Efuanyamekye) and the geo script; pre-flight caught that #1938's required `medjobs_universities` seed lived only in the PR body and confirmed it had already been run (76 active rows).
+
+**The copy pass is the part worth remembering.** TJ asked for labels a new person would understand without orientation. Test used: *would you say this out loud to a colleague after a call?* Six failed. `Superseded` -> `Newer campaign replaced it`, `Stalled` -> `No response, stopping`, `waiting on an ask we made` -> `we asked, still waiting`, `never had a human touch` -> `only ever got automated email`, `With a next action` -> `Something to do`, `Channel · direction` -> `How it happened`. The care-seeker flag set carried the identical `never_human` string on a sibling view, so it moved too. **Still unfixed:** `/admin/relationships/[providerId]` renders raw flags (`never human`, `blocked on ask`) and was missed by the pass.
+
+**Ces's five calls are now in the system**, logged through the production UI. Senior Services `bad_number`, Living Angels `bad_number`, Caring Senior `callback_set`, Wescastle `no_answer`, Impact `callback_set`; Ama Vida was already archived `not_interested` with comms paused. `never_human` dropped 12 -> 7. Two callbacks are live and due today, both owned by Ces: **Caitlyn at Caring Senior (8-5 ET)** and **Pat at Impact (10-12)**. Abode and Legacy Haven were dropped entirely; their campaigns ended in June and their galleries are already full.
+
+**Two caveats on that data.** The touch log takes `author` from the session, so all five read `tj` even though Ces made the calls; each summary therefore opens with "Ces". And Senior Services is stamped 17 Sep (the form's default) while the other four are stamped 16 Sep when the calls actually happened.
+
+**A summary of all this went to Ces on Slack** (https://oleraworkspace.slack.com/archives/D063VLT5FPU/p1789637240790529): her two questions answered, what changed, and the per-provider verdicts. **Open:** the message tells her to call Pat at Impact without saying what the call is for, and Impact's campaign ended 2 Jul, so that is a "do you want to run again" conversation, not a photo chase. TJ was asked twice and did not pick; needs a one-line follow-up or a handover.
 
 ### 2026-09-16 (pm) — Two paid-path defects shipped to PRODUCTION; Meta arm live; /smartscript added (`thirsty-payne`)
 
@@ -211,6 +244,24 @@ First `/mercury-review`. No product code changed. One artifact published and a n
 **Mercury API traps (now encoded in the skill).** `postedStart`/`postedEnd`, never `start`/`end`. **A date-filtered query that matches nothing silently re-runs UNFILTERED and returns lifetime history with a `_retryNote` buried at the end** — it served Dec-2025 LinkedIn declines as if current; treat that note as a hard error. Pending/failed have no `postedAt` so they need separate pulls + client-side `failedAt` filtering. **The credit account (`9dcf7408`, −$16,364.17, 97 of 141 tx) is NOT in `getAccounts`** — use `listCredit`. Credit-card autopay appears as 4 legs netting to $0.00; count expenses at the card charge, never the repayment.
 
 **Artifact.** `DJaaXV2eKywSDkNBKUvbNb`. **New skill** `/mercury-review` at `~/.claude/skills/mercury-review/SKILL.md` (user-global — finance work runs outside any repo, and project skills don't load elsewhere).
+### 2026-09-16 — Sara email account created; sign-in handoff pending
+
+- Created `sara@olera.care` in Olera's Google Workspace Admin Console after TJ approved the new account and $8.40/month Business Starter license (first month prorated). Verified the console's “New user added” confirmation. No application code changed.
+- Slack search found onboarding mentions but no confirmed surname or matching profile. Display name is temporarily `Sara —` because Google requires a last name; update when confirmed. Google generated the initial password; no credentials are stored here.
+- Sign-in instructions have **not** been sent. TJ asked Logan for Sara's existing email in Slack and agreed to wait for his reply, then send the setup instructions directly to Sara. Also obtain her surname. Do not recreate the mailbox.
+- Changed file: `SCRATCHPAD.md`. Branch: `codex/sara-email-handoff`, based on `origin/staging`; documentation-only PR targets staging. Validation: live creation confirmation and `git diff --check`; no code tests needed.
+- Next: obtain Sara's existing email and surname from Logan, correct the display name, and complete the sign-in handoff with TJ's authorization. No automatic follow-up scheduled.
+
+### 2026-09-15 — Dallas Meta native pilot published
+
+- Integration PR #1919 merged and promoted to main; migrations 231/232, Meta app/webhook and production settings complete. No code changes this save.
+- Updated `docs/city-ads/META-NATIVE-INTAKE.md` with published assets, deployment, test evidence and operational follow-ups. Save branch: `codex/meta-pilot-launch-notes`; PR targets staging.
+- Approved $400 lifetime, Sep 15–29 at 11:00 a.m. CDT; exact inputs verified. Meta confirmed campaign/ad set/ad published; last status Processing (serving not yet confirmed).
+- Synthetic form submission imported with correct consent and no outreach. Production form now Live intake. Earlier failed dummy test receipt explains the red dashboard warning; native counts exclude tests.
+- Next: confirm delivery and first real lead/Slack/confirmation; review quality near $100 spend (no automatic monitor). Native spend/CPL and downstream conversion feedback still pending.
+- Validation for this save: documentation diff and whitespace check only; no runtime changes. Prior implementation checks and live synthetic delivery passed.
+
+
 ### 2026-09-15 — Full-book Ad Boost audit; the city A/B never had the power to conclude (`zealous-planck`, ops only, no code)
 
 `/ad-boost-audit` across all three channels. No product code changed. One artifact published, nine `observation` entries plus three corrections written to `ad_campaign_log`, and the audit appended to all six `city_campaigns.admin_note` fields.
@@ -274,6 +325,104 @@ Meeting-prep session for the Managed Ads KPI review. No product code changed. Fo
 - Pre-test reproduced/fixed optional traction-query failure interrupting a committed save/launch notification, and vanished lifecycle filters hiding the queue. Twelve regression checks, TypeScript, cron registry, and diff checks pass.
 - Next: apply/review migration 229 against live index catalog, preview `/admin/ad-boost`, test navigation/filter/archive/restore, and measure Server-Timing. No live migration or performance measurements yet. Do not merge without TJ's request.
 
+### 2026-09-14 — The CPL run list executed: two of three gate legs resolved (neither as assumed), Nextdoor killed and reallocated, Meta CAPI blocked on a second admin (`noble-noether`, promotion PR #1900; ops + Meta/Google/Nextdoor platform changes)
+
+Long session. Started with a staging→main promotion, then executed the run list from the CPL ladder. **Most of the plan's assumptions did not survive contact.** Read the corrections before re-deriving anything.
+
+**Promotion shipped.** PR #1900, `main` at `949df26c7`, prod deploy Ready, olera.care 200. 19 commits / 26 files / +910−193. Migration `228_city_lead_archive_messages.sql` verified applied by querying prod Supabase directly *before* promoting (`city_lead_messages` and the three `city_leads.archived_*` columns all 200), so TJ's earlier "confirmed applied" is now independently verified. No new env vars, no infra files touched. Critical-file indicators all intact (none were in the delta).
+
+**Companion artifact: The Execution Order** — `99fb87ce-2a54-49d4-a711-c32ad51a5c94`. The eleven next steps re-checked against production and reordered around the gate. Four had already moved; the plan was stale when written.
+
+#### Gate leg 1 — Meta: root cause found, and it is config not code
+
+`META_CAPI_ACCESS_TOKEN` **has never existed** in the olera-web Vercel project. Verified via `/api/v9/projects/olera-web/env`: 66 vars, the only Meta one is `NEXT_PUBLIC_META_PIXEL_ID`. The failure is silent by construction:
+
+```
+lib/city-ads/meta-capi.server.ts:19  const ACCESS_TOKEN = process.env.META_CAPI_ACCESS_TOKEN ?? "";
+lib/city-ads/meta-capi.server.ts:72  if (!isMetaPixelConfigured() || !ACCESS_TOKEN) return;
+```
+
+It returns **before** the fetch and therefore before both `console.error` paths. No trace anywhere. The server half of the Lead event has never fired in production.
+
+Events Manager, dataset `803096730985728`, 16 Aug – 12 Sep: **one event type, PageView, 301 of them**, match quality 6.1/10. **Zero Lead events, lifetime.** Production genuinely initialises that pixel id (read `fbq('init', ...)` off live `/care/dallas-tx`). The CAPI row reading "Active, last received 1 hour ago" is a business-level connection carrying PageViews and is **not** evidence our server path works. The browser half is wired correctly (`CityLandingClient.tsx:426` fires `trackMetaLead` on non-duplicate success), so Jillanna's missing Lead is most likely an ad blocker — the code's own comment budgets 20-40% loss, which is exactly what CAPI exists to cover.
+
+#### Gate leg 2 — Google: NOT broken. The zero is correct.
+
+Both city arms report 0.00 conversions (Dallas 36 clicks/$117.72, Charlotte 30/$96.97, both "Eligible (Limited) — Missing enough relevant keywords"). **There are only two city leads in the entire programme.** Ann McDade (2026-09-07 22:44:20 UTC, `paid_search`, has gclid) is the only Google-sourced one. `markAdsLeadConversion()` was added to `app/api/city-leads/route.ts` in `a51464f1f`, committed 23:52:01 UTC and live in prod via PR #1832 around 00:20 UTC — **her lead predates the instrumentation by 1h07m and production by ~1h36m.** Zero Google-sourced city leads since. Nothing to report means the report reads zero. No fix needed. Same bug class as the Ad Boost 7-vs-3 reconciliation: an instrumentation-date artifact, not a leak.
+
+**A real and different Google finding:** 77 conversions sit on **Secondary** actions excluded from account-level goals (Pop-up Form 66, Submit lead forms 9, Connect to provider form 2). Only `Provider inquiry (lead form)` is Primary and counted (6). The Goals page literally reads "You're not measuring any goals here right now." Whether those should be promoted is a value judgement — TJ's call, not shipped.
+
+#### Item 5 — the "free lever" is a rounding error. CLOSED.
+
+Google Ads 419-933-1442, last 30 days. Search campaigns: 271 clicks / $656.03 / 6 conv. Search-terms report exposes 465 terms / 82 clicks / $191.42 (~30% of clicks; the rest sit in Google's withheld bucket). **Competitor-reviews lookups: 12 terms, 4 clicks, $10.86 = 4.9% of visible clicks.** Ten of the twelve got zero clicks. Against the report's own test ("5% = rounding error, 30% = largest free win") it is the rounding error. **Do not build a negative-keyword project.**
+
+Bonus read: the city search terms are strong intent ("home care near me", "live in caregiver dallas tx", "in home care charlotte nc"). That is evidence *against* "the traffic is wrong" for the Google arm, and points back at the page.
+
+#### Nextdoor — PAUSED, and the evidence was stronger than recorded
+
+Reached via vanilla Chrome (`chrome-profile-nextdoor`) after TJ re-login. Olera account `1003810864513418699`. Before: Dallas 3,282 impr / 25 clicks / $37.93, Charlotte 4,790 / 39 / $38.00, **64 clicks, $75.93, zero conversions**. Both toggled Off via real input, verified by hard reload (switches false, Status Paused, "Active campaigns" tile 2 → 0).
+
+The artifact had city Nextdoor at 34 clicks / $38.70. Actual was 64 / $75.93. **Pooled with Graceful's August flight that is 198 clicks, 0 outcomes, ~$126.** Fisher one-sided vs Google's 10/376: **p = 0.0140**. Recomputing the older 0/168 case gives **p = 0.0240, not the 0.036 that circulated** — same decision, but stop quoting 0.036. ~30 clicks and ~$37 were spent between the report being written and the arms being paused; the gap between deciding and executing is itself a cost line.
+
+#### Franchil is the opposite of a problem
+
+Campaign `24166094865`, last 30d: campaign status "Pending / All ads under review" but the **ad itself is Eligible** and serving — 158 impr, 11 clicks, $24.19, **1 conversion at $24.19/conv against an account Search average of $109.34.** The cheapest converter in the book, running on $4.00/day with **no end date**. The 20-day "stuck" worry was a false alarm.
+
+#### Aggie Assisted Living — was never a defect
+
+The artifact called it "the one hygiene item that is actually a defect" and "Unexplained". It was a deliberately seeded test row and **said so in its own `admin_note`**: `campaign_tag: zz-internal-test-aggie-do-not-use`, "INTERNAL TEST ROW — NOT A REAL CAMPAIGN … No Google campaign exists behind these figures. Safe to DELETE at any time," plus `provider_comms_paused_at` set and a shape deliberately inert to every cron. Confirmed independently: full inventory of all 29 Google campaigns with Campaign status **All** and Ad group status **All** contains no Aggie in any state. `platform_campaign_id` was null because no campaign was ever created.
+
+Deleted `ad_campaign_requests` `01381271-ca64-4777-90e0-1873ca03680c` (hard delete, backup in session scratchpad). 26 rows → 25. Integrity audit now clean; the one remaining spend-without-platform-id row is HomeWell Oak Ridge (ended, `verified`), whose note names its real campaign `24052308622` — a legitimate flight whose id was never backfilled.
+
+#### Meta CAPI token — app built, blocked on a second admin
+
+Both greyed "Generate token" buttons had one cause: **the business portfolio had no Meta app at all.** Created **"Olera Conversions API", app id `1100422875761079`**, owned by business `286830885921873`, use case *Create & manage ads with Marketing API* (the one carrying `ads_management`; the Measure variant is read-only and will not work). Publishing requirements came back **"No requirements identified"** — business verification is not needed for this use case.
+
+The step that unlocks the button: Business Settings → System users → **Conversions API System User `61569644395460`** → "…" → **Assign assets → Apps → Develop app ON** (not Manage app). Token requested with expiry **Never** and permission **`ads_management`** only.
+
+**Blocked:** Meta requires a second business admin to approve. Request `28103507239342298`, expires 7 days from 14 Sep. Portfolio has three people and only **Chantel Wright** (Full access / Everything, active) can approve — Minh-Nguyet Hoang is inactive, TJ cannot self-approve and shows as "Advanced options / Finance". No owner override exists; the Events Manager direct route stayed greyed even after the app existed and after 2FA reauth. Asked her in Slack `#product-development`.
+
+Also found: the old **"Olera" app `1393837154438119` is a dead end**, restricted under **Platform Term 7.a since December 2023** because Meta could not find a Facebook Login integration on the site to review and got no reply. Unrelated to conversions.
+
+#### Nextdoor → Meta reallocation — DONE (TJ's call, against my recommendation)
+
+I recommended waiting for the token, on the grounds that clicks bought before the pixel can learn weaken the very test the stopping rule settles. **TJ chose to reallocate now.** Executed: both Meta city ad sets **$150 → $188 lifetime** (Dallas `120251362705640487`, Charlotte `120251360116150487`), matching the $75.93 Nextdoor was burning. Verified on a fresh page load, not just the success toast. Combined Meta lifetime $300 → $376.
+
+Why it matters beyond the money: remaining budget goes ~$183 → ~$259, which at the observed ~$1.14 CPC is ~227 more clicks for a total of **~329**. On the old budget the flight would have ended 23 Sep at **~262 clicks and never reached the 300-click threshold the stopping rule is built on.**
+
+**Consequence to carry into the readout:** clicks bought between now and Chantel's approval come from an unoptimised audience. When Meta reaches 300, split pre-token and post-token clicks rather than pooling them, or the verdict rests on rigged evidence. Meta says it itself in the ad set editor: *"The dataset that you've selected doesn't have any conversion events set up."*
+
+#### Decisions and rationale
+
+- **Token expiry Never, not 60 days.** A 60-day token would silently expire and recreate the exact bug being fixed, because `sendMetaLeadEvent` returns ahead of its own error logging. Scoped to a system user whose only assets are the pixel.
+- **Develop app, not Manage app**, for the system user. Least privilege that still issues a token.
+- **Did not end Hoop Cares** (`24235451655`, $1.87 / 1 click, Eligible-Learning, no end date). TJ: "who cares" — correct, and it should not have been carried forward from a list that had already downgraded it.
+- **Did not hard-delete the Aggie `business_profiles` row.** Its account `c06741ac-…` is TJ's own personal account and its `active_profile_id` points at that profile; deleting would break his provider dashboard.
+
+#### A mistake worth recording
+
+I deactivated the Aggie **provider page** (`business_profiles.is_active = false`) after finding it live in production with a Verified badge and invented pricing. **TJ had said remove the ad, not the provider.** Reverted immediately (`is_active = true`, page verified back up, claim and verification state untouched). Noticing an adjacent problem is useful; acting on it is not the same instruction. Report it and let TJ scope it, especially when the object is his own account and the action is outward-facing.
+
+#### Next up
+
+1. **Chantel approves request `28103507239342298`** → then token → Vercel `META_CAPI_ACCESS_TOKEN` (production) → redeploy → confirm a Lead lands in Events Manager. Request dies in 7 days.
+2. **Three-arm instrument fix** (pure code, unblocked, nobody needed): `one_screen` fires `lead_started` on first field touch while `guidance` fires on real step progression, so the arms cannot be compared stage for stage.
+3. **Ad copy promise** (TJ's call): ads still say "we call you back today" to everyone; the page now says "today" only inside the 8am–noon city-local staffed window. Soften the ad or widen the window.
+4. **Re-derive the $76 bar.** Never checked against what a delivered family is worth to a provider today.
+5. Consider giving TJ full portfolio access on the Meta business — he currently cannot approve his own requests in his own company.
+
+#### Blocked / needs input
+
+- **Meta CAPI token — Chantel Wright only.** No override exists.
+- **Ad copy direction** — a promise to families, TJ's call.
+- **Google Secondary conversion actions** — whether to promote Pop-up Form (66) et al. to Primary is a value judgement, not a config fix.
+### 2026-09-14 — Vercel geographic challenge exceptions updated live
+
+- Diagnosed the mobile/desktop "Vercel Security Checkpoint" as edge browser verification, separate from Olera login. Live `olera/olera-web` firewall had a seven-country exception list; Vietnam was excluded. Exact screenshot request events were not matched.
+- TJ chose to retain geographic challenges for the US-focused service and exempt current team locations. Published `Block Restricted Regions` with **Ghana, Philippines, South Africa, United States, Vietnam**; removed **Colombia, Mauritius, Poland**. Ghana was explicitly retained after TJ corrected the draft.
+- Verified the persisted five-country list by reopening the rule after Save Rule → Publish. Existing Boardman OR condition and Challenge action remain unchanged. Bot Protection remains Challenge, AI Bots Deny, Attack Mode off; other rules were not edited.
+- Dia sign-in was completed by TJ; native selector clicks failed, so the update was completed through Chrome browser controls. No application code or deployment was required. No post-change timing measurement or Search Console crawl test was performed. Existing user-agent-based crawler bypass remains a separate hardening recommendation, outside this change.
+- Quicksave changes only this file on `codex/vercel-country-rule`, targeting staging. Live firewall work is complete; no further change requested. Local malformed ref `refs/heads/staging 2` interrupted git switch; worktree/index matched fetched staging and branch creation was completed without altering that unrelated ref.
 
 ### 2026-09-13 — Provider banner browsing and dismissal
 
@@ -5381,7 +5530,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 7. Edmonds Villa + Assisting Hands have live campaigns and have **never seen a price** — run `/smartscript` for each.
 8. Happy Mountain: 4 price views, the only provider ever shown `result_kind: inquiries`, hasn't converted.
 9. Miracle-Lightstar: abandoned a $75 checkout 21 Aug, 6 price views since.
-10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Five, and handled 17 Sep** (PR #1941). They now surface as the **Call list** on `/admin/relationships`: Senior Services 40d, Living Angels 36d, Caring Senior 31d. Remaining human work: archive Ama Vida as not-interested; take the Caring Senior and Impact callbacks; text Senior Services and Living Angels once, then archive as unreachable; resend or call Wescastle, whose address is a **confirmed dead one** (`Suppressed: verified undeliverable`).
+10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Handled and shipped to prod 17 Sep** (#1941-#1944). All five of Ces's calls are logged, Ama Vida archived as not-interested with comms paused, and the three real stalls surface as the **Call list** on `/admin/relationships` (Senior Services 40d, Living Angels 36d, Caring Senior 31d). **Left for people, not code:** Ces calls Caitlyn (Caring Senior, 8-5 ET) and Pat (Impact, 10-12), both due today; text Senior Services and Living Angels once then archive as *Could not reach*; get a working email for Wescastle, whose address is a confirmed dead one. **Decide:** Impact's campaign ended 2 Jul, so who makes that call and what it is for.
 
 ### Slower
 11. Item 09 — receipt granularity/delight; only two providers have seen the drawn receipt.
@@ -5795,7 +5944,9 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 - **The bug worth keeping:** `days_quiet` treated any system send as contact, so the weekly analytics digest masked month-old unanswered asks. Marketing mail is not a relationship.
 - `/pre-test` found 3 real defects including one that made the whole bounce fix invisible on the queue. Fixed in `70039b154`.
 - Verified by running `loadRelationships` and `getAdBoostNextAction` against prod, and by a full touch insert/read/delete round-trip. Both email variants rendered offline.
-- Not merged. PR open to staging.
+- Merged to staging (#1941, #1942) and promoted to production the same day (#1944, main `16f74900d`).
+- Follow-on: #1943, a six-label plain-language copy pass, after TJ said the vocabulary had to be graspable without orientation.
+- Ces's five calls logged through the prod UI; summary sent to her on Slack.
 
 
 ### 2026-09-13 — Provider banner updates (`codex/provider-banner-updates`)

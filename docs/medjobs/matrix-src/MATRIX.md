@@ -928,6 +928,28 @@ parts providers actually use to decide who to interview.
 > video, the licence and the insurance sit. A student can go live at 5%. The baseline above is the intent;
 > enforcing it is on the deferred list.
 
+**How the operator sees the same student.** Once a student is on a partner campus, they also appear on the
+Tasks board under that university, on a five-rung ladder ending in a hire. Three of the five are not work
+at all — they are facts this stage and the two after it already record, and the board reads them rather
+than asking anybody to confirm them.
+
+| Rung | Who answers it | From what |
+|---|---|---|
+| Meeting with the student | the operator | nothing records it, so somebody has to |
+| Complete their application | **the system** | going live |
+| Get them an interview | **the system** | an interview on the calendar |
+| Confirm hire | **the system** | a placement accepted |
+| Confirm hours worked | the operator | the student, monthly |
+
+**Order stops mattering as a result.** Most students finish their own application without anybody chasing
+them, and the ladder no longer assumes the meeting came first. A finished application answers its own rung
+and leaves the meeting to do; an interview or a hire says the earlier rungs happened one way or another,
+so a student already hired is never queued for an introductory call.
+
+**A rung the system answers is shown as done, never as work.** It sits in its own band on the record,
+saying who answered it, so the difference between *nobody needs to chase this* and *somebody chased it* is
+never lost.
+
 **What going live does.** Two things, and the second one is already built:
 
 1. **The student becomes visible** — active on the board, matchable by providers in their area.

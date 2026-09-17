@@ -115,6 +115,23 @@ export interface BoardRecord {
   postingUrl?: string;
   /** Job board only: the inbox career services answer from, if there is one. */
   servicesEmail?: string;
+  /**
+   * What the system already knows to be true about this record, keyed by the
+   * fact name a rung names in `satisfiedBy`. The value is when it became
+   * true where we know, and simply true where we do not.
+   *
+   * Computed on every read rather than stored. These are facts about other
+   * tables — an application marked complete, an interview on the calendar, a
+   * placement accepted — and a copy of a fact is a fact that can go stale.
+   */
+  facts?: Record<string, string | true>;
+  /** Students only: where to go to edit them, which is not here. */
+  profileUrl?: string;
+  /** Students only: what they are studying toward. */
+  program?: string;
+  /** Students only: how much of the application is filled in, and what is not. */
+  completeness?: number;
+  missing?: string[];
   /** Null once the record has stopped climbing — reached its goal or stopped. */
   step: number | null;
   round: number;
@@ -352,7 +369,8 @@ export function complete(
   };
 
   /** The next rung that is part of the forward sequence. */
-  const forward = (from: number): number | null => forwardStep(record.section, from);
+  const forward = (from: number): number | null =>
+    forwardStep(record.section, from, record.facts);
 
   /** The rung of this name, branch or not, if the ladder has one. */
   const branchAt = (name: string): number =>
@@ -548,6 +566,9 @@ export function stillToCome(record: BoardRecord): Array<{ title: string; recurri
   for (let i = record.step + 1; i < ladder.steps.length; i += 1) {
     const s = ladder.steps[i];
     if (s.branch) continue;
+    // Already true, and shown as done elsewhere. Listing it here as well
+    // would promise work that is not coming.
+    if (s.satisfiedBy && record.facts?.[s.satisfiedBy]) continue;
     if (s.rounds) {
       const r = run(1, s.rounds);
       if (r) out.push(r);
@@ -571,6 +592,7 @@ export function resolveNext(
   step: number,
   round: number,
   action: LadderAction,
+  facts?: Record<string, string | true>,
 ): { step: number; round: number } | null {
   const steps = LADDERS[section].steps;
   const at = (name: string) => steps.findIndex((r) => (r.branch ?? r.name) === name);
@@ -590,7 +612,7 @@ export function resolveNext(
       if (rung?.rounds) return round < rung.rounds ? { step, round: round + 1 } : null;
     // falls through: a rung outside a block moves on the same way a reply does
     case "replied": {
-      const nxt = forwardStep(section, step + 1);
+      const nxt = forwardStep(section, step + 1, facts);
       return nxt === null ? null : { step: nxt, round: steps[nxt].rounds ? 1 : 0 };
     }
     default:
@@ -607,11 +629,53 @@ export function resolveNext(
  * whatever a finished rung leads to, and two copies of this loop would be
  * two places for the ladder to drift.
  */
-export function forwardStep(section: SectionKey, from: number): number | null {
+export function forwardStep(
+  section: SectionKey,
+  from: number,
+  facts?: Record<string, string | true>,
+): number | null {
   const steps = LADDERS[section].steps;
   for (let i = from; i < steps.length; i += 1) {
     const s = steps[i];
     if (s.branch || s.seasonal || s.monthly) continue;
+    // Already true. Handing somebody a rung the database has answered is
+    // asking them to copy it back into the database.
+    if (s.satisfiedBy && facts?.[s.satisfiedBy]) continue;
+    return i;
+  }
+  return null;
+}
+
+/** True when the system already knows this rung is done. */
+export function satisfied(record: BoardRecord, step: number): boolean {
+  const key = LADDERS[record.section].steps[step]?.satisfiedBy;
+  return Boolean(key && record.facts?.[key]);
+}
+
+/**
+ * Where a record stands before anybody has recorded anything.
+ *
+ * Two passes, because the two kinds of fact mean different things. A rung
+ * marked `supersedes` says everything behind it happened one way or another:
+ * a student with an interview booked does not need chasing for a meeting. A
+ * plain fact only answers its own rung, so a finished application still
+ * leaves the meeting to do.
+ *
+ * Returns null when the ladder has been climbed out.
+ */
+export function derivedStep(
+  section: SectionKey,
+  facts: Record<string, string | true> | undefined,
+): number | null {
+  const steps = LADDERS[section].steps;
+  let from = 0;
+  steps.forEach((s, i) => {
+    if (s.supersedes && s.satisfiedBy && facts?.[s.satisfiedBy]) from = i + 1;
+  });
+  for (let i = from; i < steps.length; i += 1) {
+    const s = steps[i];
+    if (s.branch) continue;
+    if (s.satisfiedBy && facts?.[s.satisfiedBy]) continue;
     return i;
   }
   return null;

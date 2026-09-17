@@ -34,6 +34,30 @@ import TaskView from "./TaskView";
  * the header always comes back here.
  */
 
+/**
+ * Sections whose task screens reach the database, and the ops that take them
+ * there.
+ *
+ * Two so far, for the same reason each: the job board because the green
+ * light is derived from what it records, and students because a meeting that
+ * evaporates on a refresh is a meeting somebody books twice. Providers are
+ * the gap — their calls still live in this tab until the page reloads.
+ */
+const PERSISTED: Partial<
+  Record<SectionKey, { complete: string; reopen: string; defer: string }>
+> = {
+  jobboard: {
+    complete: "complete_channel_task",
+    reopen: "reopen_check",
+    defer: "defer_channel_task",
+  },
+  students: {
+    complete: "complete_student_task",
+    reopen: "reopen_student_task",
+    defer: "defer_student_task",
+  },
+};
+
 type View =
   | { kind: "summary" }
   | { kind: "task"; recordId: string; taskId: string }
@@ -250,13 +274,11 @@ export default function UniversityFlow({
         : rung.actions[index];
     if (!action) return;
 
-    // The job board is the one ladder whose progress is written down, because
-    // the green light on the board is derived from it. Everything else still
-    // lives in this tab until task persistence is done properly.
-    if (record.section === "jobboard" && index >= 0) {
+    const persist = PERSISTED[record.section];
+    if (persist && index >= 0) {
       void send(
         {
-          op: "complete_channel_task",
+          op: persist.complete,
           recordId: record.id,
           step: task.step,
           round: task.round,
@@ -316,10 +338,11 @@ export default function UniversityFlow({
           onOpenRecord={() => setView({ kind: "record", recordId: record.id })}
           onAct={act}
           onDefer={(days) => {
-            if (record.section === "jobboard") {
+            const persist = PERSISTED[record.section];
+            if (persist) {
               void send(
                 {
-                  op: "defer_channel_task",
+                  op: persist.defer,
                   recordId: record.id,
                   step: task.step,
                   round: task.round,
@@ -356,10 +379,11 @@ export default function UniversityFlow({
           onReopen={() => {
             // Undo has to reach the database wherever the doing did, or the
             // next refetch quietly puts the rung back.
-            if (record.section === "jobboard") {
+            const persist = PERSISTED[record.section];
+            if (persist) {
               void send(
                 {
-                  op: "reopen_check",
+                  op: persist.reopen,
                   recordId: record.id,
                   step: task.step,
                   round: task.round,
@@ -369,7 +393,10 @@ export default function UniversityFlow({
               ).then(({ ok }) => {
                 if (!ok) return;
                 // Taking back the criterion can take the channel out of live.
-                const channel = LADDERS.jobboard.channel;
+                // Only the job board has criteria; a student undoing a
+                // meeting must not demote it.
+                const channel =
+                  record.section === "jobboard" ? LADDERS.jobboard.channel : null;
                 if (channel && university.channels[channel] === "live") {
                   university.channels[channel] = "in_progress";
                   redraw();

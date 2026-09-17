@@ -246,6 +246,26 @@ fixed ladder of nudges on days 1, 3, 5, 7, then 21, 35, 49, 63, and presses **Go
 4. **Check both entry paths after any change to the assets.** The QR code and the email
    link must each carry a student all the way through.
 
+**How you see the same student.** A student on one of our campuses also appears on the Tasks board under
+that university, on a five-rung ladder ending in a hire. Three of the five are facts the system already
+holds, and the board reads them rather than asking you to confirm them.
+
+| Rung | Who answers it | From what |
+|---|---|---|
+| Meeting with the student | you | nothing records it, so somebody has to |
+| Complete their application | **the system** | going live |
+| Get them an interview | **the system** | an interview on the calendar |
+| Confirm hire | **the system** | a placement accepted |
+| Confirm hours worked | you | the student, monthly |
+
+**So the order stops mattering.** Most students finish their own application without being chased, and the
+ladder no longer assumes you met them first. A finished application answers its own rung and still leaves
+the meeting to do. An interview or a hire says the earlier rungs happened one way or another, so a student
+already hired is never handed to you for an introductory call.
+
+A rung the system answered sits in its own band on the record, marked as done by the system. The
+difference between *nobody needs to chase this* and *somebody chased it* is worth keeping.
+
 **Exhibit AB. The application portal.** The student's profile section by section, each with its empty state and edit control. On the right, **Not live yet** over the **Go Live** button, and **Profile completeness**. This is the screen behind **B15** and **B16**: nothing on it is required to go live.
 
 ![Exhibit AB. The application portal](../matrix-src/exhibits/AB-application-portal.png)

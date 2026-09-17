@@ -124,6 +124,29 @@ export interface LadderRung {
    */
   name?: string;
   /**
+   * A fact about the record that makes this rung already true.
+   *
+   * Some rungs are not work at all — they are a state the system can see.
+   * A student whose application is complete has completed it whether or not
+   * anybody chased them, and asking somebody to tick that is asking them to
+   * copy the database into the database.
+   *
+   * The board computes these facts per record; a rung whose fact holds is
+   * shown as done and stepped over when climbing. It is what lets this
+   * ladder stay in order while the order stops mattering.
+   */
+  satisfiedBy?: string;
+  /** What to say under a rung the system satisfied, instead of an outcome. */
+  satisfiedNote?: string;
+  /**
+   * Reaching this rung means everything before it is moot.
+   *
+   * An interview on the calendar says the earlier rungs happened one way or
+   * another. A finished application does not: nobody has met that student
+   * yet, and meeting them is still the next thing to do.
+   */
+  supersedes?: boolean;
+  /**
    * Worked on the record itself rather than through the task screen.
    *
    * Some rungs are not an event to log. Checking that what we hold about a
@@ -303,13 +326,23 @@ Dr. Logan DuBose's office · Olera`,
         why: "We meet every student before putting them in front of a provider.",
         steps: ["Book a time.", "Hold it.", "Log how it went."],
         textarea: "How it went",
-        actions: [{ label: "Meeting held", outcome: "next", delay: 0 }],
+        // Not every student needs one, and a student who has already been
+        // interviewed plainly did not. The second outcome exists so nobody
+        // has to log a meeting that never happened to move a record on.
+        actions: [
+          { label: "Meeting held", outcome: "next", delay: 0 },
+          { label: "No meeting needed", outcome: "next", delay: 0 },
+        ],
       },
       {
         title: "Complete their application",
         what: "Chase whatever is missing from their profile.",
         why: "An incomplete application can't be sent to a provider.",
         steps: ["Check what's missing.", "Email or call them for it.", "Log it when complete."],
+        // They may finish it themselves, and most will. The record says so
+        // the moment they go live.
+        satisfiedBy: "application_complete",
+        satisfiedNote: "They completed it themselves.",
         email: {
           subject: "One thing left on your Olera application",
           body: `Hi {first},
@@ -331,6 +364,9 @@ Dr. Logan DuBose's office · Olera`,
         what: "Put them in front of a signed-up provider.",
         why: "The interview is what turns an applicant into a hire.",
         steps: ["Pick a provider taking students.", "Introduce them.", "Confirm the interview is booked."],
+        satisfiedBy: "interview_booked",
+        satisfiedNote: "An interview is on the calendar.",
+        supersedes: true,
         actions: [{ label: "Interview booked", outcome: "next", delay: 0 }],
       },
       {
@@ -338,13 +374,20 @@ Dr. Logan DuBose's office · Olera`,
         what: "Did they get the job?",
         why: "A hire is the outcome the whole program exists for.",
         steps: ["Ask the student.", "Confirm with the provider.", "Log it."],
+        satisfiedBy: "hired",
+        satisfiedNote: "A placement was accepted.",
+        supersedes: true,
+        // Reaching the goal, and earning the monthly check with it. Plain
+        // "next" would queue the hours and leave the record reading as
+        // unfinished, which is the opposite of what a hire means.
         actions: [
-          { label: "Hired", outcome: "next", delay: 30 },
+          { label: "Hired", outcome: "goal", delay: 30, goto: "hours" },
           { label: "Not hired", outcome: "archive", delay: 0 },
         ],
       },
       {
         monthly: true,
+        name: "hours",
         title: "Confirm hours worked",
         what: "The monthly check on hours.",
         why: "Hours worked is how we know the placement is real and holding.",

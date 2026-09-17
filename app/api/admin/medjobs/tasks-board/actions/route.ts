@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import { forwardStep, formatPhone } from "@/lib/medjobs/task-board";
 import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
+import { handleStudentOp, type StudentOp, type StudentRow } from "./student";
 
 /**
  * The Tasks board, writing.
@@ -30,6 +31,7 @@ export const dynamic = "force-dynamic";
 
 type Body =
   | ChannelOp
+  | StudentOp
   | { op: "archive_record"; recordId: string; reason?: string }
   | { op: "complete_check"; recordId: string; step: number; round: number }
   | { op: "reopen_check"; recordId: string; step: number; round: number }
@@ -196,10 +198,23 @@ export async function POST(req: Request) {
     .eq("id", body.recordId)
     .maybeSingle();
 
-  // A job board is not a record in student_outreach — it is the channel row
-  // itself. Same id on the board, different table underneath, so a miss here
-  // is a question rather than an answer.
+  // Three kinds of thing carry an id on this board and only one of them is a
+  // student_outreach row. A job board is the channel row itself; a student is
+  // their own profile. So a miss here is a question rather than an answer.
   if (!outreach) {
+    const { data: student } = await db
+      .from("business_profiles")
+      .select("id, display_name, city, state, metadata")
+      .eq("id", body.recordId)
+      .eq("type", "student")
+      .maybeSingle();
+    if (student) {
+      const result = await handleStudentOp(db, body as StudentOp, student as StudentRow, user.id);
+      return result.ok
+        ? NextResponse.json({ ok: true, ...(result.body ?? {}) })
+        : NextResponse.json({ error: result.error }, { status: result.status });
+    }
+
     const { data: channel } = await db
       .from("campus_channels")
       .select("id, campus_id, channel, status, criteria, detail, first_activated_at")

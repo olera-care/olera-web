@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, SECTION_ORDER, type SectionKey } from "@/lib/medjobs/ladders";
 import { getPartnerUniversity } from "@/lib/medjobs/catchment";
+import { resolveCampusUniversity } from "@/lib/medjobs/campus-university-bridge";
 import {
+  INTERVIEW_BOOKED,
+  PLACEMENT_HIRED,
+  applicationState,
+  studentFacts,
+} from "@/lib/medjobs/student-profile";
+import {
+  derivedStep,
   formatPhone,
   type BoardRecord,
   type BoardTask,
@@ -174,6 +182,102 @@ export async function GET() {
     }
   }
 
+  // ── students ────────────────────────────────────────────────────────
+  // Which university each campus is, in the registry students store. The two
+  // registries' slugs drift — Texas A&M is `texas-am` in one and `texas-a-m`
+  // in the other — so the bridge matches on name. Both keys are kept: an
+  // application that recorded only the name still finds its campus.
+  const campusOfUniversity = new Map<string, string>();
+  const campusOfName = new Map<string, string>();
+  await Promise.all(
+    (campusesRes.data ?? []).map(async (c) => {
+      const { university_id, university_name } = await resolveCampusUniversity(db, c.slug);
+      if (university_id) campusOfUniversity.set(university_id, c.id);
+      if (university_name) campusOfName.set(university_name.trim().toLowerCase(), c.id);
+    }),
+  );
+
+  const { data: studentRows } = await db
+    .from("business_profiles")
+    .select("id, slug, display_name, email, phone, city, state, metadata, created_at")
+    .eq("type", "student")
+    // Ordered for the same reason the outreach rows are: an unordered scan
+    // moves a record the moment it is written, and the person reading loses
+    // their place.
+    .order("display_name", { ascending: true })
+    .order("id", { ascending: true });
+
+  // Only students at one of the campuses on this board. A student somewhere
+  // else has nowhere to sit, and showing them would be asking somebody to
+  // work a campus we have not opened.
+  type Student = NonNullable<typeof studentRows>[number] & { campusId: string };
+  const students: Student[] = [];
+  for (const row of studentRows ?? []) {
+    const meta = (row.metadata ?? {}) as { university_id?: string; university?: string };
+    const campusId =
+      (meta.university_id ? campusOfUniversity.get(meta.university_id) : undefined) ??
+      (meta.university ? campusOfName.get(meta.university.trim().toLowerCase()) : undefined);
+    if (campusId) students.push({ ...row, campusId });
+  }
+
+  // The facts the ladder reads: an interview on the calendar, a placement
+  // accepted. Both live in their own tables, and both are read rather than
+  // copied, because a copy of a fact is a fact that can go stale.
+  const booked = new Map<string, string>();
+  const placed = new Map<string, string>();
+  const studentTasks = new Map<string, BoardTask[]>();
+  const studentIds = students.map((s) => s.id);
+  if (studentIds.length > 0) {
+    const [interviewsRes, placementsRes, studentTasksRes] = await Promise.all([
+      db
+        .from("interviews")
+        .select("student_profile_id, status, created_at")
+        .in("student_profile_id", studentIds)
+        // Anything but abandoned. A no-show still means somebody put them in
+        // front of a provider, which is what the rung asks.
+        .in("status", INTERVIEW_BOOKED)
+        .order("created_at", { ascending: true }),
+      db
+        .from("medjobs_placements")
+        .select("student_profile_id, status, created_at")
+        .in("student_profile_id", studentIds)
+        .in("status", PLACEMENT_HIRED)
+        .order("created_at", { ascending: true }),
+      db
+        .from("business_profile_tasks")
+        .select("id, business_profile_id, status, payload, notes, due_at, completed_at")
+        .eq("kind", "candidate")
+        .in("business_profile_id", studentIds)
+        .in("status", ["pending", "completed"])
+        .order("due_at", { ascending: true })
+        .order("id", { ascending: true }),
+    ]);
+    for (const r of interviewsRes.data ?? []) {
+      if (!booked.has(r.student_profile_id)) booked.set(r.student_profile_id, day(r.created_at));
+    }
+    for (const r of placementsRes.data ?? []) {
+      if (!placed.has(r.student_profile_id)) placed.set(r.student_profile_id, day(r.created_at));
+    }
+    for (const t of studentTasksRes.data ?? []) {
+      const payload = (t.payload ?? {}) as { step?: number; round?: number };
+      const list = studentTasks.get(t.business_profile_id) ?? [];
+      list.push({
+        id: t.id,
+        section: "students",
+        step: typeof payload.step === "number" ? payload.step : 0,
+        round: typeof payload.round === "number" ? payload.round : 0,
+        dueAt: day(t.due_at),
+        done: t.status === "completed",
+        outcome: t.status === "completed" ? "Logged" : null,
+        note: t.notes ?? "",
+        loggedOn: t.completed_at ? day(t.completed_at) : null,
+        spawned: [],
+        spawnedRecords: [],
+      });
+      studentTasks.set(t.business_profile_id, list);
+    }
+  }
+
   // ── contacts, one per record: the first with anything usable on it ──
   type Person = { contact: string; role: string; email: string; phone: string };
   const contactOf = new Map<string, Person>();
@@ -297,6 +401,82 @@ export async function GET() {
         step: closed ? null : pending[0]?.step ?? 0,
         round: pending[0]?.round ?? 0,
         state: closed ? row.status.replace(/_/g, " ") : null,
+        tasks,
+      });
+    }
+
+    // ── the students at this campus ──────────────────────────────────
+    for (const st of students) {
+      if (st.campusId !== campus.id) continue;
+
+      // Complete is what the student said and the server agreed, not a
+      // score. A thorough application nobody submitted is not complete.
+      const app = applicationState(st);
+      const facts = studentFacts({
+        applicationComplete: app.complete,
+        interviewOn: booked.get(st.id),
+        placedOn: placed.get(st.id),
+      });
+
+      const tasks = (studentTasks.get(st.id) ?? []).map((t) => ({ ...t, section: "students" as const }));
+      const pending = tasks.filter((t) => !t.done);
+      const step = pending[0]?.step ?? derivedStep("students", facts);
+      const round = pending[0]?.round ?? 0;
+
+      // Nobody has queued anything for this student, which is the normal
+      // case: they arrived from an application, not from somebody pressing
+      // start. Give them the rung they are actually on, so the record has
+      // something to do rather than only a list of what is coming.
+      if (pending.length === 0 && step !== null) {
+        // A recurring rung is not due the day it is reached. The monthly
+        // hours check on somebody hired last week is due a month after the
+        // placement, not this afternoon.
+        const recurring = LADDERS.students.steps[step]?.monthly;
+        const from = typeof facts.hired === "string" ? new Date(facts.hired) : new Date();
+        const due = recurring
+          ? new Date(from.getTime() + 30 * 86_400_000).toISOString().slice(0, 10)
+          : day(null);
+        tasks.push({
+          id: `auto:${st.id}:${step}`,
+          section: "students",
+          step,
+          round,
+          dueAt: due,
+          done: false,
+          outcome: null,
+          note: "",
+          loggedOn: null,
+          spawned: [],
+          spawnedRecords: [],
+        });
+      }
+
+      const meta = (st.metadata ?? {}) as {
+        intended_professional_school?: string;
+        major?: string;
+      };
+
+      records.students.push({
+        id: st.id,
+        section: "students",
+        name: st.display_name ?? "Unnamed",
+        // A student is the person, so the contact fields describe them.
+        contact: "",
+        role: "",
+        phone: formatPhone(st.phone ?? ""),
+        email: st.email ?? "",
+        website: "",
+        address: "",
+        // Editing a student belongs on their own screen, not on an outreach
+        // board. The board shows what it needs and links to the rest.
+        profileUrl: `/admin/medjobs/${st.id}`,
+        program: meta.intended_professional_school ?? meta.major ?? "",
+        completeness: app.percent,
+        missing: app.missing,
+        facts,
+        step,
+        round,
+        state: facts.hired ? LADDERS.students.goal : null,
         tasks,
       });
     }

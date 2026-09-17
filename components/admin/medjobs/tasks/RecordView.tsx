@@ -137,6 +137,11 @@ export default function RecordView({
   // correct and nothing to archive or destroy. Offering either would be a
   // button that can only fail.
   const isChannel = record.section === "jobboard";
+  // A student is somebody with their own profile. The board shows what it
+  // needs to work them and links to the rest; correcting their name or
+  // destroying them from an outreach screen is not ours to offer.
+  const isStudent = record.section === "students";
+  const fixed = isChannel || isStudent;
   const stopped =
     record.step === null && record.state !== null && record.state !== ladder.goal && record.state !== "done";
 
@@ -168,7 +173,7 @@ export default function RecordView({
           ) : (
             <h3 className="text-[15px] font-semibold leading-snug text-gray-900">
               {record.name}
-              {!isChannel && (
+              {!fixed && (
                 <button
                   type="button"
                   onClick={() => setEditingName(true)}
@@ -199,10 +204,24 @@ export default function RecordView({
             <p className="mt-0.5 text-[12.5px] text-gray-500">{record.state}</p>
           )}
         </div>
-        {!isChannel && <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />}
+        {isStudent && record.profileUrl && (
+          <a
+            href={record.profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open their profile"
+            aria-label="Open their profile"
+            className="shrink-0 rounded-md px-2 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
+          >
+            <OpenIcon />
+          </a>
+        )}
+        {!fixed && <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />}
       </div>
 
-      {isChannel ? (
+      {isStudent ? (
+        <StudentFields record={record} />
+      ) : isChannel ? (
         <ChannelFields record={record} onChannelField={onChannelField} onSaveFields={onSaveFields} />
       ) : (
         <>
@@ -286,6 +305,7 @@ export default function RecordView({
           <AnyRow key={t.id} task={t} busy={busy} onOpen={onOpenTask} onCheck={onCheck} />
         ))}
       </Band>
+      <SystemBand record={record} />
       <Band label="History">
         {history.map((t) => (
           <AnyRow key={t.id} task={t} done busy={busy} onOpen={onOpenTask} onCheck={onCheck} />
@@ -307,6 +327,115 @@ export default function RecordView({
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * A student, as a record.
+ *
+ * Read only, and deliberately. Everything here is the student's own profile,
+ * which they filled in and can change; an outreach board that let somebody
+ * overwrite it from the side would make two versions of the same person. The
+ * arrow by their name opens the screen where it is edited.
+ *
+ * The application line is the one thing worth having in front of you while
+ * working them, because the rung that follows is chasing exactly what it
+ * lists.
+ */
+function StudentFields({ record }: { record: BoardRecord }) {
+  const rows: Array<[string, string]> = [
+    ["Email", record.email],
+    ["Phone", record.phone],
+    ["Program", record.program ?? ""],
+  ];
+  const done = record.facts?.application_complete;
+  const missing = record.missing ?? [];
+
+  return (
+    <div className="mt-4 space-y-1.5">
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex items-center gap-2.5">
+          <span className="w-24 shrink-0 text-[12px] text-gray-500">{label}</span>
+          <span className="min-w-0 flex-1 truncate px-2.5 py-1.5 text-[13px] text-gray-900">
+            {value?.trim() ? (
+              label === "Email" ? (
+                <a href={`mailto:${value}`} className="text-primary-700 hover:underline">
+                  {value}
+                </a>
+              ) : label === "Phone" ? (
+                <a
+                  href={`tel:${value.replace(/[^\d+]/g, "")}`}
+                  className="text-primary-700 hover:underline"
+                >
+                  {value}
+                </a>
+              ) : (
+                value
+              )
+            ) : (
+              <span className="text-gray-400">—</span>
+            )}
+          </span>
+        </div>
+      ))}
+
+      <div className="flex items-start gap-2.5 pt-0.5">
+        <span className="w-24 shrink-0 pt-1.5 text-[12px] text-gray-500">Application</span>
+        <div className="min-w-0 flex-1 px-2.5 py-1.5">
+          <span
+            className={`text-[13px] font-medium ${done ? "text-success-700" : "text-gray-900"}`}
+          >
+            {done ? "Complete" : `${record.completeness ?? 0}%`}
+          </span>
+          {!done && missing.length > 0 && (
+            <p className="mt-0.5 text-[12px] leading-snug text-gray-500">
+              missing {missing.join(", ")}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The rungs nobody had to do.
+ *
+ * Its own band, not History, because History is what somebody did. Telling
+ * an operator that a thing is done matters as much as telling them what is
+ * left — it is the difference between not chasing a student and chasing one
+ * who finished their application a week ago.
+ */
+function SystemBand({ record }: { record: BoardRecord }) {
+  const steps = LADDERS[record.section].steps;
+  const rows = steps
+    .map((rung, i) => ({ rung, i }))
+    .filter(({ rung }) => rung.satisfiedBy && record.facts?.[rung.satisfiedBy]);
+  if (rows.length === 0) return null;
+
+  return (
+    <>
+      <p className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+        Done by the system
+      </p>
+      {rows.map(({ rung, i }) => {
+        const when = record.facts?.[rung.satisfiedBy as string];
+        return (
+          <div key={i} className="border-b border-gray-100 py-2 last:border-b-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] text-success-600">☑</span>
+              <span className="flex-1 text-[13px] text-gray-400 line-through">{rung.title}</span>
+              <span className="text-[11.5px] text-gray-500">
+                {typeof when === "string" ? shortDate(when) : ""}
+              </span>
+            </div>
+            {rung.satisfiedNote && (
+              <p className="-mt-0.5 pb-1 pl-6 text-[12px] text-gray-500">{rung.satisfiedNote}</p>
+            )}
+          </div>
+        );
+      })}
+    </>
   );
 }
 

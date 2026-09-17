@@ -1279,7 +1279,7 @@ function Detail({
                       r === "not_interested"
                         ? " This also stops the weekly digest and re-engagement email for them."
                         : "";
-                    if (!window.confirm(`Archive as "${ARCHIVE_REASON_LABEL[r]}"?${extra}`)) return;
+                    if (!window.confirm(`Archive this campaign?\n\nReason: ${ARCHIVE_REASON_LABEL[r]}.${extra}`)) return;
                     setArchived(true, r);
                   }}
                   className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40"

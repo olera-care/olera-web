@@ -46,6 +46,17 @@ type Body =
 
 const ARCHIVED_STATUS = "archived";
 
+/**
+ * student_outreach carries last_edited_by and last_edited_at, and nothing
+ * maintains them — there is no trigger, so they are the application's job.
+ * Left unset they keep saying the row was last touched when it was created,
+ * which is worse than having no audit column at all.
+ */
+const stamp = (userId: string) => ({
+  last_edited_by: userId,
+  last_edited_at: new Date().toISOString(),
+});
+
 export async function POST(req: Request) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -85,6 +96,7 @@ export async function POST(req: Request) {
       const { error } = await db
         .from("student_outreach")
         .update({
+          ...stamp(user.id),
           status: ARCHIVED_STATUS,
           research_data: {
             ...((outreach.research_data ?? {}) as Record<string, unknown>),
@@ -115,7 +127,7 @@ export async function POST(req: Request) {
 
       const { error } = await db
         .from("student_outreach")
-        .update({ status: "researched", research_data: research })
+        .update({ ...stamp(user.id), status: "researched", research_data: research })
         .eq("id", outreach.id);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -292,7 +304,7 @@ export async function POST(req: Request) {
       if (touched) {
         const { error } = await db
           .from("student_outreach")
-          .update({ ...columns, research_data: research })
+          .update({ ...columns, ...stamp(user.id), research_data: research })
           .eq("id", outreach.id);
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       }

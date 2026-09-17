@@ -47,7 +47,10 @@ UNION ALL
 SELECT
   '3 most recently edited'::text,
   left(organization_name, 38)::text,
-  (coalesce(research_data->>'archived_at', to_char(updated_at, 'Mon DD HH24:MI'))
+  -- last_edited_at, not updated_at: student_outreach has no updated_at
+  -- column, and nothing maintains last_edited_at automatically, so a row
+  -- edited before that was fixed still reads as its creation time.
+  (to_char(last_edited_at, 'Mon DD HH24:MI')
     || CASE WHEN status = 'archived' THEN '  (archived)' ELSE '' END)::text,
   0
 FROM az

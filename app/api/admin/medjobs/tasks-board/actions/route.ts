@@ -30,7 +30,14 @@ type Body =
   | { op: "archive_record"; recordId: string; reason?: string }
   | { op: "unarchive_record"; recordId: string }
   | { op: "delete_record"; recordId: string; reason?: string }
-  | { op: "save_fields"; recordId: string; fields: Partial<Record<ContactField, string>> };
+  | {
+      op: "save_fields";
+      recordId: string;
+      fields: Partial<Record<ContactField, string>>;
+      /** An admin correction. Absent means keep using the directory. */
+      website?: string;
+      second?: Partial<Record<ContactField, string>>;
+    };
 
 const ARCHIVED_STATUS = "archived";
 
@@ -188,25 +195,73 @@ export async function POST(req: Request) {
       if (typeof f.role === "string") patch.role = f.role.trim();
       if (typeof f.email === "string") patch.email = f.email.trim();
       if (typeof f.phone === "string") patch.phone = f.phone.trim();
-      if (Object.keys(patch).length === 0) {
-        return NextResponse.json({ ok: true, unchanged: true });
+
+      // ── the primary contact ───────────────────────────────────────────
+      if (Object.keys(patch).length > 0) {
+        const { data: primary } = await db
+          .from("student_outreach_contacts")
+          .select("id")
+          .eq("outreach_id", outreach.id)
+          .order("is_primary", { ascending: false })
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        const { error } = primary
+          ? await db.from("student_outreach_contacts").update(patch).eq("id", primary.id)
+          : await db
+              .from("student_outreach_contacts")
+              .insert({ outreach_id: outreach.id, is_primary: true, ...patch });
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      const { data: existing } = await db
-        .from("student_outreach_contacts")
-        .select("id")
-        .eq("outreach_id", outreach.id)
-        .limit(1)
-        .maybeSingle();
+      // ── the second contact ────────────────────────────────────────────
+      // Written only when something was actually typed, so opening the
+      // disclosure and closing it again does not leave an empty person
+      // behind for the next reader to wonder about.
+      const s2 = body.second ?? {};
+      const patch2: Record<string, string> = {};
+      if (typeof s2.contact === "string") patch2.name = s2.contact.trim();
+      if (typeof s2.role === "string") patch2.role = s2.role.trim();
+      if (typeof s2.email === "string") patch2.email = s2.email.trim();
+      if (typeof s2.phone === "string") patch2.phone = s2.phone.trim();
+      const second_has_content = Object.values(patch2).some((v) => v !== "");
 
-      const { error } = existing
-        ? await db.from("student_outreach_contacts").update(patch).eq("id", existing.id)
-        : await db
-            .from("student_outreach_contacts")
-            .insert({ outreach_id: outreach.id, ...patch });
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (second_has_content) {
+        const { data: rows } = await db
+          .from("student_outreach_contacts")
+          .select("id")
+          .eq("outreach_id", outreach.id)
+          .order("is_primary", { ascending: false })
+          .order("created_at", { ascending: true });
 
-      return NextResponse.json({ ok: true, saved: Object.keys(patch) });
+        const existingSecond = (rows ?? [])[1];
+        const { error } = existingSecond
+          ? await db.from("student_outreach_contacts").update(patch2).eq("id", existingSecond.id)
+          : await db
+              .from("student_outreach_contacts")
+              .insert({ outreach_id: outreach.id, is_primary: false, name: "", ...patch2 });
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      // ── the website ───────────────────────────────────────────────────
+      // Stored on the record, never written back to the directory. A
+      // MedJobs admin correcting a link here should not silently edit a
+      // row that the whole public site reads from.
+      if (typeof body.website === "string") {
+        const site = body.website.trim();
+        const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
+        if (site) research.website = site;
+        else delete research.website;
+
+        const { error } = await db
+          .from("student_outreach")
+          .update({ research_data: research })
+          .eq("id", outreach.id);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ ok: true });
     }
 
     default:

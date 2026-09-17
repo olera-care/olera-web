@@ -93,8 +93,17 @@ export async function GET() {
         .select("id, channel_id, kind, name, status, contacts"),
       db
         .from("student_outreach")
-        .select("id, campus_id, kind, stakeholder_type, organization_name, status, cadence_day, notes"),
-      db.from("student_outreach_contacts").select("outreach_id, name, first_name, last_name, role, email, phone"),
+        .select(
+          "id, campus_id, kind, stakeholder_type, organization_name, status, cadence_day, notes, research_data",
+        ),
+      db
+        .from("student_outreach_contacts")
+        .select("outreach_id, name, first_name, last_name, role, email, phone, is_primary, created_at")
+        // Ordered, because "the contact" has to be a decision rather than
+        // whichever row the database happened to return first. Primary
+        // wins; otherwise the oldest, which is the one somebody found first.
+        .order("is_primary", { ascending: false })
+        .order("created_at", { ascending: true }),
       db
         .from("student_outreach_tasks")
         .select("id, outreach_id, task_type, due_at, status, payload, notes, completed_at")
@@ -117,18 +126,43 @@ export async function GET() {
     return NextResponse.json({ error: firstError.message }, { status: 500 });
   }
 
+  // ── websites ────────────────────────────────────────────────────────
+  // Providers get theirs from the directory; an admin correction lives on
+  // the record and wins. Only the ids actually on a board are fetched, so
+  // this stays one small query rather than a scan of the directory.
+  const providerIds = Array.from(
+    new Set(
+      (outreachRes.data ?? [])
+        .map((r) => (r.research_data as { olera_provider_id?: string } | null)?.olera_provider_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  );
+  const dirSite = new Map<string, string>();
+  for (let i = 0; i < providerIds.length; i += 500) {
+    const { data } = await db
+      .from("olera-providers")
+      .select("provider_id, website")
+      .in("provider_id", providerIds.slice(i, i + 500));
+    for (const row of data ?? []) {
+      if (row.website) dirSite.set(row.provider_id, row.website);
+    }
+  }
+
   // ── contacts, one per record: the first with anything usable on it ──
-  const contactOf = new Map<string, { contact: string; role: string; email: string; phone: string }>();
+  type Person = { contact: string; role: string; email: string; phone: string };
+  const contactOf = new Map<string, Person>();
+  const secondOf = new Map<string, Person>();
   for (const c of contactsRes.data ?? []) {
-    if (contactOf.has(c.outreach_id)) continue;
     const name = c.name || [c.first_name, c.last_name].filter(Boolean).join(" ");
     if (!name && !c.email && !c.phone) continue;
-    contactOf.set(c.outreach_id, {
+    const person: Person = {
       contact: name ?? "",
       role: c.role ?? "",
       email: c.email ?? "",
       phone: c.phone ?? "",
-    });
+    };
+    if (!contactOf.has(c.outreach_id)) contactOf.set(c.outreach_id, person);
+    else if (!secondOf.has(c.outreach_id)) secondOf.set(c.outreach_id, person);
   }
 
   // ── tasks, grouped by what they hang off ──────────────────────────
@@ -208,6 +242,13 @@ export async function GET() {
       const pending = tasks.filter((t) => !t.done);
       const closed = CLOSED_STATUSES.has(row.status);
 
+      const research = (row.research_data ?? {}) as {
+        olera_provider_id?: string;
+        website?: string;
+      };
+      const edited = (research.website ?? "").trim();
+      const fromDirectory = dirSite.get(research.olera_provider_id ?? "") ?? "";
+
       records[section].push({
         id: row.id,
         section,
@@ -216,6 +257,9 @@ export async function GET() {
         role: c?.role ?? "",
         phone: c?.phone ?? "",
         email: c?.email ?? "",
+        website: edited || fromDirectory,
+        websiteEdited: Boolean(edited),
+        contact2: secondOf.get(row.id),
         // Position is derived from the work in flight, not stored twice.
         step: closed ? null : pending[0]?.step ?? 0,
         round: pending[0]?.round ?? 0,
@@ -242,6 +286,7 @@ export async function GET() {
         role: "",
         phone: "",
         email: "",
+        website: "",
         step: ch.status === "live" ? null : pending[0]?.step ?? 0,
         round: 0,
         state: ch.status === "live" ? LADDERS.jobboard.goal : null,
@@ -276,6 +321,7 @@ export async function GET() {
         role: (contact as { role?: string } | undefined)?.role ?? "",
         phone: contact?.phone ?? "",
         email: contact?.email ?? "",
+        website: "",
         step: done ? null : pending[0]?.step ?? 0,
         round: pending[0]?.round ?? 0,
         state: done ? (rec.status === "live" ? LADDERS[section].goal : "declined") : null,
@@ -300,6 +346,7 @@ export async function GET() {
         role: "",
         phone: "",
         email: "",
+        website: "",
         step: 0,
         round: ladder.steps[0]?.rounds ? 1 : 0,
         state: null,

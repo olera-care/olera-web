@@ -213,6 +213,22 @@ export default function UniversityFlow({
             record[f] = v;
             force((n) => n + 1);
           }}
+          onWebsite={(v) => {
+            record.website = v;
+            record.websiteEdited = true;
+            force((n) => n + 1);
+          }}
+          onField2={(f, v) => {
+            record.contact2 = {
+              contact: "",
+              role: "",
+              phone: "",
+              email: "",
+              ...(record.contact2 ?? {}),
+              [f]: v,
+            };
+            force((n) => n + 1);
+          }}
           onSaveFields={() => {
             void send(
               {
@@ -224,6 +240,11 @@ export default function UniversityFlow({
                   phone: record.phone,
                   email: record.email,
                 },
+                // Only sent when an admin has typed one. Otherwise the
+                // directory stays the source and nothing is overridden with
+                // a copy of what it already says.
+                website: record.websiteEdited ? record.website : undefined,
+                second: record.contact2,
               },
               "Saved",
             );

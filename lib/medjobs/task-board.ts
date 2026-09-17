@@ -58,6 +58,20 @@ export interface BoardRecord {
   role: string;
   phone: string;
   email: string;
+  /**
+   * Where to look them up. For a provider this comes from the directory
+   * unless an admin has corrected it; for an advising office there is no
+   * directory row, so it is only ever what somebody typed.
+   */
+  website: string;
+  /** True when the website above is an admin correction, not the directory. */
+  websiteEdited?: boolean;
+  /**
+   * The second person at this organisation, if there is one. Kept behind a
+   * disclosure in the UI: one contact is the normal case and two should not
+   * cost the normal case any attention.
+   */
+  contact2?: { contact: string; role: string; phone: string; email: string };
   /** Null once the record has stopped climbing — reached its goal or stopped. */
   step: number | null;
   round: number;
@@ -222,6 +236,7 @@ export function makeRecord(
     role: "",
     phone: "",
     email: "",
+    website: "",
     step,
     round,
     state: null,

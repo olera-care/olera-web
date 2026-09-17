@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
 import {
   dueLabel,
@@ -22,16 +23,32 @@ import {
 
 const FIELDS: ContactField[] = ["contact", "role", "phone", "email"];
 const LABEL: Record<ContactField, string> = {
-  contact: "Contact name",
+  contact: "Primary contact",
   role: "Role",
   phone: "Phone",
   email: "Email",
 };
 
+/** Bare host for display: the scheme and a trailing slash are noise here. */
+function tidyHost(url: string): string {
+  const v = url.trim();
+  if (!v) return "";
+  return v.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/+$/, "");
+}
+
+/** What an href needs, from whatever somebody typed. */
+function href(url: string): string {
+  const v = url.trim();
+  if (!v) return "";
+  return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+}
+
 export default function RecordView({
   record,
   onField,
   onSaveFields,
+  onWebsite,
+  onField2,
   onOpenTask,
   onRevive,
   onArchive,
@@ -42,6 +59,10 @@ export default function RecordView({
   onField: (field: ContactField, value: string) => void;
   /** Persist what was typed. Called on blur, not on every keystroke. */
   onSaveFields: () => void;
+  /** The website an admin typed, which wins over whatever the directory has. */
+  onWebsite: (value: string) => void;
+  /** The second person, if the disclosure is open. */
+  onField2: (field: ContactField, value: string) => void;
   onOpenTask: (task: BoardTask) => void;
   onRevive: () => void;
   onArchive: () => void;
@@ -54,21 +75,48 @@ export default function RecordView({
   const scheduled = record.tasks.filter((t) => !t.done && !isReady(t));
   const history = record.tasks.filter((t) => t.done).slice().reverse();
   const ahead = stillToCome(record);
+  const site = record.website ?? "";
   const stopped =
     record.step === null && record.state !== null && record.state !== ladder.goal && record.state !== "done";
 
   return (
     <div className="px-5 py-4">
-      <h3 className="text-[15px] font-semibold text-gray-900">{record.name}</h3>
-      <p className="mt-0.5 text-[12.5px] text-gray-500">
-        {ladder.label}
-        {record.state ? ` · ${record.state}` : ""}
-      </p>
+      {/*
+        One line to work the record from: who they are, where to check them,
+        and what to do about them. The name and the link sit together because
+        the review is a glance between the two; the menu is pushed right so a
+        destructive action is never under the cursor by accident.
+      */}
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[15px] font-semibold leading-snug text-gray-900">
+            {record.name}
+            {site && (
+              <>
+                {" "}
+                <a
+                  href={href(site)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-1 inline-flex items-center gap-1 align-middle text-[12.5px] font-medium text-primary-700 underline decoration-primary-300 underline-offset-2 hover:text-primary-800 hover:decoration-primary-600"
+                >
+                  <LinkIcon />
+                  {tidyHost(site)}
+                </a>
+              </>
+            )}
+          </h3>
+          {record.state && (
+            <p className="mt-0.5 text-[12.5px] text-gray-500">{record.state}</p>
+          )}
+        </div>
+        <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />
+      </div>
 
       <div className="mt-4 space-y-1.5">
         {FIELDS.map((f) => (
           <label key={f} className="flex items-center gap-2.5">
-            <span className="w-20 shrink-0 text-[12px] text-gray-500">{LABEL[f]}</span>
+            <span className="w-24 shrink-0 text-[12px] text-gray-500">{LABEL[f]}</span>
             <input
               value={record[f]}
               onChange={(e) => onField(f, e.target.value)}
@@ -78,7 +126,21 @@ export default function RecordView({
             />
           </label>
         ))}
+
+        {/* Under Email, so a missing one can be filled in while you are here. */}
+        <label className="flex items-center gap-2.5">
+          <span className="w-24 shrink-0 text-[12px] text-gray-500">Website</span>
+          <input
+            value={site}
+            onChange={(e) => onWebsite(e.target.value)}
+            onBlur={onSaveFields}
+            placeholder="—"
+            className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+          />
+        </label>
       </div>
+
+      <SecondContact record={record} onField2={onField2} onSaveFields={onSaveFields} />
 
       {stopped && (
         <button
@@ -89,35 +151,6 @@ export default function RecordView({
           Start this up again
         </button>
       )}
-
-      {/*
-        Archive and delete are different promises. Archive takes the record
-        off the board and keeps everything, and the catchment populate will
-        not put it back because the record still exists. Delete destroys it,
-        so it is behind a confirm and writes an exclusion row that stops the
-        populate recreating it.
-      */}
-      <div className="mt-4 flex items-center gap-2 border-t border-gray-100 pt-4">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={onArchive}
-          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-[12.5px] font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
-        >
-          Archive
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={onDelete}
-          className="rounded-md border border-error-200 bg-white px-3 py-1.5 text-[12.5px] font-semibold text-error-700 hover:bg-error-50 disabled:opacity-50"
-        >
-          Delete
-        </button>
-        <span className="text-[11.5px] text-gray-400">
-          Archive hides it and keeps the history. Delete cannot be undone.
-        </span>
-      </div>
 
       <Band label="To do">
         {ready.map((t) => (
@@ -205,4 +238,165 @@ function fieldLines(task: BoardTask): string[] {
   return (rung?.inputs ?? [])
     .filter((f) => values[f.key]?.trim())
     .map((f) => `${f.label}: ${values[f.key]}`);
+}
+
+
+/** A small outbound-link mark. Drawn rather than an icon font, so it inherits
+ *  the link colour and never arrives a frame late. */
+function LinkIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      className="h-3 w-3 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 8a2.5 2.5 0 0 0 3.6.3l2-2a2.5 2.5 0 0 0-3.5-3.6l-1 1" />
+      <path d="M8 6a2.5 2.5 0 0 0-3.6-.3l-2 2A2.5 2.5 0 0 0 5.9 11.3l1-1" />
+    </svg>
+  );
+}
+
+/**
+ * Archive and delete, behind a menu.
+ *
+ * They are out of the way on purpose. Both are one click from the top of the
+ * record, but neither sits where a cursor rests, and delete is separated and
+ * coloured so it cannot be mistaken for the safe one.
+ */
+function RecordMenu({
+  onArchive,
+  onDelete,
+  disabled,
+}: {
+  onArchive: () => void;
+  onDelete: () => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: MouseEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", away);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", away);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+
+  return (
+    <div ref={box} className="relative shrink-0">
+      <button
+        type="button"
+        disabled={disabled}
+        aria-label="Record actions"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="rounded-md px-2 py-1 text-[16px] leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40"
+      >
+        ···
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onArchive();
+            }}
+            className="block w-full px-3 py-2 text-left text-[13px] text-gray-800 hover:bg-gray-50"
+          >
+            Archive
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onDelete();
+            }}
+            className="block w-full border-t border-gray-100 px-3 py-2 text-left text-[13px] font-medium text-error-700 hover:bg-error-50"
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The second person at an organisation.
+ *
+ * Collapsed, because one contact is the normal case and a second should not
+ * cost the normal case any attention. It opens by itself when there is
+ * already someone there, so an existing second contact is never hidden.
+ */
+function SecondContact({
+  record,
+  onField2,
+  onSaveFields,
+}: {
+  record: BoardRecord;
+  onField2: (field: ContactField, value: string) => void;
+  onSaveFields: () => void;
+}) {
+  const existing = record.contact2;
+  const filled = Boolean(
+    existing && (existing.contact || existing.role || existing.phone || existing.email),
+  );
+  const [open, setOpen] = useState(filled);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-2 text-[12.5px] font-medium text-primary-700 hover:text-primary-800 hover:underline"
+      >
+        + Add a contact
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 rounded-md border border-gray-100 bg-gray-50/60 p-2.5">
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+        Second contact
+      </p>
+      <div className="space-y-1.5">
+        {FIELDS.map((f) => (
+          <label key={f} className="flex items-center gap-2.5">
+            <span className="w-24 shrink-0 text-[12px] text-gray-500">
+              {f === "contact" ? "Name" : LABEL[f]}
+            </span>
+            <input
+              value={existing?.[f] ?? ""}
+              onChange={(e) => onField2(f, e.target.value)}
+              onBlur={onSaveFields}
+              placeholder="—"
+              className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:outline-none"
+            />
+          </label>
+        ))}
+      </div>
+    </div>
+  );
 }

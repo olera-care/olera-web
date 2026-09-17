@@ -1,45 +1,20 @@
 -- ===========================================================================
 -- Step 8 -- put the work Gracie already did onto the ladder. WRITES.
 -- ===========================================================================
--- 110 live providers carry her calls. Until now those calls sat as a row of
--- identical completed tasks with no outcome, and the record sat on whichever
--- rung the overlay guessed. This reads what she wrote and puts each record
--- where it actually is.
+-- 110 live providers carry her calls, sitting as identical completed tasks
+-- with no outcome. This reads her notes and puts each record where it is.
 --
--- Her process was research, then the confirming call, then send the
--- programme. So a record she reached counts all three as done, and any call
--- after the one that reached them is a follow-up.
+-- Her process was research, the confirming call, then send the programme, so
+-- a record she reached counts all three as done and every later call is a
+-- numbered follow-up. A note carrying an at sign means she got an address.
+-- A refusal beats an address. A dead number is not a strike. Anything the
+-- classifier cannot read keeps its note and is given no outcome.
 --
--- Each of her calls is classified from its note, and the vocabulary is hers:
+-- Expected: 110 sorted, 71 to follow up, 10 archived, deepest round 4.
+-- The full reasoning, and the counts it came from, are in the commit message.
 --
---   dead number      does not exist, no longer in service, disconnected
---   not interested   not interested, have to pass, said no
---   reached          talked, spoke, speak, answered by, gave, provided, refuse
---   voicemail        voicemail, vm, left message, mailbox
---   no answer        no answer, asnwer, busy, ringing, no one is available
---
--- and a note containing an at sign means she came away with an address,
--- which is the single most reliable signal in the sheet.
---
--- Where each record lands, by the numbers checked before this was written:
---
---   71  reached and got an address  -> research, call and send done, on the
---                                      follow-up round her later calls reach
---   10  refused                     -> archived, reason recorded
---    9  three or more strikes       -> still on the call rung, and the rung
---                                      now says three attempts is enough
---    7  one or two strikes          -> still on the call rung
---    4  only a dead number          -> still on the call rung, needs one
---    9  reached, no address         -> still on the call rung
---
--- A refusal beats an address: a provider who gave us an inbox and then said
--- no is a no.
---
--- Archived records are left alone entirely. Nothing here reopens anything.
---
--- ONE statement, and nothing but SELECT, INSERT and UPDATE: read the note at
--- the foot of 17a-research-rung-rehearsal.sql for why. Safe to run twice --
--- a record it has already sorted carries a stamp and is skipped.
+-- ONE statement, nothing but SELECT, INSERT and UPDATE -- see the note at the
+-- foot of 17a. Safe to run twice: a sorted record carries a stamp.
 -- ===========================================================================
 
 WITH call_log AS (
@@ -84,7 +59,6 @@ WITH call_log AS (
      AND c.call_at IS NOT NULL
 ),
 
--- One row per provider: what she came away with, and when.
 prov AS (
   SELECT outreach_id,
          count(*)                                                      AS calls,
@@ -97,9 +71,6 @@ prov AS (
    GROUP BY outreach_id
 ),
 
--- The rung each record belongs on, and the follow-up round it has reached.
--- A refusal beats an address. Seven follow-ups is the whole block, so the
--- round is capped there rather than running off the end of the ladder.
 landing AS (
   SELECT p.*,
          LEAST(7, 1 + (SELECT count(*) FROM call_log l
@@ -109,9 +80,6 @@ landing AS (
     FROM prov p
 ),
 
--- 1. Her calls, relabelled. One update, because a row needs at most one:
---    the outcome it had, and for a call after the one that reached them,
---    the follow-up rung it really belongs to.
 relabelled AS (
   UPDATE student_outreach_tasks t
      SET payload = t.payload
@@ -141,8 +109,6 @@ relabelled AS (
   RETURNING t.id
 ),
 
--- 2. Research, done on every record she worked. She checked the websites,
---    the addresses and the drive times before she dialled.
 researched AS (
   INSERT INTO student_outreach_tasks
     (outreach_id, task_type, status, due_at, completed_at, payload, notes)
@@ -158,7 +124,6 @@ researched AS (
   RETURNING outreach_id
 ),
 
--- 3. The programme, sent wherever she came away with an address.
 sent AS (
   INSERT INTO student_outreach_tasks
     (outreach_id, task_type, status, due_at, completed_at, payload, notes)
@@ -178,8 +143,6 @@ sent AS (
   RETURNING outreach_id
 ),
 
--- 4. Where the record is now. The open task is moved rather than replaced,
---    so a record is never left with nothing to do.
 moved AS (
   UPDATE student_outreach_tasks t
      SET payload = t.payload || jsonb_build_object(
@@ -195,12 +158,6 @@ moved AS (
   RETURNING t.id
 ),
 
--- 5. The record itself: the refusals close, and every record this run
---    sorted is stamped so a second run finds nothing.
---
---    One update, not two. A refused record belongs to both, and two updates
---    to the same row in one statement is undefined -- Postgres keeps one and
---    drops the other without saying which.
 stamped AS (
   UPDATE student_outreach so
      SET status = CASE WHEN d.refused THEN 'archived' ELSE so.status END,

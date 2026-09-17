@@ -221,6 +221,16 @@ First `/mercury-review`. No product code changed. One artifact published and a n
 **Mercury API traps (now encoded in the skill).** `postedStart`/`postedEnd`, never `start`/`end`. **A date-filtered query that matches nothing silently re-runs UNFILTERED and returns lifetime history with a `_retryNote` buried at the end** — it served Dec-2025 LinkedIn declines as if current; treat that note as a hard error. Pending/failed have no `postedAt` so they need separate pulls + client-side `failedAt` filtering. **The credit account (`9dcf7408`, −$16,364.17, 97 of 141 tx) is NOT in `getAccounts`** — use `listCredit`. Credit-card autopay appears as 4 legs netting to $0.00; count expenses at the card charge, never the repayment.
 
 **Artifact.** `DJaaXV2eKywSDkNBKUvbNb`. **New skill** `/mercury-review` at `~/.claude/skills/mercury-review/SKILL.md` (user-global — finance work runs outside any repo, and project skills don't load elsewhere).
+### 2026-09-15 — Dallas Meta native pilot published
+
+- Integration PR #1919 merged and promoted to main; migrations 231/232, Meta app/webhook and production settings complete. No code changes this save.
+- Updated `docs/city-ads/META-NATIVE-INTAKE.md` with published assets, deployment, test evidence and operational follow-ups. Save branch: `codex/meta-pilot-launch-notes`; PR targets staging.
+- Approved $400 lifetime, Sep 15–29 at 11:00 a.m. CDT; exact inputs verified. Meta confirmed campaign/ad set/ad published; last status Processing (serving not yet confirmed).
+- Synthetic form submission imported with correct consent and no outreach. Production form now Live intake. Earlier failed dummy test receipt explains the red dashboard warning; native counts exclude tests.
+- Next: confirm delivery and first real lead/Slack/confirmation; review quality near $100 spend (no automatic monitor). Native spend/CPL and downstream conversion feedback still pending.
+- Validation for this save: documentation diff and whitespace check only; no runtime changes. Prior implementation checks and live synthetic delivery passed.
+
+
 ### 2026-09-15 — Full-book Ad Boost audit; the city A/B never had the power to conclude (`zealous-planck`, ops only, no code)
 
 `/ad-boost-audit` across all three channels. No product code changed. One artifact published, nine `observation` entries plus three corrections written to `ad_campaign_log`, and the audit appended to all six `city_campaigns.admin_note` fields.

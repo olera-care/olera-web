@@ -595,7 +595,7 @@ export function getAdBoostNextAction(
       // reminder, so "Aug 12" reads recent while the ask is six weeks old.
       const askedAt = validTimestamp(request.photo_update_requested_at);
       const daysWaiting = askedAt
-        ? Math.floor((now - new Date(askedAt).getTime()) / 86_400_000)
+        ? Math.max(0, Math.floor((now - new Date(askedAt).getTime()) / 86_400_000))
         : null;
       const waitingDetail =
         daysWaiting !== null

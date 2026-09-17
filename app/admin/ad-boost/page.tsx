@@ -28,6 +28,9 @@ import {
 } from "@/lib/ad-boost/admin-communications";
 import styles from "./ad-boost-queue.module.css";
 
+/** Filter values that are next-move lenses rather than lifecycle statuses. */
+const NEXT_MOVE_LENSES = new Set(["attention", "waiting"]);
+
 export default function AdminAdBoostPage() {
   const cache = useAdBoostQueueCache();
   const initial = cache.rows.get(cache.preferences.view);
@@ -42,8 +45,8 @@ export default function AdminAdBoostPage() {
   const [view, setView] = useState<"active" | "archived">(cache.preferences.view);
   // Defaults to Live: the campaigns actually spending money are what this page
   // is opened for. Initialize once per view — Archived never defaults to a
-  // next-move lens (archived rows have no next move), and an active queue with
-  // nothing owed falls back to All so the page never opens on an empty list.
+  // next-move lens (archived rows have no next move). load() re-derives this on
+  // first load and falls through to All when nothing is owed.
   const [statusFilter, setStatusFilter] = useState<string | null>(
     initialFilter === undefined ? (cache.preferences.view === "active" ? "attention" : null) : initialFilter,
   );
@@ -89,10 +92,15 @@ export default function AdminAdBoostPage() {
       setCounts(json.counts);
       setUpdatedAt(at);
       if (cache.preferences.filter[view] === undefined) {
-        cache.preferences.filter[view] = view === "active" && rows.some(row => row.status === "live") ? "live" : null;
+        // First load of this view. Open on work you owe; if you owe nothing,
+        // fall through to All rather than an empty list.
+        const owed = view === "active" && rows.some((row) => getAdBoostNextAction(row).level === "attention");
+        cache.preferences.filter[view] = owed ? "attention" : null;
       }
       const selected = cache.preferences.filter[view];
-      if (selected && selected !== "attention" && !rows.some(row => row.status === selected)) {
+      // A next-move lens is derived, not a status, so it can never match a row's
+      // `status` and must be exempted here or it silently resets itself to All.
+      if (selected && !NEXT_MOVE_LENSES.has(selected) && !rows.some(row => row.status === selected)) {
         // The last campaign in a remembered lifecycle may have moved on.
         // Don't leave an invisible selected chip hiding the entire queue.
         cache.preferences.filter[view] = null;

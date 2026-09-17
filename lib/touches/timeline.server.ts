@@ -563,13 +563,20 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   const db = getServiceClient();
   const now = new Date();
 
-  const [{ data: requests }, { data: touchedIds }] = await Promise.all([
+  const [{ data: requests }, { data: touchedIds }, { data: pausedRows }] = await Promise.all([
     db
       .from("ad_campaign_requests")
       .select("id, provider_id, status, created_at, photo_readiness_status, photo_update_requested_at, provider_comms_paused_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     db.from("provider_touches").select("provider_id"),
+    // Archived rows are excluded above, but archiving as `not_interested` is
+    // exactly what pauses a provider's email. Read the pause separately so a
+    // declined provider does not read as a neglected one.
+    db
+      .from("ad_campaign_requests")
+      .select("provider_id")
+      .not("provider_comms_paused_at", "is", null),
   ]);
 
   const campaignStatus = new Map<string, string>();
@@ -582,7 +589,9 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   // this: the three Nextdoor pilot rows read "only ever got automated email"
   // and "22 days quiet" while their email was paused on purpose, so the first
   // person to work the list reasonably asked whether to cold-call them.
-  const commsPaused = new Set<string>();
+  const commsPaused = new Set<string>(
+    ((pausedRows ?? []) as { provider_id: string }[]).map((r) => r.provider_id),
+  );
   type CampaignPeek = {
     id: string;
     provider_id: string;
@@ -596,7 +605,6 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
     if (!campaignStatus.has(r.provider_id)) {
       campaignStatus.set(r.provider_id, r.status);
       campaignRequestId.set(r.provider_id, r.id);
-      if (r.provider_comms_paused_at) commsPaused.add(r.provider_id);
       const askedAt =
         r.photo_readiness_status === "update_requested" ? r.photo_update_requested_at : null;
       openAsk.set(

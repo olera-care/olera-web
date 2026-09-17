@@ -91,12 +91,20 @@ export async function GET() {
       db.from("campus_channels").select("id, campus_id, channel, status"),
       db
         .from("campus_channel_records")
-        .select("id, channel_id, kind, name, status, contacts"),
+        .select("id, channel_id, kind, name, status, contacts")
+        .order("name", { ascending: true }),
       db
         .from("student_outreach")
         .select(
           "id, campus_id, kind, stakeholder_type, organization_name, status, cadence_day, notes, research_data",
-        ),
+        )
+        // Alphabetical, and load-bearing. Without an ORDER BY the rows come
+        // back in whatever order the scan finds them, and Postgres rewrites
+        // a row when it is updated — so saving a record moved it somewhere
+        // else in the list and the person reviewing lost their place.
+        // Ordered by id as well, because two agencies can share a name.
+        .order("organization_name", { ascending: true })
+        .order("id", { ascending: true }),
       db
         .from("student_outreach_contacts")
         .select("outreach_id, name, first_name, last_name, role, email, phone, is_primary, created_at")
@@ -108,11 +116,16 @@ export async function GET() {
       db
         .from("student_outreach_tasks")
         .select("id, outreach_id, task_type, due_at, status, payload, notes, completed_at")
-        .in("status", ["pending", "completed"]),
+        .in("status", ["pending", "completed"])
+        // Oldest first, so history reads in the order it happened.
+        .order("due_at", { ascending: true })
+        .order("id", { ascending: true }),
       db
         .from("site_tasks")
         .select("id, campus_id, record_id, task_type, due_at, status, payload, notes, completed_at")
-        .in("status", ["pending", "completed"]),
+        .in("status", ["pending", "completed"])
+        .order("due_at", { ascending: true })
+        .order("id", { ascending: true }),
     ]);
 
   const firstError =

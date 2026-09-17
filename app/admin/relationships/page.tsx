@@ -19,8 +19,8 @@ import { CHANNEL_LABEL, type RelationshipFlag, type RelationshipRow } from "@/li
 const FLAG_LABEL: Record<RelationshipFlag, string> = {
   overdue: "overdue",
   awaiting_reply: "they wrote, no reply yet",
-  blocked_on_ask: "waiting on an ask we made",
-  never_human: "never had a human touch",
+  blocked_on_ask: "we asked, still waiting",
+  never_human: "only ever got automated email",
   complaint_on_file: "spam complaint on file",
   prefers_text: "prefers text",
   unopened_streak: "3 unopened in a row",
@@ -129,7 +129,7 @@ export default function AdminRelationshipsPage() {
           [
             ["all", `All · ${rows?.length ?? 0}`],
             ["blocked", `Call list · ${blocked}`],
-            ["due", "With a next action"],
+            ["due", "Something to do"],
             ["quiet", "Quiet or never contacted"],
           ] as const
         ).map(([k, lbl]) => (
@@ -144,7 +144,7 @@ export default function AdminRelationshipsPage() {
         ))}
         {rows && (
           <span className="ml-auto font-mono text-[11px] text-gray-500">
-            {overdue} overdue · {neverHuman} never had a human touch
+            {overdue} overdue · {neverHuman} only ever got automated email
           </span>
         )}
       </div>

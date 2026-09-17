@@ -292,8 +292,8 @@ export type ArchiveReason = (typeof ARCHIVE_REASONS)[number];
 export const ARCHIVE_REASON_LABEL: Record<ArchiveReason, string> = {
   not_interested: "Not interested",
   unreachable: "Could not reach",
-  stalled: "Stalled",
-  superseded: "Superseded",
+  stalled: "No response, stopping",
+  superseded: "Newer campaign replaced it",
 };
 
 export const PHOTO_READINESS_LABELS: Record<CampaignRequest["photo_readiness_status"], string> = {

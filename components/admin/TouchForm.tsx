@@ -179,7 +179,7 @@ export default function TouchForm({
       )}
 
       <div>
-        <label className={label}>Channel · direction</label>
+        <label className={label}>How it happened</label>
         <div className="flex flex-wrap gap-1.5">
           {TOUCH_CHANNELS.map((c) => (
             <button key={c} type="button" className={seg(channel === c)} onClick={() => setChannel(c)}>

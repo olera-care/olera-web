@@ -54,8 +54,24 @@ export interface CampaignDelivery {
 }
 
 export type DeliveryReport =
-  | { configured: false; reason: string; campaigns: [] }
-  | { configured: true; reason: null; campaigns: CampaignDelivery[] };
+  | { configured: false; reason: string; campaigns: []; unreadable: [] }
+  | { configured: true; reason: null; campaigns: CampaignDelivery[]; unreadable: string[] };
+
+/**
+ * The optimisation event, by conversion location. An instant-form campaign and
+ * a website campaign report their lead under completely different action types,
+ * and a campaign only ever carries one family of them, so first match wins.
+ *
+ * The pixel type has to be here or the website arms read a permanent dash while
+ * the caption claims a dash means the event has never fired — which would be a
+ * false statement on a panel built to stop exactly that kind of quiet lie.
+ */
+const LEAD_ACTION_TYPES = [
+  "onsite_conversion.lead_grouped", // instant form, current
+  "leadgen.other",                  // instant form, older accounts
+  "offsite_conversion.fb_pixel_lead", // website arms, the pixel Lead
+  "lead",                           // generic fallback
+];
 
 interface MetaAction { action_type?: string; value?: string }
 interface MetaInsightRow {
@@ -116,11 +132,7 @@ async function fetchOne(campaignId: string, label: string, token: string): Promi
   }
   const spend = num(row.spend);
   const linkClicks = actionValue(row.actions, ["link_click"]);
-  const results = actionValue(row.actions, [
-    "onsite_conversion.lead_grouped",
-    "leadgen.other",
-    "lead",
-  ]);
+  const results = actionValue(row.actions, LEAD_ACTION_TYPES);
   const value: CampaignDelivery = {
     campaignId,
     label,
@@ -151,7 +163,7 @@ export async function getMetaDelivery(
     return {
       configured: false,
       reason: "Ads reporting is not connected. Set META_ADS_ACCESS_TOKEN (a token with ads_read on the Olera ad account) to show spend, impressions and link clicks here.",
-      campaigns: [],
+      campaigns: [], unreadable: [],
     };
   }
   const unique = [...new Map(campaigns.filter((c) => /^\d{1,40}$/.test(c.campaignId)).map((c) => [c.campaignId, c])).values()];
@@ -159,21 +171,30 @@ export async function getMetaDelivery(
     return {
       configured: false,
       reason: "No Meta campaign IDs are configured. Add campaignId to each form in META_LEADS_FORMS_JSON to connect delivery.",
-      campaigns: [],
+      campaigns: [], unreadable: [],
     };
   }
   const settled = await Promise.allSettled(unique.map((c) => fetchOne(c.campaignId, c.label, token)));
-  const rows = settled.flatMap((r) => (r.status === "fulfilled" && r.value ? [r.value] : []));
+  const rows: CampaignDelivery[] = [];
+  // A campaign whose read failed must be NAMED, not dropped. Silently omitting
+  // the native arm because Graph refused it renders as "that campaign does not
+  // exist", which is the opposite of what happened and would send someone
+  // looking in the wrong place.
+  const unreadable: string[] = [];
+  settled.forEach((result, i) => {
+    if (result.status === "fulfilled" && result.value) rows.push(result.value);
+    else unreadable.push(unique[i].label);
+  });
   if (!rows.length) {
     // Every call failed — almost always an expired or under-scoped token. Say so
     // rather than rendering a row of zeros that reads as "nothing delivered".
     return {
       configured: false,
       reason: "Meta ads reporting could not be read. Check that META_ADS_ACCESS_TOKEN is valid and has ads_read on this ad account.",
-      campaigns: [],
+      campaigns: [], unreadable: [],
     };
   }
   const order = new Map(unique.map((c, i) => [c.campaignId, i]));
   rows.sort((a, b) => (order.get(a.campaignId) ?? 0) - (order.get(b.campaignId) ?? 0));
-  return { configured: true, reason: null, campaigns: rows };
+  return { configured: true, reason: null, campaigns: rows, unreadable };
 }

@@ -5,7 +5,7 @@ type Receipt = { leadgen_id: string; status: string; last_error: string | null; 
 type Delivery = { campaignId: string; label: string; spend: number; impressions: number; reach: number;
   linkClicks: number; results: number | null; cpm: number | null; costPerLinkClick: number | null; hasData: boolean };
 type State = { configured: boolean; forms: { formId: string; slug: string; testOnly: boolean }[];
-  delivery: { configured: boolean; reason: string | null; campaigns: Delivery[] };
+  delivery?: { configured: boolean; reason: string | null; campaigns: Delivery[]; unreadable: string[] };
   exhaustedReceipts: number;
   receipts: Receipt[]; counts: { leads: number; introduced: number; accepted: number; reached: number; clients: number };
   health: Record<string,number>; clock: {started_at:string;status:string} | null;
@@ -53,8 +53,10 @@ export default function MetaNativeStatus() {
           zero and you cannot tell whether nobody saw the ad, nobody tapped it,
           or nobody finished the form. Those need opposite responses. */}
       <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Meta delivery — getting them to the form</h3>
-      {!data.delivery.configured
-        ? <p className="mt-2 rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-600">{data.delivery.reason}</p>
+      {/* Optional-chained on purpose: a render throw here would take the whole
+          panel down silently, and the lead outcomes matter more than this row. */}
+      {!data.delivery?.configured
+        ? <p className="mt-2 rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-600">{data.delivery?.reason ?? "Delivery reporting is unavailable."}</p>
         : <div className="mt-2 overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
               <thead><tr className="border-b border-gray-200 text-left text-xs text-gray-500">
@@ -80,6 +82,7 @@ export default function MetaNativeStatus() {
                 </tr>)}
               </tbody>
             </table>
+            {!!data.delivery.unreadable?.length && <p role="alert" className="mt-1 text-xs text-error-700">Could not read {data.delivery.unreadable.join(", ")} from Meta. Those rows are missing here, not empty.</p>}
             <p className="mt-1 text-xs text-gray-500">Lifetime, from Meta. <strong>Link clicks are an upper bound on form opens</strong> — Meta reports no form-view metric, so a tap that never rendered the form still counts here. A dash under Results means the optimisation event has never fired.</p>
           </div>}
 

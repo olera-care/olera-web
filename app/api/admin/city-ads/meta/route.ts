@@ -61,7 +61,7 @@ export async function GET() {
   // comparison is the point — a native CPM only means something next to the
   // sibling campaigns buying the same city on the same account.
   const { data: siblings } = await db.from("city_campaigns")
-    .select("slug,platform_campaign_id,status").eq("channel","meta")
+    .select("slug,platform_campaign_id").eq("channel","meta")
     .not("platform_campaign_id","is",null);
   const nativeArms = forms.flatMap(f => f.campaignId ? [{ campaignId: f.campaignId, label: `${f.slug} · instant form` }] : []);
   const nativeIds = new Set(nativeArms.map(a => a.campaignId));

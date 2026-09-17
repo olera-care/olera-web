@@ -36,6 +36,22 @@
 -- ONE statement, and no procedural block: see the note at the foot of
 -- 17a-research-rung-rehearsal.sql for why. Safe to run twice -- a board it
 -- has already set carries a stamp and is skipped.
+--
+-- It also uses nothing but SELECT, INSERT and UPDATE. The first version
+-- cleared stale rows with a removal step inside a CTE, and the Supabase
+-- editor cut the statement in half at that point, appended a terminator of
+-- its own, and reported a syntax error against the text it had just written.
+-- Its parser copes with the other two shapes inside a CTE and not with that
+-- one, and it does not cope with a set-returning function either.
+--
+-- So a board that already holds job board tasks is skipped rather than
+-- cleared, which is the better rule anyway: this run is for boards that have
+-- none, and one that has some is work somebody did rather than something to
+-- tidy away. The report names which were skipped.
+--
+-- Keep those two shapes out of this file, comments included. A parser naive
+-- enough to cut a statement in half is naive enough to match a keyword in a
+-- comment.
 -- ===========================================================================
 
 WITH want (slug, done_through, board_url, posting_url, services_email, note) AS (
@@ -64,34 +80,33 @@ WITH want (slug, done_through, board_url, posting_url, services_email, note) AS 
     ('u-florida', 0, NULL, NULL, NULL, NULL)
 ),
 
--- The boards this run covers. A stamped board is skipped, which is what
--- makes a second run do nothing.
-chan AS (
+-- Every board, and whether this run touches it. A board is left alone if it
+-- carries the stamp from a previous run, or if it already holds job board
+-- tasks -- which would mean somebody has been working it and these rows are
+-- not the truth about it any more.
+board AS (
   SELECT ch.id AS channel_id,
          ch.campus_id,
-         ch.detail            AS detail_now,
-         ch.first_activated_at,
-         w.slug, w.done_through, w.board_url, w.posting_url, w.services_email, w.note
+         ch.detail             AS detail_now,
+         ch.first_activated_at AS lit_at,
+         w.slug, w.done_through, w.board_url, w.posting_url, w.services_email, w.note,
+         (ch.detail->>'job_board_seeded' IS DISTINCT FROM 'v1'
+          AND NOT EXISTS (SELECT 1 FROM site_tasks t
+                           WHERE t.campus_id = ch.campus_id
+                             AND t.channel = 'st3'
+                             AND t.record_id IS NULL)) AS apply
     FROM campus_channels ch
     JOIN student_outreach_campuses c ON c.id = ch.campus_id
     JOIN want w ON w.slug = c.slug
    WHERE ch.channel = 'st3'
-     AND ch.detail->>'job_board_seeded' IS DISTINCT FROM 'v1'
 ),
 
--- Anything already queued against these boards, so a rung is not waiting
--- twice. Only pending rows are touched: a completed one is work somebody did.
-wipe AS (
-  DELETE FROM site_tasks t
-   USING chan
-   WHERE t.campus_id = chan.campus_id
-     AND t.channel = 'st3'
-     AND t.record_id IS NULL
-     AND t.status = 'pending'
-  RETURNING t.id
-),
+chan AS (SELECT * FROM board WHERE apply),
 
--- The rungs already climbed, one row each.
+-- The rungs already climbed, one row each. A plain join against four
+-- literal numbers, for the reason given at the top.
+rungs (step) AS (VALUES (0), (1), (2), (3)),
+
 history AS (
   INSERT INTO site_tasks
     (campus_id, channel, task_type, status, due_at, completed_at, payload, notes)
@@ -101,9 +116,10 @@ history AS (
          'completed',
          date_trunc('day', now()),
          now(),
-         jsonb_build_object('step', s.step, 'round', 0),
+         jsonb_build_object('step', rungs.step, 'round', 0),
          'Recorded from the state of the board on 17 September, not logged at the time.'
-    FROM chan, generate_series(0, chan.done_through - 1) AS s(step)
+    FROM chan
+    JOIN rungs ON rungs.step < chan.done_through
   RETURNING campus_id
 ),
 
@@ -146,10 +162,10 @@ lit AS (
          -- Set once and never cleared: the channel did activate, and that
          -- does not stop being true if the posting later lapses.
          first_activated_at = CASE
-           WHEN chan.done_through >= 4 THEN COALESCE(ch.first_activated_at, now())
-           ELSE ch.first_activated_at
+           WHEN chan.done_through >= 4 THEN COALESCE(chan.lit_at, now())
+           ELSE chan.lit_at
          END,
-         detail = COALESCE(ch.detail, '{}'::jsonb)
+         detail = COALESCE(chan.detail_now, '{}'::jsonb)
            || jsonb_build_object('job_board_seeded', 'v1')
            || CASE WHEN chan.board_url IS NULL THEN '{}'::jsonb
                    ELSE jsonb_build_object('board_url', chan.board_url) END
@@ -163,21 +179,21 @@ lit AS (
   RETURNING ch.id
 )
 
-SELECT chan.slug                                        AS campus,
-       chan.done_through                                AS rungs_done,
+SELECT board.slug                                       AS campus,
+       board.apply                                      AS applied,
+       board.done_through                               AS rungs_done,
        CASE
-         WHEN chan.done_through >= 4 THEN 'live'
-         WHEN chan.done_through >= 2 THEN 'in progress'
+         WHEN board.done_through >= 4 THEN 'live'
+         WHEN board.done_through >= 2 THEN 'in progress'
          ELSE 'not yet'
        END                                              AS channel_reads,
        CASE
-         WHEN chan.done_through = 0 THEN 'Research'
-         WHEN chan.done_through = 1 THEN 'Confirm it is submitted'
-         WHEN chan.done_through = 2 THEN 'Confirm it is approved'
-         WHEN chan.done_through = 3 THEN 'Confirm the first student has applied'
+         WHEN board.done_through = 0 THEN 'Research'
+         WHEN board.done_through = 1 THEN 'Confirm it is submitted'
+         WHEN board.done_through = 2 THEN 'Confirm it is approved'
+         WHEN board.done_through = 3 THEN 'Confirm the first student has applied'
          ELSE 'Confirm the listing is still live'
        END                                              AS waiting_on,
-       chan.posting_url IS NOT NULL                     AS has_listing,
-       (SELECT count(*) FROM wipe)                      AS stale_rows_cleared_in_all
-  FROM chan
- ORDER BY chan.slug;
+       board.posting_url IS NOT NULL                    AS has_listing
+  FROM board
+ ORDER BY board.slug;

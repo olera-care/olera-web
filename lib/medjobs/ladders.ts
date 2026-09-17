@@ -67,6 +67,17 @@ export interface LadderInput {
 export interface LadderAction {
   label: string;
   outcome: Outcome;
+  /** What this outcome means, on hover. Four buttons need saying apart. */
+  hint?: string;
+  /**
+   * An unsuccessful attempt: nobody was reached.
+   *
+   * Counted, and three of them is what the operating model calls enough.
+   * Reaching somebody who will not give you an address is not one of these
+   * — the number works and a person answered, which is a stall rather than
+   * a dead line, and archiving on it would be wrong.
+   */
+  strike?: boolean;
   /** Business days until the generated task is due. 0 means today. */
   delay: number;
   /** Criterion keys this answers on the channel, if any. */
@@ -258,7 +269,38 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         script:
           '"Hi, this is [your name] from Dr. DuBose\'s office, calling about his Student Caregiver Program. I\'d like to send your team the details — what\'s the best address?"',
         collects: ["contact", "email"],
-        actions: [{ label: "Log call", outcome: "next", delay: 0 }],
+        // The four outcomes a confirming call actually has, which are the
+        // four PR1 names. It had one, which always advanced — so a call
+        // nobody answered had nowhere to go but the history, leaving the
+        // rung sitting there unexplained.
+        actions: [
+          {
+            label: "Confirmed contact",
+            outcome: "next",
+            delay: 0,
+            hint: "You have an address that works. Send them the programme next.",
+          },
+          {
+            label: "Voicemail",
+            outcome: "repeat",
+            delay: 2,
+            strike: true,
+            hint: "Left a message. Logged, and this rung comes back in two days.",
+          },
+          {
+            label: "No answer",
+            outcome: "repeat",
+            delay: 2,
+            strike: true,
+            hint: "Nobody picked up. Logged, and this rung comes back in two days.",
+          },
+          {
+            label: "Not interested",
+            outcome: "archive",
+            delay: 0,
+            hint: "They declined, or will not give an address. Closes the record.",
+          },
+        ],
       },
       {
         title: "Send the program info",

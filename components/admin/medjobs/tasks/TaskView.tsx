@@ -7,6 +7,7 @@ import {
   STOP_REASONS,
   canReopen,
   shortDate,
+  strikesAt,
   taskTitle,
   type BoardRecord,
   type BoardTask,
@@ -86,6 +87,9 @@ export default function TaskView({
   const rung = rungAt(task.section, task.step, task.round);
   if (!rung) return null;
   const ladder = LADDERS[record.section];
+  // Unsuccessful attempts already logged against this rung. The one in hand
+  // is the next one, so the label reads one higher.
+  const attempts = strikesAt(record, task.step, task.round);
 
   // The flyer is a live URL, not an attachment name. Providers and everyone
   // reaching students get the audience the PDF is written for.
@@ -198,7 +202,18 @@ export default function TaskView({
             >
               i
             </button>
+            {attempts > 0 && (
+              <span className="ml-auto shrink-0 pt-1 text-[12px] tabular-nums text-gray-500">
+                attempt {attempts + 1}
+              </span>
+            )}
           </div>
+
+          {attempts >= 3 && (
+            <p className="mt-2 rounded-md border border-warning-200 bg-warning-50 px-3 py-2 text-[12.5px] leading-snug text-warning-800">
+              After three attempts and no way to confirm the contact information, archive.
+            </p>
+          )}
 
           {showHelp && (
             <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3.5 py-3">
@@ -375,11 +390,18 @@ export default function TaskView({
                   type="button"
                   disabled={blocked}
                   onClick={() => onAct(i)}
-                  className={`${i === 0 ? BTN_GO : a.outcome === "closed" ? BTN_BAD : BTN} ${
-                    blocked ? "cursor-not-allowed opacity-40" : ""
-                  }`}
+                  title={a.hint}
+                  className={`${
+                    i === 0
+                      ? BTN_GO
+                      : a.outcome === "closed" || a.outcome === "archive"
+                        ? BTN_BAD
+                        : BTN
+                  } ${blocked ? "cursor-not-allowed opacity-40" : ""}`}
                 >
-                  {a.label}
+                  {a.outcome === "archive" && attempts >= 3
+                    ? `Archive — ${attempts} attempts`
+                    : a.label}
                 </button>
               );
             })}

@@ -301,7 +301,12 @@ export async function GET() {
   // ── tasks, grouped by what they hang off ──────────────────────────
   const tasksByOutreach = new Map<string, BoardTask[]>();
   for (const t of outreachTasksRes.data ?? []) {
-    const payload = (t.payload ?? {}) as { step?: number; round?: number; section?: string };
+    const payload = (t.payload ?? {}) as {
+      step?: number;
+      round?: number;
+      section?: string;
+      outcome?: unknown;
+    };
     const list = tasksByOutreach.get(t.outreach_id) ?? [];
     list.push({
       id: t.id,
@@ -311,7 +316,12 @@ export async function GET() {
       round: typeof payload.round === "number" ? payload.round : 0,
       dueAt: day(t.due_at),
       done: t.status === "completed",
-      outcome: t.status === "completed" ? "Logged" : null,
+      // What was actually pressed, where it was recorded. Older rows carry
+      // nothing, and say so rather than claiming an outcome.
+      outcome:
+        t.status === "completed"
+          ? (typeof payload.outcome === "string" ? payload.outcome : "Logged")
+          : null,
       note: t.notes ?? "",
       loggedOn: t.completed_at ? day(t.completed_at) : null,
       spawned: [],

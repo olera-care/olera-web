@@ -17,6 +17,7 @@ import {
   makeRecord,
   reopen,
   stillToCome,
+  strikesAt,
   type BoardUniversity,
 } from "../lib/medjobs/task-board";
 
@@ -78,6 +79,53 @@ ok(
   "the seasonal rung is never reached by climbing",
   forwardStep("providers", steps.length - 1) === null,
 );
+
+console.log("\nThe four outcomes of a confirming call");
+{
+  const call = LADDERS.providers.steps[1];
+  const labels = call.actions.map((a) => a.label);
+  ok("four of them", labels.length === 4, labels.join(" · "));
+  ok("they are the four PR1 names", labels.join("|") === "Confirmed contact|Voicemail|No answer|Not interested");
+  ok("every one says what it means on hover", call.actions.every((a) => Boolean(a.hint)));
+  ok(
+    "voicemail and no answer keep the rung open",
+    call.actions.filter((a) => a.outcome === "repeat").length === 2,
+  );
+  ok(
+    "and come back in two business days",
+    call.actions.filter((a) => a.outcome === "repeat").every((a) => a.delay === 2),
+  );
+  ok("only those two are strikes", call.actions.filter((a) => a.strike).length === 2);
+  ok(
+    "reaching somebody is never a strike",
+    !call.actions.find((a) => a.label === "Confirmed contact")?.strike,
+  );
+  ok("a refusal closes the record", call.actions[3].outcome === "archive");
+
+  // Three unanswered calls, counted from what was pressed.
+  const u3 = board();
+  const rec3 = makeRecord("providers", "Unique In Home Personal Care", 1);
+  u3.records.providers.push(rec3);
+  for (const label of ["No answer", "Voicemail", "No answer"]) {
+    const open = rec3.tasks.find((t) => !t.done)!;
+    complete(u3, rec3, open, call.actions.find((a) => a.label === label)!);
+  }
+  ok("three attempts counted", strikesAt(rec3, 1, 0) === 3, String(strikesAt(rec3, 1, 0)));
+  ok("the rung is still open", rec3.tasks.some((t) => !t.done && t.step === 1));
+  ok("and the record has not moved on", rec3.step === 1, String(rec3.step));
+  ok(
+    "each attempt kept the outcome that was pressed",
+    rec3.tasks.filter((t) => t.done).map((t) => t.outcome).join("|") === "No answer|Voicemail|No answer",
+  );
+
+  // Reaching somebody who will not talk is a stall, not a strike.
+  const u4 = board();
+  const rec4 = makeRecord("providers", "Amada Senior Care", 1);
+  u4.records.providers.push(rec4);
+  complete(u4, rec4, rec4.tasks[0], call.actions.find((a) => a.label === "Confirmed contact")!);
+  ok("a confirmed contact moves to the programme", rec4.step === 2, String(rec4.step));
+  ok("and leaves no strike behind", strikesAt(rec4, 1, 0) === 0);
+}
 
 console.log("\nThe opening block");
 ok("providers open three rungs at once", LADDERS.providers.openTogether === 3);

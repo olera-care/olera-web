@@ -452,6 +452,9 @@ export async function POST(req: Request) {
               // now, so say so rather than leaving the row mislabelled.
               task_type: taskTypeFor(section, step),
               completed_at: new Date().toISOString(),
+              // Which button was pressed. Without it every finished task
+              // reads "Logged" and four attempts are indistinguishable.
+              payload: { ...(open.payload ?? {}), step, round, outcome: action?.label },
               ...(note ? { notes: note } : {}),
             })
             .eq("id", open.id);
@@ -465,7 +468,7 @@ export async function POST(req: Request) {
             status: "completed",
             due_at: new Date().toISOString().slice(0, 10),
             completed_at: new Date().toISOString(),
-            payload: { step, round },
+            payload: { step, round, outcome: action?.label },
             notes: note || null,
           });
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -509,6 +512,31 @@ export async function POST(req: Request) {
             .eq("id", closed.id);
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
         }
+      }
+
+      // An outcome that closes the record closes it here too, or the board
+      // shows it again on the next read.
+      if (action?.outcome === "archive" || action?.outcome === "closed") {
+        const { error } = await db
+          .from("student_outreach")
+          .update({
+            ...stamp(user.id),
+            status: ARCHIVED_STATUS,
+            research_data: {
+              ...((outreach.research_data ?? {}) as Record<string, unknown>),
+              archived_reason: action.label,
+              archived_by: user.id,
+              archived_at: new Date().toISOString(),
+            },
+          })
+          .eq("id", outreach.id);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        await db
+          .from("student_outreach_tasks")
+          .update({ status: "cancelled" })
+          .eq("outreach_id", outreach.id)
+          .eq("status", "pending");
+        return NextResponse.json({ ok: true, archived: outreach.organization_name });
       }
 
       await db.from("student_outreach").update(stamp(user.id)).eq("id", outreach.id);

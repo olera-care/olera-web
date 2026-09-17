@@ -677,6 +677,25 @@ export function forwardStep(
   return null;
 }
 
+/**
+ * Unsuccessful attempts logged against a rung.
+ *
+ * Counted from what was actually pressed, so reaching somebody who would
+ * not give an address does not count against the record. Three is what the
+ * operating model calls enough, and the screen says so rather than acting
+ * on it.
+ */
+export function strikesAt(record: BoardRecord, step: number, round: number): number {
+  const strikes = new Set(
+    (LADDERS[record.section].steps[step]?.actions ?? [])
+      .filter((a) => a.strike)
+      .map((a) => a.label),
+  );
+  return record.tasks.filter(
+    (t) => t.done && t.step === step && t.round === round && t.outcome && strikes.has(t.outcome),
+  ).length;
+}
+
 /** True when the system already knows this rung is done. */
 export function satisfied(record: BoardRecord, step: number): boolean {
   const key = LADDERS[record.section].steps[step]?.satisfiedBy;

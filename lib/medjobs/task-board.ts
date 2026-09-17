@@ -125,8 +125,16 @@ export interface BoardRecord {
    * placement accepted — and a copy of a fact is a fact that can go stale.
    */
   facts?: Record<string, string | true>;
-  /** Students only: where to go to edit them, which is not here. */
+  /**
+   * Students only: the two screens that are actually theirs. The admin one
+   * is where a student is edited, which is not here; the public one is what
+   * a provider sees when we send them a candidate, which is worth being able
+   * to check before you send it.
+   */
   profileUrl?: string;
+  publicUrl?: string;
+  /** Students only: the day they applied, which is the day their account began. */
+  appliedOn?: string;
   /** Students only: what they are studying toward. */
   program?: string;
   /** Students only: how much of the application is filled in, and what is not. */
@@ -214,6 +222,15 @@ export function dueLabel(dueAt: string): string {
   if (diff === 0) return "today";
   if (diff === 1) return "tomorrow";
   return new Date(`${dueAt}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/** A date with its year, for something that may be a term ago. */
+export function longDate(iso: string): string {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export function shortDate(dueAt: string): string {

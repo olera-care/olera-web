@@ -11,6 +11,7 @@ import {
 } from "@/lib/medjobs/student-profile";
 import {
   derivedStep,
+  forwardStep,
   formatPhone,
   type BoardRecord,
   type BoardTask,
@@ -420,7 +421,18 @@ export async function GET() {
 
       const tasks = (studentTasks.get(st.id) ?? []).map((t) => ({ ...t, section: "students" as const }));
       const pending = tasks.filter((t) => !t.done);
-      const step = pending[0]?.step ?? derivedStep("students", facts);
+      // Three ways to know where a student stands, in order of authority.
+      // Something waiting is the answer. Otherwise the rung after the last
+      // one somebody finished, because history outranks derivation: a
+      // recorded meeting must not be asked for again. Only a student with no
+      // history at all is placed from the facts alone.
+      const lastDone = tasks.filter((t) => t.done).reduce((m, t) => Math.max(m, t.step), -1);
+      const step =
+        pending.length > 0
+          ? pending[0].step
+          : lastDone >= 0
+            ? forwardStep("students", lastDone + 1, facts)
+            : derivedStep("students", facts);
       const round = pending[0]?.round ?? 0;
 
       // Nobody has queued anything for this student, which is the normal
@@ -468,8 +480,16 @@ export async function GET() {
         website: "",
         address: "",
         // Editing a student belongs on their own screen, not on an outreach
-        // board. The board shows what it needs and links to the rest.
+        // board. The board shows what it needs and links to the rest — and
+        // to what a provider sees, which is the other thing worth a look
+        // before anybody is introduced.
         profileUrl: `/admin/medjobs/${st.id}`,
+        publicUrl: st.slug ? `/medjobs/candidates/${st.slug}` : undefined,
+        // When they applied is when their account began, and it is the first
+        // thing worth knowing about a name you do not recognise: somebody
+        // who arrived yesterday and somebody nobody has called since March
+        // are different problems.
+        appliedOn: st.created_at ? day(st.created_at) : undefined,
         program: meta.intended_professional_school ?? meta.major ?? "",
         completeness: app.percent,
         missing: app.missing,

@@ -8,6 +8,7 @@ import {
   formatPhone,
   isCheck,
   isReady,
+  longDate,
   shortDate,
   stillToCome,
   taskTitle,
@@ -203,19 +204,8 @@ export default function RecordView({
           {record.state && (
             <p className="mt-0.5 text-[12.5px] text-gray-500">{record.state}</p>
           )}
+          {isStudent && <ProfileLinks record={record} />}
         </div>
-        {isStudent && record.profileUrl && (
-          <a
-            href={record.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open their profile"
-            aria-label="Open their profile"
-            className="shrink-0 rounded-md px-2 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
-          >
-            <OpenIcon />
-          </a>
-        )}
         {!fixed && <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />}
       </div>
 
@@ -331,6 +321,39 @@ export default function RecordView({
 }
 
 /**
+ * The two screens that belong to a student, named rather than drawn.
+ *
+ * An unlabelled arrow by somebody's name could go anywhere, and these two go
+ * somewhere quite different: one is where you change what we hold about
+ * them, the other is what a provider sees when we say here is a candidate.
+ * Worth being able to look at the second before sending anybody to it.
+ */
+function ProfileLinks({ record }: { record: BoardRecord }) {
+  const links = [
+    { href: record.profileUrl, label: "Admin profile" },
+    { href: record.publicUrl, label: "Public profile" },
+  ].filter((l) => l.href);
+  if (links.length === 0) return null;
+
+  return (
+    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+      {links.map((l) => (
+        <a
+          key={l.label}
+          href={l.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary-700 underline decoration-primary-300 underline-offset-2 hover:text-primary-800 hover:decoration-primary-600"
+        >
+          <OpenIcon />
+          {l.label}
+        </a>
+      ))}
+    </p>
+  );
+}
+
+/**
  * A student, as a record.
  *
  * Read only, and deliberately. Everything here is the student's own profile,
@@ -344,6 +367,7 @@ export default function RecordView({
  */
 function StudentFields({ record }: { record: BoardRecord }) {
   const rows: Array<[string, string]> = [
+    ["Applied", record.appliedOn ? longDate(record.appliedOn) : ""],
     ["Email", record.email],
     ["Phone", record.phone],
     ["Program", record.program ?? ""],

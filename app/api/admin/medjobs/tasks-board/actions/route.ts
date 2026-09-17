@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import type { ContactField } from "@/lib/medjobs/ladders";
-import { formatPhone } from "@/lib/medjobs/task-board";
+import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
+import { forwardStep, formatPhone } from "@/lib/medjobs/task-board";
 
 /**
  * The Tasks board, writing.
@@ -29,6 +29,20 @@ export const dynamic = "force-dynamic";
 
 type Body =
   | { op: "archive_record"; recordId: string; reason?: string }
+  | { op: "complete_check"; recordId: string; step: number; round: number }
+  | { op: "reopen_check"; recordId: string; step: number; round: number }
+  | {
+      op: "create_record";
+      campusId: string;
+      section: SectionKey;
+      name: string;
+      contact?: string;
+      role?: string;
+      phone?: string;
+      email?: string;
+      website?: string;
+      address?: string;
+    }
   | { op: "unarchive_record"; recordId: string }
   | { op: "delete_record"; recordId: string; reason?: string }
   | {
@@ -45,6 +59,27 @@ type Body =
     };
 
 const ARCHIVED_STATUS = "archived";
+
+/**
+ * The work type a rung is queued under.
+ *
+ * `research_initial` exists in the schema already and means exactly this:
+ * establishing what is true about a record before anybody contacts it.
+ * Everything else on the provider ladder is a round of contact.
+ */
+const taskTypeFor = (section: SectionKey, step: number): string =>
+  LADDERS[section].steps[step]?.check ? "research_initial" : "outreach_contact";
+
+/** Which ladder a record climbs — the same mapping the board reads with. */
+const STAKEHOLDER_SECTION: Record<string, SectionKey> = {
+  advisor: "advisors",
+  student_org: "orgs",
+  professor: "professors",
+  dept_head: "professors",
+};
+
+const sectionOf = (row: { kind: string; stakeholder_type?: string | null }): SectionKey | null =>
+  row.kind === "provider" ? "providers" : STAKEHOLDER_SECTION[row.stakeholder_type ?? ""] ?? null;
 
 /**
  * student_outreach carries last_edited_by and last_edited_at, and nothing
@@ -69,15 +104,93 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Body must be JSON" }, { status: 400 });
   }
-  if (!body || typeof body !== "object" || !("op" in body) || !body.recordId) {
-    return NextResponse.json({ error: "Missing op or recordId" }, { status: 400 });
+  if (!body || typeof body !== "object" || !("op" in body)) {
+    return NextResponse.json({ error: "Missing op" }, { status: 400 });
   }
 
   const db = getServiceClient();
 
+  // ── a record typed in by hand ─────────────────────────────────────────
+  // Handled before the lookup below, because this is the one op whose
+  // record does not exist yet.
+  if (body.op === "create_record") {
+    const name = (body.name ?? "").trim();
+    if (!name) return NextResponse.json({ error: "A record needs a name" }, { status: 400 });
+    if (body.section !== "providers") {
+      // Everything else on the board is found by a rung or arrives from a
+      // system, and a hand-typed row would sit outside the count those are
+      // measured on. Refused rather than half-supported.
+      return NextResponse.json(
+        { error: "Only providers can be added by hand" },
+        { status: 400 },
+      );
+    }
+
+    const research: Record<string, unknown> = {
+      // No directory row behind this one, which is why migration 235 exists:
+      // the provider-link constraint accepts a record that says so.
+      manual_entry: true,
+      added_by: user.id,
+      added_at: new Date().toISOString(),
+      source: "typed_by_admin",
+    };
+    for (const key of ["website", "address"] as const) {
+      const v = (body[key] ?? "").trim();
+      if (v) research[key] = v;
+    }
+
+    const { data: created, error: createError } = await db
+      .from("student_outreach")
+      .insert({
+        campus_id: body.campusId,
+        kind: "provider",
+        stakeholder_type: null,
+        organization_name: name,
+        status: "researched",
+        cadence_day: 0,
+        research_data: research,
+        ...stamp(user.id),
+      })
+      .select("id")
+      .single();
+    if (createError || !created) {
+      return NextResponse.json(
+        { error: createError?.message ?? "Could not create the record" },
+        { status: 500 },
+      );
+    }
+
+    const person: Record<string, string> = {};
+    if ((body.contact ?? "").trim()) person.name = body.contact!.trim();
+    if ((body.role ?? "").trim()) person.role = body.role!.trim();
+    if ((body.email ?? "").trim()) person.email = body.email!.trim();
+    if ((body.phone ?? "").trim()) person.phone = formatPhone(body.phone!);
+    if (Object.keys(person).length > 0) {
+      await db
+        .from("student_outreach_contacts")
+        .insert({ outreach_id: created.id, is_primary: true, name: "", ...person });
+    }
+
+    // The first rung, the same as every record the catchment creates.
+    const first = forwardStep(body.section, 0) ?? 0;
+    await db.from("student_outreach_tasks").insert({
+      outreach_id: created.id,
+      task_type: taskTypeFor(body.section, first),
+      status: "pending",
+      due_at: new Date().toISOString().slice(0, 10),
+      payload: { step: first, round: LADDERS[body.section].steps[first]?.rounds ? 1 : 0 },
+    });
+
+    return NextResponse.json({ ok: true, id: created.id, name });
+  }
+
+  if (!body.recordId) {
+    return NextResponse.json({ error: "Missing recordId" }, { status: 400 });
+  }
+
   const { data: outreach } = await db
     .from("student_outreach")
-    .select("id, campus_id, kind, organization_name, status, research_data")
+    .select("id, campus_id, kind, stakeholder_type, organization_name, status, research_data")
     .eq("id", body.recordId)
     .maybeSingle();
 
@@ -132,6 +245,10 @@ export async function POST(req: Request) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
       // Give it something to do again, but only if nothing is open already.
+      // A provider restarts at rung 0, which is now Research: a record that
+      // has been off the board wants looking at before it is called. An
+      // advisor starts at 1, because rung 0 there is the fan-out that found
+      // it in the first place.
       const { count } = await db
         .from("student_outreach_tasks")
         .select("id", { count: "exact", head: true })
@@ -202,6 +319,117 @@ export async function POST(req: Request) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
       return NextResponse.json({ ok: true, deleted: outreach.organization_name });
+    }
+
+    // ── a rung worked on the record itself ────────────────────────────────
+    // Research is not a call to log. It is read the record, fix what is
+    // wrong, and say so — which is why it is a checkbox rather than a
+    // screen, and why it is the one rung that reaches the database as it
+    // happens rather than at the end of a sitting.
+    case "complete_check":
+    case "reopen_check": {
+      const section = sectionOf(outreach);
+      if (!section) {
+        return NextResponse.json({ error: "That record has no ladder" }, { status: 400 });
+      }
+      const step = Number(body.step);
+      const round = Number(body.round);
+      if (!Number.isInteger(step) || !Number.isInteger(round)) {
+        return NextResponse.json({ error: "Missing step or round" }, { status: 400 });
+      }
+      if (!LADDERS[section].steps[step]?.check) {
+        return NextResponse.json(
+          { error: "That rung is not worked on the record" },
+          { status: 400 },
+        );
+      }
+
+      const { data: rows, error: readError } = await db
+        .from("student_outreach_tasks")
+        .select("id, status, payload, notes")
+        .eq("outreach_id", outreach.id)
+        .in("status", ["pending", "completed"]);
+      if (readError) return NextResponse.json({ error: readError.message }, { status: 500 });
+
+      const where = (t: { payload: unknown }) =>
+        (t.payload ?? {}) as { step?: number; round?: number };
+      const atStep = (n: number) => (rows ?? []).filter((t) => (where(t).step ?? 0) === n);
+
+      const next = forwardStep(section, step + 1);
+      const mine = atStep(step).filter((t) => (where(t).round ?? 0) === round);
+      const after = next === null ? [] : atStep(next);
+
+      if (body.op === "complete_check") {
+        const open = mine.find((t) => t.status === "pending");
+        if (open) {
+          const { error } = await db
+            .from("student_outreach_tasks")
+            .update({
+              status: "completed",
+              // A record migrated before this rung existed carries the
+              // contact type on its opening task. It is the Research rung
+              // now, so say so rather than leaving the row mislabelled.
+              task_type: taskTypeFor(section, step),
+              completed_at: new Date().toISOString(),
+            })
+            .eq("id", open.id);
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        } else if (!mine.some((t) => t.status === "completed")) {
+          // No row to close — a record that predates the rung. Write the
+          // fact rather than dropping it, so the history is still true.
+          const { error } = await db.from("student_outreach_tasks").insert({
+            outreach_id: outreach.id,
+            task_type: taskTypeFor(section, step),
+            status: "completed",
+            due_at: new Date().toISOString().slice(0, 10),
+            completed_at: new Date().toISOString(),
+            payload: { step, round },
+          });
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        // Queue what comes next, unless it is already waiting.
+        if (next !== null && !after.some((t) => t.status === "pending")) {
+          const { error } = await db.from("student_outreach_tasks").insert({
+            outreach_id: outreach.id,
+            task_type: taskTypeFor(section, next),
+            status: "pending",
+            due_at: new Date().toISOString().slice(0, 10),
+            payload: { step: next, round: LADDERS[section].steps[next]?.rounds ? 1 : 0 },
+          });
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+      } else {
+        // Unticking. Safe only while the rung it queued is untouched: a
+        // pending row with nothing written on it is work nobody has started.
+        const started = after.find((t) => t.status === "completed" || (t.notes ?? "").trim());
+        if (started) {
+          return NextResponse.json(
+            { error: "Work has already moved on, so this can't be unticked" },
+            { status: 409 },
+          );
+        }
+        const ids = after.filter((t) => t.status === "pending").map((t) => t.id);
+        if (ids.length) {
+          const { error } = await db.from("student_outreach_tasks").delete().in("id", ids);
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        const closed = mine.find((t) => t.status === "completed");
+        if (closed) {
+          const { error } = await db
+            .from("student_outreach_tasks")
+            .update({
+              status: "pending",
+              completed_at: null,
+              due_at: new Date().toISOString().slice(0, 10),
+            })
+            .eq("id", closed.id);
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+      }
+
+      await db.from("student_outreach").update(stamp(user.id)).eq("id", outreach.id);
+      return NextResponse.json({ ok: true });
     }
 
     // ── contact details ───────────────────────────────────────────────────

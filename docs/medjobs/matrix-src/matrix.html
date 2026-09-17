@@ -243,13 +243,43 @@ providers are loaded but un-researched has not completed PR1.</p>
 </tbody>
 </table>
 <p><strong>What the system does on its own:</strong> adding a site pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand.</p>
+<p><strong>The one row that is built by hand.</strong> The directory cannot supply a provider it has never carried, so an agency heard about on a call would otherwise have nowhere to go. The providers list on the Tasks board ends with <strong>Add a provider</strong>, which starts a record from a name alone. It joins the site on the same first rung as every other provider and is worked identically; it simply carries no directory row behind it.</p>
 <h3 id="2-procedure">② Procedure</h3>
 <figure class="fw"><svg viewBox="0 0 250 158" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="55" y="6" width="140" height="20" rx="3" fill="#e8f1ec" stroke="#14453f" stroke-width="1.1"/><text x="125" y="20" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">Call the provider</text><line x1="125" y1="27" x2="125" y2="39" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="41" width="112" height="18" rx="3" fill="#fff" stroke="#1a7f4e" stroke-width="1.0"/><text x="60" y="53.6" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">Confirmed</text><line x1="118" y1="50" x2="130" y2="50" stroke="#1a7f4e" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="53.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Launch outreach</text><rect x="4" y="63" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="75.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">No answer</text><line x1="118" y1="72" x2="130" y2="72" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="75.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="85" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="97.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Voicemail</text><line x1="118" y1="94" x2="130" y2="94" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="97.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="107" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="119.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Not interested</text><line x1="118" y1="116" x2="130" y2="116" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="119.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Close the row</text><rect x="4" y="131" width="242" height="21" rx="3" fill="#f4f7f6" stroke="#b9c4bd" stroke-width="1"/><text x="125" y="145" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Three failed calls, then archive</text></svg><figcaption><strong>Pre-flight.</strong> One call, four outcomes, and the three-strike rule that closes a row nobody answers.</figcaption></figure>
 
 <p><strong>For a given site, work every provider on it.</strong></p>
 <ol>
 <li><strong>Do the desk research first.</strong> Fill in whatever phone, email and address you can find yourself, from
-   the provider's website, the source link on the row, or <strong>Fill from Website</strong>. Do not call a row you have not looked at.</li>
+   the provider's website, the source link on the row, or <strong>Fill from Website</strong>. Do not call a row you have not looked at. On the Tasks board this desk pass is a rung of its own, named <strong>Research</strong>, and it is ticked on the record rather than logged as a call. Four things have to be true before it is ticked:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Against what</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The name is the name the agency trades under</td>
+<td>Their own website</td>
+</tr>
+<tr>
+<td>The website opens and is theirs</td>
+<td>Their own website</td>
+</tr>
+<tr>
+<td>The phone number reaches them</td>
+<td>Their own website</td>
+</tr>
+<tr>
+<td>The address is within a <strong>60-minute drive</strong> of campus</td>
+<td>Google Maps directions, not straight-line distance</td>
+</tr>
+</tbody>
+</table>
+<p>A provider outside the 60 minutes is archived here, before anybody calls it. The catchment radius is a net, not a judgement: it is measured as the crow flies and cannot see a mountain, a lake or a freeway.</p>
+<ol start="2">
 <li><strong>Call every provider on the site.</strong> The call confirms the research; research alone does not complete
    pre-flight.</li>
 <li><strong>Use the suggested script</strong> shown in the log modal: <em>"Hi, this is [your name] from Dr. DuBose's

@@ -5,6 +5,7 @@ import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
 import {
   dueLabel,
   formatPhone,
+  isCheck,
   isReady,
   shortDate,
   stillToCome,
@@ -44,6 +45,23 @@ function href(url: string): string {
   return /^https?:\/\//i.test(v) ? v : `https://${v}`;
 }
 
+/**
+ * Directions from this address to campus.
+ *
+ * The rung asks whether a provider is within an hour's drive, and that is a
+ * question only a routing engine can answer — straight-line distance says
+ * nothing about a mountain or a lake. Pre-filling both ends turns the check
+ * into a click.
+ */
+function directions(address: string, destination: string): string {
+  return (
+    "https://www.google.com/maps/dir/?api=1" +
+    `&origin=${encodeURIComponent(address.trim())}` +
+    `&destination=${encodeURIComponent(destination)}` +
+    "&travelmode=driving"
+  );
+}
+
 export default function RecordView({
   record,
   onField,
@@ -53,9 +71,11 @@ export default function RecordView({
   onAddress,
   onField2,
   onOpenTask,
+  onCheck,
   onRevive,
   onArchive,
   onDelete,
+  campus,
   busy,
 }: {
   record: BoardRecord;
@@ -71,10 +91,14 @@ export default function RecordView({
   /** The second person, if the disclosure is open. */
   onField2: (field: ContactField, value: string) => void;
   onOpenTask: (task: BoardTask) => void;
+  /** Tick or untick a rung that is worked here rather than on its own screen. */
+  onCheck: (task: BoardTask, done: boolean) => void;
   onRevive: () => void;
   onArchive: () => void;
   /** Destroys the record. The caller confirms first. */
   onDelete: () => void;
+  /** The university this record sits under — the other end of the drive. */
+  campus?: { name: string; destination: string } | null;
   busy?: boolean;
 }) {
   const ladder = LADDERS[record.section];
@@ -188,6 +212,18 @@ export default function RecordView({
             placeholder="—"
             className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
           />
+          {(record.address ?? "").trim() && campus && (
+            <a
+              href={directions(record.address, campus.destination)}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Drive time to ${campus.name}`}
+              aria-label={`Drive time to ${campus.name}`}
+              className="shrink-0 rounded-md px-1.5 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
+            >
+              <RouteIcon />
+            </a>
+          )}
         </label>
       </div>
 
@@ -205,17 +241,17 @@ export default function RecordView({
 
       <Band label="To do">
         {ready.map((t) => (
-          <Row key={t.id} task={t} onOpen={() => onOpenTask(t)} />
+          <AnyRow key={t.id} task={t} busy={busy} onOpen={onOpenTask} onCheck={onCheck} />
         ))}
       </Band>
       <Band label="Scheduled">
         {scheduled.map((t) => (
-          <Row key={t.id} task={t} onOpen={() => onOpenTask(t)} />
+          <AnyRow key={t.id} task={t} busy={busy} onOpen={onOpenTask} onCheck={onCheck} />
         ))}
       </Band>
       <Band label="History">
         {history.map((t) => (
-          <Row key={t.id} task={t} done onOpen={() => onOpenTask(t)} />
+          <AnyRow key={t.id} task={t} done busy={busy} onOpen={onOpenTask} onCheck={onCheck} />
         ))}
       </Band>
 
@@ -233,6 +269,135 @@ export default function RecordView({
           ))}
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * One row in a band, of whichever kind the rung asks for.
+ *
+ * Most rungs are an event with a screen of its own. A check rung is not —
+ * it is finished here, by ticking it, which is why the two look different
+ * on purpose: a box you can tick, rather than a row that opens something.
+ */
+function AnyRow({
+  task,
+  done,
+  busy,
+  onOpen,
+  onCheck,
+}: {
+  task: BoardTask;
+  done?: boolean;
+  busy?: boolean;
+  onOpen: (task: BoardTask) => void;
+  onCheck: (task: BoardTask, done: boolean) => void;
+}) {
+  if (isCheck(task)) {
+    return <CheckRow task={task} done={done} busy={busy} onCheck={onCheck} />;
+  }
+  return <Row task={task} done={done} onOpen={() => onOpen(task)} />;
+}
+
+/**
+ * A rung you tick.
+ *
+ * Everything it asks for is already on the screen above — the name, the
+ * link, the fields — so the row carries only the box, the title, and the
+ * usual "i" for what the rung actually wants. Ticking is reversible while
+ * nothing downstream has been logged, which is what makes a stray click
+ * cost one click rather than an apology.
+ */
+function CheckRow({
+  task,
+  done,
+  busy,
+  onCheck,
+}: {
+  task: BoardTask;
+  done?: boolean;
+  busy?: boolean;
+  onCheck: (task: BoardTask, done: boolean) => void;
+}) {
+  const [help, setHelp] = useState(false);
+  const rung = rungAt(task.section, task.step, task.round);
+
+  return (
+    <div className="border-b border-gray-100 last:border-b-0">
+      <div className="flex items-center gap-2 py-2">
+        <button
+          type="button"
+          disabled={busy}
+          aria-pressed={Boolean(done)}
+          onClick={() => onCheck(task, !done)}
+          className="group flex min-w-0 flex-1 items-center gap-2 text-left disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <span
+            className={`text-[13px] ${
+              done ? "text-success-600" : "text-gray-300 group-hover:text-primary-600"
+            }`}
+          >
+            {done ? "☑" : "☐"}
+          </span>
+          <span
+            className={`truncate text-[13px] ${
+              done ? "text-gray-400 line-through" : "font-medium text-gray-900 group-hover:text-primary-700"
+            }`}
+          >
+            {taskTitle(task)}
+          </span>
+        </button>
+        {rung && (
+          <button
+            type="button"
+            onClick={() => setHelp((v) => !v)}
+            aria-label="What this task is"
+            aria-expanded={help}
+            className={`flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-full border text-[10.5px] font-semibold ${
+              help
+                ? "border-primary-600 bg-primary-600 text-white"
+                : "border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600"
+            }`}
+          >
+            i
+          </button>
+        )}
+        <span
+          className={`shrink-0 text-[11.5px] ${
+            !done && isReady(task) ? "font-semibold text-warning-700" : "text-gray-500"
+          }`}
+        >
+          {done ? (task.loggedOn ? shortDate(task.loggedOn) : "") : dueLabel(task.dueAt)}
+        </span>
+      </div>
+
+      {help && rung && (
+        <div className="mb-2.5 ml-6 rounded-md border border-gray-200 bg-gray-50 px-3.5 py-3">
+          <Help label="What this is">{rung.what}</Help>
+          <Help label="Why">{rung.why}</Help>
+          <Help label="What to do">
+            <ol className="list-decimal space-y-0.5 pl-4">
+              {rung.steps.map((x) => (
+                <li key={x}>{x}</li>
+              ))}
+            </ol>
+          </Help>
+        </div>
+      )}
+
+      {task.note && (
+        <p className="-mt-0.5 pb-2 pl-6 text-[12px] leading-snug text-gray-500">{task.note}</p>
+      )}
+    </div>
+  );
+}
+
+/** One labelled paragraph inside the "i" panel. Same look as the task screen. */
+function Help({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-2 last:mb-0">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+      <div className="text-[13px] leading-snug text-gray-700">{children}</div>
     </div>
   );
 }
@@ -307,6 +472,24 @@ function PencilIcon() {
       strokeLinejoin="round"
     >
       <path d="M9.3 2.2l2.5 2.5L5 11.5l-3 .5.5-3z" />
+    </svg>
+  );
+}
+
+/** A signpost for the drive to campus, next to the address. */
+function RouteIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.2 1.8L1.9 6.1l4.3 1.7 1.7 4.3z" />
     </svg>
   );
 }

@@ -101,6 +101,17 @@ export interface LadderRung {
   monthly?: boolean;
   /** A branch-only rung, reached by name rather than in sequence. */
   branch?: string;
+  /**
+   * Worked on the record itself rather than through the task screen.
+   *
+   * Some rungs are not an event to log. Checking that what we hold about a
+   * provider is true is done by reading the record and fixing it, so the
+   * record is the screen, and the rung is a checkbox in its To do band.
+   * There is nothing to script, nothing to send and no outcome to pick —
+   * offering notes, deferrals and four buttons would be furniture around an
+   * act that is already finished by the time you reach for them.
+   */
+  check?: boolean;
   actions: LadderAction[];
 }
 
@@ -162,9 +173,21 @@ export const LADDERS: Record<SectionKey, Ladder> = {
     emptyNote: "Providers populate from the catchment when the university is added.",
     steps: [
       {
-        title: "Call to get the right email",
-        what: "A short call to find out who should receive the program email.",
-        why: "A general inbox rarely reaches the owner.",
+        check: true,
+        title: "Research",
+        what: "Check what we hold against the provider's own website, before anyone calls.",
+        why: "Every wrong number caught here is a call nobody has to waste later.",
+        steps: [
+          "Open the record and find their website.",
+          "Review their website and fix anything that's wrong.",
+          "Confirm their address is no more than 60 minutes from the university.",
+        ],
+        actions: [{ label: "Done", outcome: "next", delay: 0 }],
+      },
+      {
+        title: "Call to confirm the right contact",
+        what: "A short call to confirm who we should be talking to, and how to reach them.",
+        why: "The research gives us a name and an address. Only the call proves they are the right ones.",
         steps: ["Call the main line.", "Ask who handles this and for their email.", "Type it in and log the call."],
         script:
           '"Hi, this is [your name] from Dr. DuBose\'s office, calling about his Student Caregiver Program. I\'d like to send your team the details — what\'s the best address?"',

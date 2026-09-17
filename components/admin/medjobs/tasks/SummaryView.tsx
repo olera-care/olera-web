@@ -19,14 +19,27 @@ import {
  * path, not the only one — an operator who wants to see the shape of a
  * campus before diving in should not have to close and reopen it.
  */
+/**
+ * Sections where a record can be typed in, and what one is called.
+ *
+ * Only providers, deliberately. Everything else on the board either arrives
+ * from a system — students from applications, the job board from the channel
+ * — or is found by a rung whose whole job is finding them, and a hand-typed
+ * row would sit outside the count those rungs are measured on.
+ */
+const ADD_BY_HAND = new Map<SectionKey, string>([["providers", "provider"]]);
+
 export default function SummaryView({
   university,
   onStart,
   onOpenRecord,
+  onAddRecord,
 }: {
   university: BoardUniversity;
   onStart: () => void;
   onOpenRecord: (record: BoardRecord) => void;
+  /** Start a record nobody has in the directory. Providers only, for now. */
+  onAddRecord: (section: SectionKey) => void;
 }) {
   const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({});
 
@@ -74,7 +87,8 @@ export default function SummaryView({
                     <p className="py-3 text-center text-[12.5px] text-gray-400">
                       {ladder.emptyNote ?? "Nothing here yet."}
                     </p>
-                  ) : (
+                  ) : null}
+                  {records.length > 0 && (
                     records.map((r) => {
                       const n = recordReady(r);
                       const soon = r.tasks
@@ -107,6 +121,23 @@ export default function SummaryView({
                         </button>
                       );
                     })
+                  )}
+                  {/*
+                    The catchment finds a provider only if the directory has
+                    one. An agency somebody knows about but the directory has
+                    never heard of would otherwise have nowhere to go, so the
+                    list ends with a way to start one by hand. Last, and grey:
+                    typing a record is the exception, not the work.
+                  */}
+                  {ADD_BY_HAND.has(key) && (
+                    <button
+                      type="button"
+                      onClick={() => onAddRecord(key)}
+                      className="mt-1 flex w-full items-center gap-1.5 border-t border-dashed border-gray-200 py-2.5 text-left text-[12.5px] font-medium text-gray-500 hover:text-primary-700"
+                    >
+                      <span className="text-[13px] leading-none">+</span>
+                      Add a {ADD_BY_HAND.get(key)}
+                    </button>
                   )}
                 </div>
               )}

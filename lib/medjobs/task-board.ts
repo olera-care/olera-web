@@ -117,6 +117,12 @@ export interface BoardUniversity {
   id: string;
   slug: string;
   name: string;
+  /**
+   * Where campus is, for a directions link: "33.4242,-111.9281" when we hold
+   * coordinates, the town otherwise, null when we hold neither. Resolved on
+   * the server because the catchment file that knows it is server-side.
+   */
+  mapsDestination: string | null;
   /** Straight from campus_channels — the dots keep their current meaning. */
   channels: Partial<Record<"st3" | "st4" | "st5" | "st6" | "st7", ChannelStatus>>;
   records: Record<SectionKey, BoardRecord[]>;
@@ -334,14 +340,7 @@ export function complete(
   };
 
   /** The next rung that is part of the forward sequence. */
-  const forward = (from: number): number | null => {
-    for (let i = from; i < ladder.steps.length; i += 1) {
-      const s = ladder.steps[i];
-      if (s.branch || s.seasonal || s.monthly) continue;
-      return i;
-    }
-    return null;
-  };
+  const forward = (from: number): number | null => forwardStep(record.section, from);
 
   if (task.redo) {
     // A deliberate repeat. It records itself and nothing else.
@@ -524,6 +523,35 @@ export function stillToCome(record: BoardRecord): Array<{ title: string; recurri
     out.push({ title: s.title, recurring: Boolean(s.seasonal || s.monthly) });
   }
   return out;
+}
+
+/**
+ * The next rung in the forward sequence at or after `from`, or null when the
+ * ladder has run out. Branch, seasonal and monthly rungs are reached by name
+ * or by the calendar, never by climbing, so they are stepped over.
+ *
+ * Exported because the server has to make the same decision when it queues
+ * whatever a finished rung leads to, and two copies of this loop would be
+ * two places for the ladder to drift.
+ */
+export function forwardStep(section: SectionKey, from: number): number | null {
+  const steps = LADDERS[section].steps;
+  for (let i = from; i < steps.length; i += 1) {
+    const s = steps[i];
+    if (s.branch || s.seasonal || s.monthly) continue;
+    return i;
+  }
+  return null;
+}
+
+/**
+ * True when this task is worked on the record rather than on its own screen.
+ *
+ * The one place that decides it, so the record, the run-through and the
+ * server all agree about which rungs are a checkbox — see LadderRung.check.
+ */
+export function isCheck(task: BoardTask): boolean {
+  return rungAt(task.section, task.step, task.round)?.check === true;
 }
 
 /** The title shown for a task, follow-up numbering and all. */

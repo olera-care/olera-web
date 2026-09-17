@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
-import { rungAt, type ContactField } from "@/lib/medjobs/ladders";
+import { rungAt, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
+  canReopen,
   complete,
   defer,
   doAgain,
   doneToday,
+  isCheck,
   nextReady,
   readyCount,
   reopen,
@@ -17,6 +19,7 @@ import {
   type BoardUniversity,
   type Effect,
 } from "@/lib/medjobs/task-board";
+import NewRecordView, { type NewRecord } from "./NewRecordView";
 import RecordView from "./RecordView";
 import SummaryView from "./SummaryView";
 import TaskView from "./TaskView";
@@ -34,7 +37,8 @@ import TaskView from "./TaskView";
 type View =
   | { kind: "summary" }
   | { kind: "task"; recordId: string; taskId: string }
-  | { kind: "record"; recordId: string };
+  | { kind: "record"; recordId: string }
+  | { kind: "new"; section: SectionKey };
 
 export default function UniversityFlow({
   university,
@@ -59,11 +63,22 @@ export default function UniversityFlow({
   onReload: () => void | Promise<void>;
 }) {
   const [view, setView] = useState<View>({ kind: "summary" });
+  /**
+   * True while the operator is working tasks in a row rather than browsing.
+   *
+   * It is the difference between finishing a rung and being handed the next
+   * one, and opening a record on purpose and being left on it. Both are
+   * right; which one it is depends on how you got here, and nothing else on
+   * the screen can tell.
+   */
+  const [running, setRunning] = useState(false);
   const [, force] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [cheer, setCheer] = useState<string | null>(null);
   const timers = useRef<number[]>([]);
+  /** Set when a write that refetches should hand over the next task after. */
+  const resume = useRef(false);
 
   useEffect(
     () => () => {
@@ -88,7 +103,21 @@ export default function UniversityFlow({
    * because a delete changes more than the record it names and guessing at
    * the rest is how a screen starts lying about what is saved.
    */
-  const send = async (payload: Record<string, unknown>, done: string) => {
+  const send = async (
+    payload: Record<string, unknown>,
+    done: string,
+    opts?: {
+      /**
+       * Skip the refetch. Only for a write the screen has already applied
+       * identically: reloading would be correct for this record and would
+       * throw away every un-persisted task on all the others, which is the
+       * whole board's worth of a run-through.
+       */
+      keepBoard?: boolean;
+      /** Put back what the optimistic change did, when the write failed. */
+      undo?: () => void;
+    },
+  ): Promise<{ ok: boolean; data?: Record<string, unknown> }> => {
     setBusy(true);
     try {
       const res = await fetch("/api/admin/medjobs/tasks-board/actions", {
@@ -96,17 +125,19 @@ export default function UniversityFlow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const json = (await res.json()) as { error?: string };
+      const json = (await res.json()) as { error?: string } & Record<string, unknown>;
       if (!res.ok) {
         say(json.error ?? "That did not save");
-        return false;
+        opts?.undo?.();
+        return { ok: false };
       }
-      say(done);
-      await onReload();
-      return true;
+      if (done) say(done);
+      if (!opts?.keepBoard) await onReload();
+      return { ok: true, data: json };
     } catch {
       say("Could not reach the server — nothing was saved");
-      return false;
+      opts?.undo?.();
+      return { ok: false };
     } finally {
       setBusy(false);
     }
@@ -122,19 +153,91 @@ export default function UniversityFlow({
   const task =
     view.kind === "task" && record ? record.tasks.find((t) => t.id === view.taskId) ?? null : null;
 
+  /**
+   * Show a task on whichever screen it belongs to.
+   *
+   * A check rung is worked on the record, so it opens the record. Everything
+   * else opens the task screen. Nothing left opens the summary.
+   */
+  const go = (next: { record: BoardRecord; task: BoardTask } | null) => {
+    if (!next) {
+      setView({ kind: "summary" });
+      return;
+    }
+    setView(
+      isCheck(next.task)
+        ? { kind: "record", recordId: next.record.id }
+        : { kind: "task", recordId: next.record.id, taskId: next.task.id },
+    );
+  };
+
+  /**
+   * A record that left the board should not end the run.
+   *
+   * Archiving and deleting refetch, because the record has to disappear and
+   * guessing at what else moved is how a screen starts lying. The refetch
+   * arrives as a new university object, so the run picks itself up here
+   * rather than trying to hold a pointer across it.
+   */
+  useEffect(() => {
+    if (!resume.current) return;
+    resume.current = false;
+    go(nextReady(university));
+    // Only when a new board arrives; go() and the rest are read fresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [university]);
+
   /** Where every change lands: the next task, or back to the summary. */
   const land = (effect: Effect) => {
-    if (effect.landOn) {
-      setView({ kind: "task", recordId: effect.landOn.record.id, taskId: effect.landOn.task.id });
-    } else {
-      setView({ kind: "summary" });
-    }
+    go(effect.landOn);
     redraw();
     if (effect.universityCleared) {
       celebrate(`${university.name} is clear for today`);
     } else if (effect.recordCleared && record) {
       say(`${record.name} — done for today`);
     }
+  };
+
+  /**
+   * Tick or untick a rung that is worked on the record.
+   *
+   * The screen applies it and the server is told separately, rather than the
+   * screen waiting for the server and then reloading. Reloading is right for
+   * this record and wrong for the board: it would discard every task
+   * completed in this sitting that has no home in the database yet. If the
+   * write fails, the tick is put back and the toast says so.
+   */
+  const check = (task: BoardTask, done: boolean) => {
+    if (!record || busy) return;
+    const rung = rungAt(task.section, task.step, task.round);
+    const action = rung?.actions[0];
+    if (!action) return;
+
+    if (!done) {
+      if (!canReopen(record, task)) {
+        say("Work has already moved on, so this can't be unticked");
+        return;
+      }
+      reopen(record, task);
+      redraw();
+      void send(
+        { op: "reopen_check", recordId: record.id, step: task.step, round: task.round },
+        "",
+        { keepBoard: true, undo: () => { complete(university, record, task, action); redraw(); } },
+      );
+      return;
+    }
+
+    const effect = complete(university, record, task, action);
+    redraw();
+    void send(
+      { op: "complete_check", recordId: record.id, step: task.step, round: task.round },
+      `${rung?.title ?? "Done"} — ${record.name}`,
+      { keepBoard: true, undo: () => { reopen(record, task); redraw(); } },
+    );
+    // Browsing leaves you where you are; a run-through hands over the next
+    // rung, which for a provider is the call on the same record.
+    if (running) go(effect.landOn);
   };
 
   const act = (index: number) => {
@@ -273,6 +376,12 @@ export default function UniversityFlow({
             );
           }}
           onOpenTask={(t: BoardTask) => setView({ kind: "task", recordId: record.id, taskId: t.id })}
+          onCheck={check}
+          campus={
+            university.mapsDestination
+              ? { name: university.name, destination: university.mapsDestination }
+              : null
+          }
           onRevive={() => {
             const t = revive(record);
             setView({ kind: "task", recordId: record.id, taskId: t.id });
@@ -280,7 +389,12 @@ export default function UniversityFlow({
           }}
           onArchive={() => {
             void send({ op: "archive_record", recordId: record.id }, `${record.name} archived`)
-              .then((ok) => { if (ok) setView({ kind: "summary" }); });
+              .then(({ ok }) => {
+                if (!ok) return;
+                // A run-through should not stop because a record left it.
+                if (running) resume.current = true;
+                else setView({ kind: "summary" });
+              });
           }}
           onDelete={() => {
             // Destroying a record takes its call history with it, so the
@@ -290,17 +404,50 @@ export default function UniversityFlow({
             );
             if (!sure) return;
             void send({ op: "delete_record", recordId: record.id }, `${record.name} deleted`)
-              .then((ok) => { if (ok) setView({ kind: "summary" }); });
+              .then(({ ok }) => {
+                if (!ok) return;
+                // A run-through should not stop because a record left it.
+                if (running) resume.current = true;
+                else setView({ kind: "summary" });
+              });
+          }}
+        />
+      ) : view.kind === "new" ? (
+        <NewRecordView
+          section={view.section}
+          universityName={university.name}
+          busy={busy}
+          onCancel={() => setView({ kind: "summary" })}
+          onCreate={(draft: NewRecord) => {
+            void send(
+              { op: "create_record", campusId: university.id, section: view.section, ...draft },
+              `${draft.name.trim()} added`,
+            ).then(({ ok, data }) => {
+              // Open what was just created. The board has been refetched, so
+              // the id is the real one and the record is the real record.
+              if (ok && typeof data?.id === "string") {
+                setView({ kind: "record", recordId: data.id });
+              } else if (ok) {
+                setView({ kind: "summary" });
+              }
+            });
           }}
         />
       ) : (
         <SummaryView
           university={university}
           onStart={() => {
-            const nx = nextReady(university);
-            if (nx) setView({ kind: "task", recordId: nx.record.id, taskId: nx.task.id });
+            setRunning(true);
+            go(nextReady(university));
           }}
-          onOpenRecord={(r) => setView({ kind: "record", recordId: r.id })}
+          onOpenRecord={(r) => {
+            setRunning(false);
+            setView({ kind: "record", recordId: r.id });
+          }}
+          onAddRecord={(section) => {
+            setRunning(false);
+            setView({ kind: "new", section });
+          }}
         />
       )}
 

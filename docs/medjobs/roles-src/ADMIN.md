@@ -37,7 +37,7 @@ whose providers are loaded but un-researched has not completed PR1.
 
 | | |
 |---|---|
-| **Trigger** | You add a site. The system pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand |
+| **Trigger** | You add a site. The system pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand, with one exception: the providers list on the Tasks board ends with **Add a provider**, for an agency the directory has never carried. It starts on the same first rung and is worked identically |
 | **Tools** | Sites tab `olera.care/admin/medjobs/sites` &#183; **+ Add Site** modal &#183; In Basket Providers tab `olera.care/admin/medjobs/in-basket` &#183; the provider drawer &#183; **Log Pre-Flight outcome** modal |
 | **Communications** | None outbound. The pre-flight call is the only contact, and it uses the script in the log modal |
 | **Completion criteria** | Contact details confirmed on the call, and the row launched into outreach. Or three unsuccessful call attempts, and the row archived |
@@ -51,7 +51,21 @@ For a given site, work every provider on it.
 
 1. **Do the desk research first.** Fill in whatever phone, email and address you can
    find yourself, from the provider's website, the source link on the row, or **Fill
-   from Website**. Do not call a row you have not looked at.
+   from Website**. Do not call a row you have not looked at. On the Tasks board this
+   desk pass is a rung of its own, named **Research**, and it is ticked on the record
+   rather than logged as a call. Four things have to be true before you tick it.
+
+   | Check | Against what |
+   |---|---|
+   | The name is the name the agency trades under | Their own website |
+   | The website opens and is theirs | Their own website |
+   | The phone number reaches them | Their own website |
+   | The address is within a **60-minute drive** of campus | Google Maps directions, not straight-line distance |
+
+   A provider outside the 60 minutes is archived here, before anybody calls it. The
+   catchment radius is a net, not a judgement: it is measured as the crow flies and
+   cannot see a mountain, a lake or a freeway.
+
 2. **Call every provider on the site.** The call confirms the research; research alone
    does not complete pre-flight.
 3. **Use the suggested script** shown in the log modal: *"Hi, this is \[your name\]

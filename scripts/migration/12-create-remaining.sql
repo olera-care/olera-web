@@ -252,8 +252,11 @@ BEGIN
   -- The opening rung differs by ladder, and getting this wrong would put
   -- records on a step that means something else.
   --
-  --   Providers  step 0 is "Call to get the right email" — exactly where a
-  --              named agency with no known contact belongs.
+  --   Providers  step 0 was "Call to get the right email" when this ran,
+  --              exactly where a named agency with no known contact
+  --              belongs. Script 17 later put a Research rung in front of
+  --              it, so step 0 now means Research and the call is step 1.
+  --              Re-run this only after reading 17.
   --   Advisors   step 0 is "Research the advising offices", a discovery
   --              rung whose action spawns the office records. An office we
   --              already have a name and number for must not sit there; it

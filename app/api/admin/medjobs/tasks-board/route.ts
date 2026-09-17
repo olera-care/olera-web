@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, SECTION_ORDER, type SectionKey } from "@/lib/medjobs/ladders";
+import { getPartnerUniversity } from "@/lib/medjobs/catchment";
 import {
   formatPhone,
   type BoardRecord,
@@ -401,7 +402,25 @@ export async function GET() {
       });
     }
 
-    return { id: campus.id, slug: campus.slug, name: campus.name, channels, records };
+    // Where campus is, for the drive-time link on a record's address. The
+    // coordinates are the ones the catchment is measured from, so the link
+    // and the radius are answering questions about the same point.
+    const uni = getPartnerUniversity(campus.slug);
+    const mapsDestination =
+      uni?.lat != null && uni?.lon != null
+        ? `${uni.lat},${uni.lon}`
+        : uni
+          ? `${uni.name}, ${uni.city}, ${uni.state}`
+          : null;
+
+    return {
+      id: campus.id,
+      slug: campus.slug,
+      name: campus.name,
+      mapsDestination,
+      channels,
+      records,
+    };
   });
 
   // A university with nothing on it at all is noise on the board.

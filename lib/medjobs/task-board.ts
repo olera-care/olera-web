@@ -371,6 +371,16 @@ export function complete(
   let landRecord: BoardRecord | null = null;
 
   const queue = (step: number, round: number, delay: number) => {
+    // A rung that is already waiting is not queued twice. Rungs opened as a
+    // block are all pending from the start, so finishing the first would
+    // otherwise add a second copy of the second.
+    const open = record.tasks.find((t) => !t.done && t.step === step && t.round === round);
+    if (open) {
+      record.step = step;
+      record.round = round;
+      landRecord = record;
+      return;
+    }
     const next = makeTask(record.section, step, round, dueIn(delay));
     record.tasks.push(next);
     task.spawned.push(next.id);
@@ -575,6 +585,9 @@ export function stillToCome(record: BoardRecord): Array<{ title: string; recurri
       ? null
       : { title: from === to ? `Follow up ${from}` : `Follow ups ${from}–${to}`, recurring: false };
 
+  /** A rung already on the record, waiting or done, is not still to come. */
+  const held = new Set(record.tasks.map((t) => t.step));
+
   const current = ladder.steps[record.step];
   if (current?.rounds) {
     const r = run((record.round || 1) + 1, current.rounds);
@@ -586,6 +599,7 @@ export function stillToCome(record: BoardRecord): Array<{ title: string; recurri
     // Already true, and shown as done elsewhere. Listing it here as well
     // would promise work that is not coming.
     if (s.satisfiedBy && record.facts?.[s.satisfiedBy]) continue;
+    if (held.has(i)) continue;
     if (s.rounds) {
       const r = run(1, s.rounds);
       if (r) out.push(r);

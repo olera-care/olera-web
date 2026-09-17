@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
-import { forwardStep, formatPhone } from "@/lib/medjobs/task-board";
+import { dueIn, forwardStep, formatPhone, resolveNext } from "@/lib/medjobs/task-board";
 import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
 import { handleStudentOp, type StudentOp, type StudentRow } from "./student";
 
@@ -35,6 +35,15 @@ type Body =
   | { op: "archive_record"; recordId: string; reason?: string }
   | { op: "complete_check"; recordId: string; step: number; round: number }
   | { op: "reopen_check"; recordId: string; step: number; round: number }
+  | {
+      op: "complete_record_task";
+      recordId: string;
+      step: number;
+      round: number;
+      actionIndex: number;
+      note?: string;
+    }
+  | { op: "defer_record_task"; recordId: string; step: number; round: number; days: number }
   | {
       op: "create_record";
       campusId: string;
@@ -175,15 +184,20 @@ export async function POST(req: Request) {
         .insert({ outreach_id: created.id, is_primary: true, name: "", ...person });
     }
 
-    // The first rung, the same as every record the catchment creates.
-    const first = forwardStep(body.section, 0) ?? 0;
-    await db.from("student_outreach_tasks").insert({
-      outreach_id: created.id,
-      task_type: taskTypeFor(body.section, first),
-      status: "pending",
-      due_at: new Date().toISOString().slice(0, 10),
-      payload: { step: first, round: LADDERS[body.section].steps[first]?.rounds ? 1 : 0 },
-    });
+    // The opening rungs, the same as every record the catchment creates.
+    // Providers open three at once: look them up, ring them, send them the
+    // programme. They are one sitting's work.
+    const block = Math.max(1, LADDERS[body.section].openTogether ?? 1);
+    const today = new Date().toISOString().slice(0, 10);
+    await db.from("student_outreach_tasks").insert(
+      Array.from({ length: block }, (_, k) => ({
+        outreach_id: created.id,
+        task_type: taskTypeFor(body.section, k),
+        status: "pending",
+        due_at: today,
+        payload: { step: k, round: LADDERS[body.section].steps[k]?.rounds ? 1 : 0 },
+      })),
+    );
 
     return NextResponse.json({ ok: true, id: created.id, name });
   }
@@ -361,6 +375,8 @@ export async function POST(req: Request) {
     // screen, and why it is the one rung that reaches the database as it
     // happens rather than at the end of a sitting.
     case "complete_check":
+    case "complete_record_task":
+    case "defer_record_task":
     case "reopen_check": {
       const section = sectionOf(outreach);
       if (!section) {
@@ -371,7 +387,12 @@ export async function POST(req: Request) {
       if (!Number.isInteger(step) || !Number.isInteger(round)) {
         return NextResponse.json({ error: "Missing step or round" }, { status: 400 });
       }
-      if (!LADDERS[section].steps[step]?.check) {
+      const rung = LADDERS[section].steps[step];
+      if (!rung) return NextResponse.json({ error: "That rung does not exist" }, { status: 400 });
+      // The checkbox ops are for rungs worked on the record; the task ops
+      // for every other kind. Crossing them would let a screen record an
+      // outcome the rung does not offer.
+      if (body.op === "complete_check" && !rung.check) {
         return NextResponse.json(
           { error: "That rung is not worked on the record" },
           { status: 400 },
@@ -389,11 +410,37 @@ export async function POST(req: Request) {
         (t.payload ?? {}) as { step?: number; round?: number };
       const atStep = (n: number) => (rows ?? []).filter((t) => (where(t).step ?? 0) === n);
 
-      const next = forwardStep(section, step + 1);
+      // Which rung an outcome leads to is the ladder's decision, not this
+      // file's — the same call the screen made before it sent this.
+      const action =
+        body.op === "complete_record_task" ? rung.actions[Number(body.actionIndex)] : rung.actions[0];
+      if (body.op === "complete_record_task" && !action) {
+        return NextResponse.json(
+          { error: "That outcome does not exist on this rung" },
+          { status: 400 },
+        );
+      }
+      const nextRung = action ? resolveNext(section, step, round, action) : null;
+      const next = nextRung?.step ?? null;
       const mine = atStep(step).filter((t) => (where(t).round ?? 0) === round);
-      const after = next === null ? [] : atStep(next);
+      const after = next === null ? [] : atStep(next).filter(
+        (t) => (where(t).round ?? 0) === (nextRung?.round ?? 0),
+      );
 
-      if (body.op === "complete_check") {
+      if (body.op === "defer_record_task") {
+        const open = mine.find((t) => t.status === "pending");
+        if (!open) return NextResponse.json({ error: "Nothing to put off" }, { status: 400 });
+        const { error } = await db
+          .from("student_outreach_tasks")
+          .update({ due_at: dueIn(Number(body.days) || 1) })
+          .eq("id", open.id);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        await db.from("student_outreach").update(stamp(user.id)).eq("id", outreach.id);
+        return NextResponse.json({ ok: true });
+      }
+
+      if (body.op === "complete_check" || body.op === "complete_record_task") {
+        const note = body.op === "complete_record_task" ? (body.note ?? "").trim() : "";
         const open = mine.find((t) => t.status === "pending");
         if (open) {
           const { error } = await db
@@ -405,6 +452,7 @@ export async function POST(req: Request) {
               // now, so say so rather than leaving the row mislabelled.
               task_type: taskTypeFor(section, step),
               completed_at: new Date().toISOString(),
+              ...(note ? { notes: note } : {}),
             })
             .eq("id", open.id);
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -418,18 +466,19 @@ export async function POST(req: Request) {
             due_at: new Date().toISOString().slice(0, 10),
             completed_at: new Date().toISOString(),
             payload: { step, round },
+            notes: note || null,
           });
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
         // Queue what comes next, unless it is already waiting.
-        if (next !== null && !after.some((t) => t.status === "pending")) {
+        if (next !== null && nextRung && !after.some((t) => t.status === "pending")) {
           const { error } = await db.from("student_outreach_tasks").insert({
             outreach_id: outreach.id,
             task_type: taskTypeFor(section, next),
             status: "pending",
-            due_at: new Date().toISOString().slice(0, 10),
-            payload: { step: next, round: LADDERS[section].steps[next]?.rounds ? 1 : 0 },
+            due_at: dueIn(action?.delay ?? 0),
+            payload: { step: nextRung.step, round: nextRung.round },
           });
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
         }

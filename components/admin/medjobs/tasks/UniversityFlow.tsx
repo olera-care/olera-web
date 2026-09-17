@@ -38,14 +38,18 @@ import TaskView from "./TaskView";
  * Sections whose task screens reach the database, and the ops that take them
  * there.
  *
- * Two so far, for the same reason each: the job board because the green
- * light is derived from what it records, and students because a meeting that
- * evaporates on a refresh is a meeting somebody books twice. Providers are
- * the gap — their calls still live in this tab until the page reloads.
+ * All three that have one, now. Providers were the last gap and the reason
+ * it closed is the opening block: three rungs waiting at once is only worth
+ * anything if finishing the first two survives a refresh.
  */
 const PERSISTED: Partial<
   Record<SectionKey, { complete: string; reopen: string; defer: string }>
 > = {
+  providers: {
+    complete: "complete_record_task",
+    reopen: "reopen_check",
+    defer: "defer_record_task",
+  },
   jobboard: {
     complete: "complete_channel_task",
     reopen: "reopen_check",

@@ -79,6 +79,44 @@ ok(
   forwardStep("providers", steps.length - 1) === null,
 );
 
+console.log("\nThe opening block");
+ok("providers open three rungs at once", LADDERS.providers.openTogether === 3);
+{
+  // The block is all pending from the start, so finishing the first must not
+  // add a second copy of the second.
+  const u2 = board();
+  const rec2 = makeRecord("providers", "Acacia Home Care", 0);
+  for (const k of [1, 2]) {
+    rec2.tasks.push({
+      id: `open-${k}`, section: "providers", step: k, round: 0,
+      dueAt: new Date(new Date().setHours(0, 0, 0, 0)).toISOString().slice(0, 10),
+      done: false, outcome: null, note: "", loggedOn: null, spawned: [], spawnedRecords: [],
+    });
+  }
+  u2.records.providers.push(rec2);
+  complete(u2, rec2, rec2.tasks[0], LADDERS.providers.steps[0].actions[0]);
+  const openNow = rec2.tasks.filter((t) => !t.done);
+  ok("finishing Research leaves two open, not three", openNow.length === 2, String(openNow.length));
+  ok(
+    "and does not duplicate the call rung",
+    openNow.filter((t) => t.step === 1).length === 1,
+  );
+  ok(
+    "what is still to come skips the rungs already open",
+    !stillToCome(rec2).some((x) => x.title === "Send the program info"),
+  );
+  // Finishing the last rung of the block is what starts the follow-up clock.
+  const send = openNow.find((t) => t.step === 2)!;
+  complete(u2, rec2, send, LADDERS.providers.steps[2].actions[0]);
+  const queued = rec2.tasks.find((t) => !t.done && t.step === 3);
+  ok("sending the programme queues the first follow-up", Boolean(queued));
+  ok(
+    "two business days out, not today",
+    queued ? queued.dueAt > new Date(new Date().setHours(0, 0, 0, 0)).toISOString().slice(0, 10) : false,
+    queued?.dueAt,
+  );
+}
+
 console.log("\nA provider, from the top");
 const u = board();
 const rec = makeRecord("providers", "A Place At Home Southwest Valley", 0);

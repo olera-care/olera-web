@@ -167,6 +167,19 @@ export interface Ladder {
   /** Records arrive on their own; there is nothing to start. */
   auto?: boolean;
   /**
+   * How many rungs open at once when a record starts.
+   *
+   * Providers open three: look them up, ring them, send them the programme.
+   * They are one sitting's work and they are done in that order, but there
+   * is no reason to hide the second until the first is logged — the operator
+   * has the record open and the phone in their hand.
+   *
+   * What it does not change is what comes after. The follow-up is queued by
+   * finishing the last rung in the block, not the first, so the two-day
+   * clock starts when the email actually goes out.
+   */
+  openTogether?: number;
+  /**
    * The university has exactly one of these, so the section is the record.
    *
    * Opening it should not cost two clicks — one into a list, one onto the
@@ -222,6 +235,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
     label: "Providers",
     goal: "signed up",
     auto: true,
+    openTogether: 3,
     emptyNote: "Providers populate from the catchment when the university is added.",
     steps: [
       {

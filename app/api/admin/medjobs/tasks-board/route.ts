@@ -385,6 +385,31 @@ export async function GET() {
       const editedAddr = (research.address ?? "").trim();
       const addrFromDirectory = dirAddr.get(research.olera_provider_id ?? "") ?? "";
 
+      // Rungs that open as a block are all open from the start. A rung in
+      // the block with no row against it is drawn as waiting, because it is:
+      // one sitting's work, done in order, and nothing is served by hiding
+      // the second until the first is logged. Completing one writes its row.
+      const block = LADDERS[section].openTogether ?? 0;
+      if (!closed) {
+        for (let k = 0; k < block; k += 1) {
+          if (tasks.some((t) => t.step === k)) continue;
+          tasks.push({
+            id: `auto:${row.id}:${k}`,
+            section,
+            step: k,
+            round: 0,
+            dueAt: day(null),
+            done: false,
+            outcome: null,
+            note: "",
+            loggedOn: null,
+            spawned: [],
+            spawnedRecords: [],
+          });
+        }
+        tasks.sort((a, b) => a.step - b.step || a.round - b.round);
+      }
+
       records[section].push({
         id: row.id,
         section,
@@ -398,9 +423,10 @@ export async function GET() {
         address: editedAddr || addrFromDirectory,
         addressEdited: Boolean(editedAddr),
         contact2: secondOf.get(row.id),
-        // Position is derived from the work in flight, not stored twice.
-        step: closed ? null : pending[0]?.step ?? 0,
-        round: pending[0]?.round ?? 0,
+        // Position is derived from the work in flight, not stored twice. The
+        // lowest open rung leads, so a block reads top down.
+        step: closed ? null : tasks.filter((t) => !t.done)[0]?.step ?? 0,
+        round: tasks.filter((t) => !t.done)[0]?.round ?? 0,
         state: closed ? row.status.replace(/_/g, " ") : null,
         tasks,
       });

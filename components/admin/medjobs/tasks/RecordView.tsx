@@ -365,22 +365,34 @@ function SecondContact({
   const [open, setOpen] = useState(filled);
 
   if (!open) {
+    // Collapsed, but never silently. If somebody is in there, their name is
+    // on the button, so a second contact is not hidden by a closed panel.
+    const who = existing?.contact?.trim() || existing?.email?.trim();
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-2 text-[12.5px] font-medium text-primary-700 hover:text-primary-800 hover:underline"
+        className="mt-2 flex items-center gap-1.5 text-[12.5px] font-medium text-primary-700 hover:text-primary-800 hover:underline"
       >
-        + Add a contact
+        <Chevron open={false} />
+        {filled && who ? `Second contact · ${who}` : "Add a contact"}
       </button>
     );
   }
 
   return (
     <div className="mt-3 rounded-md border border-gray-100 bg-gray-50/60 p-2.5">
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        className="mb-1.5 flex w-full items-center gap-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-400 hover:text-gray-600"
+      >
+        <Chevron open />
         Second contact
-      </p>
+        <span className="ml-auto text-[11px] font-medium normal-case tracking-normal">
+          Hide
+        </span>
+      </button>
       <div className="space-y-1.5">
         {FIELDS.map((f) => (
           <label key={f} className="flex items-center gap-2.5">
@@ -398,5 +410,23 @@ function SecondContact({
         ))}
       </div>
     </div>
+  );
+}
+
+/** The usual disclosure triangle, rotated rather than swapped. */
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+      className={`h-2.5 w-2.5 shrink-0 transition-transform ${open ? "rotate-90" : ""}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 2l4 4-4 4" />
+    </svg>
   );
 }

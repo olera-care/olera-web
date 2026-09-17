@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
-import { rungAt, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
+import { LADDERS, rungAt, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   canReopen,
   complete,
@@ -249,6 +249,34 @@ export default function UniversityFlow({
         ? { label: "They replied", outcome: "replied" as const, delay: 0 }
         : rung.actions[index];
     if (!action) return;
+
+    // The job board is the one ladder whose progress is written down, because
+    // the green light on the board is derived from it. Everything else still
+    // lives in this tab until task persistence is done properly.
+    if (record.section === "jobboard" && index >= 0) {
+      void send(
+        {
+          op: "complete_channel_task",
+          recordId: record.id,
+          step: task.step,
+          round: task.round,
+          actionIndex: index,
+          note: task.note,
+        },
+        "",
+        { keepBoard: true },
+      ).then(({ ok, data }) => {
+        if (!ok || !data?.live) return;
+        // The server has just told us the channel activated. The dot reads
+        // from the channel, not the record, so it is patched here rather
+        // than waiting for whenever the board is next refetched.
+        const channel = LADDERS.jobboard.channel;
+        if (channel) university.channels[channel] = "live";
+        redraw();
+        say(`Job board is live at ${university.name}`);
+      });
+    }
+
     land(complete(university, record, task, action));
   };
 
@@ -287,7 +315,22 @@ export default function UniversityFlow({
           task={task}
           onOpenRecord={() => setView({ kind: "record", recordId: record.id })}
           onAct={act}
-          onDefer={(days) => land(defer(university, record, task, days))}
+          onDefer={(days) => {
+            if (record.section === "jobboard") {
+              void send(
+                {
+                  op: "defer_channel_task",
+                  recordId: record.id,
+                  step: task.step,
+                  round: task.round,
+                  days,
+                },
+                "",
+                { keepBoard: true },
+              );
+            }
+            land(defer(university, record, task, days));
+          }}
           onStop={(reason) => {
             const rung = rungAt(task.section, task.step, task.round);
             const action = rung?.actions[0];
@@ -311,6 +354,28 @@ export default function UniversityFlow({
             force((n) => n + 1);
           }}
           onReopen={() => {
+            // Undo has to reach the database wherever the doing did, or the
+            // next refetch quietly puts the rung back.
+            if (record.section === "jobboard") {
+              void send(
+                {
+                  op: "reopen_check",
+                  recordId: record.id,
+                  step: task.step,
+                  round: task.round,
+                },
+                "",
+                { keepBoard: true },
+              ).then(({ ok }) => {
+                if (!ok) return;
+                // Taking back the criterion can take the channel out of live.
+                const channel = LADDERS.jobboard.channel;
+                if (channel && university.channels[channel] === "live") {
+                  university.channels[channel] = "in_progress";
+                  redraw();
+                }
+              });
+            }
             reopen(record, task);
             redraw();
           }}
@@ -342,6 +407,10 @@ export default function UniversityFlow({
             record.addressEdited = true;
             force((n) => n + 1);
           }}
+          onChannelField={(f, v) => {
+            record[f] = v;
+            force((n) => n + 1);
+          }}
           onField2={(f, v) => {
             record.contact2 = {
               contact: "",
@@ -354,6 +423,24 @@ export default function UniversityFlow({
             force((n) => n + 1);
           }}
           onSaveFields={() => {
+            if (record.section === "jobboard") {
+              void send(
+                {
+                  op: "save_channel",
+                  recordId: record.id,
+                  fields: {
+                    boardUrl: record.boardUrl,
+                    postingUrl: record.postingUrl,
+                    contact: record.contact,
+                    email: record.email,
+                    servicesEmail: record.servicesEmail,
+                  },
+                },
+                "Saved",
+                { keepBoard: true },
+              );
+              return;
+            }
             void send(
               {
                 op: "save_fields",

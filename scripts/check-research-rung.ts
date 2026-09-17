@@ -59,10 +59,15 @@ ok(
   steps[1]?.title,
 );
 ok("nothing still says get the right email", !JSON.stringify(LADDERS).includes("get the right email"));
+// The job board earned one too: a channel has nobody to call either, and
+// its first rung is finding the way in. Anywhere else would be a checkbox
+// the server refuses, so the list is asserted rather than assumed.
 ok(
-  "no other ladder has a rung worked on the record",
-  SECTION_ORDER.filter((s) => s !== "providers").every((s) =>
-    LADDERS[s].steps.every((r) => !r.check),
+  "only providers and the job board are worked on the record",
+  SECTION_ORDER.every((s) =>
+    LADDERS[s].steps.every((r, i) =>
+      r.check ? (s === "providers" || s === "jobboard") && i === 0 : true,
+    ),
   ),
 );
 

@@ -89,7 +89,7 @@ export async function GET() {
   ] =
     await Promise.all([
       db.from("student_outreach_campuses").select("id, slug, name").order("name"),
-      db.from("campus_channels").select("id, campus_id, channel, status"),
+      db.from("campus_channels").select("id, campus_id, channel, status, criteria, detail"),
       db
         .from("campus_channel_records")
         .select("id, channel_id, kind, name, status, contacts")
@@ -309,16 +309,29 @@ export async function GET() {
         .filter((t) => !t.record_id)
         .map((t) => siteTask(t, "jobboard"));
       const pending = tasks.filter((t) => !t.done);
+      // campus_channels.detail was made for exactly this — its comment in
+      // migration 219 already names ST3 posting_url. The board reads it
+      // rather than inventing a second home for the same two links.
+      const detail = (ch.detail ?? {}) as {
+        board_url?: string;
+        posting_url?: string;
+        contact_name?: string;
+        contact_email?: string;
+        services_email?: string;
+      };
       records.jobboard.push({
         id: ch.id,
         section: "jobboard",
         name: "University job board",
-        contact: "",
+        contact: detail.contact_name ?? "",
         role: "",
         phone: "",
-        email: "",
+        email: detail.contact_email ?? "",
         website: "",
         address: "",
+        boardUrl: detail.board_url ?? "",
+        postingUrl: detail.posting_url ?? "",
+        servicesEmail: detail.services_email ?? "",
         step: ch.status === "live" ? null : pending[0]?.step ?? 0,
         round: 0,
         state: ch.status === "live" ? LADDERS.jobboard.goal : null,

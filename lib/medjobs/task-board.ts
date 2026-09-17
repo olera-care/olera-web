@@ -103,6 +103,18 @@ export interface BoardRecord {
    * cost the normal case any attention.
    */
   contact2?: { contact: string; role: string; phone: string; email: string };
+  /**
+   * Job board only. A channel is not a person, so none of the fields above
+   * describe it: what it has is a way in and, once there is one, a listing.
+   * Both live on the record and are filled at different rungs — the way in
+   * during Research, the listing when it is approved — but neither is
+   * locked to its rung, because finding the listing early is not a reason
+   * to make somebody wait to write it down.
+   */
+  boardUrl?: string;
+  postingUrl?: string;
+  /** Job board only: the inbox career services answer from, if there is one. */
+  servicesEmail?: string;
   /** Null once the record has stopped climbing — reached its goal or stopped. */
   step: number | null;
   round: number;
@@ -342,8 +354,23 @@ export function complete(
   /** The next rung that is part of the forward sequence. */
   const forward = (from: number): number | null => forwardStep(record.section, from);
 
+  /** The rung of this name, branch or not, if the ladder has one. */
+  const branchAt = (name: string): number =>
+    ladder.steps.findIndex((s) => (s.branch ?? s.name) === name);
+
   if (task.redo) {
     // A deliberate repeat. It records itself and nothing else.
+  } else if (action.goto && action.outcome !== "goal" && branchAt(action.goto) >= 0) {
+    // A branch is skipped when climbing, so an outcome that exists to reach
+    // one has to name it. Without this the seasonal "it's gone" fell off the
+    // end of the ladder and marked the channel live.
+    //
+    // Reaching the goal is deliberately not handled here. A goal that names
+    // a rung has two jobs — say the ladder is finished, and queue what comes
+    // back later — and taking the shortcut here did only the second, so the
+    // job board queued its seasonal check and never went live.
+    const at = branchAt(action.goto);
+    queue(at, ladder.steps[at].rounds ? 1 : 0, action.delay);
   } else {
     switch (action.outcome) {
       case "next": {
@@ -371,10 +398,16 @@ export function complete(
         queue(task.step, task.round, action.delay);
         break;
       case "goal": {
-        const at = { step: task.step, round: task.round };
+        // A goal that recurs — monthly hours, or the seasonal check a
+        // finished channel earns. `goto` names which rung comes back; with
+        // no name it is this one again.
+        const back = action.goto ? branchAt(action.goto) : task.step;
+        const at =
+          back >= 0 && action.goto
+            ? { step: back, round: ladder.steps[back].rounds ? 1 : 0 }
+            : { step: task.step, round: task.round };
         stop(ladder.goal);
         if (action.delay) {
-          // A goal that recurs — monthly hours, the seasonal check.
           queue(at.step, at.round, action.delay);
           record.state = ladder.goal;
           record.step = null;
@@ -523,6 +556,46 @@ export function stillToCome(record: BoardRecord): Array<{ title: string; recurri
     out.push({ title: s.title, recurring: Boolean(s.seasonal || s.monthly) });
   }
   return out;
+}
+
+/**
+ * Where an action sends a record: a rung, or nothing left.
+ *
+ * Exported because the screen and the server both have to make this call —
+ * the screen to show the next task immediately, the server to write it — and
+ * two copies of the rule would be two rules. `scripts/check-job-board.ts`
+ * asserts this agrees with `complete()` for every rung on the ladder.
+ */
+export function resolveNext(
+  section: SectionKey,
+  step: number,
+  round: number,
+  action: LadderAction,
+): { step: number; round: number } | null {
+  const steps = LADDERS[section].steps;
+  const at = (name: string) => steps.findIndex((r) => (r.branch ?? r.name) === name);
+
+  // A named rung wins: it is the only way to reach a branch, and the only
+  // way a finished ladder earns its recurring check.
+  if (action.goto) {
+    const i = at(action.goto);
+    if (i >= 0) return { step: i, round: steps[i].rounds ? 1 : 0 };
+  }
+
+  const rung = rungAt(section, step, round);
+  switch (action.outcome) {
+    case "repeat":
+      return { step, round };
+    case "next":
+      if (rung?.rounds) return round < rung.rounds ? { step, round: round + 1 } : null;
+    // falls through: a rung outside a block moves on the same way a reply does
+    case "replied": {
+      const nxt = forwardStep(section, step + 1);
+      return nxt === null ? null : { step: nxt, round: steps[nxt].rounds ? 1 : 0 };
+    }
+    default:
+      return null;
+  }
 }
 
 /**

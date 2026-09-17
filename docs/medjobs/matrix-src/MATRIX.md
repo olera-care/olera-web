@@ -809,6 +809,21 @@ each one alive.
 | **ST6** | Campus events | We are registered for a named event on a named date | Confirm it is still scheduled and still our date; rebook when it moves | Before each event, then re-book |
 | **ST7** | Professors and class visits | A named professor has agreed to an introduction or a visit | Follow up per professor, with a record of who was contacted, who agreed, and which class was visited | Per professor, then per term |
 
+**ST3, rung by rung.** The job board is the one channel the board works as an explicit ladder, because its
+steps happen days apart and strictly in order.
+
+| Rung | Done when | What it records |
+|---|---|---|
+| **Research** | you have found where an employer submits a posting at this campus | the job board link, and whoever owns it if anyone does |
+| **Confirm it is submitted** | the listing is with the university | ticks *submitted* |
+| **Confirm it is approved** | the listing is on their board | the listing link; ticks *approved* |
+| **Confirm the first student has applied** | somebody came through it | ticks *visible*, which is what turns the channel live |
+| **Confirm the listing is still live** | seasonally, that a student could still apply | nothing; it is a look |
+
+Research comes first because the reason a job board stalls is almost never the posting. It is that nobody
+knew where the posting goes, and each campus hides that somewhere different. The two middle rungs carry a
+two-day reminder rather than waiting to be remembered, since approval sits in somebody else's queue.
+
 **Decision rules.** These are the judgement calls that come up every week. They are settled here so they are not settled differently at each campus.
 
 | Situation | Do this |

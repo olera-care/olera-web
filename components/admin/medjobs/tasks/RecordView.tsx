@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
+import { Attachment } from "./TaskView";
 import {
   dueLabel,
   formatPhone,
@@ -30,6 +31,27 @@ const LABEL: Record<ContactField, string> = {
   phone: "Phone",
   email: "Email",
 };
+
+/**
+ * What a job board has instead of a person.
+ *
+ * A channel is not somebody you call, so Primary contact, Role, Phone and
+ * Address described nothing and sat there as six dashes. These are the two
+ * links the rungs are actually about, plus whoever owns the board if anyone
+ * does.
+ */
+export type ChannelField = "boardUrl" | "postingUrl" | "contact" | "email" | "servicesEmail";
+
+const CHANNEL_LINKS: Array<{ key: ChannelField; label: string; hint: string }> = [
+  { key: "boardUrl", label: "Job board link", hint: "Where an employer signs in or submits" },
+  { key: "postingUrl", label: "Listing link", hint: "The live posting, once it is up" },
+];
+
+const CHANNEL_PEOPLE: Array<{ key: ChannelField; label: string }> = [
+  { key: "contact", label: "Name" },
+  { key: "email", label: "Email" },
+  { key: "servicesEmail", label: "Employer services" },
+];
 
 /** Bare host for display: the scheme and a trailing slash are noise here. */
 function tidyHost(url: string): string {
@@ -70,6 +92,7 @@ export default function RecordView({
   onRename,
   onAddress,
   onField2,
+  onChannelField,
   onOpenTask,
   onCheck,
   onRevive,
@@ -90,6 +113,8 @@ export default function RecordView({
   onAddress: (value: string) => void;
   /** The second person, if the disclosure is open. */
   onField2: (field: ContactField, value: string) => void;
+  /** Job board only: one of the channel's own fields changed. */
+  onChannelField: (field: ChannelField, value: string) => void;
   onOpenTask: (task: BoardTask) => void;
   /** Tick or untick a rung that is worked here rather than on its own screen. */
   onCheck: (task: BoardTask, done: boolean) => void;
@@ -108,6 +133,10 @@ export default function RecordView({
   const ahead = stillToCome(record);
   const [editingName, setEditingName] = useState(false);
   const site = record.website ?? "";
+  // A channel is not a record somebody created, so there is no name to
+  // correct and nothing to archive or destroy. Offering either would be a
+  // button that can only fail.
+  const isChannel = record.section === "jobboard";
   const stopped =
     record.step === null && record.state !== null && record.state !== ladder.goal && record.state !== "done";
 
@@ -139,15 +168,17 @@ export default function RecordView({
           ) : (
             <h3 className="text-[15px] font-semibold leading-snug text-gray-900">
               {record.name}
-              <button
-                type="button"
-                onClick={() => setEditingName(true)}
-                aria-label="Edit the name"
-                title="Edit the name"
-                className="ml-1.5 inline-flex align-middle text-gray-300 hover:text-gray-600"
-              >
-                <PencilIcon />
-              </button>
+              {!isChannel && (
+                <button
+                  type="button"
+                  onClick={() => setEditingName(true)}
+                  aria-label="Edit the name"
+                  title="Edit the name"
+                  className="ml-1.5 inline-flex align-middle text-gray-300 hover:text-gray-600"
+                >
+                  <PencilIcon />
+                </button>
+              )}
               {site && (
                 <>
                   {" "}
@@ -168,66 +199,72 @@ export default function RecordView({
             <p className="mt-0.5 text-[12.5px] text-gray-500">{record.state}</p>
           )}
         </div>
-        <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />
+        {!isChannel && <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />}
       </div>
 
-      <div className="mt-4 space-y-1.5">
-        {FIELDS.map((f) => (
-          <label key={f} className="flex items-center gap-2.5">
-            <span className="w-24 shrink-0 text-[12px] text-gray-500">{LABEL[f]}</span>
+      {isChannel ? (
+        <ChannelFields record={record} onChannelField={onChannelField} onSaveFields={onSaveFields} />
+      ) : (
+        <>
+        <div className="mt-4 space-y-1.5">
+          {FIELDS.map((f) => (
+            <label key={f} className="flex items-center gap-2.5">
+              <span className="w-24 shrink-0 text-[12px] text-gray-500">{LABEL[f]}</span>
+              <input
+                value={record[f]}
+                onChange={(e) => onField(f, e.target.value)}
+                onBlur={() => {
+                  // Punctuate on the way out, so the field shows what is saved.
+                  if (f === "phone") onField(f, formatPhone(record.phone));
+                  onSaveFields();
+                }}
+                placeholder="—"
+                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+              />
+            </label>
+          ))}
+
+          {/* Under Email, so a missing one can be filled in while you are here. */}
+          <label className="flex items-center gap-2.5">
+            <span className="w-24 shrink-0 text-[12px] text-gray-500">Website</span>
             <input
-              value={record[f]}
-              onChange={(e) => onField(f, e.target.value)}
-              onBlur={() => {
-                // Punctuate on the way out, so the field shows what is saved.
-                if (f === "phone") onField(f, formatPhone(record.phone));
-                onSaveFields();
-              }}
+              value={site}
+              onChange={(e) => onWebsite(e.target.value)}
+              onBlur={onSaveFields}
               placeholder="—"
               className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
             />
           </label>
-        ))}
 
-        {/* Under Email, so a missing one can be filled in while you are here. */}
-        <label className="flex items-center gap-2.5">
-          <span className="w-24 shrink-0 text-[12px] text-gray-500">Website</span>
-          <input
-            value={site}
-            onChange={(e) => onWebsite(e.target.value)}
-            onBlur={onSaveFields}
-            placeholder="—"
-            className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
-          />
-        </label>
+          {/* Under Website, because checking the site and checking where they
+              are is the same pass. */}
+          <label className="flex items-center gap-2.5">
+            <span className="w-24 shrink-0 text-[12px] text-gray-500">Address</span>
+            <input
+              value={record.address ?? ""}
+              onChange={(e) => onAddress(e.target.value)}
+              onBlur={onSaveFields}
+              placeholder="—"
+              className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+            />
+            {(record.address ?? "").trim() && campus && (
+              <a
+                href={directions(record.address, campus.destination)}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Drive time to ${campus.name}`}
+                aria-label={`Drive time to ${campus.name}`}
+                className="shrink-0 rounded-md px-1.5 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
+              >
+                <RouteIcon />
+              </a>
+            )}
+          </label>
+        </div>
 
-        {/* Under Website, because checking the site and checking where they
-            are is the same pass. */}
-        <label className="flex items-center gap-2.5">
-          <span className="w-24 shrink-0 text-[12px] text-gray-500">Address</span>
-          <input
-            value={record.address ?? ""}
-            onChange={(e) => onAddress(e.target.value)}
-            onBlur={onSaveFields}
-            placeholder="—"
-            className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
-          />
-          {(record.address ?? "").trim() && campus && (
-            <a
-              href={directions(record.address, campus.destination)}
-              target="_blank"
-              rel="noopener noreferrer"
-              title={`Drive time to ${campus.name}`}
-              aria-label={`Drive time to ${campus.name}`}
-              className="shrink-0 rounded-md px-1.5 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
-            >
-              <RouteIcon />
-            </a>
-          )}
-        </label>
-      </div>
-
-      <SecondContact record={record} onField2={onField2} onSaveFields={onSaveFields} />
+        <SecondContact record={record} onField2={onField2} onSaveFields={onSaveFields} />
+        </>
+      )}
 
       {stopped && (
         <button
@@ -270,6 +307,102 @@ export default function RecordView({
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * A job board, as a record.
+ *
+ * Two links and, optionally, whoever owns the board. The links sit at the
+ * top because they are what every rung on this ladder is about: one rung
+ * finds the first, another finds the second, and the rest are checks you
+ * make by opening them. Each shows an arrow once there is something to
+ * open, so the check is a click rather than a copy-paste.
+ */
+function ChannelFields({
+  record,
+  onChannelField,
+  onSaveFields,
+}: {
+  record: BoardRecord;
+  onChannelField: (field: ChannelField, value: string) => void;
+  onSaveFields: () => void;
+}) {
+  const people = CHANNEL_PEOPLE.map((f) => (record[f.key] ?? "").trim()).filter(Boolean);
+  const [open, setOpen] = useState(people.length > 0);
+
+  return (
+    <>
+      <div className="mt-4 space-y-1.5">
+        {CHANNEL_LINKS.map((f) => {
+          const value = record[f.key] ?? "";
+          return (
+            <label key={f.key} className="flex items-center gap-2.5">
+              <span className="w-24 shrink-0 text-[12px] text-gray-500">{f.label}</span>
+              <input
+                value={value}
+                onChange={(e) => onChannelField(f.key, e.target.value)}
+                onBlur={onSaveFields}
+                placeholder="—"
+                title={f.hint}
+                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+              />
+              {value.trim() && (
+                <a
+                  href={href(value)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`Open ${f.label.toLowerCase()}`}
+                  aria-label={`Open ${f.label.toLowerCase()}`}
+                  className="shrink-0 rounded-md px-1.5 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
+                >
+                  <OpenIcon />
+                </a>
+              )}
+            </label>
+          );
+        })}
+      </div>
+
+      {/* Nobody owns some job boards, so this stays shut until it holds
+          somebody — the same promise the second contact makes. */}
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-2 flex items-center gap-1.5 text-[12.5px] font-medium text-primary-700 hover:text-primary-800 hover:underline"
+        >
+          <Chevron open={false} />
+          Add a contact
+        </button>
+      ) : (
+        <div className="mt-3 rounded-md border border-gray-100 bg-gray-50/60 p-2.5">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="mb-1.5 flex w-full items-center gap-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-400 hover:text-gray-600"
+          >
+            <Chevron open />
+            Contact
+            <span className="ml-auto text-[11px] font-medium normal-case tracking-normal">Hide</span>
+          </button>
+          <div className="space-y-1.5">
+            {CHANNEL_PEOPLE.map((f) => (
+              <label key={f.key} className="flex items-center gap-2.5">
+                <span className="w-24 shrink-0 text-[12px] text-gray-500">{f.label}</span>
+                <input
+                  value={record[f.key] ?? ""}
+                  onChange={(e) => onChannelField(f.key, e.target.value)}
+                  onBlur={onSaveFields}
+                  placeholder="—"
+                  className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:outline-none"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -382,6 +515,7 @@ function CheckRow({
               ))}
             </ol>
           </Help>
+          {rung.attachment && <Attachment attachment={rung.attachment} />}
         </div>
       )}
 
@@ -472,6 +606,26 @@ function PencilIcon() {
       strokeLinejoin="round"
     >
       <path d="M9.3 2.2l2.5 2.5L5 11.5l-3 .5.5-3z" />
+    </svg>
+  );
+}
+
+/** Open this link. An arrow leaving a box, which is what it does. */
+function OpenIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M11 8.2v3.1a1.2 1.2 0 0 1-1.2 1.2H2.7a1.2 1.2 0 0 1-1.2-1.2V4.2A1.2 1.2 0 0 1 2.7 3h3.1" />
+      <path d="M8.8 1.7h3.5v3.5" />
+      <path d="M6.2 7.8l6.1-6.1" />
     </svg>
   );
 }

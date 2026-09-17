@@ -224,6 +224,8 @@ export default function TaskView({
             ))}
           </ol>
 
+          {rung.attachment && <Attachment attachment={rung.attachment} />}
+
           {(rung.script || rung.email) && (
             <div className="mt-2.5">
               <button
@@ -404,17 +406,26 @@ export default function TaskView({
             >
               Not yet
             </button>
-            <button
-              type="button"
-              aria-label="More"
-              onClick={() => {
-                setShowStop((v) => !v);
-                setShowDefer(false);
-              }}
-              className={`${BTN} tracking-widest text-gray-500`}
-            >
-              ···
-            </button>
+            {/*
+              Stopping is about a record somebody keeps contacting: a wrong
+              number, a person who left, an agency that asked us to stop. A
+              channel has none of those. The status it can take instead is
+              "not available here", which belongs with the channel rather
+              than on a task, and is not built yet.
+            */}
+            {record.section !== "jobboard" && (
+              <button
+                type="button"
+                aria-label="More"
+                onClick={() => {
+                  setShowStop((v) => !v);
+                  setShowDefer(false);
+                }}
+                className={`${BTN} tracking-widest text-gray-500`}
+              >
+                ···
+              </button>
+            )}
           </div>
 
           {replying && (
@@ -493,6 +504,44 @@ export default function TaskView({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * A document to look at while doing the rung.
+ *
+ * Served through the guarded SOP route by key, never as a public URL: these
+ * are internal, and the route is the one place that decides who sees them.
+ */
+export function Attachment({ attachment }: { attachment: { label: string; doc: string } }) {
+  return (
+    <a
+      href={`/api/admin/medjobs/sop?doc=${encodeURIComponent(attachment.doc)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2.5 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-primary-700 hover:underline"
+    >
+      <DocIcon />
+      {attachment.label}
+    </a>
+  );
+}
+
+function DocIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      className="h-3.5 w-3.5 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8.1 1.4H4a1.3 1.3 0 0 0-1.3 1.3v8.6A1.3 1.3 0 0 0 4 12.6h6a1.3 1.3 0 0 0 1.3-1.3V4.6z" />
+      <path d="M8.1 1.4v3.2h3.2" />
+    </svg>
   );
 }
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import { forwardStep, formatPhone } from "@/lib/medjobs/task-board";
+import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
 
 /**
  * The Tasks board, writing.
@@ -28,6 +29,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Body =
+  | ChannelOp
   | { op: "archive_record"; recordId: string; reason?: string }
   | { op: "complete_check"; recordId: string; step: number; round: number }
   | { op: "reopen_check"; recordId: string; step: number; round: number }
@@ -193,6 +195,23 @@ export async function POST(req: Request) {
     .select("id, campus_id, kind, stakeholder_type, organization_name, status, research_data")
     .eq("id", body.recordId)
     .maybeSingle();
+
+  // A job board is not a record in student_outreach — it is the channel row
+  // itself. Same id on the board, different table underneath, so a miss here
+  // is a question rather than an answer.
+  if (!outreach) {
+    const { data: channel } = await db
+      .from("campus_channels")
+      .select("id, campus_id, channel, status, criteria, detail, first_activated_at")
+      .eq("id", body.recordId)
+      .maybeSingle();
+    if (channel) {
+      const result = await handleChannelOp(db, body as ChannelOp, channel as ChannelRow, user.id);
+      return result.ok
+        ? NextResponse.json({ ok: true, ...(result.body ?? {}) })
+        : NextResponse.json({ error: result.error }, { status: result.status });
+    }
+  }
 
   if (!outreach) {
     // A synthetic starter row ("new:campus:section") has no database record

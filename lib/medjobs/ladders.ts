@@ -71,6 +71,15 @@ export interface LadderAction {
   delay: number;
   /** Criterion keys this answers on the channel, if any. */
   ticks?: string[];
+  /**
+   * Go to the branch rung of this name rather than the next in sequence.
+   *
+   * A branch is skipped when climbing, which is the point of it — but an
+   * outcome that exists to reach one then had nowhere to go, and fell off
+   * the end of the ladder into the goal. "The posting is gone" marked the
+   * job board live.
+   */
+  goto?: string;
 }
 
 export interface LadderRung {
@@ -91,6 +100,11 @@ export interface LadderRung {
   inputs?: LadderInput[];
   /** A longer note recorded on the task itself. */
   textarea?: string;
+  /**
+   * A document to look at while doing this. Served through the guarded SOP
+   * route by key, never as a public URL — these are internal.
+   */
+  attachment?: { label: string; doc: string };
   /** Names this rung would find. Each becomes its own record. */
   fanout?: string[];
   /** A block of N identical follow-ups rather than a single task. */
@@ -101,6 +115,14 @@ export interface LadderRung {
   monthly?: boolean;
   /** A branch-only rung, reached by name rather than in sequence. */
   branch?: string;
+  /**
+   * A name an action can aim at without making the rung a branch.
+   *
+   * A seasonal rung has to stay visible under "still to come", which a
+   * branch does not, but something still has to be able to queue it — a
+   * recurring check that nothing ever queues is a promise on a screen.
+   */
+  name?: string;
   /**
    * Worked on the record itself rather than through the task screen.
    *
@@ -121,6 +143,13 @@ export interface Ladder {
   goal: string;
   /** Records arrive on their own; there is nothing to start. */
   auto?: boolean;
+  /**
+   * The university has exactly one of these, so the section is the record.
+   *
+   * Opening it should not cost two clicks — one into a list, one onto the
+   * only thing in it. The list is furniture around a single object.
+   */
+  singleton?: boolean;
   /** Explains an empty section that nobody can populate by hand. */
   emptyNote?: string;
   /** The campus channel this ladder's criteria belong to. */
@@ -330,12 +359,34 @@ Dr. Logan DuBose's office · Olera`,
     label: "Job board",
     goal: "live",
     channel: "st3",
+    // One board per university. The list around it was furniture.
+    singleton: true,
     steps: [
       {
-        title: "Submit the job board request",
-        what: "Ask the university to post the Olera listing on their job board.",
+        check: true,
+        title: "Research",
+        // No {university} token: the help panel shows a rung as written, and
+        // only the email copy is filled from the record. A token here reached
+        // the screen as a token.
+        what: "Find where the university lets an employer post a job, and record the way in.",
+        why: "Every campus does this differently — Handshake, a career-services form, an email to a person.",
+        steps: [
+          "Search for the university career centre or student job board.",
+          "Find where an employer creates an account or submits a posting. Put that in Job board link.",
+          "If a person or an inbox owns it, add them under Add a contact. Optional.",
+        ],
+        actions: [{ label: "Done", outcome: "next", delay: 0 }],
+      },
+      {
+        title: "Confirm it's submitted",
+        what: "Get the Olera listing in front of the university, however this campus takes it.",
         why: "The job board is where students find us without us finding them.",
-        steps: ["Find the posting request form or contact.", "Submit the listing.", "Log it."],
+        steps: [
+          "Open the job board link on the record.",
+          "Submit the listing. Use the example posting as the template.",
+          "Log it here.",
+        ],
+        attachment: { label: "Example posting", doc: "posting" },
         email: {
           subject: "Job posting request — paid caregiving roles for pre-health students",
           body: `Hello,
@@ -354,32 +405,43 @@ Thank you,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Request submitted", outcome: "next", delay: 3, ticks: ["submitted"] }],
+        // Two business days, because approval is somebody else's queue.
+        actions: [{ label: "Submitted", outcome: "next", delay: 2, ticks: ["submitted"] }],
       },
       {
         title: "Confirm it's approved",
         what: "Check the university approved and posted the listing.",
         why: "Submitting and posting are not the same thing.",
-        steps: ["Look for the listing.", "Paste the link.", "Log it."],
-        inputs: [{ key: "posting_url", label: "Posting link", type: "url" }],
-        actions: [{ label: "Approved and live", outcome: "next", delay: 7, ticks: ["approved"] }],
+        steps: [
+          "Look for the listing on their board.",
+          "Put the link in Listing link on the record.",
+          "Log it here.",
+        ],
+        actions: [{ label: "Approved and live", outcome: "next", delay: 2, ticks: ["approved"] }],
       },
       {
         title: "Confirm the first student has applied",
         what: "Someone came through the board.",
         why: "A live listing nobody applies to isn't working.",
         steps: ["Check for applications.", "Log it."],
-        actions: [{ label: "First applicant in", outcome: "goal", delay: 0, ticks: ["visible"] }],
+        // The one that turns the light green: with submitted and approved
+        // already ticked, this completes the channel. Reaching the goal is
+        // also what earns the seasonal check, roughly a term out.
+        actions: [
+          { label: "First applicant in", outcome: "goal", delay: 120, ticks: ["visible"], goto: "seasonal" },
+        ],
       },
       {
         seasonal: true,
+        name: "seasonal",
         title: `Confirm the listing is still live — ${SEASON}`,
         what: "The seasonal look at the posting.",
         why: "Postings expire silently.",
-        steps: ["Open the posting.", "Confirm a student could still apply."],
+        steps: ["Open the listing link.", "Confirm a student could still apply."],
+        attachment: { label: "Example posting", doc: "posting" },
         actions: [
-          { label: "Still live", outcome: "goal", delay: 0 },
-          { label: "It's gone", outcome: "next", delay: 0 },
+          { label: "Still live", outcome: "goal", delay: 120, goto: "seasonal" },
+          { label: "It's gone", outcome: "next", delay: 0, goto: "relist" },
         ],
       },
       {
@@ -402,7 +464,9 @@ Thank you,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Back up", outcome: "goal", delay: 0, ticks: ["visible"] }],
+        actions: [
+          { label: "Back up", outcome: "goal", delay: 120, ticks: ["visible"], goto: "seasonal" },
+        ],
       },
     ],
   },

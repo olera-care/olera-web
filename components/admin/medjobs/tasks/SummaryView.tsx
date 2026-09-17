@@ -60,28 +60,38 @@ export default function SummaryView({
           const ladder = LADDERS[key];
           const records = university.records[key] ?? [];
           const waiting = sectionReady(university, key);
+          // A singleton section IS its record — the job board. Expanding it
+          // to reveal the only thing in it is a click that buys nothing, so
+          // the row opens the record and loses its triangle.
+          const only = ladder.singleton && records.length === 1 ? records[0] : null;
           const expanded = Boolean(open[key]);
           return (
             <div key={key} className="rounded-lg border border-gray-200">
               <button
                 type="button"
-                onClick={() => setOpen((o) => ({ ...o, [key]: !o[key] }))}
+                onClick={() =>
+                  only ? onOpenRecord(only) : setOpen((o) => ({ ...o, [key]: !o[key] }))
+                }
                 className="flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-left hover:bg-gray-50"
               >
                 <span className="w-2.5 shrink-0 text-[10px] text-gray-400">
-                  {expanded ? "▾" : "▸"}
+                  {only ? "" : expanded ? "▾" : "▸"}
                 </span>
                 <span className="flex-1 text-[13.5px] font-medium text-gray-900">{ladder.label}</span>
                 {waiting > 0 ? (
                   <span className="text-[12.5px] font-semibold tabular-nums text-warning-700">
                     {waiting}
                   </span>
+                ) : only ? (
+                  // "1" is not news about a thing there is exactly one of.
+                  // Whether it is live is.
+                  only.state && <span className="text-[12px] text-success-700">{only.state}</span>
                 ) : records.length ? (
                   <span className="text-[12px] text-gray-400">{records.length}</span>
                 ) : null}
               </button>
 
-              {expanded && (
+              {expanded && !only && (
                 <div className="border-t border-gray-100 px-3.5 pb-2">
                   {records.length === 0 ? (
                     <p className="py-3 text-center text-[12.5px] text-gray-400">

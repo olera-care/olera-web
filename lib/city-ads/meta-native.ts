@@ -8,6 +8,13 @@ export interface NativeForm {
   consentVersion: string;
   consentText: string;
   testOnly: boolean;
+  /**
+   * The Meta campaign carrying this form, so the admin panel can show delivery
+   * (spend, impressions, link clicks) alongside the lead outcomes. Optional:
+   * intake works without it, and an older config that predates this field must
+   * keep parsing rather than throwing the webhook into a 503.
+   */
+  campaignId?: string;
 }
 const id = (v: unknown): v is string => typeof v === "string" && /^\d{1,40}$/.test(v);
 
@@ -21,6 +28,11 @@ export function parseNativeForms(value: string | undefined): NativeForm[] {
     if (!row || !id(row.pageId) || !id(row.formId) || !row.slug || !row.campaignTag ||
         !row.consentVersion || !row.consentText ||
         ![row.slug,row.campaignTag,row.consentVersion,row.consentText].every(v => typeof v === "string" && v.trim().length > 0) || typeof row.testOnly !== "boolean" || seen.has(row.formId)) {
+      throw new Error("Invalid Meta form configuration");
+    }
+    // Optional, but if present it must be a real id — a typo here would point
+    // the delivery row at someone else's campaign, which is worse than a blank.
+    if (row.campaignId !== undefined && !id(row.campaignId)) {
       throw new Error("Invalid Meta form configuration");
     }
     seen.add(row.formId);

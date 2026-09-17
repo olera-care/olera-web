@@ -3,6 +3,15 @@ import { getCityConfig } from "./config";
 import { ensureCareSeekerForCityLead } from "./care-seeker.server";
 import { normalizeMetaLead, parseNativeForms, type NativeReceipt, type MetaLead } from "./meta-native";
 
+/**
+ * How many times a receipt is retried before it is left alone. Exported because
+ * the admin panel has to agree with the drain loop about what "still waiting"
+ * means: a receipt that has burned every attempt is not waiting, it is dead, and
+ * counting it as waiting made the panel's staleness alarm cry wolf forever on a
+ * dummy test lead from 15 September.
+ */
+export const MAX_RECEIPT_ATTEMPTS = 12;
+
 /** Existing city clock drains a durable inbox. Leases recover interrupted runs. */
 export async function runMetaNativeIntake(db: SupabaseClient) {
   const forms = parseNativeForms(process.env.META_LEADS_FORMS_JSON);
@@ -18,7 +27,7 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
   if (recoveryError) throw new Error("Could not recover Meta receipts");
   const { data: pending, error } = await db.from("meta_lead_receipts").select("*")
     .in("status", ["pending", "failed"])
-    .lt("attempts", 12).order("received_at").limit(10);
+    .lt("attempts", MAX_RECEIPT_ATTEMPTS).order("received_at").limit(10);
   if (error) throw new Error("Could not read Meta inbox");
   let processed = 0, failed = 0;
   const deadline = Date.now() + 25_000;

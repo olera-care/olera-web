@@ -45,6 +45,10 @@ Status (15 September 2026): integration merged through PR #1919 and promoted to 
    - `META_LEADS_PAGE_ACCESS_TOKEN`
    - `META_LEADS_GRAPH_VERSION` (supported version selected in the actual Meta app)
    - `META_LEADS_FORMS_JSON` (example below)
+   - `META_ADS_ACCESS_TOKEN` — **optional, reporting only.** A token with `ads_read` on ad account
+     `739297033485646`. Lead intake does not use it and works without it. It powers the delivery row
+     described below; unset, that row shows a setup hint instead of numbers, and nothing else changes.
+     This is a different permission from Page lead retrieval, so the Page token will not work here.
 4. Subscribe the Olera Page to the app. Callback: `https://olera.care/api/webhooks/meta-leads`. Confirm Meta's verification succeeds and the app can retrieve leads for the configured Page.
 5. Start with `testOnly: true` and ads unpublished. Use Meta's Lead Ads Testing Tool on the exact form, confirm a receipt reaches the admin panel and becomes a test city lead, and verify no message or provider offer. Preview deployments may need protection adjusted for Meta callbacks; do not weaken protection without approval.
 6. Switch the allowlist to `testOnly: false` only after the test. New submissions then queue confirmations. Existing test receipts remain test records. Approve the budget and final flight separately before publishing the ad.
@@ -59,9 +63,44 @@ Example form mapping (replace the placeholder; it deliberately fails validation)
   "campaignTag": "olera-dallas-native-sep26",
   "consentVersion": "meta-dallas-callback-sep26-v1",
   "consentText": "I agree that Olera may call or text me at this number about my request, including with automated technology. Consent is not a condition of service. Msg and data rates may apply. Reply STOP to opt out.",
-  "testOnly": true
+  "testOnly": true,
+  "campaignId": "120251489434010487"
 }]
 ```
+
+`campaignId` is optional and reporting-only: it names the Meta campaign carrying the form so the admin panel
+can show that campaign's delivery. Intake ignores it, and config written before this field existed still
+parses. If present it must be a numeric Meta campaign ID — a typo is rejected rather than accepted, because a
+wrong ID would render another campaign's numbers as if they were this one's.
+
+## The delivery row
+
+Added 17 September 2026. The panel's five outcome tiles all sit DOWNSTREAM of a submitted lead, so when they
+all read zero they cannot distinguish three different situations that need opposite responses: nobody saw the
+ad, nobody tapped it, or nobody finished the form. The delivery row shows Meta's half — spend, impressions,
+link clicks, CPM and cost per link click — for the native campaign, with the website Meta arms from
+`city_campaigns` alongside as comparison.
+
+That comparison is the point. A hand-read on 17 September found the Dallas native pilot buying impressions at
+$78.48 CPM against its own sibling website arm's $36.69, at an essentially identical click-through rate — a
+delivery price problem rather than a form problem, and nothing on the panel could have surfaced it.
+
+**Link clicks are an upper bound on form opens, not a count of them.** Meta's standard insights expose no
+form-view metric. A link click is recorded when someone taps the call to action; whether the form then
+rendered, and whether they read any of it, Meta does not report. The UI says so in the caption and the column
+tooltip. Do not relabel the column "form opens".
+
+Reads are lifetime (`date_preset=maximum`), never a rolling window — the same reasoning as
+`scripts/google-ads/metrics-sync.js`, where a 30-day window silently zeroed ended flights. Results are cached
+for sixty seconds because the panel polls every minute. Every failure path returns a reason rather than
+throwing, so an expired ads token degrades the delivery row to a hint and leaves the lead outcomes rendering.
+
+### Receipt staleness
+
+The "a receipt has been waiting more than 15 minutes" alarm now ignores receipts that have used all
+`MAX_RECEIPT_ATTEMPTS` retries. Those are stuck, not queued, and the drain loop will never pick them up again,
+so counting them as waiting made the alarm fire permanently on a dummy test lead from 15 September. They are
+surfaced separately with their own line and remain retryable by hand.
 
 The form also has the required checkbox: “I agree to calls and texts from Olera about my request as described above.” The form says provider introductions happen after an Olera conversation.
 

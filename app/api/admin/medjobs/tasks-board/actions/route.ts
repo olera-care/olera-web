@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import type { ContactField } from "@/lib/medjobs/ladders";
+import { formatPhone } from "@/lib/medjobs/task-board";
 
 /**
  * The Tasks board, writing.
@@ -36,6 +37,8 @@ type Body =
       fields: Partial<Record<ContactField, string>>;
       /** An admin correction. Absent means keep using the directory. */
       website?: string;
+      /** The organisation's real name, when the one on file turns out wrong. */
+      name?: string;
       second?: Partial<Record<ContactField, string>>;
     };
 
@@ -194,7 +197,9 @@ export async function POST(req: Request) {
       if (typeof f.contact === "string") patch.name = f.contact.trim();
       if (typeof f.role === "string") patch.role = f.role.trim();
       if (typeof f.email === "string") patch.email = f.email.trim();
-      if (typeof f.phone === "string") patch.phone = f.phone.trim();
+      // Normalised here as well as in the field, so a value that arrives by
+      // any other route is stored the same way.
+      if (typeof f.phone === "string") patch.phone = formatPhone(f.phone);
 
       // ── the primary contact ───────────────────────────────────────────
       if (Object.keys(patch).length > 0) {
@@ -224,7 +229,7 @@ export async function POST(req: Request) {
       if (typeof s2.contact === "string") patch2.name = s2.contact.trim();
       if (typeof s2.role === "string") patch2.role = s2.role.trim();
       if (typeof s2.email === "string") patch2.email = s2.email.trim();
-      if (typeof s2.phone === "string") patch2.phone = s2.phone.trim();
+      if (typeof s2.phone === "string") patch2.phone = formatPhone(s2.phone);
       const second_has_content = Object.values(patch2).some((v) => v !== "");
 
       if (second_has_content) {
@@ -242,6 +247,30 @@ export async function POST(req: Request) {
               .from("student_outreach_contacts")
               .insert({ outreach_id: outreach.id, is_primary: false, name: "", ...patch2 });
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      // ── the name ──────────────────────────────────────────────────────
+      // Renaming the record, not the directory. If research shows the
+      // agency trades under a different name, MedJobs should show it —
+      // but editing olera-providers from here would change what the whole
+      // public site calls them on the strength of one phone call.
+      if (typeof body.name === "string") {
+        const name = body.name.trim();
+        if (!name) {
+          return NextResponse.json({ error: "A record needs a name" }, { status: 400 });
+        }
+        if (name !== outreach.organization_name) {
+          const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
+          // Keep what it was called, once. A later rename should not erase
+          // the name the spreadsheet and the directory still use.
+          if (!research.original_name) research.original_name = outreach.organization_name;
+
+          const { error } = await db
+            .from("student_outreach")
+            .update({ organization_name: name, research_data: research })
+            .eq("id", outreach.id);
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
       }
 
       // ── the website ───────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
 import {
   dueLabel,
+  formatPhone,
   isReady,
   shortDate,
   stillToCome,
@@ -48,6 +49,7 @@ export default function RecordView({
   onField,
   onSaveFields,
   onWebsite,
+  onRename,
   onField2,
   onOpenTask,
   onRevive,
@@ -61,6 +63,8 @@ export default function RecordView({
   onSaveFields: () => void;
   /** The website an admin typed, which wins over whatever the directory has. */
   onWebsite: (value: string) => void;
+  /** Rename the record — the agency trades under something else. */
+  onRename: (value: string) => void;
   /** The second person, if the disclosure is open. */
   onField2: (field: ContactField, value: string) => void;
   onOpenTask: (task: BoardTask) => void;
@@ -75,6 +79,7 @@ export default function RecordView({
   const scheduled = record.tasks.filter((t) => !t.done && !isReady(t));
   const history = record.tasks.filter((t) => t.done).slice().reverse();
   const ahead = stillToCome(record);
+  const [editingName, setEditingName] = useState(false);
   const site = record.website ?? "";
   const stopped =
     record.step === null && record.state !== null && record.state !== ladder.goal && record.state !== "done";
@@ -89,23 +94,49 @@ export default function RecordView({
       */}
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold leading-snug text-gray-900">
-            {record.name}
-            {site && (
-              <>
-                {" "}
-                <a
-                  href={href(site)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-1 inline-flex items-center gap-1 align-middle text-[12.5px] font-medium text-primary-700 underline decoration-primary-300 underline-offset-2 hover:text-primary-800 hover:decoration-primary-600"
-                >
-                  <LinkIcon />
-                  {tidyHost(site)}
-                </a>
-              </>
-            )}
-          </h3>
+          {editingName ? (
+            <input
+              autoFocus
+              value={record.name}
+              onChange={(e) => onRename(e.target.value)}
+              onBlur={() => {
+                setEditingName(false);
+                onSaveFields();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+                if (e.key === "Escape") setEditingName(false);
+              }}
+              className="w-full rounded-md border border-primary-600 bg-white px-2 py-1 text-[15px] font-semibold text-gray-900 focus:outline-none"
+            />
+          ) : (
+            <h3 className="text-[15px] font-semibold leading-snug text-gray-900">
+              {record.name}
+              <button
+                type="button"
+                onClick={() => setEditingName(true)}
+                aria-label="Edit the name"
+                title="Edit the name"
+                className="ml-1.5 inline-flex align-middle text-gray-300 hover:text-gray-600"
+              >
+                <PencilIcon />
+              </button>
+              {site && (
+                <>
+                  {" "}
+                  <a
+                    href={href(site)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-1 inline-flex items-center gap-1 align-middle text-[12.5px] font-medium text-primary-700 underline decoration-primary-300 underline-offset-2 hover:text-primary-800 hover:decoration-primary-600"
+                  >
+                    <LinkIcon />
+                    {tidyHost(site)}
+                  </a>
+                </>
+              )}
+            </h3>
+          )}
           {record.state && (
             <p className="mt-0.5 text-[12.5px] text-gray-500">{record.state}</p>
           )}
@@ -120,7 +151,11 @@ export default function RecordView({
             <input
               value={record[f]}
               onChange={(e) => onField(f, e.target.value)}
-              onBlur={onSaveFields}
+              onBlur={() => {
+                // Punctuate on the way out, so the field shows what is saved.
+                if (f === "phone") onField(f, formatPhone(record.phone));
+                onSaveFields();
+              }}
               placeholder="—"
               className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
             />
@@ -240,6 +275,25 @@ function fieldLines(task: BoardTask): string[] {
     .map((f) => `${f.label}: ${values[f.key]}`);
 }
 
+
+/** The edit affordance on the name. Grey until hovered, so it is there when
+ *  wanted and silent when not. */
+function PencilIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      className="h-3 w-3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9.3 2.2l2.5 2.5L5 11.5l-3 .5.5-3z" />
+    </svg>
+  );
+}
 
 /** A small outbound-link mark. Drawn rather than an icon font, so it inherits
  *  the link colour and never arrives a frame late. */
@@ -402,7 +456,10 @@ function SecondContact({
             <input
               value={existing?.[f] ?? ""}
               onChange={(e) => onField2(f, e.target.value)}
-              onBlur={onSaveFields}
+              onBlur={() => {
+                if (f === "phone") onField2(f, formatPhone(existing?.phone ?? ""));
+                onSaveFields();
+              }}
               placeholder="—"
               className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:outline-none"
             />

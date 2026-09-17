@@ -230,6 +230,10 @@ export default function UniversityFlow({
             record.websiteEdited = true;
             force((n) => n + 1);
           }}
+          onRename={(v) => {
+            record.name = v;
+            force((n) => n + 1);
+          }}
           onField2={(f, v) => {
             record.contact2 = {
               contact: "",
@@ -256,6 +260,7 @@ export default function UniversityFlow({
                 // directory stays the source and nothing is overridden with
                 // a copy of what it already says.
                 website: record.websiteEdited ? record.website : undefined,
+                name: record.name,
                 second: record.contact2,
               },
               "Saved",

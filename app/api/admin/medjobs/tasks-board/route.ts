@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, SECTION_ORDER, type SectionKey } from "@/lib/medjobs/ladders";
-import type {
-  BoardRecord,
-  BoardTask,
-  BoardUniversity,
-  ChannelStatus,
+import {
+  formatPhone,
+  type BoardRecord,
+  type BoardTask,
+  type BoardUniversity,
+  type ChannelStatus,
 } from "@/lib/medjobs/task-board";
 
 /**
@@ -159,7 +160,9 @@ export async function GET() {
       contact: name ?? "",
       role: c.role ?? "",
       email: c.email ?? "",
-      phone: c.phone ?? "",
+      // Punctuated on the way out, so a number stored before this existed
+      // still reads the same as one saved today.
+      phone: formatPhone(c.phone ?? ""),
     };
     if (!contactOf.has(c.outreach_id)) contactOf.set(c.outreach_id, person);
     else if (!secondOf.has(c.outreach_id)) secondOf.set(c.outreach_id, person);
@@ -319,7 +322,7 @@ export async function GET() {
         name: rec.name,
         contact: contact?.name ?? "",
         role: (contact as { role?: string } | undefined)?.role ?? "",
-        phone: contact?.phone ?? "",
+        phone: formatPhone(contact?.phone ?? ""),
         email: contact?.email ?? "",
         website: "",
         step: done ? null : pending[0]?.step ?? 0,

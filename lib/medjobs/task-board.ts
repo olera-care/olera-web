@@ -49,6 +49,29 @@ export interface BoardTask {
   prev?: { step: number | null; round: number; state: string | null };
 }
 
+/**
+ * A North American number, punctuated so a column of them scans.
+ *
+ * Deliberately conservative. Ten digits become 352-327-3877 and a leading
+ * country code is dropped; anything else — an extension, an international
+ * number, a note somebody typed into the field — is returned untouched,
+ * because a formatter that mangles the unusual case is worse than no
+ * formatter at all.
+ */
+export function formatPhone(raw: string): string {
+  const v = (raw ?? "").trim();
+  if (!v) return "";
+  // Letters or an extension marker mean this is not a bare number.
+  if (/[a-z]/i.test(v)) return v;
+  const d = v.replace(/\D/g, "");
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  if (d.length === 11 && d.startsWith("1")) {
+    const t = d.slice(1);
+    return `${t.slice(0, 3)}-${t.slice(3, 6)}-${t.slice(6)}`;
+  }
+  return v;
+}
+
 export interface BoardRecord {
   id: string;
   section: SectionKey;

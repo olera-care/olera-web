@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-09-17 (pm) — The Ad Boost queue re-filed by whose move it is; Hoop Cares is the live clock (`queue/whose-move`, PR #1948, in PROD)
+
+TJ read the **Requested** tab and said the only action the word implies is approve or deny. It was not the action for a single row in it. Seven rows sat under one label across **three unrelated next moves**: one blocked on a dead email, three launch-ready in the Nextdoor pilot, three waiting on provider photos for 31 to 41 days. `Requested` records what the provider did; it cannot say what anyone owes.
+
+**The queue already computed the answer and threw it away.** `getAdBoostNextAction()` returns a `level` on every row, `attention` for ours and `waiting` for theirs. The page used it for one chip then grouped by lifecycle status. The rail was already half-converted: Live/Requested/Ended are lifecycle, sitting beside a next-move bucket called *Needs attention*.
+
+**Shipped (#1948 → #1949, main `77d3e1576`).** *Needs attention* → **Your move**, plus a **Waiting on them** lens, both leftmost. Lifecycle chips behind the divider, status stays on the row. Queue opens on Your move. Waiting rows aged from **when we asked**, not the last reminder (`Photos, asked 41 days ago`). Relationships gains `comms_paused`. No schema change. Live counts: Your move 7, Waiting on them 3, All 27, Archived 1.
+
+**What the old filing hid:** Your move surfaces **three `ended` campaigns** nobody would ever have found — Graceful and Pacesetter need wrap-ups scheduled, LumiWell has a launch email missing. Nobody browses Ended looking for work.
+
+**`/pre-test` found four defects, one fatal.** `load()` re-derives the filter on first load and still hardcoded `"live"`, overwriting both the useState and useEffect defaults the moment data arrived. The headline change did nothing and looked identical to no change. Also: `"waiting"` failed the "is this chip still stale" guard and silently reset itself to All on every reload.
+
+**A push killed a follow-on before it got built.** I proposed making the queue read the touch log so booked callbacks (Caitlyn, Pat) count as Your move. Verified it and withdrew it: **all eight commitments are already on Relationships**, correctly, owners and due dates, overdue ones on top. Building it would have created a second work list competing with the one built that morning and given to Ces. The surviving finding is separate: the three Nextdoor rows say *"Start concierge setup · launch-ready"* when setup happened on the 16th and they are waiting on **Nextdoor**. That needs a recorded state transition, not a touch-log read.
+
+**Hoop Cares is the real clock.** $75/mo since 15 Sep, renewal **15 Oct**. Two days in: **$9.04 spend, 4 clicks ($2.26 CPC)**, $50 lifetime budget, flight to 20 Oct. **8 visitors since launch, 16 since June, 0 leads ever, 0 connections ever.** $50 buys ~22 clicks; three leads from 22 clicks needs 14% conversion, which nothing supports. **You cannot buy three leads at this budget.** Three Gulf Coast inquiries in 90 days, and **one from 10 Sep is still `pending` and unactioned** — the cheapest available lead. Unresolved and worth one query: the contact card says *"Family account required"*, so cold ad traffic must register before it can enquire. That would explain a zero and nobody has checked.
+
+<!-- CORRECTION -->
+**Two errors of the same class, six hours apart, both mine.** Morning: claimed the photo gate reads the wrong page. It does not — `/admin/ad-boost/[id]` builds `profileImages` from `business_profiles.metadata.images` first (`route.ts:188-215`). The *directory editor* is the blind one. Evening: claimed Hoop's page has no description. It has **2,285 characters**, in the `description` **column**, not `metadata.description` where I looked. Both times I read one of the two provider stores and asserted from it; both times the page rendered from the other. **Rule for next time: look at what the page actually renders before making any claim about it.**
+
+
 ### 2026-09-17 (pm) — Subscription cuts executed: Loops, Sanity, Snov (~$2,832/yr) (`pleasant-pare`, ops only, no code)
 
 Acting on the Mercury review. No product code changed. Three vendors cut, one new global skill.
@@ -5530,7 +5550,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 7. Edmonds Villa + Assisting Hands have live campaigns and have **never seen a price** — run `/smartscript` for each.
 8. Happy Mountain: 4 price views, the only provider ever shown `result_kind: inquiries`, hasn't converted.
 9. Miracle-Lightstar: abandoned a $75 checkout 21 Aug, 6 price views since.
-10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Handled and shipped to prod 17 Sep** (#1941-#1944). All five of Ces's calls are logged, Ama Vida archived as not-interested with comms paused, and the three real stalls surface as the **Call list** on `/admin/relationships` (Senior Services 40d, Living Angels 36d, Caring Senior 31d). **Left for people, not code:** Ces calls Caitlyn (Caring Senior, 8-5 ET) and Pat (Impact, 10-12), both due today; text Senior Services and Living Angels once then archive as *Could not reach*; get a working email for Wescastle, whose address is a confirmed dead one. **Decide:** Impact's campaign ended 2 Jul, so who makes that call and what it is for.
+10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Done and in prod 17 Sep** (#1941-#1949). Ces's five calls logged, Ama Vida archived, queue re-filed by whose move it is. **Left for people:** Ces calls Caitlyn (Caring Senior) and Pat (Impact), both due 17 Sep; TJ's own three overdue actions (Franchil 8 Sep, Pacesetter 9 Sep, Miracle-Lightstar 12 Sep); text Senior Services and Living Angels then archive as *No response, stopping* (not *Could not reach* — their email still delivers and they open it); get a working email for Wescastle. **Blocked:** a provider SMS send path may not exist (`sms_queue` only shows `recipient_type: "family"`). **Decide:** what the Impact call is for, since their campaign ended 2 Jul.
 
 ### Slower
 11. Item 09 — receipt granularity/delight; only two providers have seen the drawn receipt.
@@ -5935,6 +5955,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-09-17 (pm) — Queue re-filed by whose move it is (`queue/whose-move`, #1948 → prod via #1949)
+
+- `app/admin/ad-boost/page.tsx`, `components/admin/ad-boost-queue.ts`, `lib/ad-boost/admin-communications.ts`, `lib/touches/{types.ts,timeline.server.ts}`, `app/admin/relationships/page.tsx`. No schema change.
+- Also cleared four stale scratchpad PRs (#1902, #1903, #1924, #1929) that had been conflicting against staging for days — 34 to 87 commits behind, GitHub reporting `UNKNOWN` so nothing surfaced it. Rebased each, kept both sides in date order, +137/-0 net.
+- **Keep:** a default set in three places is set in the place that runs last. **Keep:** a derived filter value cannot be validated like a stored one. **Keep:** the state that silences a provider is the state most worth showing.
+- **Watch:** 40 untracked `" 2"` duplicate files appeared in this worktree mid-session (macOS sync). Byte-identical, none committed, but `git add -A` would take all 40.
+
 
 ### 2026-09-17 — Ad Boost photo stall → calling motion (`graceful-wright`, PR #1941)
 

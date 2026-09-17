@@ -46,6 +46,17 @@ test('forms require explicit test mode and unique numeric IDs',()=>{
   assert.throws(()=>native.parseNativeForms(JSON.stringify([{...form,testOnly:undefined}])));
   assert.throws(()=>native.parseNativeForms(JSON.stringify([form,form])));
 });
+test('campaignId is optional for intake but must be a real id when present',()=>{
+  // Config written before the delivery row existed has to keep parsing, or the
+  // webhook starts 503ing on a field that only the admin panel cares about.
+  assert.deepEqual(native.parseNativeForms(JSON.stringify([form])),[form]);
+  const withCampaign = {...form, campaignId:'120251489434010487'};
+  assert.deepEqual(native.parseNativeForms(JSON.stringify([withCampaign])),[withCampaign]);
+  // A typo would point the delivery row at someone else's campaign, which reads
+  // as real data. Better to refuse the config than to show the wrong numbers.
+  assert.throws(()=>native.parseNativeForms(JSON.stringify([{...form,campaignId:'not-an-id'}])));
+  assert.throws(()=>native.parseNativeForms(JSON.stringify([{...form,campaignId:''}])));
+});
 test('only subscribed page and allowlisted form accepted; duplicate batch deduped',()=>{
   assert.equal(native.extractNativeReceipts(event,[form]).length,1);
   assert.equal(native.extractNativeReceipts(event,[{...form,pageId:'42'}]).length,0);

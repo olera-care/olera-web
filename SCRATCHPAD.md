@@ -7,6 +7,32 @@
 
 ## Current Focus
 
+### 2026-09-17 — Ad Boost photo stall: the gate is fine, the chase is not (`graceful-wright`, PR #1941)
+
+Ces called 6 of 8 providers on a photo-chase list she built by hand and it produced **one** archivable answer. Working out why turned into the session.
+
+**The thing I got wrong first, and TJ caught.** I published that the photo gate reads the wrong page, because `/admin/directory/[providerId]` (`route.ts:123-131`) discards the business profile and serves the scraped `olera-providers` row, returning `images: []` outright for a user-created profile. That part is true. But it is **not the gate**. `app/api/admin/ad-boost/route.ts:188-215` builds the review panel's `profileImages` from `business_profiles.metadata.images` first, falling back to the directory only when empty — the same union as `eligibility.server.ts:200`. Replayed against all eight: **every one of the five held campaigns was judged on a correct view.** Wescastle's own review note, written 16 Sep with five real photos visible in the panel, asks for team photos. The gate worked. TJ's instinct was right and my headline was wrong; the artifact was rebuilt around it.
+
+**What is actually broken is everything after the judgment.**
+- The photo email is one nudge + one reminder at 3 business days, then **permanent silence** by design. Senior Services has sat 40 days, Caring Senior 31.
+- `days_quiet` on `/admin/relationships` fell back to the last touch on *any* channel, so the **weekly analytics digest kept resetting the clock**. Senior Services read "5 days quiet" against a 40-day-old unanswered ask. Wescastle read **0 days quiet** because its only recent "touch" was a send that failed.
+- There was nowhere to record a call. `provider_touches` had 18 rows across 5 providers; **none** of Ces's eight. Her round lived in a Google Sheet.
+- The generic photo email is **0 for 5**. The one time a specific ask was written it went into `photo_review_note`, a field whose own helper text said "internal only", and the provider got the generic copy — which tells them their gallery is "mostly branding, text-based, closely cropped". False for Wescastle's five real photos. Then it bounced anyway.
+
+**Reconciliation TJ forced (and it shrank the build).** He showed `/admin/relationships` and asked how it squared with what I was proposing. All 19 providers are already on it, including all eight. So items I had scoped as new — a call-outcome logger and a call-list filter on Ad Boost — were 80% redundant, and I had put `last_call_outcome` on the wrong table. The build became *entry points and honest numbers on Relationships*, not a second CRM.
+
+**Shipped (PR #1941 → staging).** Log a touch from the Ad Boost row (same form, opens on Call, provider prefilled) · five call outcomes on `provider_touches` · quiet clock ignores sends that never arrived · `blocked_on_ask` flag + Call list filter, sorted oldest ask first · archive requires a reason, `not_interested` also pauses provider comms · failed send reads "Email not deliverable, call or text instead" · the review note is now the email body. **Migration 233 applied to prod** (`provider_touches.outcome`, `ad_campaign_requests.archived_reason`, both TEXT + CHECK, verified live and rejecting junk).
+
+**`/pre-test` caught three, one of them serious.** The bounce message never appeared on the **queue** — the surface that prompted the work — because the queue computes its next move from a precomputed summary that deliberately dropped failed sends (`route.ts:327`), and calls `getAdBoostNextAction(request)` with no communications at all. Failures now travel in `failed_by_type`. Also: the bounce message could contradict a recorded successful send; and the archive reason picker stacked on top of the still-open "more actions" dropdown on narrow screens.
+
+**Verified against prod, not asserted.** The real `loadRelationships` returns exactly three on the Call list — Senior Services 40d, Living Angels 36d, Caring Senior 31d — all previously reading 5-16 days quiet. Wescastle's queue row now reads `Email not deliverable · 2 attempts failed · Suppressed: verified undeliverable`. **That address is a confirmed dead one**, so Ces's voicemail is the only channel that has ever worked with them. A full touch round-trip confirmed logging a call clears `never_human` and resets `days_quiet` while `blocked_on_ask` correctly survives at 40d.
+
+**Dispositions for the eight.** Archive **Ama Vida** (only real decline, "I think I'm okay for now"). Keep **Caring Senior** (callback booked, opened every email) and **Impact** (callback booked, but its campaign ended 2 Jul). One text each then archive as unreachable for **Senior Services** and **Living Angels** (both phones dead). **Wescastle** the ask never reached: resend or call. **Abode** and **Legacy Haven** off the list entirely — campaigns ended in June, never gated, 6 and 10 photos already live; neither was ever called.
+
+**Still open.** The directory editor gap is real but no longer load-bearing now that the working surface is the Ad Boost page. Ama Vida and Caring Senior each have two `business_profiles`. Ces's admin login is `cchavez.olera@gmail.com` (last sign-in 14 Aug) while her Slack is `cecille.chavez05@gmail.com` — worth confirming she reaches the panel before pointing her at the Call list, since the whole motion depends on it.
+
+Artifact: https://claude.ai/artifact/CmLA72s8zAQFEqfjDfUYtx
+
 ### 2026-09-16 (pm) — Two paid-path defects shipped to PRODUCTION; Meta arm live; /smartscript added (`thirsty-payne`)
 
 **Shipped to prod** via promotion PR **#1932** (main now `ce7381498`). Delta was 10 commits / 36 files; two of the five PRs were mine, three were other people's student-profile + docs work that rode along (flagged to TJ before merging, he approved).
@@ -5355,7 +5381,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 7. Edmonds Villa + Assisting Hands have live campaigns and have **never seen a price** — run `/smartscript` for each.
 8. Happy Mountain: 4 price views, the only provider ever shown `result_kind: inquiries`, hasn't converted.
 9. Miracle-Lightstar: abandoned a $75 checkout 21 Aug, 6 price views since.
-10. Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.
+10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Five, and handled 17 Sep** (PR #1941). They now surface as the **Call list** on `/admin/relationships`: Senior Services 40d, Living Angels 36d, Caring Senior 31d. Remaining human work: archive Ama Vida as not-interested; take the Caring Senior and Impact callbacks; text Senior Services and Living Angels once, then archive as unreachable; resend or call Wescastle, whose address is a **confirmed dead one** (`Suppressed: verified undeliverable`).
 
 ### Slower
 11. Item 09 — receipt granularity/delight; only two providers have seen the drawn receipt.
@@ -5760,6 +5786,17 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-09-17 — Ad Boost photo stall → calling motion (`graceful-wright`, PR #1941)
+
+- Migration `233` (applied to prod): `provider_touches.outcome`, `ad_campaign_requests.archived_reason`, both TEXT + CHECK per prod convention.
+- Touched `lib/touches/{types.ts,timeline.server.ts}`, `app/api/admin/touches/route.ts`, `components/admin/TouchForm.tsx`, `app/admin/relationships/page.tsx`, `app/admin/ad-boost/{page.tsx,[id]/page.tsx}`, `app/api/admin/ad-boost/route.ts`, `components/admin/AdBoostShared.tsx`, `lib/ad-boost/{admin-communications.ts,photo-notifications.server.ts}`, `lib/email-templates.tsx`.
+- **The correction worth keeping:** the photo gate reads the correct store. The admin *directory editor* does not, and that is a different, non-blocking surface. I asserted otherwise first; TJ pushed and the code disagreed with me.
+- **The bug worth keeping:** `days_quiet` treated any system send as contact, so the weekly analytics digest masked month-old unanswered asks. Marketing mail is not a relationship.
+- `/pre-test` found 3 real defects including one that made the whole bounce fix invisible on the queue. Fixed in `70039b154`.
+- Verified by running `loadRelationships` and `getAdBoostNextAction` against prod, and by a full touch insert/read/delete round-trip. Both email variants rendered offline.
+- Not merged. PR open to staging.
+
 
 ### 2026-09-13 — Provider banner updates (`codex/provider-banner-updates`)
 

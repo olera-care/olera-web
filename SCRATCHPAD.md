@@ -33,6 +33,16 @@ Ces called 6 of 8 providers on a photo-chase list she built by hand and it produ
 
 Artifact: https://claude.ai/artifact/CmLA72s8zAQFEqfjDfUYtx
 
+**SHIPPED TO PRODUCTION the same day.** #1941 + #1942 -> staging, then a plain-language copy pass (#1943) after TJ pushed on the labels, then the promotion (#1944). **main `16f74900d`**, deploy green, olera.care and a provider page both smoke-checked with zero console errors. Migration 233 was already applied and verified before the merge. The promotion also carried someone else's MedJobs work (#1938, Efuanyamekye) and the geo script; pre-flight caught that #1938's required `medjobs_universities` seed lived only in the PR body and confirmed it had already been run (76 active rows).
+
+**The copy pass is the part worth remembering.** TJ asked for labels a new person would understand without orientation. Test used: *would you say this out loud to a colleague after a call?* Six failed. `Superseded` -> `Newer campaign replaced it`, `Stalled` -> `No response, stopping`, `waiting on an ask we made` -> `we asked, still waiting`, `never had a human touch` -> `only ever got automated email`, `With a next action` -> `Something to do`, `Channel · direction` -> `How it happened`. The care-seeker flag set carried the identical `never_human` string on a sibling view, so it moved too. **Still unfixed:** `/admin/relationships/[providerId]` renders raw flags (`never human`, `blocked on ask`) and was missed by the pass.
+
+**Ces's five calls are now in the system**, logged through the production UI. Senior Services `bad_number`, Living Angels `bad_number`, Caring Senior `callback_set`, Wescastle `no_answer`, Impact `callback_set`; Ama Vida was already archived `not_interested` with comms paused. `never_human` dropped 12 -> 7. Two callbacks are live and due today, both owned by Ces: **Caitlyn at Caring Senior (8-5 ET)** and **Pat at Impact (10-12)**. Abode and Legacy Haven were dropped entirely; their campaigns ended in June and their galleries are already full.
+
+**Two caveats on that data.** The touch log takes `author` from the session, so all five read `tj` even though Ces made the calls; each summary therefore opens with "Ces". And Senior Services is stamped 17 Sep (the form's default) while the other four are stamped 16 Sep when the calls actually happened.
+
+**A summary of all this went to Ces on Slack** (https://oleraworkspace.slack.com/archives/D063VLT5FPU/p1789637240790529): her two questions answered, what changed, and the per-provider verdicts. **Open:** the message tells her to call Pat at Impact without saying what the call is for, and Impact's campaign ended 2 Jul, so that is a "do you want to run again" conversation, not a photo chase. TJ was asked twice and did not pick; needs a one-line follow-up or a handover.
+
 ### 2026-09-16 (pm) — Two paid-path defects shipped to PRODUCTION; Meta arm live; /smartscript added (`thirsty-payne`)
 
 **Shipped to prod** via promotion PR **#1932** (main now `ce7381498`). Delta was 10 commits / 36 files; two of the five PRs were mine, three were other people's student-profile + docs work that rode along (flagged to TJ before merging, he approved).
@@ -5381,7 +5391,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 7. Edmonds Villa + Assisting Hands have live campaigns and have **never seen a price** — run `/smartscript` for each.
 8. Happy Mountain: 4 price views, the only provider ever shown `result_kind: inquiries`, hasn't converted.
 9. Miracle-Lightstar: abandoned a $75 checkout 21 Aug, 6 price views since.
-10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Five, and handled 17 Sep** (PR #1941). They now surface as the **Call list** on `/admin/relationships`: Senior Services 40d, Living Angels 36d, Caring Senior 31d. Remaining human work: archive Ama Vida as not-interested; take the Caring Senior and Impact callbacks; text Senior Services and Living Angels once, then archive as unreachable; resend or call Wescastle, whose address is a **confirmed dead one** (`Suppressed: verified undeliverable`).
+10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Handled and shipped to prod 17 Sep** (#1941-#1944). All five of Ces's calls are logged, Ama Vida archived as not-interested with comms paused, and the three real stalls surface as the **Call list** on `/admin/relationships` (Senior Services 40d, Living Angels 36d, Caring Senior 31d). **Left for people, not code:** Ces calls Caitlyn (Caring Senior, 8-5 ET) and Pat (Impact, 10-12), both due today; text Senior Services and Living Angels once then archive as *Could not reach*; get a working email for Wescastle, whose address is a confirmed dead one. **Decide:** Impact's campaign ended 2 Jul, so who makes that call and what it is for.
 
 ### Slower
 11. Item 09 — receipt granularity/delight; only two providers have seen the drawn receipt.
@@ -5795,7 +5805,9 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 - **The bug worth keeping:** `days_quiet` treated any system send as contact, so the weekly analytics digest masked month-old unanswered asks. Marketing mail is not a relationship.
 - `/pre-test` found 3 real defects including one that made the whole bounce fix invisible on the queue. Fixed in `70039b154`.
 - Verified by running `loadRelationships` and `getAdBoostNextAction` against prod, and by a full touch insert/read/delete round-trip. Both email variants rendered offline.
-- Not merged. PR open to staging.
+- Merged to staging (#1941, #1942) and promoted to production the same day (#1944, main `16f74900d`).
+- Follow-on: #1943, a six-label plain-language copy pass, after TJ said the vocabulary had to be graspable without orientation.
+- Ces's five calls logged through the prod UI; summary sent to her on Slack.
 
 
 ### 2026-09-13 — Provider banner updates (`codex/provider-banner-updates`)

@@ -284,6 +284,97 @@ Meeting-prep session for the Managed Ads KPI review. No product code changed. Fo
 - Pre-test reproduced/fixed optional traction-query failure interrupting a committed save/launch notification, and vanished lifecycle filters hiding the queue. Twelve regression checks, TypeScript, cron registry, and diff checks pass.
 - Next: apply/review migration 229 against live index catalog, preview `/admin/ad-boost`, test navigation/filter/archive/restore, and measure Server-Timing. No live migration or performance measurements yet. Do not merge without TJ's request.
 
+### 2026-09-14 — The CPL run list executed: two of three gate legs resolved (neither as assumed), Nextdoor killed and reallocated, Meta CAPI blocked on a second admin (`noble-noether`, promotion PR #1900; ops + Meta/Google/Nextdoor platform changes)
+
+Long session. Started with a staging→main promotion, then executed the run list from the CPL ladder. **Most of the plan's assumptions did not survive contact.** Read the corrections before re-deriving anything.
+
+**Promotion shipped.** PR #1900, `main` at `949df26c7`, prod deploy Ready, olera.care 200. 19 commits / 26 files / +910−193. Migration `228_city_lead_archive_messages.sql` verified applied by querying prod Supabase directly *before* promoting (`city_lead_messages` and the three `city_leads.archived_*` columns all 200), so TJ's earlier "confirmed applied" is now independently verified. No new env vars, no infra files touched. Critical-file indicators all intact (none were in the delta).
+
+**Companion artifact: The Execution Order** — `99fb87ce-2a54-49d4-a711-c32ad51a5c94`. The eleven next steps re-checked against production and reordered around the gate. Four had already moved; the plan was stale when written.
+
+#### Gate leg 1 — Meta: root cause found, and it is config not code
+
+`META_CAPI_ACCESS_TOKEN` **has never existed** in the olera-web Vercel project. Verified via `/api/v9/projects/olera-web/env`: 66 vars, the only Meta one is `NEXT_PUBLIC_META_PIXEL_ID`. The failure is silent by construction:
+
+```
+lib/city-ads/meta-capi.server.ts:19  const ACCESS_TOKEN = process.env.META_CAPI_ACCESS_TOKEN ?? "";
+lib/city-ads/meta-capi.server.ts:72  if (!isMetaPixelConfigured() || !ACCESS_TOKEN) return;
+```
+
+It returns **before** the fetch and therefore before both `console.error` paths. No trace anywhere. The server half of the Lead event has never fired in production.
+
+Events Manager, dataset `803096730985728`, 16 Aug – 12 Sep: **one event type, PageView, 301 of them**, match quality 6.1/10. **Zero Lead events, lifetime.** Production genuinely initialises that pixel id (read `fbq('init', ...)` off live `/care/dallas-tx`). The CAPI row reading "Active, last received 1 hour ago" is a business-level connection carrying PageViews and is **not** evidence our server path works. The browser half is wired correctly (`CityLandingClient.tsx:426` fires `trackMetaLead` on non-duplicate success), so Jillanna's missing Lead is most likely an ad blocker — the code's own comment budgets 20-40% loss, which is exactly what CAPI exists to cover.
+
+#### Gate leg 2 — Google: NOT broken. The zero is correct.
+
+Both city arms report 0.00 conversions (Dallas 36 clicks/$117.72, Charlotte 30/$96.97, both "Eligible (Limited) — Missing enough relevant keywords"). **There are only two city leads in the entire programme.** Ann McDade (2026-09-07 22:44:20 UTC, `paid_search`, has gclid) is the only Google-sourced one. `markAdsLeadConversion()` was added to `app/api/city-leads/route.ts` in `a51464f1f`, committed 23:52:01 UTC and live in prod via PR #1832 around 00:20 UTC — **her lead predates the instrumentation by 1h07m and production by ~1h36m.** Zero Google-sourced city leads since. Nothing to report means the report reads zero. No fix needed. Same bug class as the Ad Boost 7-vs-3 reconciliation: an instrumentation-date artifact, not a leak.
+
+**A real and different Google finding:** 77 conversions sit on **Secondary** actions excluded from account-level goals (Pop-up Form 66, Submit lead forms 9, Connect to provider form 2). Only `Provider inquiry (lead form)` is Primary and counted (6). The Goals page literally reads "You're not measuring any goals here right now." Whether those should be promoted is a value judgement — TJ's call, not shipped.
+
+#### Item 5 — the "free lever" is a rounding error. CLOSED.
+
+Google Ads 419-933-1442, last 30 days. Search campaigns: 271 clicks / $656.03 / 6 conv. Search-terms report exposes 465 terms / 82 clicks / $191.42 (~30% of clicks; the rest sit in Google's withheld bucket). **Competitor-reviews lookups: 12 terms, 4 clicks, $10.86 = 4.9% of visible clicks.** Ten of the twelve got zero clicks. Against the report's own test ("5% = rounding error, 30% = largest free win") it is the rounding error. **Do not build a negative-keyword project.**
+
+Bonus read: the city search terms are strong intent ("home care near me", "live in caregiver dallas tx", "in home care charlotte nc"). That is evidence *against* "the traffic is wrong" for the Google arm, and points back at the page.
+
+#### Nextdoor — PAUSED, and the evidence was stronger than recorded
+
+Reached via vanilla Chrome (`chrome-profile-nextdoor`) after TJ re-login. Olera account `1003810864513418699`. Before: Dallas 3,282 impr / 25 clicks / $37.93, Charlotte 4,790 / 39 / $38.00, **64 clicks, $75.93, zero conversions**. Both toggled Off via real input, verified by hard reload (switches false, Status Paused, "Active campaigns" tile 2 → 0).
+
+The artifact had city Nextdoor at 34 clicks / $38.70. Actual was 64 / $75.93. **Pooled with Graceful's August flight that is 198 clicks, 0 outcomes, ~$126.** Fisher one-sided vs Google's 10/376: **p = 0.0140**. Recomputing the older 0/168 case gives **p = 0.0240, not the 0.036 that circulated** — same decision, but stop quoting 0.036. ~30 clicks and ~$37 were spent between the report being written and the arms being paused; the gap between deciding and executing is itself a cost line.
+
+#### Franchil is the opposite of a problem
+
+Campaign `24166094865`, last 30d: campaign status "Pending / All ads under review" but the **ad itself is Eligible** and serving — 158 impr, 11 clicks, $24.19, **1 conversion at $24.19/conv against an account Search average of $109.34.** The cheapest converter in the book, running on $4.00/day with **no end date**. The 20-day "stuck" worry was a false alarm.
+
+#### Aggie Assisted Living — was never a defect
+
+The artifact called it "the one hygiene item that is actually a defect" and "Unexplained". It was a deliberately seeded test row and **said so in its own `admin_note`**: `campaign_tag: zz-internal-test-aggie-do-not-use`, "INTERNAL TEST ROW — NOT A REAL CAMPAIGN … No Google campaign exists behind these figures. Safe to DELETE at any time," plus `provider_comms_paused_at` set and a shape deliberately inert to every cron. Confirmed independently: full inventory of all 29 Google campaigns with Campaign status **All** and Ad group status **All** contains no Aggie in any state. `platform_campaign_id` was null because no campaign was ever created.
+
+Deleted `ad_campaign_requests` `01381271-ca64-4777-90e0-1873ca03680c` (hard delete, backup in session scratchpad). 26 rows → 25. Integrity audit now clean; the one remaining spend-without-platform-id row is HomeWell Oak Ridge (ended, `verified`), whose note names its real campaign `24052308622` — a legitimate flight whose id was never backfilled.
+
+#### Meta CAPI token — app built, blocked on a second admin
+
+Both greyed "Generate token" buttons had one cause: **the business portfolio had no Meta app at all.** Created **"Olera Conversions API", app id `1100422875761079`**, owned by business `286830885921873`, use case *Create & manage ads with Marketing API* (the one carrying `ads_management`; the Measure variant is read-only and will not work). Publishing requirements came back **"No requirements identified"** — business verification is not needed for this use case.
+
+The step that unlocks the button: Business Settings → System users → **Conversions API System User `61569644395460`** → "…" → **Assign assets → Apps → Develop app ON** (not Manage app). Token requested with expiry **Never** and permission **`ads_management`** only.
+
+**Blocked:** Meta requires a second business admin to approve. Request `28103507239342298`, expires 7 days from 14 Sep. Portfolio has three people and only **Chantel Wright** (Full access / Everything, active) can approve — Minh-Nguyet Hoang is inactive, TJ cannot self-approve and shows as "Advanced options / Finance". No owner override exists; the Events Manager direct route stayed greyed even after the app existed and after 2FA reauth. Asked her in Slack `#product-development`.
+
+Also found: the old **"Olera" app `1393837154438119` is a dead end**, restricted under **Platform Term 7.a since December 2023** because Meta could not find a Facebook Login integration on the site to review and got no reply. Unrelated to conversions.
+
+#### Nextdoor → Meta reallocation — DONE (TJ's call, against my recommendation)
+
+I recommended waiting for the token, on the grounds that clicks bought before the pixel can learn weaken the very test the stopping rule settles. **TJ chose to reallocate now.** Executed: both Meta city ad sets **$150 → $188 lifetime** (Dallas `120251362705640487`, Charlotte `120251360116150487`), matching the $75.93 Nextdoor was burning. Verified on a fresh page load, not just the success toast. Combined Meta lifetime $300 → $376.
+
+Why it matters beyond the money: remaining budget goes ~$183 → ~$259, which at the observed ~$1.14 CPC is ~227 more clicks for a total of **~329**. On the old budget the flight would have ended 23 Sep at **~262 clicks and never reached the 300-click threshold the stopping rule is built on.**
+
+**Consequence to carry into the readout:** clicks bought between now and Chantel's approval come from an unoptimised audience. When Meta reaches 300, split pre-token and post-token clicks rather than pooling them, or the verdict rests on rigged evidence. Meta says it itself in the ad set editor: *"The dataset that you've selected doesn't have any conversion events set up."*
+
+#### Decisions and rationale
+
+- **Token expiry Never, not 60 days.** A 60-day token would silently expire and recreate the exact bug being fixed, because `sendMetaLeadEvent` returns ahead of its own error logging. Scoped to a system user whose only assets are the pixel.
+- **Develop app, not Manage app**, for the system user. Least privilege that still issues a token.
+- **Did not end Hoop Cares** (`24235451655`, $1.87 / 1 click, Eligible-Learning, no end date). TJ: "who cares" — correct, and it should not have been carried forward from a list that had already downgraded it.
+- **Did not hard-delete the Aggie `business_profiles` row.** Its account `c06741ac-…` is TJ's own personal account and its `active_profile_id` points at that profile; deleting would break his provider dashboard.
+
+#### A mistake worth recording
+
+I deactivated the Aggie **provider page** (`business_profiles.is_active = false`) after finding it live in production with a Verified badge and invented pricing. **TJ had said remove the ad, not the provider.** Reverted immediately (`is_active = true`, page verified back up, claim and verification state untouched). Noticing an adjacent problem is useful; acting on it is not the same instruction. Report it and let TJ scope it, especially when the object is his own account and the action is outward-facing.
+
+#### Next up
+
+1. **Chantel approves request `28103507239342298`** → then token → Vercel `META_CAPI_ACCESS_TOKEN` (production) → redeploy → confirm a Lead lands in Events Manager. Request dies in 7 days.
+2. **Three-arm instrument fix** (pure code, unblocked, nobody needed): `one_screen` fires `lead_started` on first field touch while `guidance` fires on real step progression, so the arms cannot be compared stage for stage.
+3. **Ad copy promise** (TJ's call): ads still say "we call you back today" to everyone; the page now says "today" only inside the 8am–noon city-local staffed window. Soften the ad or widen the window.
+4. **Re-derive the $76 bar.** Never checked against what a delivered family is worth to a provider today.
+5. Consider giving TJ full portfolio access on the Meta business — he currently cannot approve his own requests in his own company.
+
+#### Blocked / needs input
+
+- **Meta CAPI token — Chantel Wright only.** No override exists.
+- **Ad copy direction** — a promise to families, TJ's call.
+- **Google Secondary conversion actions** — whether to promote Pop-up Form (66) et al. to Primary is a value judgement, not a config fix.
 
 ### 2026-09-13 — Provider banner browsing and dismissal
 

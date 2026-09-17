@@ -235,7 +235,7 @@ export const SEEKER_FLAG_LABEL: Record<SeekerFlag, string> = {
   opted_out: "opted out",
   provider_silent: "no reply on file",
   outcome_reported: "they told us how it went",
-  never_human: "never had a human touch",
+  never_human: "only ever got automated email",
   no_name: "no name on file",
   promise_owed: "promised a call",
 };

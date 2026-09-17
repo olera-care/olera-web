@@ -19,7 +19,8 @@ import { CHANNEL_LABEL, type RelationshipFlag, type RelationshipRow } from "@/li
 const FLAG_LABEL: Record<RelationshipFlag, string> = {
   overdue: "overdue",
   awaiting_reply: "they wrote, no reply yet",
-  never_human: "never had a human touch",
+  blocked_on_ask: "we asked, still waiting",
+  never_human: "only ever got automated email",
   complaint_on_file: "spam complaint on file",
   prefers_text: "prefers text",
   unopened_streak: "3 unopened in a row",
@@ -28,6 +29,7 @@ const FLAG_LABEL: Record<RelationshipFlag, string> = {
 const FLAG_STYLE: Record<RelationshipFlag, string> = {
   overdue: "bg-orange-50 text-orange-800",
   awaiting_reply: "bg-rose-50 text-rose-800",
+  blocked_on_ask: "bg-amber-100 text-amber-900",
   never_human: "bg-red-50 text-red-700",
   complaint_on_file: "bg-red-50 text-red-700",
   prefers_text: "bg-sky-50 text-sky-800",
@@ -53,7 +55,7 @@ export default function AdminRelationshipsPage() {
   const [rows, setRows] = useState<RelationshipRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [filter, setFilter] = useState<"all" | "due" | "quiet">("all");
+  const [filter, setFilter] = useState<"all" | "due" | "blocked" | "quiet">("all");
 
   const load = useCallback(async () => {
     setError(null);
@@ -74,11 +76,13 @@ export default function AdminRelationshipsPage() {
 
   const shown = (rows ?? []).filter((r) => {
     if (filter === "due") return !!r.open_action;
+    if (filter === "blocked") return r.flags.includes("blocked_on_ask");
     if (filter === "quiet") return r.flags.includes("never_human") || (r.days_quiet ?? 0) >= 14;
     return true;
   });
   const overdue = (rows ?? []).filter((r) => r.flags.includes("overdue")).length;
   const neverHuman = (rows ?? []).filter((r) => r.flags.includes("never_human")).length;
+  const blocked = (rows ?? []).filter((r) => r.flags.includes("blocked_on_ask")).length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
@@ -124,7 +128,8 @@ export default function AdminRelationshipsPage() {
         {(
           [
             ["all", `All · ${rows?.length ?? 0}`],
-            ["due", "With a next action"],
+            ["blocked", `Call list · ${blocked}`],
+            ["due", "Something to do"],
             ["quiet", "Quiet or never contacted"],
           ] as const
         ).map(([k, lbl]) => (
@@ -139,7 +144,7 @@ export default function AdminRelationshipsPage() {
         ))}
         {rows && (
           <span className="ml-auto font-mono text-[11px] text-gray-500">
-            {overdue} overdue · {neverHuman} never had a human touch
+            {overdue} overdue · {neverHuman} only ever got automated email
           </span>
         )}
       </div>
@@ -224,6 +229,13 @@ export default function AdminRelationshipsPage() {
                       </>
                     ) : (
                       <span className="text-gray-400">No touch on record</span>
+                    )}
+                    {/* Automated mail keeps "days quiet" small while an ask we made
+                        goes unanswered for a month. Both numbers, side by side. */}
+                    {r.open_ask && (
+                      <div className="mt-1 font-mono text-[11px] text-amber-800">
+                        asked for {r.open_ask.kind} {fmtDate(r.open_ask.asked_at)} · {r.open_ask.days_open} days unanswered
+                      </div>
                     )}
                   </td>
                   <td className="max-w-[38ch] px-4 py-3 text-gray-800">

@@ -7,6 +7,32 @@
 
 ## Current Focus
 
+### 2026-09-17 — Ad Boost photo stall: the gate is fine, the chase is not (`graceful-wright`, PR #1941)
+
+Ces called 6 of 8 providers on a photo-chase list she built by hand and it produced **one** archivable answer. Working out why turned into the session.
+
+**The thing I got wrong first, and TJ caught.** I published that the photo gate reads the wrong page, because `/admin/directory/[providerId]` (`route.ts:123-131`) discards the business profile and serves the scraped `olera-providers` row, returning `images: []` outright for a user-created profile. That part is true. But it is **not the gate**. `app/api/admin/ad-boost/route.ts:188-215` builds the review panel's `profileImages` from `business_profiles.metadata.images` first, falling back to the directory only when empty — the same union as `eligibility.server.ts:200`. Replayed against all eight: **every one of the five held campaigns was judged on a correct view.** Wescastle's own review note, written 16 Sep with five real photos visible in the panel, asks for team photos. The gate worked. TJ's instinct was right and my headline was wrong; the artifact was rebuilt around it.
+
+**What is actually broken is everything after the judgment.**
+- The photo email is one nudge + one reminder at 3 business days, then **permanent silence** by design. Senior Services has sat 40 days, Caring Senior 31.
+- `days_quiet` on `/admin/relationships` fell back to the last touch on *any* channel, so the **weekly analytics digest kept resetting the clock**. Senior Services read "5 days quiet" against a 40-day-old unanswered ask. Wescastle read **0 days quiet** because its only recent "touch" was a send that failed.
+- There was nowhere to record a call. `provider_touches` had 18 rows across 5 providers; **none** of Ces's eight. Her round lived in a Google Sheet.
+- The generic photo email is **0 for 5**. The one time a specific ask was written it went into `photo_review_note`, a field whose own helper text said "internal only", and the provider got the generic copy — which tells them their gallery is "mostly branding, text-based, closely cropped". False for Wescastle's five real photos. Then it bounced anyway.
+
+**Reconciliation TJ forced (and it shrank the build).** He showed `/admin/relationships` and asked how it squared with what I was proposing. All 19 providers are already on it, including all eight. So items I had scoped as new — a call-outcome logger and a call-list filter on Ad Boost — were 80% redundant, and I had put `last_call_outcome` on the wrong table. The build became *entry points and honest numbers on Relationships*, not a second CRM.
+
+**Shipped (PR #1941 → staging).** Log a touch from the Ad Boost row (same form, opens on Call, provider prefilled) · five call outcomes on `provider_touches` · quiet clock ignores sends that never arrived · `blocked_on_ask` flag + Call list filter, sorted oldest ask first · archive requires a reason, `not_interested` also pauses provider comms · failed send reads "Email not deliverable, call or text instead" · the review note is now the email body. **Migration 233 applied to prod** (`provider_touches.outcome`, `ad_campaign_requests.archived_reason`, both TEXT + CHECK, verified live and rejecting junk).
+
+**`/pre-test` caught three, one of them serious.** The bounce message never appeared on the **queue** — the surface that prompted the work — because the queue computes its next move from a precomputed summary that deliberately dropped failed sends (`route.ts:327`), and calls `getAdBoostNextAction(request)` with no communications at all. Failures now travel in `failed_by_type`. Also: the bounce message could contradict a recorded successful send; and the archive reason picker stacked on top of the still-open "more actions" dropdown on narrow screens.
+
+**Verified against prod, not asserted.** The real `loadRelationships` returns exactly three on the Call list — Senior Services 40d, Living Angels 36d, Caring Senior 31d — all previously reading 5-16 days quiet. Wescastle's queue row now reads `Email not deliverable · 2 attempts failed · Suppressed: verified undeliverable`. **That address is a confirmed dead one**, so Ces's voicemail is the only channel that has ever worked with them. A full touch round-trip confirmed logging a call clears `never_human` and resets `days_quiet` while `blocked_on_ask` correctly survives at 40d.
+
+**Dispositions for the eight.** Archive **Ama Vida** (only real decline, "I think I'm okay for now"). Keep **Caring Senior** (callback booked, opened every email) and **Impact** (callback booked, but its campaign ended 2 Jul). One text each then archive as unreachable for **Senior Services** and **Living Angels** (both phones dead). **Wescastle** the ask never reached: resend or call. **Abode** and **Legacy Haven** off the list entirely — campaigns ended in June, never gated, 6 and 10 photos already live; neither was ever called.
+
+**Still open.** The directory editor gap is real but no longer load-bearing now that the working surface is the Ad Boost page. Ama Vida and Caring Senior each have two `business_profiles`. Ces's admin login is `cchavez.olera@gmail.com` (last sign-in 14 Aug) while her Slack is `cecille.chavez05@gmail.com` — worth confirming she reaches the panel before pointing her at the Call list, since the whole motion depends on it.
+
+Artifact: https://claude.ai/artifact/CmLA72s8zAQFEqfjDfUYtx
+
 ### 2026-09-16 (pm) — Two paid-path defects shipped to PRODUCTION; Meta arm live; /smartscript added (`thirsty-payne`)
 
 **Shipped to prod** via promotion PR **#1932** (main now `ce7381498`). Delta was 10 commits / 36 files; two of the five PRs were mine, three were other people's student-profile + docs work that rode along (flagged to TJ before merging, he approved).
@@ -95,6 +121,21 @@
 - **Two more Hoop gaps surfaced while in the account:** budget still **$3.50/day** (~$106/mo against a $75 all-in plan), and the account carries an "Improve account security" warning.
 - Browser shut down with **SIGTERM** so both new sign-ins flushed — the olera.care admin session and a clean `chrome-profile-gads-clean` Google Ads session are on disk for tomorrow.
 
+
+### 2026-09-17 (am) — Hoop Cares geo widened via a Google Ads Script; the settings editor is dead
+
+- **DONE: Google campaign `24235451655` now targets Harrison, Jackson and George County MS.** The 20-mile Pascagoula radius is removed. Google and Meta finally cover the same three counties Liz named on the 16 Sep call. **Verified by reading the state back**, not by trusting the success message.
+
+- **Last night's diagnosis was wrong in its framing, and TJ's own browser proved it.** He ran Cmd+F for "locations" on the settings page in his everyday Chrome and got **0/0** — so it was never CDP, never the automation profile, never extensions. A second campaign (Graceful `24162206362`) stalls identically. **The web campaign settings editor is broken account-wide, in every browser**: header renders, then all 15 lazy sections under "Other settings" hang on `Loading name / Loading summary`.
+  - **The "Turn off ad blockers" H1 is static boilerplate present on EVERY Google Ads page**, including ones working perfectly (it is in the DOM of the Scripts page, which renders fine). It is not a signal and it is what sent four hours of blocker-elimination down a dead end. Recorded in `ref:google_ads_settings_editor_cdp`, deliberately as a troubleshooting note rather than a rule.
+
+- **The way through is Google Ads Scripts**, which renders perfectly — `Olera metrics sync (hourly)` sits right there. New script **`12335624`**, "Hoop Cares geo — Harrison / Jackson / George", in account 419-933-1442. Committed as `scripts/google-ads/set-campaign-geo.js` (`7f32cc640`), so the next campaign is a two-line edit.
+  - **THE TRAP, and it would have been silent: a radius is a PROXIMITY, not a location.** They are separate collections on `campaign.targeting()` and a campaign can hold both. Hoop had **one proximity and ZERO locations**, so a locations-only script would have removed nothing and left the old 20-mile radius serving alongside the three new counties. Nobody would have seen it. `targetedProximities()` must be handled explicitly.
+  - Script adds before removing — a campaign with no geo target serves **nationally**.
+  - Criterion IDs from Google's published geotargets CSV (`geotargets-2025-01-13.csv`): Harrison `9058330`, Jackson `9058336`, George `9058326`. Look new ones up there, never guess.
+  - Safety ladder used, worth repeating: `DRY_RUN=true` Preview (reads only) → `DRY_RUN=false` + Google's own Preview (sandboxes the writes, shows real change rows) → Run → `DRY_RUN=true` Preview again to read back. Left parked at `DRY_RUN=true` and **not scheduled**, so it is now a read-only "what is this campaign targeting?" tool.
+  - TJ had to click through a Google OAuth consent for the script. The first attempt left the popup open without granting, which showed up as `Done (0:00)` with **no logger output** — that signature means unauthorized, not broken code.
+
 ---
 
 ### 2026-09-16 (am) — First paying provider: Hoop Cares $75/mo, and what the funnel actually shows (`thirsty-payne`, analysis only, no product code)
@@ -123,6 +164,53 @@
 
 **Next up:** acting on action 01 — pull every ad lever at Pascagoula before 15 Oct.
 
+### 2026-09-17 — Claude subscription consolidation; Team org created, stopped at payment (`pleasant-pare`, ops only, no code)
+
+Acting on the Mercury review's biggest controllable line. No product code changed. Two skills written/corrected, one Team org created and left unpaid at checkout.
+
+**TJ stays on Max 20x — settled with data, not opinion.** `claude.ai/settings/usage` for `tfalohun@gmail.com`: **Max (20x), 38% of the weekly limit used**, session 7%, Fable 4%, `$22.22` purchased credits entirely unspent, banner reads "On track... room to spare." 38% of a 20x allowance ≈ **7.6x Pro of real demand**. **Team Premium ≈ 6.25x Pro (≈31% of Max 20x), so he would exceed a Premium seat most weeks** — and 7.6x also exceeds Max 5x, so the $200 tier is correctly sized, not waste. **The "drop Max, save $3,600/yr" option is dead for TJ.** Caveat: the 6.25x is derived from a third-party 1.25x figure for a Standard seat; Anthropic only publishes "more usage than Pro". Limits also moved — the summer Claude Code promo ended 13 Sep leaving weekly limits 25% above pre-promo, so 38% is against the new ceiling.
+
+**The seat-holder question is CRACKED.** Billing page shows this account paying **Mastercard ••••0131 at $212 on the 13th** (Jun/Jul/Aug/Sep all Paid). **••0131 is the Mercury "AI Tools" virtual card** (`c91bee90-83a3-11f0-bb0d-9b508177407e`). So: **$212/13th = TJ**; **$213.20/5th and $106.00/28th = two OTHER Claude accounts on the same company card**; **$212.00/7th = Logan** on his debit ••9463. **Three separate Claude accounts bill to one card.** The two on the 5th and 28th are still unidentified — that is the open item.
+
+**Correction to carry forward: Team does NOT give per-user usage visibility.** I told TJ it would. The docs and the upgrade page both say **"central billing and administration"** only; **per-user and org spend limits are an Enterprise feature requiring 20+ users**. Team fixes the billing sprawl; it will not tell you who is consuming what.
+
+**Team plan mechanics (verified against support docs, not assumed).** Standard seat **$20/mo annual · $25 monthly**; Premium **$100 annual · $125 monthly**; min 2 seats, max 150. **The Primary Owner seat consumes a license — there is no admin role that sits outside the seat count.** Seat types are reassignable between Standard/Premium within the existing allocation, and "No seat assigned" parks a seat without buying another. **Billing is asymmetric: adding a seat or upgrading is prorated and charged immediately; reducing takes effect only at renewal with no refund.** Hence the rule: **buy Standard, upgrade on evidence of throttling — guessing low is nearly free, guessing high locks in $100/mo per wrong guess.**
+
+**Org created on `tj@olera.care`, NOT the Max account.** The `/create/team` flow starts from a work email rather than upgrading the logged-in account, so **`tfalohun@gmail.com` and its Max were never at risk** — the "Keep your personal account separate" checkbox refers to the *initiating* account, and was correctly left **unchecked** (tj@olera.care's org was empty, created accidentally by Google One Tap earlier this session; folding it in avoids a second workspace). Team name **"Olera"**, org uuid `106f8cb3-735a-4eee-ad4a-a5d91e69adbe`.
+
+**Left at the payment screen, unpaid.** Configured **4 Standard seats, 0 Premium, Monthly = $100.00 + $11.11 tax = $111.11** (verified post-write; values held). **Monthly deliberately, not annual** — annual saves 20% but seat *reductions* wait for the annual renewal, and the roster is unproven; take the discount once it settles. **Still wrong on that screen: Country defaults to Vietnam** (the 11.11% is Vietnam VAT, not a US rate) — must be **United States**, Full name **"Olera, Inc"** (business name, since EIN `85-3503617` goes in the tax ID field). **Full name / Country / Address sit inside Stripe iframes and cannot be scripted**; the tax ID field IS in the main page. hCaptcha is on the page too. TJ fills those, then Subscribe.
+
+**Target end state.** TJ keeps Max 20x ($212) + a **Standard** seat as admin identity only (admin actions consume no usage), other three migrate to Standard seats, then cancel the four individual subs. **$743.20/mo → ~$312/mo (≈$5,200/yr)** if nobody needs Premium; $612/mo if all three do. **Migrate BEFORE cancelling** — the overlap is why a long pilot is expensive.
+
+**Skills.** New **`/mercury-review`** and **`/open-chrome`**, both user-global in `~/.claude/skills/`. `/open-dia` corrected on two counts now encoded in both: **`/json/version` does NOT identify the browser** (Dia reports itself as `"Browser": "Chrome/..."` — use `lsof` COMMAND column), and **shut down with SIGTERM not `kill -9`** (Chromium only flushes cookies on clean shutdown; a profile whose `Default/Cookies` mtime is months stale despite recent sign-ins is this bug, which is what I caused earlier). Also: Google One Tap loads with `auto_select=true` and silently re-signs into a cached account in a loop — escape via a fresh profile or the email-code path.
+**PARKED 17 Sep — card declined at checkout, Team plan NOT purchased.** TJ's call: keep running the four existing individual Claude subscriptions and revisit. The org **"Olera" exists on `tj@olera.care` but has no subscription** — nothing was charged, so there is no cleanup owed.
+
+**The decline is NOT explained, and my first theory was wrong.** TJ created a dedicated Mercury virtual card for this — **••3211, nickname "Anthropic"**, `4e59b408-b1dd-11f1-b0ee-e3a8ab42da36`, created 2026-09-16 14:45 UTC. Verified: **status active, $1,000/day limit, no merchantLock, no categoryLocks, expiry 09/2031** (matches what was typed), and checking ••0306 holds **$58,832.86**. **`listTransactions` filtered to that cardId returns ZERO rows of any status** — no declined authorization exists. Mercury records declines (the 2025 LinkedIn/Twilio/SendGrid failures are all there), so an absent record means **the auth never reached the issuer** — something blocked it upstream, at Stripe.
+
+**I blamed the VPN; TJ corrected me — the card was declined BEFORE the VPN went on, and the VPN was his attempted fix.** So the original attempt was a real Thailand IP against a US-issued card with a Maryland billing address (9844 Decatur Rd, Middle River, MD 21220). Geography mismatch is still plausible but is now unproven, not established.
+
+**Still unverified and worth checking first on resume:** (1) the credit account's remaining **credit limit** — `listCredit` exposes only balances (`availableBalance -16,385.48`, `currentBalance -16,364.17`), never the limit, so an exhausted IO line is not ruled out; (2) whether the Mercury **dashboard** shows a decline reason the API omits; (3) whether the billing address matches Mercury's file (AVS). **Fastest sidestep: pay with debit ••9590** ($2,500/day, drawn on the $58.8K checking account) which avoids the credit line entirely.
+### 2026-09-16 — Mercury transactions review, 16 Jul–15 Sep (`pleasant-pare`, ops only, no code)
+
+First `/mercury-review`. No product code changed. One artifact published and a new user-global skill written.
+
+**The headline is people, not SaaS.** 141 settled transactions: out **$89,511.34**, in **$52,369.64** (all HHS draws + $347.43 cashback), net **−$37,141.70**. Gusto + Upwork + IRS = **$77,367.03 = 86.4% of outflow**. Upwork alone **$29,169.66** and grew **23%** across the two halves ($13,070.67 → $16,098.99), which is two-thirds of the entire $4,554.66 spend increase. Every subscription cut found here is worth less than one week of Upwork. Recurring non-people commitments = **$1,609.89/mo** ($884.55 SaaS + $725.34 ads), ≈$19.3K/yr.
+
+**Confirmed waste.** **Loops is billed TWICE monthly** — two subscriptions, $49 each, different cards, different cycle days (11th on TJ debit `02d82f94`, 29th on Marketing credit `e7d0bf08`), running since ≥Jan 2026. Loops was **retired 21 Jun** ([[project_email_architecture]]); **6 charges = $294 posted after the retirement decision**. Also **two Google One subs** ($21.31 on the 17th, AI Tools card; $17.69 on the 14th, Data team card). Cancel both Loops + one Google One = **$1,388/yr**, no further investigation needed.
+
+**Claude = the largest controllable line.** Four concurrent subscriptions: $213.20 (5th), $212.00 (7th, **Logan's debit ••9463**), $212.00 (13th), $106.00 (28th) = **$743.20/mo = $8,918/yr**, plus ~$97/mo API. Decodes as **3 × Max 20x + 1 × Max 5x**. **Team is cheaper per seat but NOT like-for-like**: Team Premium = 5× a standard seat ≈ **6.25× Pro**; Max 20x = **20× Pro**. No Team seat matches Max 20x. 4 × Team Premium annual = $400/mo (saves $3,600/yr) but cuts the three heavy seats ~3×. **The decision is a capacity question — check who actually hits caps — not a price question.** We also pay monthly; Team annual is 20% off.
+
+**Ad spend does not reconcile.** Mercury shows **$1,450.66** across Google/Meta/Nextdoor in 62 days (Google $979.85, escalating $189.52 → $290.33 → $500.00 on 15 Sep). The 14 Sep audit documents ~**$1,119 lifetime**. Google bills on threshold not calendar, so timing explains some of it, not the magnitude. Settle before adding budget.
+
+**Do NOT re-report as anomalies.** **Cloudflare $255.84** is an *annual* renewal, identical for 3 straight years (2024/2025/2026). **Ambrosi Donahue $1,250** = **our accountants** (TJ confirmed 16 Sep) — not an unexplained payment. **ZeroBounce $69** is load-bearing (send-time suppression gate, [[project_email_architecture]]) — never list as a saving.
+
+**Still open.** JMIR $2,500 (2 Sep) — miscategorised *Entertainment* by MCC 5815, paid on Logan's **debit** card; confirm grant-allocable. Erin Antroinen $100 (23 Jul), no memo. Apollo $65 + Snov $41.34 — [[project_provider_outreach_enrichment]] says TJ chose Perplexity+Places *over* Apollo/Snov, but Apollo sits on Esther's card so ask before cutting. Twilio SendGrid $21.27 — a third sender absent from the email architecture. Slack renewed 2 Sep at **$1,255.73 vs $1,116.21** (+12.5% YoY, annual, seats added mid-cycle); Zoom $70.99 (Jan) → $106.62 (Sep).
+
+**Receipts are not tracked at all** — every sampled transaction returns `attachments: []` with `compliantWithReceiptPolicy: true` (no policy in force on the free tier). 1 note across 132 outflows.
+
+**Mercury API traps (now encoded in the skill).** `postedStart`/`postedEnd`, never `start`/`end`. **A date-filtered query that matches nothing silently re-runs UNFILTERED and returns lifetime history with a `_retryNote` buried at the end** — it served Dec-2025 LinkedIn declines as if current; treat that note as a hard error. Pending/failed have no `postedAt` so they need separate pulls + client-side `failedAt` filtering. **The credit account (`9dcf7408`, −$16,364.17, 97 of 141 tx) is NOT in `getAccounts`** — use `listCredit`. Credit-card autopay appears as 4 legs netting to $0.00; count expenses at the card charge, never the repayment.
+
+**Artifact.** `DJaaXV2eKywSDkNBKUvbNb`. **New skill** `/mercury-review` at `~/.claude/skills/mercury-review/SKILL.md` (user-global — finance work runs outside any repo, and project skills don't load elsewhere).
 ### 2026-09-15 — Full-book Ad Boost audit; the city A/B never had the power to conclude (`zealous-planck`, ops only, no code)
 
 `/ad-boost-audit` across all three channels. No product code changed. One artifact published, nine `observation` entries plus three corrections written to `ad_campaign_log`, and the audit appended to all six `city_campaigns.admin_note` fields.
@@ -5280,7 +5368,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ## Next Up
 
 ### Hoop Cares / Oct 15 renewal (29 days) — the live clock
-1. **Widen Google to Harrison + Jackson + George** (campaign `24235451655`, currently 20 mi Pascagoula). Confirmed by Liz herself on the 16 Sep call. Meta already runs all three. **Blocked on the settings editor rendering — retry it first, see the fourth delta.** If it still stalls, TJ makes the edit in his own Chrome and Claude verifies from the Locations report, which renders fine. Also open from that call: **Nextdoor was promised and is not running**, and her **budget is $3.50/day against a $75/mo plan**.
+1. ~~Widen Google to Harrison + Jackson + George~~ **DONE 17 Sep** via script `12335624`, verified by read-back. Still open on her account, both from the 16 Sep call: **Nextdoor was promised and is not running**, and her **budget is $3.50/day against a $75/mo all-in plan** (~$106/mo of spend on $75 of revenue). Note any future settings change must go through `scripts/google-ads/set-campaign-geo.js` or another script while the web editor is down.
 2. **The zero-inquiry guarantee → reframed as THE STARTER DECISION.** See the second delta above and artifact `5i3AaAiEhEtK9V3dRtteK6`. Order of work: **(a)** pin what "inquiry" means in `/managed-ads-terms` by event type — mine, ~1h, unconditional; **(b)** make the guarantee detect itself — a check at each paid month's close, flag in the admin queue + Slack, credit stays manual — mine, ~half a day, unconditional; **(c)** TJ asks Liz why she paid (question 2 on her card) — blocks (d); **(d)** decide whether Starter stays a paid tier. Liz's own month is owed either way: manual Stripe credit, 15 Oct.
 3. **Verify the Google end date actually saved** to 20 Oct — entered and saved but Google reporting lagged to 15 Sep, so unconfirmed. Re-check once reporting catches up.
 4. **Watch the first prod metrics sync** — 8 catch-up traction emails, and `/admin/ad-boost` rows should stop reading "Traction email missing".
@@ -5293,7 +5381,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 7. Edmonds Villa + Assisting Hands have live campaigns and have **never seen a price** — run `/smartscript` for each.
 8. Happy Mountain: 4 price views, the only provider ever shown `result_kind: inquiries`, hasn't converted.
 9. Miracle-Lightstar: abandoned a $75 checkout 21 Aug, 6 price views since.
-10. Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.
+10. ~~Four photo-blocked providers, 8 emails 0 submissions, oldest waiting 40 days.~~ **Five, and handled 17 Sep** (PR #1941). They now surface as the **Call list** on `/admin/relationships`: Senior Services 40d, Living Angels 36d, Caring Senior 31d. Remaining human work: archive Ama Vida as not-interested; take the Caring Senior and Impact callbacks; text Senior Services and Living Angels once, then archive as unreachable; resend or call Wescastle, whose address is a **confirmed dead one** (`Suppressed: verified undeliverable`).
 
 ### Slower
 11. Item 09 — receipt granularity/delight; only two providers have seen the drawn receipt.
@@ -5698,6 +5786,17 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-09-17 — Ad Boost photo stall → calling motion (`graceful-wright`, PR #1941)
+
+- Migration `233` (applied to prod): `provider_touches.outcome`, `ad_campaign_requests.archived_reason`, both TEXT + CHECK per prod convention.
+- Touched `lib/touches/{types.ts,timeline.server.ts}`, `app/api/admin/touches/route.ts`, `components/admin/TouchForm.tsx`, `app/admin/relationships/page.tsx`, `app/admin/ad-boost/{page.tsx,[id]/page.tsx}`, `app/api/admin/ad-boost/route.ts`, `components/admin/AdBoostShared.tsx`, `lib/ad-boost/{admin-communications.ts,photo-notifications.server.ts}`, `lib/email-templates.tsx`.
+- **The correction worth keeping:** the photo gate reads the correct store. The admin *directory editor* does not, and that is a different, non-blocking surface. I asserted otherwise first; TJ pushed and the code disagreed with me.
+- **The bug worth keeping:** `days_quiet` treated any system send as contact, so the weekly analytics digest masked month-old unanswered asks. Marketing mail is not a relationship.
+- `/pre-test` found 3 real defects including one that made the whole bounce fix invisible on the queue. Fixed in `70039b154`.
+- Verified by running `loadRelationships` and `getAdBoostNextAction` against prod, and by a full touch insert/read/delete round-trip. Both email variants rendered offline.
+- Not merged. PR open to staging.
+
 
 ### 2026-09-13 — Provider banner updates (`codex/provider-banner-updates`)
 

@@ -359,7 +359,15 @@ export function adBoostPhotoUpdateEmail(opts: {
   providerName: string;
   ctaUrl: string;
   reminder?: boolean;
+  /**
+   * The concierge's own words for what this provider should add, from the photo
+   * review. When present it replaces the generic critique, which is often wrong
+   * for the specific gallery: a provider with five real photos does not need to
+   * be told their images are "mostly branding, text-based, closely cropped".
+   */
+  specificAsk?: string | null;
 }): string {
+  const ask = opts.specificAsk?.trim() || null;
   const heading = opts.reminder
     ? "Your Ad Boost request is waiting on one photo update"
     : "One photo update before we launch your Ad Boost";
@@ -367,11 +375,11 @@ export function adBoostPhotoUpdateEmail(opts: {
     ? `Your Ad Boost request for ${escapeHtml(opts.providerName)} is still saved. We&rsquo;re waiting on a few stronger photos before we put the promotional budget to work.`
     : `Thanks for requesting Ad Boost for ${escapeHtml(opts.providerName)}. You&rsquo;ve already taken the time to add images and get your profile set up.`;
 
-  return layout(
-    `
-    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost photo review</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${heading}</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${intro}</p>
+  const body = ask
+    ? `
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${escapeHtml(ask).replace(/\n+/g, "</p><p style=\"font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;\">")}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Phone photos are completely fine. Bright and sharp, without text overlays, works best. Your request stays saved while you make the update, and you do not need to submit it again.</p>`
+    : `
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">During our campaign review, we noticed that the current gallery relies mostly on branding, text-based, closely cropped, or low-resolution images. Those images can look soft at full size and may not give families enough of a feel for your team and the care you provide.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 14px;line-height:1.65;">A few clear, real-world photos will give the campaign a better chance of turning clicks into inquiries. The most helpful additions are:</p>
     <ul style="font-size:15px;color:#374151;margin:0 0 18px;padding-left:20px;line-height:1.75;">
@@ -379,7 +387,13 @@ export function adBoostPhotoUpdateEmail(opts: {
       <li>A clear photo of your location or care setting</li>
       <li>A natural photo showing the kind of care you provide, with permission</li>
     </ul>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Phone photos are completely fine &mdash; bright, sharp, and without text overlays works best. Your request remains saved while you make the update, and you do not need to submit it again.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Phone photos are completely fine. Bright and sharp, without text overlays, works best. Your request stays saved while you make the update, and you do not need to submit it again.</p>`;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost photo review</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${heading}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${intro}</p>${body}
     <div>${button("Add better photos", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
@@ -4469,6 +4483,67 @@ export function interviewReminderEmail(opts: {
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, `Reminder: Interview with ${opts.otherName} tomorrow`);
+}
+
+/** Confirmation email sent to the person who proposed a new time (reschedule) */
+export function interviewRescheduleSentEmail(opts: {
+  recipientName: string;
+  otherName: string;
+  newTime: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">New time sent</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${escapeHtml(opts.recipientName.split(" ")[0] || "there")}, your proposed new time has been sent to <strong>${escapeHtml(opts.otherName)}</strong>.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Proposed Time</p>
+      <p style="font-size:15px;color:#111827;margin:0;font-weight:600;">
+        ${escapeHtml(opts.newTime)}
+      </p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You'll be notified when they respond.
+    </p>
+    <div style="margin:0 0 24px;">${button("View Interview", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your proposed time was sent to ${opts.otherName}`);
+}
+
+/** Admin notification when an interview is cancelled */
+export function interviewCancelledAdminEmail(opts: {
+  providerName: string;
+  studentName: string;
+  cancelledBy: "provider" | "student";
+  interviewTime: string;
+  adminUrl: string;
+}): string {
+  const cancellerName = opts.cancelledBy === "provider" ? opts.providerName : opts.studentName;
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Cancelled</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      An interview has been cancelled by <strong>${escapeHtml(cancellerName)}</strong>.
+    </p>
+    <div style="background:#fef2f2;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Provider:</strong> ${escapeHtml(opts.providerName)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Student:</strong> ${escapeHtml(opts.studentName)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Scheduled for:</strong> ${escapeHtml(opts.interviewTime)}
+      </p>
+      <p style="font-size:14px;color:#991b1b;margin:0;line-height:1.5;">
+        <strong>Cancelled by:</strong> ${opts.cancelledBy === "provider" ? "Provider" : "Student"}
+      </p>
+    </div>
+    <div style="margin:0 0 24px;">${button("View in Admin", opts.adminUrl)}</div>
+  `, `Interview cancelled: ${opts.providerName} ↔ ${opts.studentName}`);
 }
 
 /** Email to provider when they request to claim an existing listing */

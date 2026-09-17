@@ -38,6 +38,8 @@ type PhotoCampaignRow = {
   display_name: string | null;
   requested_setup_week?: string | null;
   channel?: string | null;
+  /** The concierge's own ask, when one was written. See below. */
+  photo_review_note?: string | null;
 };
 
 export async function sendAdBoostPhotoEmail(opts: {
@@ -47,6 +49,20 @@ export async function sendAdBoostPhotoEmail(opts: {
   const db = getServiceClient();
   const recipient = await loadProviderRecipient(db, opts.request);
   if (!recipient.email) return { sent: false, skipped: "missing_email" };
+
+  // The specific ask, in the reviewer's words. The generic copy is 0 for 5 on
+  // the providers it has gone to, and the one time someone wrote the ask they
+  // wanted to make it went into this column and the provider got the generic
+  // version anyway. The cron passes the row without this column, so read it.
+  let specificAsk = opts.request.photo_review_note ?? null;
+  if (specificAsk === undefined || specificAsk === null) {
+    const { data: noteRow } = await db
+      .from("ad_campaign_requests")
+      .select("photo_review_note")
+      .eq("id", opts.request.id)
+      .maybeSingle();
+    specificAsk = noteRow?.photo_review_note ?? null;
+  }
 
   const sentColumn = SENT_COLUMN[opts.kind];
   const requiredPhotoStatus = opts.kind === "ready" ? "ready" : "update_requested";
@@ -94,6 +110,7 @@ export async function sendAdBoostPhotoEmail(opts: {
         providerName: recipient.name,
         ctaUrl,
         reminder: opts.kind === "reminder",
+        specificAsk,
       });
 
   const result = await sendEmail({

@@ -81,21 +81,21 @@ export default function HireCaregiversBoard() {
   const [inCatchment, setInCatchment] = useState<boolean | null>(null);
   const autoFilteredRef = useRef(false);
 
-  // Universities for the dropdown + catchment id mapping.
+  // Universities for the dropdown — fetches universities that have students.
+  // Uses API route to bypass RLS restrictions on is_active.
   useEffect(() => {
-    const sb = createClient();
-    sb.from("medjobs_universities")
-      .select("id, name, state, lat, lng")
-      .eq("is_active", true)
-      .order("name")
-      .then(({ data }: { data: University[] | null }) => {
-        if (data) setUniversities(data);
+    fetch("/api/medjobs/universities")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.universities) setUniversities(data.universities);
+      })
+      .catch(() => {
+        // Fallback: silent fail, dropdown will just be empty
       });
   }, []);
 
-  // Auto-filter to the provider's own catchment: resolve their city/state →
-  // partner university → the matching medjobs_universities row. Runs once, after
-  // the university list loads. No catchment match → show demos.
+  // Detect whether the provider is in a partner catchment (for potential future
+  // use), but do NOT auto-filter. Default is "All Universities" showing demos.
   useEffect(() => {
     if (autoFilteredRef.current || universities.length === 0 || !providerProfile?.id) return;
     autoFilteredRef.current = true;
@@ -121,14 +121,9 @@ export default function HireCaregiversBoard() {
           return;
         }
         const med = universities.find((u) => u.name.toLowerCase() === matchUni.name.toLowerCase());
-        if (med) {
-          setUniversityId(med.id);
-          setInCatchment(true);
-        } else {
-          // Partner university with no matching medjobs_universities row — treat
-          // as out-of-catchment so we fall back to demos rather than all-real.
-          setInCatchment(false);
-        }
+        // Track catchment status but DON'T auto-set universityId — we want
+        // "All Universities" (demos) as the default landing experience.
+        setInCatchment(!!med);
       } catch {
         setInCatchment(false);
       }
@@ -151,7 +146,14 @@ export default function HireCaregiversBoard() {
   }, []);
 
   useEffect(() => {
-    fetchCandidates(universityId);
+    // Skip API call for "All Universities" — we show demos instead, no need to
+    // fetch real students just to ignore them.
+    if (universityId) {
+      fetchCandidates(universityId);
+    } else {
+      setCandidates([]);
+      setLoading(false);
+    }
   }, [universityId, fetchCandidates]);
 
   const selectedUni = universities.find((u) => u.id === universityId);
@@ -164,7 +166,10 @@ export default function HireCaregiversBoard() {
   // Demo era: provider isn't near a partner campus, or their catchment has no
   // live students yet. Either way show the curated samples so the board stays
   // full (the user requested demo fallback when not in a catchment).
-  const isDemoEra = !loading && (inCatchment === false || candidates.length === 0);
+  // Show demo profiles when "All Universities" is selected (the default) or when
+  // the selected university has no real students yet. This ensures the map works
+  // (demos have lat/lng) and showcases the caliber of students on the platform.
+  const isDemoEra = !loading && (!universityId || candidates.length === 0);
   const baseCards = isDemoEra ? SAMPLE_CANDIDATES : candidates;
   const filtered = baseCards.filter((c) => matchesAvailability(c, availability));
   const availLabel = AVAIL_OPTIONS.find((o) => o.value === availability)?.label ?? null;
@@ -324,7 +329,7 @@ export default function HireCaregiversBoard() {
         <div className="hidden lg:block">
           <div className="sticky top-24 h-[calc(100vh-7rem)]">
             {selectedCandidate ? (
-              <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 bg-white">
+              <div className="w-full h-full rounded-2xl shadow-sm border border-gray-200 bg-white overflow-y-auto">
                 <CandidateDetailPanel
                   candidate={selectedCandidate}
                   onClose={() => setSelectedCandidate(null)}
@@ -418,6 +423,23 @@ export default function HireCaregiversBoard() {
           ))}
         </div>
       </Modal>
+
+      {/* Mobile: Candidate detail bottom sheet (hidden on desktop where inline panel is used) */}
+      <div className="lg:hidden">
+        <Modal
+          isOpen={!!selectedCandidate && !isDemoEra}
+          onClose={() => setSelectedCandidate(null)}
+          size="fullscreen"
+        >
+          {selectedCandidate && (
+            <CandidateDetailPanel
+              candidate={selectedCandidate}
+              onClose={() => setSelectedCandidate(null)}
+              onSchedule={() => openSchedule(selectedCandidate)}
+            />
+          )}
+        </Modal>
+      </div>
     </div>
   );
 }

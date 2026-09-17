@@ -566,7 +566,7 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   const [{ data: requests }, { data: touchedIds }] = await Promise.all([
     db
       .from("ad_campaign_requests")
-      .select("id, provider_id, status, created_at, photo_readiness_status, photo_update_requested_at")
+      .select("id, provider_id, status, created_at, photo_readiness_status, photo_update_requested_at, provider_comms_paused_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     db.from("provider_touches").select("provider_id"),
@@ -578,18 +578,25 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   // automated send can reset this — it is dated from when we asked, and it only
   // clears when the provider actually does the thing.
   const openAsk = new Map<string, RelationshipRow["open_ask"]>();
+  // Deliberately silenced providers look identical to neglected ones without
+  // this: the three Nextdoor pilot rows read "only ever got automated email"
+  // and "22 days quiet" while their email was paused on purpose, so the first
+  // person to work the list reasonably asked whether to cold-call them.
+  const commsPaused = new Set<string>();
   type CampaignPeek = {
     id: string;
     provider_id: string;
     status: string;
     photo_readiness_status: string | null;
     photo_update_requested_at: string | null;
+    provider_comms_paused_at: string | null;
   };
   for (const r of (requests ?? []) as CampaignPeek[]) {
     // newest request wins (ordered desc above)
     if (!campaignStatus.has(r.provider_id)) {
       campaignStatus.set(r.provider_id, r.status);
       campaignRequestId.set(r.provider_id, r.id);
+      if (r.provider_comms_paused_at) commsPaused.add(r.provider_id);
       const askedAt =
         r.photo_readiness_status === "update_requested" ? r.photo_update_requested_at : null;
       openAsk.set(
@@ -724,6 +731,7 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
     // one-shot email chase has already run out. This is the call list.
     const ask = openAsk.get(p.id) ?? null;
     if (ask && ask.days_open >= BLOCKED_ON_ASK_DAYS) flags.push("blocked_on_ask");
+    if (commsPaused.has(p.id)) flags.push("comms_paused");
     if (humanTouches.length === 0) flags.push("never_human");
     if (es.some((e) => e.complained_at)) flags.push("complaint_on_file");
     if (contact.preferred_channel === "sms") flags.push("prefers_text");

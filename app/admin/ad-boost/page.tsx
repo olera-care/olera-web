@@ -41,11 +41,11 @@ export default function AdminAdBoostPage() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"active" | "archived">(cache.preferences.view);
   // Defaults to Live: the campaigns actually spending money are what this page
-  // is opened for. Initialize once per view — Archived never defaults to
-  // Live (archived rows are ended/cancelled), and an active queue with nothing
-  // live falls back to All so the page never opens on an empty list.
+  // is opened for. Initialize once per view — Archived never defaults to a
+  // next-move lens (archived rows have no next move), and an active queue with
+  // nothing owed falls back to All so the page never opens on an empty list.
   const [statusFilter, setStatusFilter] = useState<string | null>(
-    initialFilter === undefined ? (cache.preferences.view === "active" ? "live" : null) : initialFilter,
+    initialFilter === undefined ? (cache.preferences.view === "active" ? "attention" : null) : initialFilter,
   );
   const [sort, setSort] = useState<AdBoostQueueSort>(cache.preferences.sort);
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(
@@ -118,7 +118,7 @@ export default function AdminAdBoostPage() {
     setUpdatedAt(recent?.at ?? null);
     if (recent) setCounts(recent.counts);
     const savedFilter = cache.preferences.filter[view];
-    setStatusFilter(savedFilter === undefined ? (view === "active" ? "live" : null) : savedFilter);
+    setStatusFilter(savedFilter === undefined ? (view === "active" ? "attention" : null) : savedFilter);
     void load();
     return () => {
       controllerRef.current?.abort();
@@ -165,18 +165,22 @@ export default function AdminAdBoostPage() {
   // Chip order is priority, not lifecycle. `.filterRail` scrolls horizontally
   // once the toolbar is narrower than its chips, so leftmost is the only
   // position guaranteed to stay visible — which is where the two lenses this
-  // page is opened for belong: Live (the default, and the campaigns actually
-  // spending money) then Needs attention. All follows as the escape hatch out
-  // of whatever filter you're in. The remaining lifecycle stages are browsed,
-  // not worked, so they sit past the divider in funnel order.
-  const showLiveChip = statusChips.includes("live");
-  const lifecycleChips = statusChips.filter((st) => st !== "live");
+  // page is worked from belong: Your move, then Waiting on them. All follows as
+  // the escape hatch out of whatever filter you're in.
+  //
+  // Lifecycle stages sit past the divider because a status records what the
+  // PROVIDER did and cannot say what anyone owes. "Requested" held seven rows
+  // across three unrelated next moves, none of which was approve-or-deny.
+  const lifecycleChips = statusChips;
   const nextActionById = useMemo(
     () => new Map((requests ?? []).map((request) => [request.id, getAdBoostNextAction(request)])),
     [requests],
   );
   const attentionCount = (requests ?? []).filter(
     (request) => nextActionById.get(request.id)?.level === "attention",
+  ).length;
+  const waitingCount = (requests ?? []).filter(
+    (request) => nextActionById.get(request.id)?.level === "waiting",
   ).length;
   const providerGroups = useMemo(
     () =>
@@ -304,7 +308,6 @@ export default function AdminAdBoostPage() {
       <div className={`${styles.filterToolbar} mb-3 flex items-center justify-between gap-3`}>
         <div className={styles.filterRail}>
           <div className={`${styles.filterList} flex items-center gap-1.5`}>
-            {showLiveChip && renderStatusChip("live")}
             {(attentionCount > 0 || statusFilter === "attention") && (
               <button
                 type="button"
@@ -315,13 +318,29 @@ export default function AdminAdBoostPage() {
                     : "text-amber-700 hover:bg-gray-100"
                 }`}
               >
-                Needs attention
+                Your move
                 <span className={statusFilter === "attention" ? "ml-1 text-white/70" : "ml-1 text-amber-500"}>
                   {attentionCount}
                 </span>
               </button>
             )}
-            {(statusChips.length > 1 || attentionCount > 0 || statusFilter !== null) && (
+            {(waitingCount > 0 || statusFilter === "waiting") && (
+              <button
+                type="button"
+                onClick={() => chooseFilter(statusFilter === "waiting" ? null : "waiting")}
+                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  statusFilter === "waiting"
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-500 hover:bg-gray-100"
+                }`}
+              >
+                Waiting on them
+                <span className={statusFilter === "waiting" ? "ml-1 text-white/60" : "ml-1 text-gray-400"}>
+                  {waitingCount}
+                </span>
+              </button>
+            )}
+            {(statusChips.length > 1 || attentionCount > 0 || waitingCount > 0 || statusFilter !== null) && (
               <button
                 type="button"
                 onClick={() => chooseFilter(null)}
@@ -386,8 +405,10 @@ export default function AdminAdBoostPage() {
           <p className="px-4 py-6 text-sm text-gray-400">
             {statusFilter
               ? statusFilter === "attention"
-                ? "No campaigns currently need attention."
-                : `No ${(STATUS_LABELS[statusFilter] ?? statusFilter).toLowerCase()} requests.`
+                ? "Nothing is waiting on you right now."
+                : statusFilter === "waiting"
+                  ? "Nothing is waiting on a provider right now."
+                  : `No ${(STATUS_LABELS[statusFilter] ?? statusFilter).toLowerCase()} requests.`
               : view === "archived"
                 ? "No archived requests."
                 : "No campaign requests yet."}

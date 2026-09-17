@@ -589,9 +589,21 @@ export function getAdBoostNextAction(
         return { label: "Photo email missing", detail: requestEmail.detail ?? "No successful send recorded", level: "attention", stepKey: "photo_update_requested", priority: 3 };
       }
       const reminder = state("photo_update_reminder");
+      // Age the row from when WE asked, not from when the last reminder fired.
+      // A waiting row without a number cannot say whether it is healthy or dead,
+      // and the reminder date flatters it: the photo chase stops after one
+      // reminder, so "Aug 12" reads recent while the ask is six weeks old.
+      const askedAt = validTimestamp(request.photo_update_requested_at);
+      const daysWaiting = askedAt
+        ? Math.floor((now - new Date(askedAt).getTime()) / 86_400_000)
+        : null;
+      const waitingDetail =
+        daysWaiting !== null
+          ? `Photos, asked ${daysWaiting === 0 ? "today" : `${daysWaiting} day${daysWaiting === 1 ? "" : "s"} ago`}`
+          : (reminder.detail ?? "Provider request is saved");
       return {
         label: reminder.label === "Due now" ? "Photo reminder due" : "Waiting on photo update",
-        detail: reminder.detail ?? "Provider request is saved",
+        detail: waitingDetail,
         level: reminder.label === "Due now" ? "attention" : "waiting",
         stepKey: "photo_update_reminder",
         priority: reminder.label === "Due now" ? 11 : 35,

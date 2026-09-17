@@ -207,6 +207,7 @@ export type RelationshipFlag =
   | "overdue"
   | "awaiting_reply"
   | "blocked_on_ask"
+  | "comms_paused"
   | "never_human"
   | "complaint_on_file"
   | "prefers_text"

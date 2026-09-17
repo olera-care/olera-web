@@ -300,6 +300,7 @@ async function getQueueResponse(request: NextRequest, timings: Record<string, nu
     created_at: string;
     delivered_at: string | null;
     bounced_at: string | null;
+    error_message: string | null;
     metadata: Record<string, unknown> | null;
   };
   const communicationSummaryByRequest = new Map<
@@ -307,6 +308,7 @@ async function getQueueResponse(request: NextRequest, timings: Record<string, nu
     {
       by_type: Record<string, { count: number; last_sent_at: string; last_subject: string | null }>;
       last: { email_type: string; subject: string | null; sent_at: string } | null;
+      failed_by_type: Record<string, { count: number; last_error: string | null }>;
     }
   >();
   const loadCommunications = async () => {
@@ -314,23 +316,36 @@ async function getQueueResponse(request: NextRequest, timings: Record<string, nu
       const requestIds = new Set(requests.map((row: { id: string }) => row.id));
       const communicationRows = await readCampaignRows([...requestIds], (ids, from, to, signal) => db
         .from("email_log")
-        .select("email_type, subject, status, created_at, delivered_at, bounced_at, metadata", { count: from === 0 ? "exact" : undefined })
+        .select("email_type, subject, status, created_at, delivered_at, bounced_at, error_message, metadata", { count: from === 0 ? "exact" : undefined })
         .in("email_type", AD_BOOST_EMAIL_TYPES)
         .in("metadata->>request_id", ids)
         .order("created_at", { ascending: false }).order("id")
         .range(from, to).abortSignal(signal));
       for (const communication of ([...(communicationRows ?? [])].reverse()) as QueueCommunicationRow[]) {
         const requestId = communication.metadata?.request_id;
-        if (
-          typeof requestId !== "string" ||
-          !requestIds.has(requestId) ||
-          communication.bounced_at ||
-          (communication.status !== "sent" && !communication.delivered_at)
-        ) {
+        if (typeof requestId !== "string" || !requestIds.has(requestId)) continue;
+        const landed =
+          !communication.bounced_at &&
+          (communication.status === "sent" || !!communication.delivered_at);
+        if (!landed) {
+          // Keep the failures. The queue row's next move is computed from this
+          // summary alone, and without them a bounced address is indistinguishable
+          // from a provider who simply never replied.
+          const failedSummary =
+            communicationSummaryByRequest.get(requestId) ??
+            { by_type: {}, last: null, failed_by_type: {} };
+          const existingFailure = failedSummary.failed_by_type[communication.email_type];
+          failedSummary.failed_by_type[communication.email_type] = {
+            count: (existingFailure?.count ?? 0) + 1,
+            last_error: communication.error_message ?? existingFailure?.last_error ?? null,
+          };
+          communicationSummaryByRequest.set(requestId, failedSummary);
           continue;
         }
         const sentAt = communication.delivered_at ?? communication.created_at;
-        const summary = communicationSummaryByRequest.get(requestId) ?? { by_type: {}, last: null };
+        const summary =
+          communicationSummaryByRequest.get(requestId) ??
+          { by_type: {}, last: null, failed_by_type: {} };
         const existing = summary.by_type[communication.email_type];
         summary.by_type[communication.email_type] = {
           count: (existing?.count ?? 0) + 1,
@@ -461,7 +476,8 @@ async function getQueueResponse(request: NextRequest, timings: Record<string, nu
     ad_landings: adLandings[r.campaign_tag || r.id] ?? 0,
     questions_received: questionsByRequestId[r.id] ?? 0,
     question_topics: questionTopicsByRequestId[r.id]?.size ?? 0,
-    communication_summary: communicationSummaryByRequest.get(r.id) ?? { by_type: {}, last: null },
+    communication_summary:
+      communicationSummaryByRequest.get(r.id) ?? { by_type: {}, last: null, failed_by_type: {} },
   }));
 
   return NextResponse.json({

@@ -34,6 +34,15 @@ export interface AdBoostCommunicationSummary {
     subject: string | null;
     sent_at: string;
   } | null;
+  /**
+   * Sends that never arrived, by email type.
+   *
+   * `by_type` counts successes only, so without this the queue cannot tell a
+   * provider who ignored us from one whose address rejects our mail — the queue
+   * row is built from this summary, not from the full communication list the
+   * detail page loads.
+   */
+  failed_by_type?: Record<string, { count: number; last_error: string | null }>;
 }
 
 export interface AdBoostCommunicationRequest {
@@ -167,16 +176,25 @@ function successfulRecords(
  * move is a different channel, not another attempt.
  */
 function allAttemptsFailed(
+  request: AdBoostCommunicationRequest,
   communications: AdBoostCommunicationRecord[],
   emailType: string,
 ): { failed: boolean; attempts: number; lastError: string | null } {
+  // Detail page: the full email_log rows are in hand.
   const attempts = communications.filter((c) => c.email_type === emailType);
-  if (!attempts.length) return { failed: false, attempts: 0, lastError: null };
-  const landed = successfulRecords(communications, emailType);
-  if (landed.length) return { failed: false, attempts: attempts.length, lastError: null };
-  const lastError =
-    [...attempts].reverse().find((c) => c.error_message)?.error_message ?? null;
-  return { failed: true, attempts: attempts.length, lastError };
+  if (attempts.length) {
+    const landed = successfulRecords(communications, emailType);
+    if (landed.length) return { failed: false, attempts: attempts.length, lastError: null };
+    const lastError =
+      [...attempts].reverse().find((c) => c.error_message)?.error_message ?? null;
+    return { failed: true, attempts: attempts.length, lastError };
+  }
+  // Queue: only the precomputed summary, which splits success from failure.
+  const failedSummary = request.communication_summary?.failed_by_type?.[emailType];
+  if (failedSummary?.count) {
+    return { failed: true, attempts: failedSummary.count, lastError: failedSummary.last_error };
+  }
+  return { failed: false, attempts: 0, lastError: null };
 }
 
 export function formatAdBoostRelativeTime(
@@ -555,19 +573,19 @@ export function getAdBoostNextAction(
     }
     if (photoStatus === "update_requested") {
       const requestEmail = state("photo_update_requested");
-      // A dead address is not a silent provider. Say which one it is, because
-      // the next move differs: resend versus call or text.
-      const bounced = allAttemptsFailed(communications, "ad_boost_photo_update");
-      if (bounced.failed) {
-        return {
-          label: "Email not deliverable",
-          detail: `${bounced.attempts} attempt${bounced.attempts === 1 ? "" : "s"} failed${bounced.lastError ? ` · ${bounced.lastError}` : ""} · call or text instead`,
-          level: "attention",
-          stepKey: "photo_update_requested",
-          priority: 2,
-        };
-      }
       if (requestEmail.tone === "waiting") {
+        // Nothing has landed. A dead address is not a silent provider, and the
+        // next move differs: resend versus call or text.
+        const bounced = allAttemptsFailed(request, communications, "ad_boost_photo_update");
+        if (bounced.failed) {
+          return {
+            label: "Email not deliverable",
+            detail: `${bounced.attempts} attempt${bounced.attempts === 1 ? "" : "s"} failed${bounced.lastError ? ` · ${bounced.lastError}` : ""} · call or text instead`,
+            level: "attention",
+            stepKey: "photo_update_requested",
+            priority: 2,
+          };
+        }
         return { label: "Photo email missing", detail: requestEmail.detail ?? "No successful send recorded", level: "attention", stepKey: "photo_update_requested", priority: 3 };
       }
       const reminder = state("photo_update_reminder");

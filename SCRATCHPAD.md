@@ -7,11 +7,13 @@
 
 ## Current Focus
 
-### 2026-09-17 (pm) — Subscription cuts executed: Loops, Sanity, Snov ($2,860/yr) (`pleasant-pare`, ops only, no code)
+### 2026-09-17 (pm) — Subscription cuts executed: Loops, Sanity, Snov (~$2,832/yr) (`pleasant-pare`, ops only, no code)
 
 Acting on the Mercury review. No product code changed. Three vendors cut, one new global skill.
 
-**BANKED: $2,860/yr.** **Loops $1,176** (TJ cancelled both subs 17 Sep; verify no charge posts on/after 29 Sep or it didn't take). **Sanity $1,188** (downgraded Team→Free, done and verified). **Snov $496** (cancellation *requested*, **not confirmed** — Snov has no self-serve cancel, it's support-chat only; renewal is **24 Sep**, so if no reply by then freeze Mercury card ••9463). Apollo **kept** — TJ says it's used.
+**BANKED: ~$2,832/yr.** **Loops $1,176** (TJ cancelled both subs 17 Sep; verify no charge posts on/after 29 Sep or it didn't take). **Sanity $1,188** (downgraded Team→Free, done and verified). **Snov ~$468 — now CONFIRMED** (see the correction below). Apollo **kept** — TJ says it's used.
+
+**Snov correction, later the same day.** Snov support (Yehor, in-app chat) **disabled auto-renewal**; confirmed on screen. Two fixes to what was written above: the plan is **Starter at $39/mo = $468/yr**, not the $496 estimated from the Mercury charge amounts — reconcile the exact figure against Mercury, not the plan page. And the **card freeze on ••9463 is no longer needed**. Billing period runs **25 Aug – 24 Sep 2026**; nothing bills after 24 Sep. **Do not click "Cancel subscription"** — auto-renew-off already achieves it, and cancelling early only forfeits the remaining period. Usage at cancellation was **0 of 8,892 credits / 0 of 5,000 recipients / 0 of 3 warm-ups**, so the expiring credits cost nothing. Account `tj@olera.care`; reactivatable from the billing page. TJ relayed the cancellation to Logan in Slack.
 
 **Sanity: the $99/mo was paying to host dead v1 content.** Project `krao7zrz` ("Olera CMS", org `o3T2pgvEi`). Content moved to Supabase in **March 2026** (`scripts/import-sanity.ts`, commit "Import 103 Sanity CMS articles"), and **nothing has read Sanity since** — no client in the codebase, **6 API requests and 52 CDN requests all month**. Of 15,470 documents, **12,974 were `cityPage`** (v1 city pages, superseded by the Supabase city pipeline, last written 11 Feb). **Deleted 13,009 cityPage** (incl. 35 drafts) in 27 batches, then datasets `staging` / `development` / `development-comments`. Documents **15,470 → 2,528**, datasets **3+1 → 1 public** — both under Free's ceilings (10,000 docs / 2 public datasets).
 

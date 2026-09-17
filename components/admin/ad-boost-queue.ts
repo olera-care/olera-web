@@ -46,9 +46,13 @@ export function buildProviderCampaignGroups({
     allByProvider.set(request.provider_id, existing);
   }
 
+  // `statusFilter` carries two kinds of value. "attention" and "waiting" are
+  // NEXT-MOVE lenses, derived from whose move it is; everything else is a
+  // lifecycle status. The two lenses are what the queue is worked from, because
+  // "requested" tells you what the provider did and not what you owe them.
   const matching = requests.filter((request) =>
-    statusFilter === "attention"
-      ? nextActionById.get(request.id)?.level === "attention"
+    statusFilter === "attention" || statusFilter === "waiting"
+      ? nextActionById.get(request.id)?.level === statusFilter
       : statusFilter
         ? request.status === statusFilter
         : true,

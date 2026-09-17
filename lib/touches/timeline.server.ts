@@ -563,13 +563,20 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   const db = getServiceClient();
   const now = new Date();
 
-  const [{ data: requests }, { data: touchedIds }] = await Promise.all([
+  const [{ data: requests }, { data: touchedIds }, { data: pausedRows }] = await Promise.all([
     db
       .from("ad_campaign_requests")
-      .select("id, provider_id, status, created_at, photo_readiness_status, photo_update_requested_at")
+      .select("id, provider_id, status, created_at, photo_readiness_status, photo_update_requested_at, provider_comms_paused_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     db.from("provider_touches").select("provider_id"),
+    // Archived rows are excluded above, but archiving as `not_interested` is
+    // exactly what pauses a provider's email. Read the pause separately so a
+    // declined provider does not read as a neglected one.
+    db
+      .from("ad_campaign_requests")
+      .select("provider_id")
+      .not("provider_comms_paused_at", "is", null),
   ]);
 
   const campaignStatus = new Map<string, string>();
@@ -578,12 +585,20 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   // automated send can reset this — it is dated from when we asked, and it only
   // clears when the provider actually does the thing.
   const openAsk = new Map<string, RelationshipRow["open_ask"]>();
+  // Deliberately silenced providers look identical to neglected ones without
+  // this: the three Nextdoor pilot rows read "only ever got automated email"
+  // and "22 days quiet" while their email was paused on purpose, so the first
+  // person to work the list reasonably asked whether to cold-call them.
+  const commsPaused = new Set<string>(
+    ((pausedRows ?? []) as { provider_id: string }[]).map((r) => r.provider_id),
+  );
   type CampaignPeek = {
     id: string;
     provider_id: string;
     status: string;
     photo_readiness_status: string | null;
     photo_update_requested_at: string | null;
+    provider_comms_paused_at: string | null;
   };
   for (const r of (requests ?? []) as CampaignPeek[]) {
     // newest request wins (ordered desc above)
@@ -724,6 +739,7 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
     // one-shot email chase has already run out. This is the call list.
     const ask = openAsk.get(p.id) ?? null;
     if (ask && ask.days_open >= BLOCKED_ON_ASK_DAYS) flags.push("blocked_on_ask");
+    if (commsPaused.has(p.id)) flags.push("comms_paused");
     if (humanTouches.length === 0) flags.push("never_human");
     if (es.some((e) => e.complained_at)) flags.push("complaint_on_file");
     if (contact.preferred_channel === "sms") flags.push("prefers_text");

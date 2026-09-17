@@ -35,6 +35,18 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both", "nextdoor"];
 const VALID_BUDGET_TYPES = ["daily", "lifetime"];
 const VALID_PHOTO_READINESS = ["unreviewed", "update_requested", "review_requested", "ready"];
+
+/**
+ * Why a campaign left the queue (migration 233).
+ *
+ * `not_interested` is the only one that also silences provider comms — the rest
+ * describe our side of the failure, not a decision the provider made.
+ */
+const ARCHIVED_REASONS = ["not_interested", "unreachable", "stalled", "superseded"] as const;
+type ArchivedReason = (typeof ARCHIVED_REASONS)[number];
+
+/** Marker so a restore can tell its own pause from someone else's. */
+const COMMS_PAUSE_ON_DECLINE = "Provider declined Ad Boost on a call (archived: not_interested)";
 const AD_BOOST_EMAIL_TYPES = [
   "ad_boost_queued",
   "ad_boost_requested",
@@ -51,7 +63,7 @@ const AD_BOOST_EMAIL_TYPES = [
 ];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_budget_cents, ad_budget_type, ad_spend_cents, ad_clicks, ad_impressions, metrics_updated_at, metrics_source, platform_campaign_id, flight_start_date, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at, provider_comms_paused_at, provider_comms_paused_reason";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, archived_reason, ended_at, ended_reason, ad_budget_cents, ad_budget_type, ad_spend_cents, ad_clicks, ad_impressions, metrics_updated_at, metrics_source, platform_campaign_id, flight_start_date, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at, provider_comms_paused_at, provider_comms_paused_reason";
 
 export async function GET(request: NextRequest) {
   const started = performance.now();
@@ -498,6 +510,7 @@ export async function POST(request: NextRequest) {
     admin_note?: unknown;
     requested_setup_week?: unknown;
     archived?: unknown;
+    archived_reason?: unknown;
     ad_spend_cents?: unknown;
     ad_clicks?: unknown;
     ad_impressions?: unknown;
@@ -525,6 +538,9 @@ export async function POST(request: NextRequest) {
   }
 
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  // Set when this call is a restore; the matching comms unpause needs `current`,
+  // which is not read until further down.
+  let restoringFromArchive = false;
 
   if (body.status !== undefined) {
     if (typeof body.status !== "string" || !VALID_STATUSES.includes(body.status)) {
@@ -780,11 +796,38 @@ export async function POST(request: NextRequest) {
   // Soft delete (archive) / restore. `archived: true` sets deleted_at = now() so
   // the request drops out of the default queue but the record is kept; `false`
   // clears it (restore). Hard delete is the separate DELETE handler.
+  //
+  // Archiving now requires a reason, because "they said no" and "we gave up
+  // chasing" are different facts and only one of them should also silence our
+  // marketing mail. `not_interested` pauses provider comms for this campaign;
+  // without that, a provider who declined on the phone keeps receiving the
+  // weekly analytics digest and the dormant re-engagement email.
   if (body.archived !== undefined) {
     if (typeof body.archived !== "boolean") {
       return NextResponse.json({ error: "archived must be a boolean" }, { status: 400 });
     }
-    update.deleted_at = body.archived ? new Date().toISOString() : null;
+    if (body.archived) {
+      if (
+        typeof body.archived_reason !== "string" ||
+        !ARCHIVED_REASONS.includes(body.archived_reason as ArchivedReason)
+      ) {
+        return NextResponse.json(
+          { error: `archived_reason must be one of: ${ARCHIVED_REASONS.join(", ")}` },
+          { status: 400 },
+        );
+      }
+      const reason = body.archived_reason as ArchivedReason;
+      update.deleted_at = new Date().toISOString();
+      update.archived_reason = reason;
+      if (reason === "not_interested") {
+        update.provider_comms_paused_at = new Date().toISOString();
+        update.provider_comms_paused_reason = COMMS_PAUSE_ON_DECLINE;
+      }
+    } else {
+      update.deleted_at = null;
+      update.archived_reason = null;
+      restoringFromArchive = true;
+    }
   }
 
   const db = getServiceClient();
@@ -836,6 +879,13 @@ export async function POST(request: NextRequest) {
   }
   if (!current) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Restoring lifts only the pause this flow applied. A pause set anywhere else
+  // — a spam complaint, a manual hold, a scripted stop — is not ours to clear.
+  if (restoringFromArchive && current.provider_comms_paused_reason === COMMS_PAUSE_ON_DECLINE) {
+    update.provider_comms_paused_at = null;
+    update.provider_comms_paused_reason = null;
   }
 
   const effectiveFlightStart =

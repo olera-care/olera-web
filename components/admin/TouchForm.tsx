@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CHANNEL_LABEL, TOUCH_CHANNELS, type TouchChannel, type TouchDirection } from "@/lib/touches/types";
+import {
+  CHANNEL_LABEL,
+  OUTCOME_CHANNELS,
+  OUTCOME_LABEL,
+  TOUCH_CHANNELS,
+  TOUCH_OUTCOMES,
+  type TouchChannel,
+  type TouchDirection,
+  type TouchOutcome,
+} from "@/lib/touches/types";
 
 /**
  * The five-second capture. One touch: channel, direction, what happened, and the
@@ -24,6 +33,7 @@ function localNowForInput(): string {
 export default function TouchForm({
   providerId,
   providers,
+  defaultChannel,
   defaultOwner,
   onSaved,
   onCancel,
@@ -32,6 +42,8 @@ export default function TouchForm({
   providerId?: string;
   /** … or a list to pick from (Relationships page). */
   providers?: ProviderOption[];
+  /** Opening channel. The Ad Boost queue is a calling motion, so it passes "call". */
+  defaultChannel?: TouchChannel;
   defaultOwner?: string;
   onSaved: () => void;
   onCancel?: () => void;
@@ -62,7 +74,8 @@ export default function TouchForm({
       clearTimeout(t);
     };
   }, [query, providerId]);
-  const [channel, setChannel] = useState<TouchChannel>("email");
+  const [channel, setChannel] = useState<TouchChannel>(defaultChannel ?? "email");
+  const [outcome, setOutcome] = useState<TouchOutcome | "">("");
   const [direction, setDirection] = useState<TouchDirection>("out");
   const [when, setWhen] = useState<string>(localNowForInput());
   const [summary, setSummary] = useState("");
@@ -73,6 +86,12 @@ export default function TouchForm({
   const [owner, setOwner] = useState(defaultOwner ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const asksOutcome = (OUTCOME_CHANNELS as readonly string[]).includes(channel);
+
+  useEffect(() => {
+    if (!asksOutcome && outcome) setOutcome("");
+  }, [asksOutcome, outcome]);
 
   async function submit() {
     setError(null);
@@ -92,6 +111,7 @@ export default function TouchForm({
           summary: summary.trim(),
           detail: detail.trim() || null,
           contact_handle: handle.trim() || null,
+          outcome: asksOutcome && outcome ? outcome : null,
           next_action: nextAction.trim() || null,
           next_action_due: due || null,
           next_action_owner: nextAction.trim() ? owner.trim() || null : null,
@@ -175,6 +195,27 @@ export default function TouchForm({
           </button>
         </div>
       </div>
+
+      {asksOutcome && (
+        <div>
+          <label className={label}>How did it go? (optional)</label>
+          <div className="flex flex-wrap gap-1.5">
+            {TOUCH_OUTCOMES.map((o) => (
+              <button
+                key={o}
+                type="button"
+                className={seg(outcome === o)}
+                onClick={() => setOutcome(outcome === o ? "" : o)}
+              >
+                {OUTCOME_LABEL[o]}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-[11px] text-gray-400">
+            A voicemail or a dead line is worth recording. It is what decides whether a campaign gets archived.
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
         <div>

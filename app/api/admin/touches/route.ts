@@ -6,7 +6,14 @@ import {
   relationshipsToMarkdown,
   timelineToMarkdown,
 } from "@/lib/touches/timeline.server";
-import { TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type TouchInput } from "@/lib/touches/types";
+import {
+  OUTCOME_CHANNELS,
+  TOUCH_CHANNELS,
+  TOUCH_DIRECTIONS,
+  TOUCH_OUTCOMES,
+  TOUCH_SOURCES,
+  type TouchInput,
+} from "@/lib/touches/types";
 
 /**
  * Provider touch log.
@@ -119,6 +126,7 @@ export async function POST(request: NextRequest) {
   const direction = clean(body.direction);
   const summary = clean(body.summary);
   const source = clean(body.source) ?? "manual";
+  const outcome = clean(body.outcome);
   const occurred_at = clean(body.occurred_at);
   const next_action = clean(body.next_action);
   const next_action_due = clean(body.next_action_due);
@@ -135,6 +143,17 @@ export async function POST(request: NextRequest) {
   }
   if (!(TOUCH_SOURCES as readonly string[]).includes(source)) {
     return NextResponse.json({ error: `source must be one of ${TOUCH_SOURCES.join(", ")}` }, { status: 400 });
+  }
+  if (outcome && !(TOUCH_OUTCOMES as readonly string[]).includes(outcome)) {
+    return NextResponse.json({ error: `outcome must be one of ${TOUCH_OUTCOMES.join(", ")}` }, { status: 400 });
+  }
+  // An email or a meeting has no "did they pick up?". Reject rather than store a
+  // value nothing will read — the queue keys off this field.
+  if (outcome && !(OUTCOME_CHANNELS as readonly string[]).includes(channel)) {
+    return NextResponse.json(
+      { error: `outcome only applies to ${OUTCOME_CHANNELS.join(" or ")} touches` },
+      { status: 400 },
+    );
   }
   if (!summary) return NextResponse.json({ error: "summary is required" }, { status: 400 });
   if (summary.length > 240) return NextResponse.json({ error: "summary is one line; put the rest in detail" }, { status: 400 });
@@ -168,6 +187,7 @@ export async function POST(request: NextRequest) {
       detail: clean(body.detail),
       contact_name: clean(body.contact_name),
       contact_handle: clean(body.contact_handle),
+      outcome,
       source,
       source_ref: clean(body.source_ref),
       next_action,

@@ -157,6 +157,28 @@ function successfulRecords(
   );
 }
 
+/**
+ * Did every attempt at this email type come back undeliverable?
+ *
+ * The queue used to report a failed send as "Photo email missing", which reads
+ * as our omission and invites a resend to the same dead address. Wescastle sat
+ * that way: two failed sends plus a failed preview nudge on 16 Sep, while the
+ * provider looked simply unresponsive. If nothing has ever landed, the next
+ * move is a different channel, not another attempt.
+ */
+function allAttemptsFailed(
+  communications: AdBoostCommunicationRecord[],
+  emailType: string,
+): { failed: boolean; attempts: number; lastError: string | null } {
+  const attempts = communications.filter((c) => c.email_type === emailType);
+  if (!attempts.length) return { failed: false, attempts: 0, lastError: null };
+  const landed = successfulRecords(communications, emailType);
+  if (landed.length) return { failed: false, attempts: attempts.length, lastError: null };
+  const lastError =
+    [...attempts].reverse().find((c) => c.error_message)?.error_message ?? null;
+  return { failed: true, attempts: attempts.length, lastError };
+}
+
 export function formatAdBoostRelativeTime(
   iso: string | null | undefined,
   now = Date.now(),
@@ -533,6 +555,18 @@ export function getAdBoostNextAction(
     }
     if (photoStatus === "update_requested") {
       const requestEmail = state("photo_update_requested");
+      // A dead address is not a silent provider. Say which one it is, because
+      // the next move differs: resend versus call or text.
+      const bounced = allAttemptsFailed(communications, "ad_boost_photo_update");
+      if (bounced.failed) {
+        return {
+          label: "Email not deliverable",
+          detail: `${bounced.attempts} attempt${bounced.attempts === 1 ? "" : "s"} failed${bounced.lastError ? ` · ${bounced.lastError}` : ""} · call or text instead`,
+          level: "attention",
+          stepKey: "photo_update_requested",
+          priority: 2,
+        };
+      }
       if (requestEmail.tone === "waiting") {
         return { label: "Photo email missing", detail: requestEmail.detail ?? "No successful send recorded", level: "attention", stepKey: "photo_update_requested", priority: 3 };
       }

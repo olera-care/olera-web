@@ -62,6 +62,8 @@ export interface CampaignRequest {
   requested_email_sent_at?: string | null;
   profile_reminder_email_sent_at?: string | null;
   promotion_email_sent_at?: string | null;
+  /** Why this campaign was archived (migration 233). NULL on live rows. */
+  archived_reason?: "not_interested" | "unreachable" | "stalled" | "superseded" | null;
   /** Human-reviewed landing-page photo gate for paid traffic. */
   photo_readiness_status: "unreviewed" | "update_requested" | "review_requested" | "ready";
   photo_review_note?: string | null;
@@ -276,6 +278,23 @@ export function StatusBadge({ status }: { status: string }) {
     </span>
   );
 }
+
+/**
+ * Why a campaign left the queue (migration 233).
+ *
+ * Ordered by how often they come up working a list. `not_interested` is the one
+ * the provider decided; the rest describe our side, and only the first pauses
+ * provider comms.
+ */
+export const ARCHIVE_REASONS = ["not_interested", "unreachable", "stalled", "superseded"] as const;
+export type ArchiveReason = (typeof ARCHIVE_REASONS)[number];
+
+export const ARCHIVE_REASON_LABEL: Record<ArchiveReason, string> = {
+  not_interested: "Not interested",
+  unreachable: "Could not reach",
+  stalled: "Stalled",
+  superseded: "Superseded",
+};
 
 export const PHOTO_READINESS_LABELS: Record<CampaignRequest["photo_readiness_status"], string> = {
   unreviewed: "Photos not reviewed",

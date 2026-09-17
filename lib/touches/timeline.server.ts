@@ -37,6 +37,15 @@ export type { ProviderTimeline } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * How long an unanswered ask sits before it becomes a phone call.
+ *
+ * The photo email is deliberately one nudge plus one reminder at three business
+ * days, then permanent silence. Fourteen days is comfortably past the end of
+ * that sequence, so nothing lands here while email is still working.
+ */
+const BLOCKED_ON_ASK_DAYS = 14;
+
 // email_log.provider_id is a mixed key space (business_profiles UUID in some
 // senders, the provider slug in others). We match on every key a profile is known
 // by, plus the recipient address, and union the results.
@@ -118,6 +127,19 @@ function emailStatus(e: EmailRow): string {
   return e.status;
 }
 
+/**
+ * Did this send actually reach anyone?
+ *
+ * A bounced or failed email is a record of us trying, not of the provider being
+ * contacted. Counting it as a touch made Wescastle — whose photo ask failed
+ * twice on the same day — read as the freshest relationship on the list while
+ * it was in fact the only one that had never been asked at all.
+ */
+function emailReached(e: EmailRow): boolean {
+  const s = emailStatus(e);
+  return s !== "failed" && s !== "bounced";
+}
+
 function humanizeEmailType(t: string): string {
   return t.replace(/_/g, " ");
 }
@@ -158,6 +180,7 @@ function touchToItem(t: TouchRow): TimelineItem {
     detail: t.detail,
     source: t.source,
     contact_handle: t.contact_handle,
+    outcome: t.outcome ?? null,
     next_action: t.next_action
       ? { text: t.next_action, due: t.next_action_due, owner: t.next_action_owner, done_at: t.next_action_done_at }
       : null,
@@ -543,7 +566,7 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   const [{ data: requests }, { data: touchedIds }] = await Promise.all([
     db
       .from("ad_campaign_requests")
-      .select("id, provider_id, status, created_at")
+      .select("id, provider_id, status, created_at, photo_readiness_status, photo_update_requested_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     db.from("provider_touches").select("provider_id"),
@@ -551,11 +574,30 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
 
   const campaignStatus = new Map<string, string>();
   const campaignRequestId = new Map<string, string>();
-  for (const r of (requests ?? []) as { id: string; provider_id: string; status: string }[]) {
+  // An ask we made that the provider has not answered. Unlike `days_quiet`, no
+  // automated send can reset this — it is dated from when we asked, and it only
+  // clears when the provider actually does the thing.
+  const openAsk = new Map<string, RelationshipRow["open_ask"]>();
+  type CampaignPeek = {
+    id: string;
+    provider_id: string;
+    status: string;
+    photo_readiness_status: string | null;
+    photo_update_requested_at: string | null;
+  };
+  for (const r of (requests ?? []) as CampaignPeek[]) {
     // newest request wins (ordered desc above)
     if (!campaignStatus.has(r.provider_id)) {
       campaignStatus.set(r.provider_id, r.status);
       campaignRequestId.set(r.provider_id, r.id);
+      const askedAt =
+        r.photo_readiness_status === "update_requested" ? r.photo_update_requested_at : null;
+      openAsk.set(
+        r.provider_id,
+        askedAt
+          ? { kind: "photos", asked_at: askedAt, days_open: daysSince(askedAt, now) ?? 0 }
+          : null,
+      );
     }
   }
   const ids = Array.from(
@@ -635,6 +677,7 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
         actor: ts[0].direction,
         source: ts[0].source,
         title: ts[0].summary,
+        outcome: ts[0].outcome ?? null,
       });
     }
     if (inbound[0]) {
@@ -659,6 +702,17 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
     }
     const lastTouch = lastTouchCandidates.sort(byNewest)[0] ?? null;
 
+    // The quiet clock counts sends that arrived. `lastTouch` still reports the
+    // failed one, because "we tried and it bounced" is the useful thing to see
+    // on the row — it just must not make the relationship look fresh.
+    const lastDelivered = es.find(emailReached) ?? null;
+    const quietFrom =
+      lastHuman?.occurred_at ??
+      [lastDelivered?.created_at, ts[0]?.occurred_at, inbound[0]?.occurred_at]
+        .filter((v): v is string => !!v)
+        .sort((a, b) => (a < b ? 1 : -1))[0] ??
+      null;
+
     const openAction = openActionOf(ts);
     const flags: RelationshipFlag[] = [];
     const today = now.toISOString().slice(0, 10);
@@ -666,6 +720,10 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
     // They wrote to us and nobody has answered: a support thread still marked
     // needs_reply, or a text nobody has handled. Most urgent thing on the list.
     if (inbound.some((it) => it.status === "needs reply")) flags.push("awaiting_reply");
+    // Sitting on an ask we made and they have not answered, long enough that the
+    // one-shot email chase has already run out. This is the call list.
+    const ask = openAsk.get(p.id) ?? null;
+    if (ask && ask.days_open >= BLOCKED_ON_ASK_DAYS) flags.push("blocked_on_ask");
     if (humanTouches.length === 0) flags.push("never_human");
     if (es.some((e) => e.complained_at)) flags.push("complaint_on_file");
     if (contact.preferred_channel === "sms") flags.push("prefers_text");
@@ -683,17 +741,23 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
       last_human_touch_at: lastHuman?.occurred_at ?? null,
       human_touch_count: humanTouches.length,
       open_action: openAction,
-      days_quiet: daysSince(lastHuman?.occurred_at ?? lastTouch?.occurred_at ?? null, now),
+      days_quiet: daysSince(quietFrom, now),
       flags,
       campaign_status: campaignStatus.get(p.id) ?? null,
       campaign_request_id: campaignRequestId.get(p.id) ?? null,
+      open_ask: ask,
     };
   });
 
   // Unanswered replies and overdue actions first (soonest due), then due dates
   // ascending, then no action sorted by silence — the longest-quiet at the top,
   // which is the point of the list.
-  const urgent = (r: RelationshipRow) => (r.flags.includes("awaiting_reply") || r.flags.includes("overdue") ? 0 : 1);
+  const urgent = (r: RelationshipRow) =>
+    r.flags.includes("awaiting_reply") || r.flags.includes("overdue")
+      ? 0
+      : r.flags.includes("blocked_on_ask")
+        ? 1
+        : 2;
   rows.sort((a, b) => {
     const ao = urgent(a);
     const bo = urgent(b);
@@ -703,6 +767,10 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
     if (ad && bd && ad !== bd) return ad < bd ? -1 : 1;
     if (ad && !bd) return -1;
     if (!ad && bd) return 1;
+    // Within the blocked band, the oldest unanswered ask goes first.
+    const ak = a.open_ask?.days_open ?? -1;
+    const bk = b.open_ask?.days_open ?? -1;
+    if (ak !== bk) return bk - ak;
     return (b.days_quiet ?? -1) - (a.days_quiet ?? -1);
   });
 
@@ -728,7 +796,7 @@ export async function loadProviderTimeline(providerId: string): Promise<Provider
     fetchSupportFor(db, [p], null),
     db
       .from("ad_campaign_requests")
-      .select("id, status, campaign_tag, created_at")
+      .select("id, status, campaign_tag, created_at, photo_readiness_status, photo_update_requested_at")
       .eq("provider_id", providerId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
@@ -769,6 +837,15 @@ export async function loadProviderTimeline(providerId: string): Promise<Provider
   if (openAction?.due && openAction.due < today) flags.push("overdue");
   if (inbound.some((it) => it.status === "needs reply")) flags.push("awaiting_reply");
   if (!ts.some((t) => t.source !== "system") && inbound.length === 0) flags.push("never_human");
+  // Same rule as the list: an ask older than the email sequence is a call.
+  const newestRequest = (requests ?? [])[0] as
+    | { photo_readiness_status?: string | null; photo_update_requested_at?: string | null }
+    | undefined;
+  const askedAt =
+    newestRequest?.photo_readiness_status === "update_requested"
+      ? (newestRequest.photo_update_requested_at ?? null)
+      : null;
+  if ((daysSince(askedAt, new Date()) ?? -1) >= BLOCKED_ON_ASK_DAYS) flags.push("blocked_on_ask");
   if (emails.some((e) => e.complained_at)) flags.push("complaint_on_file");
   if (p.preferred_contact_channel === "sms") flags.push("prefers_text");
 
@@ -847,10 +924,11 @@ export function timelineToMarkdown(t: ProviderTimeline): string {
 }
 
 export function relationshipsToMarkdown(rows: RelationshipRow[]): string {
-  const lines: string[] = ["# Relationships", "", "| Provider | Last touch | Next action | Due | Flags |", "|---|---|---|---|---|"];
+  const lines: string[] = ["# Relationships", "", "| Provider | Last touch | Waiting on | Next action | Due | Flags |", "|---|---|---|---|---|---|"];
   for (const r of rows) {
     const lt = r.last_touch ? `${r.last_touch.actor === "system" ? "system" : r.last_touch.actor === "out" ? "us" : "them"} · ${r.last_touch.channel} · ${r.last_touch.occurred_at.slice(0, 10)} — ${r.last_touch.title}` : "—";
-    lines.push(`| ${r.display_name}${r.contact_name ? ` (${r.contact_name})` : ""} | ${lt} | ${r.open_action?.text ?? "—"} | ${r.open_action?.due ?? "—"} | ${r.flags.join(", ")} |`);
+    const ask = r.open_ask ? `${r.open_ask.kind}, asked ${r.open_ask.asked_at.slice(0, 10)} (${r.open_ask.days_open}d)` : "—";
+    lines.push(`| ${r.display_name}${r.contact_name ? ` (${r.contact_name})` : ""} | ${lt} | ${ask} | ${r.open_action?.text ?? "—"} | ${r.open_action?.due ?? "—"} | ${r.flags.join(", ")} |`);
   }
   return lines.join("\n");
 }

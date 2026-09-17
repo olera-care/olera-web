@@ -22,6 +22,8 @@ import {
   fmtMetricsAge,
 } from "@/components/admin/AdBoostShared";
 import AdBoostCaseTimeline from "@/components/admin/AdBoostCaseTimeline";
+import TouchForm from "@/components/admin/TouchForm";
+import { ARCHIVE_REASONS, ARCHIVE_REASON_LABEL, type ArchiveReason } from "@/components/admin/AdBoostShared";
 import { isTrustedMetricsSource } from "@/lib/ad-boost/metrics-provenance";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import {
@@ -455,14 +457,14 @@ function Detail({
     }
   };
 
-  const setArchived = async (archived: boolean) => {
+  const setArchived = async (archived: boolean, reason?: ArchiveReason) => {
     setBusy(true);
     setMsg(null);
     try {
       const res = await fetchAdBoost("/api/admin/ad-boost", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: request.id, archived }),
+        body: JSON.stringify({ id: request.id, archived, archived_reason: reason ?? null }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -525,6 +527,9 @@ function Detail({
             {isArchived && (
               <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-500">
                 archived
+                {request.archived_reason
+                  ? ` · ${ARCHIVE_REASON_LABEL[request.archived_reason].toLowerCase()}`
+                  : ""}
               </span>
             )}
           </div>
@@ -1218,6 +1223,13 @@ function Detail({
         )}
       </section>
 
+      {/* The photo chase is a calling motion, and the call has to land somewhere
+          the rest of the system reads. This is the same form as
+          /admin/relationships, provider prefilled, opening on "call" — one entry
+          point, one store. Whoever is working the queue should not have to leave
+          the row they are on, find the provider in a dropdown, and start again. */}
+      <LogTouchPanel providerId={request.provider_id} displayName={name} />
+
       {/* What actually happened to this campaign, in order. Collapsed and last:
           the operator comes to this page to change something, and a case with
           thirty audit entries pushed every control several screens down. The
@@ -1240,16 +1252,7 @@ function Detail({
             >
               Restore
             </button>
-          ) : (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setArchived(true)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40"
-            >
-              Archive
-            </button>
-          )}
+          ) : null}
           <button
             type="button"
             disabled={busy}
@@ -1259,9 +1262,40 @@ function Detail({
             Delete permanently
           </button>
         </div>
-        <p className="text-xs text-gray-400 mt-2">
-          Archive hides this from the queue but keeps the record (reversible). Delete
-          removes it for good — for scrubbing test runs.
+
+        {!isArchived && (
+          <div className="mt-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500 mb-1.5">
+              Archive, and say why
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {ARCHIVE_REASONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    const extra =
+                      r === "not_interested"
+                        ? " This also stops the weekly digest and re-engagement email for them."
+                        : "";
+                    if (!window.confirm(`Archive as "${ARCHIVE_REASON_LABEL[r]}"?${extra}`)) return;
+                    setArchived(true, r);
+                  }}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                >
+                  {ARCHIVE_REASON_LABEL[r]}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-gray-400 mt-3">
+          Archive hides this from the queue but keeps the record (reversible). The reason is
+          the point: &ldquo;they said no&rdquo; and &ldquo;we could not reach them&rdquo; are
+          different facts, and only the first one should silence our other email. Delete
+          removes it for good, for scrubbing test runs.
         </p>
       </section>
     </>
@@ -1420,12 +1454,13 @@ function PhotoReadinessReview({
     const sendsReadyEmail =
       status === "ready" &&
       ["update_requested", "review_requested"].includes(request.photo_readiness_status);
-    if (
-      sendsUpdateEmail &&
-      !window.confirm(
-        "Request stronger photos and email the provider now? Their Ad Boost request will stay saved.",
-      )
-    ) return;
+    if (sendsUpdateEmail) {
+      const ask = note.trim();
+      const preview = ask
+        ? `They will receive this, in your words:\n\n"${ask}"`
+        : "No ask written, so they get the standard photo guidance. That copy tells them their gallery is mostly logos and text crops, which is wrong for some providers and has produced no photo updates so far. Writing one line here is better.";
+      if (!window.confirm(`Request stronger photos and email the provider now?\n\n${preview}\n\nTheir Ad Boost request stays saved.`)) return;
+    }
     if (
       sendsReadyEmail &&
       !window.confirm("Approve the updated photos and email the provider that setup is continuing?")
@@ -1518,16 +1553,18 @@ function PhotoReadinessReview({
         )}
 
         <label className="mt-4 block text-sm">
-          <span className="mb-1 block text-gray-500">Internal review note</span>
+          <span className="mb-1 block text-gray-500">What to ask them for</span>
           <textarea
             value={note}
             onChange={(event) => setNote(event.target.value)}
             rows={2}
-            placeholder="Example: hero is a blurry text graphic; request team, setting, and care photos"
+            placeholder="Example: do you have any photos of your team? Families engage with those far more than a logo."
             className="w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2"
           />
           <span className="mt-1 block text-xs text-gray-400">
-            Internal only. Provider emails use reviewed, supportive copy—not this note.
+            This goes into the email, in your words, wrapped in the standard greeting and
+            sign-off. Leave it blank and they get the generic photo guidance, which is
+            0 for 5 on the providers it has gone to.
           </span>
         </label>
 
@@ -1641,5 +1678,63 @@ function CommunicationFact({
       <p className={`mt-1 text-sm font-semibold ${valueTone}`}>{value}</p>
       <p className="mt-1 text-xs leading-relaxed text-gray-400">{detail}</p>
     </div>
+  );
+}
+
+/**
+ * Log a call, text or meeting against this provider without leaving the row.
+ *
+ * Writes a `provider_touches` row through the same endpoint the Relationships
+ * page uses, so the entry shows up on the provider timeline beside the system
+ * emails and counts toward "never had a human touch". Nothing is stored on the
+ * campaign: a relationship is a history, not a column.
+ */
+function LogTouchPanel({ providerId, displayName }: { providerId: string; displayName: string }) {
+  const [open, setOpen] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
+
+  return (
+    <section className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900">Log a touch</h2>
+          <p className="mt-0.5 text-xs text-gray-500">
+            A call, a text, a voicemail. It lands on{" "}
+            <Link href={`/admin/relationships/${providerId}`} className="text-teal-700 hover:underline">
+              {displayName}&rsquo;s timeline
+            </Link>
+            , next to the emails we sent.
+          </p>
+        </div>
+        {!open && (
+          <button
+            type="button"
+            onClick={() => {
+              setSaved(null);
+              setOpen(true);
+            }}
+            className="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-800"
+          >
+            Log a touch
+          </button>
+        )}
+      </div>
+
+      {saved && !open && <p className="mt-3 text-sm text-emerald-700">{saved}</p>}
+
+      {open && (
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          <TouchForm
+            providerId={providerId}
+            defaultChannel="call"
+            onSaved={() => {
+              setOpen(false);
+              setSaved("Logged. It is on the provider timeline now.");
+            }}
+            onCancel={() => setOpen(false)}
+          />
+        </div>
+      )}
+    </section>
   );
 }

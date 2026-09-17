@@ -2,161 +2,142 @@
 -- Step 5b -- insert the Research rung, and credit the Arizona pass. WRITES.
 -- ===========================================================================
 -- Run 17a-research-rung-rehearsal.sql first and read the numbers. That file
--- also carries the explanation of what this does and why; this one is the
--- five statements that do it.
+-- carries the explanation of what this does and why. Run 17c afterwards to
+-- see that it landed.
 --
--- Safe to run twice. Every statement skips a record already carrying the
--- batch stamp, and the stamp is written last, inside the same transaction --
--- so either the whole thing lands and the records are stamped, or nothing
--- lands and nothing is stamped. There is no half-migrated state to reason
--- about, and a second run finds nothing to do.
+-- ONE statement, on purpose. This has now failed in the Supabase SQL editor
+-- three ways:
 --
--- Read the note on the Supabase SQL editor at the foot of 17a before
--- reaching for a procedural block here. It cannot run one.
+--   as a procedural block   the editor lost track of the dollar quoting and
+--                           cut the body short, twice, in different places
+--   as five statements      the editor ran one of the five and reported
+--                           success, having written nothing
+--
+-- A single statement cannot be half-run, cannot be split, and needs no
+-- transaction wrapper: Postgres already makes one statement all-or-nothing.
+-- Keep it one statement.
+--
+-- The reason this works as one statement rather than five is that every
+-- branch below reads the same snapshot -- the state before any of it ran.
+-- Postgres guarantees that for data-modifying CTEs, so "already in outreach"
+-- means what it meant at the start even though the first branch is busy
+-- changing the very rows that decide it.
+--
+-- Safe to run twice: the working set skips anything already stamped, and the
+-- stamp goes on in the same statement.
+--
+-- It returns one row of counts, which is the report.
 -- ===========================================================================
 
-BEGIN;
+WITH todo AS (
+  SELECT so.id,
+         so.campus_id,
+         so.status,
+         so.last_edited_at,
+         -- Worked means a task has been completed, or a task sits past the
+         -- first rung. Either is enough: both mean the stored step numbers
+         -- describe the old ladder and have to move.
+         EXISTS (SELECT 1 FROM student_outreach_tasks t
+                  WHERE t.outreach_id = so.id
+                    AND (t.status = 'completed'
+                         OR COALESCE((t.payload->>'step')::INT, 0) > 0)) AS in_flight
+    FROM student_outreach so
+   WHERE so.kind = 'provider'
+     AND so.research_data->>'research_rung_migrated' IS DISTINCT FROM 'research-rung-v1'
+),
 
--- ---------------------------------------------------------------------------
--- 1. Move the records already in outreach up one rung.
--- ---------------------------------------------------------------------------
--- The subquery reads the task table this statement is writing to. Postgres
--- gives it the snapshot from before the update, so "sits past the first rung"
--- means what it meant when the statement started.
-UPDATE student_outreach_tasks t
-   SET payload = jsonb_set(
-         COALESCE(t.payload, '{}'::jsonb),
-         '{step}',
-         to_jsonb(COALESCE((t.payload->>'step')::INT, 0) + 1))
-  FROM student_outreach so
- WHERE so.id = t.outreach_id
-   AND so.kind = 'provider'
-   AND so.research_data->>'research_rung_migrated' IS DISTINCT FROM 'research-rung-v1'
-   AND EXISTS (SELECT 1 FROM student_outreach_tasks x
-                WHERE x.outreach_id = so.id
-                  AND (x.status = 'completed'
-                       OR COALESCE((x.payload->>'step')::INT, 0) > 0));
+asu AS (
+  SELECT id FROM student_outreach_campuses WHERE slug = 'arizona-state'
+),
 
--- ---------------------------------------------------------------------------
+-- The date the pass happened, for the Arizona records that were read and
+-- needed no correction. Those carry no edit stamp of their own.
+pass AS (
+  SELECT COALESCE(max(so.last_edited_at), now()) AS at
+    FROM student_outreach so
+   WHERE so.campus_id = (SELECT id FROM asu)
+     AND so.kind = 'provider'
+),
+
+-- 1. Move the records already in outreach up one rung, so their history
+--    keeps pointing at the rung it describes.
+shifted AS (
+  UPDATE student_outreach_tasks t
+     SET payload = jsonb_set(
+           COALESCE(t.payload, '{}'::jsonb),
+           '{step}',
+           to_jsonb(COALESCE((t.payload->>'step')::INT, 0) + 1))
+   WHERE t.outreach_id IN (SELECT id FROM todo WHERE in_flight)
+  RETURNING t.id
+),
+
 -- 2. Arizona, untouched records: the pending step 0 task IS the Research
 --    rung, so closing it is the whole of the credit.
--- ---------------------------------------------------------------------------
--- Dated from the record own edit stamp where there is one. Where there is
--- not, the record was read and needed no correction, so it takes the date of
--- the pass: the last edit made anywhere on that campus.
-WITH pass AS (
-  SELECT COALESCE(max(so.last_edited_at), now()) AS at
-    FROM student_outreach so
-    JOIN student_outreach_campuses c ON c.id = so.campus_id
-   WHERE c.slug = 'arizona-state' AND so.kind = 'provider'
+credited AS (
+  UPDATE student_outreach_tasks t
+     SET status       = 'completed',
+         task_type    = 'research_initial',
+         completed_at = COALESCE(q.last_edited_at, (SELECT at FROM pass)),
+         notes        = COALESCE(t.notes,
+                          'Reviewed in the Arizona pass, before this rung existed.')
+    FROM todo q
+   WHERE q.id = t.outreach_id
+     AND NOT q.in_flight
+     AND q.campus_id = (SELECT id FROM asu)
+     AND q.status <> 'archived'
+     AND t.status = 'pending'
+     AND COALESCE((t.payload->>'step')::INT, 0) = 0
+  RETURNING t.outreach_id
+),
+
+-- 3. Arizona, records already in outreach: branch 1 moved their tasks up, so
+--    step 0 is free. Write the Research rung in as completed.
+written AS (
+  INSERT INTO student_outreach_tasks
+    (outreach_id, task_type, status, due_at, completed_at, payload, notes)
+  SELECT q.id,
+         'research_initial',
+         'completed',
+         COALESCE(q.last_edited_at, (SELECT at FROM pass))::date,
+         COALESCE(q.last_edited_at, (SELECT at FROM pass)),
+         '{"step":0,"round":0}'::jsonb,
+         'Reviewed in the Arizona pass, before this rung existed.'
+    FROM todo q
+   WHERE q.in_flight
+     AND q.campus_id = (SELECT id FROM asu)
+     AND q.status <> 'archived'
+  RETURNING outreach_id
+),
+
+-- 4. Arizona: queue the call behind it, for every record that will be left
+--    with nothing to do. An untouched record always will be -- branch 2 just
+--    closed its only task. A record mid-outreach will only if it had nothing
+--    waiting already.
+queued AS (
+  INSERT INTO student_outreach_tasks
+    (outreach_id, task_type, status, due_at, payload)
+  SELECT q.id, 'outreach_contact', 'pending', CURRENT_DATE, '{"step":1,"round":0}'::jsonb
+    FROM todo q
+   WHERE q.campus_id = (SELECT id FROM asu)
+     AND q.status <> 'archived'
+     AND (NOT q.in_flight
+          OR NOT EXISTS (SELECT 1 FROM student_outreach_tasks x
+                          WHERE x.outreach_id = q.id
+                            AND x.status = 'pending'))
+  RETURNING outreach_id
+),
+
+-- 5. Stamp every record this run covered, so a second run finds nothing.
+stamped AS (
+  UPDATE student_outreach so
+     SET research_data = COALESCE(so.research_data, '{}'::jsonb)
+           || jsonb_build_object('research_rung_migrated', 'research-rung-v1')
+   WHERE so.id IN (SELECT id FROM todo)
+  RETURNING so.id
 )
-UPDATE student_outreach_tasks t
-   SET status       = 'completed',
-       task_type    = 'research_initial',
-       completed_at = COALESCE(so.last_edited_at, pass.at),
-       notes        = COALESCE(t.notes,
-                        'Reviewed in the Arizona pass, before this rung existed.')
-  FROM student_outreach so
-  JOIN student_outreach_campuses c ON c.id = so.campus_id
-  CROSS JOIN pass
- WHERE so.id = t.outreach_id
-   AND c.slug = 'arizona-state'
-   AND so.kind = 'provider'
-   AND so.status <> 'archived'
-   AND so.research_data->>'research_rung_migrated' IS DISTINCT FROM 'research-rung-v1'
-   AND t.status = 'pending'
-   AND COALESCE((t.payload->>'step')::INT, 0) = 0
-   AND NOT EXISTS (SELECT 1 FROM student_outreach_tasks x
-                    WHERE x.outreach_id = so.id
-                      AND (x.status = 'completed'
-                           OR COALESCE((x.payload->>'step')::INT, 0) > 0));
 
--- ---------------------------------------------------------------------------
--- 3. Arizona, records already in outreach: their tasks moved up in statement
---    1, so step 0 is empty. Write the Research rung in as completed.
--- ---------------------------------------------------------------------------
--- Having no task at step 0 is what now distinguishes them: an untouched
--- record still has one, completed by statement 2.
-WITH pass AS (
-  SELECT COALESCE(max(so.last_edited_at), now()) AS at
-    FROM student_outreach so
-    JOIN student_outreach_campuses c ON c.id = so.campus_id
-   WHERE c.slug = 'arizona-state' AND so.kind = 'provider'
-)
-INSERT INTO student_outreach_tasks
-  (outreach_id, task_type, status, due_at, completed_at, payload, notes)
-SELECT so.id,
-       'research_initial',
-       'completed',
-       COALESCE(so.last_edited_at, pass.at)::date,
-       COALESCE(so.last_edited_at, pass.at),
-       '{"step":0,"round":0}'::jsonb,
-       'Reviewed in the Arizona pass, before this rung existed.'
-  FROM student_outreach so
-  JOIN student_outreach_campuses c ON c.id = so.campus_id
-  CROSS JOIN pass
- WHERE c.slug = 'arizona-state'
-   AND so.kind = 'provider'
-   AND so.status <> 'archived'
-   AND so.research_data->>'research_rung_migrated' IS DISTINCT FROM 'research-rung-v1'
-   AND NOT EXISTS (SELECT 1 FROM student_outreach_tasks x
-                    WHERE x.outreach_id = so.id
-                      AND COALESCE((x.payload->>'step')::INT, 0) = 0);
-
--- ---------------------------------------------------------------------------
--- 4. Arizona: queue the call behind it, for any record now left with nothing
---    to do. A record still mid-outreach already has one.
--- ---------------------------------------------------------------------------
-INSERT INTO student_outreach_tasks
-  (outreach_id, task_type, status, due_at, payload)
-SELECT so.id, 'outreach_contact', 'pending', CURRENT_DATE, '{"step":1,"round":0}'::jsonb
-  FROM student_outreach so
-  JOIN student_outreach_campuses c ON c.id = so.campus_id
- WHERE c.slug = 'arizona-state'
-   AND so.kind = 'provider'
-   AND so.status <> 'archived'
-   AND so.research_data->>'research_rung_migrated' IS DISTINCT FROM 'research-rung-v1'
-   AND NOT EXISTS (SELECT 1 FROM student_outreach_tasks x
-                    WHERE x.outreach_id = so.id AND x.status = 'pending');
-
--- ---------------------------------------------------------------------------
--- 5. Stamp every record this run covered, so a second run is a no-op.
--- ---------------------------------------------------------------------------
--- Last on purpose. Until it lands, every statement above still sees work to
--- do, which is what makes the transaction all-or-nothing rather than
--- all-or-half.
-UPDATE student_outreach so
-   SET research_data = COALESCE(so.research_data, '{}'::jsonb)
-         || jsonb_build_object('research_rung_migrated', 'research-rung-v1')
- WHERE so.kind = 'provider'
-   AND so.research_data->>'research_rung_migrated' IS DISTINCT FROM 'research-rung-v1';
-
-COMMIT;
-
--- ---------------------------------------------------------------------------
--- What the board now holds. Arizona should read every provider researched and
--- none open; every other campus should read none researched, with the ones
--- nobody has called yet waiting on it.
--- ---------------------------------------------------------------------------
-SELECT c.name                                                              AS campus,
-       count(*)                                                            AS providers,
-       count(*) FILTER (WHERE r.done_research)                             AS research_done,
-       count(*) FILTER (WHERE r.open_research)                             AS research_open,
-       count(*) FILTER (WHERE NOT r.done_research AND NOT r.open_research) AS no_research_rung
-  FROM student_outreach so
-  JOIN student_outreach_campuses c ON c.id = so.campus_id
-  CROSS JOIN LATERAL (
-    SELECT
-      EXISTS (SELECT 1 FROM student_outreach_tasks t
-               WHERE t.outreach_id = so.id
-                 AND t.status = 'completed'
-                 AND COALESCE((t.payload->>'step')::INT, 0) = 0) AS done_research,
-      EXISTS (SELECT 1 FROM student_outreach_tasks t
-               WHERE t.outreach_id = so.id
-                 AND t.status = 'pending'
-                 AND COALESCE((t.payload->>'step')::INT, 0) = 0) AS open_research
-  ) r
- WHERE so.kind = 'provider'
-   AND so.status <> 'archived'
- GROUP BY c.name
- ORDER BY c.name;
+SELECT (SELECT count(*) FROM stamped)  AS providers_migrated,
+       (SELECT count(*) FROM shifted)  AS tasks_moved_up,
+       (SELECT count(*) FROM credited) AS arizona_rungs_closed,
+       (SELECT count(*) FROM written)  AS arizona_rungs_written,
+       (SELECT count(*) FROM queued)   AS arizona_calls_queued;

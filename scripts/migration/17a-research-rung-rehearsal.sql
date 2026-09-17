@@ -68,12 +68,19 @@ WITH todo AS (
                   WHERE t.outreach_id = so.id
                     AND (t.status = 'completed'
                          OR COALESCE((t.payload->>'step')::INT, 0) > 0)) AS in_flight,
-         -- After the Arizona credit, a record with nothing pending but its
-         -- step 0 task is the one that needs the call queueing.
+         -- Who gets a call queued. An untouched record always does: the
+         -- credit closes its only task. A record already in outreach only
+         -- does if it has nothing waiting already. Counted here exactly as
+         -- the apply counts it, so this number is a promise rather than an
+         -- estimate.
          NOT EXISTS (SELECT 1 FROM student_outreach_tasks t
                       WHERE t.outreach_id = so.id
                         AND t.status = 'pending'
-                        AND COALESCE((t.payload->>'step')::INT, 0) <> 0) AS needs_call
+                        AND (EXISTS (SELECT 1 FROM student_outreach_tasks y
+                                      WHERE y.outreach_id = so.id
+                                        AND (y.status = 'completed'
+                                             OR COALESCE((y.payload->>'step')::INT, 0) > 0))
+                             OR COALESCE((t.payload->>'step')::INT, 0) <> 0)) AS needs_call
     FROM student_outreach so
    WHERE so.kind = 'provider'
      -- Every record the apply touches is stamped, and a stamped record is

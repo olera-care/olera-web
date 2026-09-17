@@ -86,13 +86,25 @@ export default function MetaNativeStatus() {
             <p className="mt-1 text-xs text-gray-500">Lifetime, from Meta. <strong>Link clicks are an upper bound on form opens</strong> — Meta reports no form-view metric, so a tap that never rendered the form still counts here. A dash under Results means the optimisation event has never fired.</p>
           </div>}
 
-      {/* Everything below this line is downstream of a submitted lead. */}
-      <h3 className="mt-5 text-xs font-semibold uppercase tracking-wide text-gray-500">Olera handling — what happens after they submit</h3>
-      <div className="mt-2 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
-        {[["Leads",data.counts.leads],["Offered to provider",data.counts.introduced],["Provider accepted",data.counts.accepted],["Provider reached family",data.counts.reached],["Clients",data.counts.clients]].map(([label,value])=>
-          <div key={label} className="rounded-lg bg-gray-50 p-3"><p className="text-xl font-semibold">{value}</p><p className="text-xs text-gray-600">{label}</p></div>)}
-      </div>
-      <p className="mt-2 text-sm">Lead-to-client conversion: {data.clientRate === null ? "Not enough data" : `${(100*data.clientRate).toFixed(1)}%`}</p>
+      {/* Everything below this line is downstream of a submitted lead, and every
+          stage of it is a subset of `leads` — so before the first one arrives
+          these are five big tiles of zero taking the most vertical space on the
+          panel while carrying no information, above a conversion rate that can
+          only say "not enough data". Collapse to one line until there is
+          something to show; it expands itself the moment a lead lands. */}
+      {data.counts.leads === 0
+        ? <p className="mt-4 text-xs text-gray-500">
+            <span className="font-semibold uppercase tracking-wide text-gray-500">Olera handling</span>
+            {" — "}nothing submitted yet. Offered, accepted, reached and client appear here once a lead arrives.
+          </p>
+        : <>
+            <h3 className="mt-5 text-xs font-semibold uppercase tracking-wide text-gray-500">Olera handling — what happens after they submit</h3>
+            <div className="mt-2 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+              {[["Leads",data.counts.leads],["Offered to provider",data.counts.introduced],["Provider accepted",data.counts.accepted],["Provider reached family",data.counts.reached],["Clients",data.counts.clients]].map(([label,value])=>
+                <div key={label} className="rounded-lg bg-gray-50 p-3"><p className="text-xl font-semibold">{value}</p><p className="text-xs text-gray-600">{label}</p></div>)}
+            </div>
+            <p className="mt-2 text-sm">Lead-to-client conversion: {data.clientRate === null ? "Not enough data" : `${(100*data.clientRate).toFixed(1)}%`}</p>
+          </>}
       <div className="mt-3 rounded-lg border border-gray-200 p-3 text-xs text-gray-600">
         <p>{data.health.pending + data.health.processing} awaiting import · {data.health.failed} failed · {data.health.duplicate} duplicates · {data.health.blocked} blocked</p>
         {data.exhaustedReceipts > 0 && <p className="mt-1">{data.exhaustedReceipts} {data.exhaustedReceipts === 1 ? "receipt has" : "receipts have"} used every retry and will not be attempted again. Retry below once the cause is fixed, or leave them if they are tests.</p>}

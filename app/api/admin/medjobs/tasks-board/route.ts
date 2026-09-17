@@ -139,13 +139,22 @@ export async function GET() {
     ),
   );
   const dirSite = new Map<string, string>();
+  const dirAddr = new Map<string, string>();
   for (let i = 0; i < providerIds.length; i += 500) {
     const { data } = await db
       .from("olera-providers")
-      .select("provider_id, website")
+      .select("provider_id, website, address, city, state, zipcode")
       .in("provider_id", providerIds.slice(i, i + 500));
     for (const row of data ?? []) {
       if (row.website) dirSite.set(row.provider_id, row.website);
+      // One line, the way somebody would read it aloud. Empty parts are
+      // dropped rather than leaving stray commas behind.
+      const town = [row.city, row.state].filter(Boolean).join(", ");
+      const line = [row.address, town, row.zipcode ? String(row.zipcode) : ""]
+        .map((x) => (x ?? "").toString().trim())
+        .filter(Boolean)
+        .join(" · ");
+      if (line) dirAddr.set(row.provider_id, line);
     }
   }
 
@@ -248,9 +257,12 @@ export async function GET() {
       const research = (row.research_data ?? {}) as {
         olera_provider_id?: string;
         website?: string;
+        address?: string;
       };
       const edited = (research.website ?? "").trim();
       const fromDirectory = dirSite.get(research.olera_provider_id ?? "") ?? "";
+      const editedAddr = (research.address ?? "").trim();
+      const addrFromDirectory = dirAddr.get(research.olera_provider_id ?? "") ?? "";
 
       records[section].push({
         id: row.id,
@@ -262,6 +274,8 @@ export async function GET() {
         email: c?.email ?? "",
         website: edited || fromDirectory,
         websiteEdited: Boolean(edited),
+        address: editedAddr || addrFromDirectory,
+        addressEdited: Boolean(editedAddr),
         contact2: secondOf.get(row.id),
         // Position is derived from the work in flight, not stored twice.
         step: closed ? null : pending[0]?.step ?? 0,
@@ -290,6 +304,7 @@ export async function GET() {
         phone: "",
         email: "",
         website: "",
+        address: "",
         step: ch.status === "live" ? null : pending[0]?.step ?? 0,
         round: 0,
         state: ch.status === "live" ? LADDERS.jobboard.goal : null,
@@ -325,6 +340,7 @@ export async function GET() {
         phone: formatPhone(contact?.phone ?? ""),
         email: contact?.email ?? "",
         website: "",
+        address: "",
         step: done ? null : pending[0]?.step ?? 0,
         round: pending[0]?.round ?? 0,
         state: done ? (rec.status === "live" ? LADDERS[section].goal : "declined") : null,
@@ -350,6 +366,7 @@ export async function GET() {
         phone: "",
         email: "",
         website: "",
+        address: "",
         step: 0,
         round: ladder.steps[0]?.rounds ? 1 : 0,
         state: null,

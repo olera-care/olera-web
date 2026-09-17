@@ -234,6 +234,11 @@ export default function UniversityFlow({
             record.name = v;
             force((n) => n + 1);
           }}
+          onAddress={(v) => {
+            record.address = v;
+            record.addressEdited = true;
+            force((n) => n + 1);
+          }}
           onField2={(f, v) => {
             record.contact2 = {
               contact: "",
@@ -261,6 +266,7 @@ export default function UniversityFlow({
                 // a copy of what it already says.
                 website: record.websiteEdited ? record.website : undefined,
                 name: record.name,
+                address: record.addressEdited ? record.address : undefined,
                 second: record.contact2,
               },
               "Saved",

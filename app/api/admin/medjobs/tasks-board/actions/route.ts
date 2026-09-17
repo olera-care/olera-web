@@ -39,6 +39,8 @@ type Body =
       website?: string;
       /** The organisation's real name, when the one on file turns out wrong. */
       name?: string;
+      /** An admin correction. Absent means keep using the directory. */
+      address?: string;
       second?: Partial<Record<ContactField, string>>;
     };
 
@@ -249,43 +251,48 @@ export async function POST(req: Request) {
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // ── the name ──────────────────────────────────────────────────────
-      // Renaming the record, not the directory. If research shows the
-      // agency trades under a different name, MedJobs should show it —
-      // but editing olera-providers from here would change what the whole
-      // public site calls them on the strength of one phone call.
+      // ── the record itself: name, address, website ─────────────────────
+      // Gathered into one update on purpose. Each of these lives in
+      // research_data, and they arrive together on every blur; writing them
+      // one at a time means the second read of research_data is already
+      // stale and quietly drops what the first one wrote.
+      const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
+      const columns: Record<string, unknown> = {};
+      let touched = false;
+
+      // Renaming the record, not the directory. If research shows the agency
+      // trades under a different name, MedJobs should show it — but editing
+      // olera-providers from here would change what the whole public site
+      // calls them on the strength of one phone call.
       if (typeof body.name === "string") {
         const name = body.name.trim();
         if (!name) {
           return NextResponse.json({ error: "A record needs a name" }, { status: 400 });
         }
         if (name !== outreach.organization_name) {
-          const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
           // Keep what it was called, once. A later rename should not erase
           // the name the spreadsheet and the directory still use.
           if (!research.original_name) research.original_name = outreach.organization_name;
-
-          const { error } = await db
-            .from("student_outreach")
-            .update({ organization_name: name, research_data: research })
-            .eq("id", outreach.id);
-          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+          columns.organization_name = name;
+          touched = true;
         }
       }
 
-      // ── the website ───────────────────────────────────────────────────
-      // Stored on the record, never written back to the directory. A
-      // MedJobs admin correcting a link here should not silently edit a
-      // row that the whole public site reads from.
-      if (typeof body.website === "string") {
-        const site = body.website.trim();
-        const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
-        if (site) research.website = site;
-        else delete research.website;
+      for (const [key, value] of [
+        ["address", body.address],
+        ["website", body.website],
+      ] as const) {
+        if (typeof value !== "string") continue;
+        const v = value.trim();
+        if (v) research[key] = v;
+        else delete research[key];
+        touched = true;
+      }
 
+      if (touched) {
         const { error } = await db
           .from("student_outreach")
-          .update({ research_data: research })
+          .update({ ...columns, research_data: research })
           .eq("id", outreach.id);
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       }

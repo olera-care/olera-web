@@ -50,6 +50,7 @@ export default function RecordView({
   onSaveFields,
   onWebsite,
   onRename,
+  onAddress,
   onField2,
   onOpenTask,
   onRevive,
@@ -65,6 +66,8 @@ export default function RecordView({
   onWebsite: (value: string) => void;
   /** Rename the record — the agency trades under something else. */
   onRename: (value: string) => void;
+  /** Where they are. Directory value unless somebody has corrected it. */
+  onAddress: (value: string) => void;
   /** The second person, if the disclosure is open. */
   onField2: (field: ContactField, value: string) => void;
   onOpenTask: (task: BoardTask) => void;
@@ -168,6 +171,19 @@ export default function RecordView({
           <input
             value={site}
             onChange={(e) => onWebsite(e.target.value)}
+            onBlur={onSaveFields}
+            placeholder="—"
+            className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+          />
+        </label>
+
+        {/* Under Website, because checking the site and checking where they
+            are is the same pass. */}
+        <label className="flex items-center gap-2.5">
+          <span className="w-24 shrink-0 text-[12px] text-gray-500">Address</span>
+          <input
+            value={record.address ?? ""}
+            onChange={(e) => onAddress(e.target.value)}
             onBlur={onSaveFields}
             placeholder="—"
             className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"

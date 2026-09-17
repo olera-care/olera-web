@@ -90,6 +90,14 @@ export interface BoardRecord {
   /** True when the website above is an admin correction, not the directory. */
   websiteEdited?: boolean;
   /**
+   * Where they actually are. Worth showing next to the campus: a record can
+   * sit on a board because the directory geocoded it wrongly, and a street
+   * address makes that obvious in a way coordinates never do.
+   */
+  address: string;
+  /** True when the address is an admin correction, not the directory. */
+  addressEdited?: boolean;
+  /**
    * The second person at this organisation, if there is one. Kept behind a
    * disclosure in the UI: one contact is the normal case and two should not
    * cost the normal case any attention.
@@ -260,6 +268,7 @@ export function makeRecord(
     phone: "",
     email: "",
     website: "",
+    address: "",
     step,
     round,
     state: null,

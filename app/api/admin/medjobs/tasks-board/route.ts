@@ -123,7 +123,9 @@ export async function GET() {
         .order("id", { ascending: true }),
       db
         .from("site_tasks")
-        .select("id, campus_id, record_id, task_type, due_at, status, payload, notes, completed_at")
+        .select(
+          "id, campus_id, record_id, channel, task_type, due_at, status, payload, notes, completed_at",
+        )
         .in("status", ["pending", "completed"])
         .order("due_at", { ascending: true })
         .order("id", { ascending: true }),
@@ -305,8 +307,13 @@ export async function GET() {
     for (const ch of channelsRes.data ?? []) {
       if (ch.campus_id !== campus.id) continue;
       if (CHANNEL_SECTION[ch.channel] !== "jobboard") continue;
+      // Scoped to this channel, not merely to the campus. Every campus-level
+      // site task used to land here — a listserv reminder, an events sweep —
+      // and each was drawn as whichever job board rung its payload implied,
+      // which for a task carrying no rung at all is Research. A task with no
+      // channel is not a job board rung either, so it stays out.
       const tasks = (siteTasksByCampus.get(campus.id) ?? [])
-        .filter((t) => !t.record_id)
+        .filter((t) => !t.record_id && t.channel === ch.channel)
         .map((t) => siteTask(t, "jobboard"));
       const pending = tasks.filter((t) => !t.done);
       // campus_channels.detail was made for exactly this — its comment in

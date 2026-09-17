@@ -40,11 +40,23 @@ export default function UniversityFlow({
   university,
   onClose,
   onChanged,
+  onReload,
 }: {
   university: BoardUniversity;
   onClose: () => void;
-  /** The board behind needs its counts back after every change. */
+  /**
+   * An in-memory change. The board behind only needs to recount, and must
+   * NOT refetch: task progress is not persisted yet, so a reload here would
+   * throw away what the operator just did.
+   */
   onChanged: () => void;
+  /**
+   * Something reached the database. Refetch, because a write changes more
+   * than the field that was edited — an archived record leaves the board
+   * entirely — and patching that in memory is how a screen starts lying
+   * about what is saved.
+   */
+  onReload: () => void | Promise<void>;
 }) {
   const [view, setView] = useState<View>({ kind: "summary" });
   const [, force] = useState(0);
@@ -90,7 +102,7 @@ export default function UniversityFlow({
         return false;
       }
       say(done);
-      onChanged();
+      await onReload();
       return true;
     } catch {
       say("Could not reach the server — nothing was saved");

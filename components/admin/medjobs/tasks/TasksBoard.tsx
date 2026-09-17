@@ -139,6 +139,7 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
           university={open}
           onClose={() => setOpenSlug(null)}
           onChanged={() => force((x) => x + 1)}
+          onReload={load}
         />
       )}
     </>

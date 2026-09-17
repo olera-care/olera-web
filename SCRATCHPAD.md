@@ -95,6 +95,21 @@
 - **Two more Hoop gaps surfaced while in the account:** budget still **$3.50/day** (~$106/mo against a $75 all-in plan), and the account carries an "Improve account security" warning.
 - Browser shut down with **SIGTERM** so both new sign-ins flushed — the olera.care admin session and a clean `chrome-profile-gads-clean` Google Ads session are on disk for tomorrow.
 
+
+### 2026-09-17 (am) — Hoop Cares geo widened via a Google Ads Script; the settings editor is dead
+
+- **DONE: Google campaign `24235451655` now targets Harrison, Jackson and George County MS.** The 20-mile Pascagoula radius is removed. Google and Meta finally cover the same three counties Liz named on the 16 Sep call. **Verified by reading the state back**, not by trusting the success message.
+
+- **Last night's diagnosis was wrong in its framing, and TJ's own browser proved it.** He ran Cmd+F for "locations" on the settings page in his everyday Chrome and got **0/0** — so it was never CDP, never the automation profile, never extensions. A second campaign (Graceful `24162206362`) stalls identically. **The web campaign settings editor is broken account-wide, in every browser**: header renders, then all 15 lazy sections under "Other settings" hang on `Loading name / Loading summary`.
+  - **The "Turn off ad blockers" H1 is static boilerplate present on EVERY Google Ads page**, including ones working perfectly (it is in the DOM of the Scripts page, which renders fine). It is not a signal and it is what sent four hours of blocker-elimination down a dead end. Recorded in `ref:google_ads_settings_editor_cdp`, deliberately as a troubleshooting note rather than a rule.
+
+- **The way through is Google Ads Scripts**, which renders perfectly — `Olera metrics sync (hourly)` sits right there. New script **`12335624`**, "Hoop Cares geo — Harrison / Jackson / George", in account 419-933-1442. Committed as `scripts/google-ads/set-campaign-geo.js` (`7f32cc640`), so the next campaign is a two-line edit.
+  - **THE TRAP, and it would have been silent: a radius is a PROXIMITY, not a location.** They are separate collections on `campaign.targeting()` and a campaign can hold both. Hoop had **one proximity and ZERO locations**, so a locations-only script would have removed nothing and left the old 20-mile radius serving alongside the three new counties. Nobody would have seen it. `targetedProximities()` must be handled explicitly.
+  - Script adds before removing — a campaign with no geo target serves **nationally**.
+  - Criterion IDs from Google's published geotargets CSV (`geotargets-2025-01-13.csv`): Harrison `9058330`, Jackson `9058336`, George `9058326`. Look new ones up there, never guess.
+  - Safety ladder used, worth repeating: `DRY_RUN=true` Preview (reads only) → `DRY_RUN=false` + Google's own Preview (sandboxes the writes, shows real change rows) → Run → `DRY_RUN=true` Preview again to read back. Left parked at `DRY_RUN=true` and **not scheduled**, so it is now a read-only "what is this campaign targeting?" tool.
+  - TJ had to click through a Google OAuth consent for the script. The first attempt left the popup open without granting, which showed up as `Done (0:00)` with **no logger output** — that signature means unauthorized, not broken code.
+
 ---
 
 ### 2026-09-16 (am) — First paying provider: Hoop Cares $75/mo, and what the funnel actually shows (`thirsty-payne`, analysis only, no product code)
@@ -5280,7 +5295,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ## Next Up
 
 ### Hoop Cares / Oct 15 renewal (29 days) — the live clock
-1. **Widen Google to Harrison + Jackson + George** (campaign `24235451655`, currently 20 mi Pascagoula). Confirmed by Liz herself on the 16 Sep call. Meta already runs all three. **Blocked on the settings editor rendering — retry it first, see the fourth delta.** If it still stalls, TJ makes the edit in his own Chrome and Claude verifies from the Locations report, which renders fine. Also open from that call: **Nextdoor was promised and is not running**, and her **budget is $3.50/day against a $75/mo plan**.
+1. ~~Widen Google to Harrison + Jackson + George~~ **DONE 17 Sep** via script `12335624`, verified by read-back. Still open on her account, both from the 16 Sep call: **Nextdoor was promised and is not running**, and her **budget is $3.50/day against a $75/mo all-in plan** (~$106/mo of spend on $75 of revenue). Note any future settings change must go through `scripts/google-ads/set-campaign-geo.js` or another script while the web editor is down.
 2. **The zero-inquiry guarantee → reframed as THE STARTER DECISION.** See the second delta above and artifact `5i3AaAiEhEtK9V3dRtteK6`. Order of work: **(a)** pin what "inquiry" means in `/managed-ads-terms` by event type — mine, ~1h, unconditional; **(b)** make the guarantee detect itself — a check at each paid month's close, flag in the admin queue + Slack, credit stays manual — mine, ~half a day, unconditional; **(c)** TJ asks Liz why she paid (question 2 on her card) — blocks (d); **(d)** decide whether Starter stays a paid tier. Liz's own month is owed either way: manual Stripe credit, 15 Oct.
 3. **Verify the Google end date actually saved** to 20 Oct — entered and saved but Google reporting lagged to 15 Sep, so unconfirmed. Re-check once reporting catches up.
 4. **Watch the first prod metrics sync** — 8 catch-up traction emails, and `/admin/ad-boost` rows should stop reading "Traction email missing".

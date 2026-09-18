@@ -291,9 +291,15 @@ export default function ReviewsSection({
                     </div>
                   </div>
                 )}
-                <span className="text-sm text-gray-500">
-                  {reviewCount} review{reviewCount !== 1 ? "s" : ""}
-                </span>
+                {googleReviewsData && googleReviewsData.review_count > reviewCount ? (
+                  <span className="text-sm text-gray-500">
+                    Showing {reviewCount} of {googleReviewsData.review_count} reviews
+                  </span>
+                ) : (
+                  <span className="text-sm text-gray-500">
+                    {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+                  </span>
+                )}
               </div>
               {googleMapsUrl && (
                 <a

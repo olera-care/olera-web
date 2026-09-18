@@ -136,6 +136,9 @@ type Lead = {
    * cascades, so deleting there clears the lead too.
    */
   care_seeker_id: string | null;
+  qualification_reply: string | null;
+  qualification_reply_at: string | null;
+  qualification_escalated_at: string | null;
   offers: Offer[];
   texts: FamilyText[];
 };
@@ -167,9 +170,21 @@ const cityName = (slug: string, campaigns: Campaign[]) => campaigns.find((c) => 
 const openOffer = (l: Lead) => l.offers.find((o) => !o.accepted_at && !o.declined_at && !o.expired_at);
 const acceptedOffer = (l: Lead) => l.offers.find((o) => o.accepted_at);
 
+/**
+ * A Meta form lead we have asked who needs care and not heard back from. The
+ * form collects name, phone and ZIP and nothing else, so until this is answered
+ * the lead is a blank one and the relay will not route it on its own.
+ */
+const awaitingQualification = (l: Lead) =>
+  l.capture_method === "meta_instant_form" && !l.qualification_reply_at && !l.accepted_offer_id;
+
 /** Why a lead is in "Needs you", or null. */
 function needsReason(l: Lead): string | null {
   if(l.archived_at || ["stopped","client","no_fit","redirected"].includes(l.status)) return null;
+  // Before the other "call them" rules: an unanswered Meta lead is waiting on
+  // the family for its first hour, not on you, and saying otherwise every five
+  // minutes is how a queue stops meaning anything.
+  if (awaitingQualification(l)) return l.qualification_escalated_at ? "no answer to the qualifying text — call them" : null;
   if (l.status === "new" && !l.accepted_offer_id && l.offers.length === 0) return "call them — concierge city, no chain runs";
   if (l.status === "unfilled") return "no one on call took it";
   if (l.family_check_reply === "not_yet" && !l.reached_at) return "family says the provider has not called";
@@ -187,6 +202,7 @@ function stateLine(l: Lead): { text: string; tone: "ok" | "wait" | "warn" | "qui
   if (l.status === "unreachable") return { text: "unreachable", tone: "quiet" };
   if (l.status === "stopped") return { text: "stopped", tone: "quiet" };
   if (l.status === "redirected") return { text: "medical, redirected", tone: "quiet" };
+  if (awaitingQualification(l) && !l.qualification_escalated_at) return { text: "waiting on their reply", tone: "wait" };
   if (needsReason(l)) return { text: "needs you", tone: "warn" };
   const a = acceptedOffer(l);
   if (l.status === "contacted") return { text: `${a?.provider?.display_name ?? "provider"} reached them`, tone: "ok" };
@@ -567,6 +583,60 @@ function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (
   );
 }
 
+/**
+ * The answer to "who are you looking for care for?" — the one fact that turns a
+ * Meta form submission into something a provider can act on, and the only thing
+ * standing between this lead and the relay.
+ *
+ * The box is here rather than on a separate screen because the caller is
+ * already looking at this panel: they read what the family has been told, they
+ * call, and they type what they heard into the same view. Saving it starts the
+ * chain, so a call ends with the lead moving instead of with a note.
+ */
+function Qualification({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
+  const [draft, setDraft] = useState("");
+  if (l.capture_method !== "meta_instant_form") return null;
+  const closed = Boolean(l.archived_at) || ["client", "no_fit", "stopped", "redirected"].includes(l.status);
+  return (
+    <div className="mt-3 rounded bg-white px-2.5 py-2">
+      {l.qualification_reply ? (
+        <p className="text-xs text-gray-700">
+          <span className="font-medium text-gray-900">Who needs care:</span> &ldquo;{l.qualification_reply}&rdquo;
+          <span className="ml-2 text-gray-400">{fmtTime(l.qualification_reply_at)}</span>
+        </p>
+      ) : l.qualification_escalated_at ? (
+        <p className="text-xs text-warm-700">
+          No answer to the qualifying text by {fmtTime(l.qualification_escalated_at)}. Call {firstWord(l.first_name)} at{" "}
+          {phoneFmt(l.phone)} — this lead will not route itself.
+        </p>
+      ) : (
+        <p className="text-xs text-gray-600">
+          Asked who needs care. Waiting on their reply — nothing goes to a provider until they answer or you call.
+        </p>
+      )}
+      {!closed && !l.accepted_offer_id && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            className={`${input} min-w-[16rem] flex-1`}
+            placeholder={l.qualification_reply ? "correct what they need" : "what they told you on the phone"}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <button
+            className={btnPri}
+            disabled={busy || !draft.trim()}
+            onClick={async () => {
+              if (await act("Save", { action: "qualify", leadId: l.id, reply: draft.trim() })) setDraft("");
+            }}
+          >
+            Save and route
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[]; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
   const [note, setNote] = useState(l.admin_note ?? "");
   const [archiveReason, setArchiveReason] = useState("no_longer_needed");
@@ -584,6 +654,7 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
       </div>
       {l.meta_lead_id && <p className="mt-2 text-xs text-gray-500">Meta lead {l.meta_lead_id} · Form {l.meta_form_id} · Campaign {l.meta_campaign_id || "not supplied"} · Consent {l.consent_form_version} at {fmtTime(l.consent_at)}</p>}
       {l.note && <p className="mt-2 rounded bg-white px-2.5 py-1.5 text-xs text-gray-700">“{l.note}”</p>}
+      <Qualification lead={l} busy={busy} act={act} />
 
       <ol className="mt-3 space-y-1 text-xs">
         {l.offers.length === 0 && <li className="text-gray-500">No offers yet.</li>}

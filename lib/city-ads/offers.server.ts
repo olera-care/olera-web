@@ -69,6 +69,7 @@ export interface CityLeadRow {
   created_at: string;
   qualification_reply: string | null;
   qualification_reply_at: string | null;
+  qualification_escalated_at: string | null;
 }
 
 export interface CityOfferRow {
@@ -103,21 +104,20 @@ interface ProviderLite {
 }
 
 const LEAD_COLS =
-  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at, created_at, qualification_reply, qualification_reply_at";
+  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at, created_at, qualification_reply, qualification_reply_at, qualification_escalated_at";
 
 /**
- * How long a native lead waits for its qualifying reply before being routed
- * anyway. The confirmation goes out within about five minutes of submission,
- * so the family is holding the phone by construction and replies concentrate
- * in those first minutes rather than over hours.
+ * How long a native lead waits for its qualifying reply before a person is
+ * asked to call. The confirmation goes out within about five minutes of
+ * submission, so the family is holding the phone by construction and replies
+ * concentrate in those first minutes rather than over hours.
  *
- * The asymmetry sets the number rather than any measurement, and there is none
- * to have: routing early costs a thinner lead, and the reply still arrives
- * afterwards and can be passed on; routing late costs a family sitting and
- * waiting, which is the failure this programme already had. It also buys
- * nothing at the provider end, because providers here open an inquiry within a
- * day, so a lead offered at T+1h and one offered at T+3h are picked up at the
- * same moment.
+ * What happens at the end of the hour is the whole point: the lead goes to a
+ * PERSON, never to a provider. Two Dallas providers have now been told in
+ * writing that we would rather hold a request back than send them another name
+ * with nothing attached, and a timer that routed silence anyway would make that
+ * sentence false on the first lead. So the hour is not a licence to route; it
+ * is how long we wait before a human takes it over.
  *
  * Watch reply latency across the first leads and lengthen this if most answers
  * land past the hour.
@@ -176,24 +176,24 @@ export async function startOrAdvance(
   db: SupabaseClient,
   leadId: string,
   opts: { force?: boolean; providerId?: string } = {},
-): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "noop"; providerName?: string }> {
+): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "escalated" | "noop"; providerName?: string }> {
   if (await cityLeadBlocked(db, leadId)) return { action: "noop" };
   const lead = await getLead(db, leadId);
   if (!lead) return { action: "noop" };
-  // The native form promises an Olera conversation before a named
-  // introduction, so a native lead is held back until we have tried to qualify
-  // it — but held back, not stopped. It joins the chain the moment the family
-  // answers the qualifying text, and otherwise once NATIVE_QUALIFY_MS has
-  // passed, so silence delays a lead rather than stranding it. An explicit
-  // admin action (providerId, or force) skips the wait entirely.
-  if (lead.capture_method === "meta_instant_form" && !opts.providerId && !opts.force) {
-    const answered = Boolean(lead.qualification_reply_at);
-    const waited =
-      Date.now() - new Date(lead.created_at).getTime() >= NATIVE_QUALIFY_MS;
-    if (!answered && !waited) return { action: "noop" };
-  }
   if (lead.accepted_offer_id || !["new", "offered", "unfilled"].includes(lead.status)) {
     return { action: "closed" };
+  }
+  // The native form promises an Olera conversation before a named
+  // introduction, and the form itself collects nothing about the care, so an
+  // unanswered native lead IS a blank lead. It joins the chain the moment the
+  // family answers the qualifying text, and never on its own before then: an
+  // hour of silence sends it to a person to call, not to the next provider.
+  //
+  // An explicit admin action (providerId, or force) still routes it. That is
+  // deliberate and it is the only way an unqualified lead reaches a provider —
+  // someone chose to send it, knowing what is in it.
+  if (lead.capture_method === "meta_instant_form" && !lead.qualification_reply_at && !opts.providerId && !opts.force) {
+    return escalateUnqualified(db, lead);
   }
   if (lead.status === "unfilled" && !opts.force && !opts.providerId) return { action: "noop" };
 
@@ -363,6 +363,48 @@ async function markUnfilled(db: SupabaseClient, lead: CityLeadRow, city: string)
     metadata: { lead_id: lead.id },
   });
   return { action: "unfilled" as const };
+}
+
+/**
+ * A native lead that never answered the qualifying text, an hour on. Hand it to
+ * a person and stop. Nothing is sent to the family here — they have already had
+ * one text and a second one repeating the question is nagging, not service; the
+ * next contact they get should be a human who can actually help.
+ *
+ * Idempotent by the conditional update, which matters more than it looks: the
+ * relay runs every five minutes, so the difference between stamping first and
+ * alerting first is the difference between one Slack message and twelve an hour.
+ */
+async function escalateUnqualified(
+  db: SupabaseClient,
+  lead: CityLeadRow,
+): Promise<{ action: "escalated" | "noop" }> {
+  if (Date.now() - new Date(lead.created_at).getTime() < NATIVE_QUALIFY_MS) return { action: "noop" };
+  if (lead.qualification_escalated_at) return { action: "noop" };
+  const now = new Date().toISOString();
+  const { data: stamped, error } = await db
+    .from("city_leads")
+    .update({ qualification_escalated_at: now, updated_at: now })
+    .eq("id", lead.id)
+    .is("qualification_escalated_at", null)
+    .select("id");
+  if (error) {
+    console.error("[city-ads] qualification escalation failed", error);
+    return { action: "noop" };
+  }
+  if (!stamped?.length) return { action: "noop" };
+  const city = getCityConfig(lead.slug)?.city ?? lead.slug;
+  // offer_count is not always zero: an admin can hand-route a blank lead, and
+  // if that provider passes, the chain stops here rather than advancing. Say
+  // which of the two happened instead of asserting the common one.
+  const held =
+    lead.offer_count > 0
+      ? "The chain has stopped rather than pass a blank lead on"
+      : "Nothing has gone to a provider and nothing will";
+  await sendSlackAlert(
+    `📞 City lead ${lead.id.slice(0, 8)} (${city}): no answer to the qualifying text in the hour since ${lead.first_name} filled in the form. Call them: ${formatUSPhone(lead.phone)}. ${held} until someone records what they need — type it into the lead at /admin/city-ads.`,
+  );
+  return { action: "escalated" };
 }
 
 /**
@@ -543,9 +585,10 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
   advanced: number;
   unfilled: number;
   parked: number;
+  escalated: number;
 }> {
   const now = new Date().toISOString();
-  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0 };
+  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0, escalated: 0 };
 
   // 1. Offers past their window.
   const { data: due } = await db
@@ -563,6 +606,7 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
     if (r.action === "offered") out.advanced++;
     else if (r.action === "unfilled") out.unfilled++;
     else if (r.action === "parked") out.parked++;
+    else if (r.action === "escalated") out.escalated++;
   }
 
   // 2. Parked leads whose morning has come, plus stragglers never started.
@@ -576,10 +620,10 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
   // boundary. startOrAdvance still refuses a lead with a live offer, so
   // including "offered" cannot double-send.
   // Native leads are no longer excluded here. They used to be, because they
-  // never entered the chain at all; now they wait for a qualifying reply or a
-  // timer, and startOrAdvance is the single place that decides. Including them
-  // costs a no-op call every five minutes for at most an hour and means a
-  // family who answers is routed on the next tick rather than never.
+  // never entered the chain at all; now they either answer the qualifying text
+  // and are routed on the next tick, or go to a person after an hour, and
+  // startOrAdvance is the single place that decides which. Including them costs
+  // a no-op call every five minutes until one of those two things happens.
   const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
   const { data: waiting } = await db
     .from("city_leads")
@@ -594,6 +638,7 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
     if (r.action === "offered") out.started++;
     else if (r.action === "unfilled") out.unfilled++;
     else if (r.action === "parked") out.parked++;
+    else if (r.action === "escalated") out.escalated++;
   }
   return out;
 }

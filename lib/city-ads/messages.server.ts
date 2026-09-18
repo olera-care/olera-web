@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { sendSMS } from '@/lib/twilio';
 import { sendEmail } from '@/lib/email';
-import { citySendWindow } from './send-window';
+// Re-exported for the admin route, which still decides the window at insert
+// time. Delivery no longer re-checks it — see deliverCityMessage.
 export { citySendWindow } from './send-window';
 
 /** Fail closed, including when checking provider outreach about this family. */
@@ -35,12 +36,24 @@ export async function deliverCityMessage(db: SupabaseClient, id: string) {
       if(e) throw e;
       return;
     }
-    const window = citySendWindow(lead.slug);
-    if (!window.allowed) {
-      const {error:e} = await db.from('city_lead_messages').update({status:'pending',send_after:window.nextStart}).eq('id',id);
-      if(e) throw e;
-      return;
-    }
+    // No send-window check here, deliberately. Both writers of this table are
+    // responses rather than things we start: the native import's confirmation
+    // answers a form the family submitted minutes ago, and an admin send is a
+    // human choosing to reply. A family filling in a home care form at eleven
+    // at night may be in the worst week of their life, and holding their
+    // acknowledgement until 8am is not kindness.
+    //
+    // The window decision lives at INSERT time instead, encoded in send_after:
+    // the admin route writes citySendWindow().nextStart when the sender asks to
+    // schedule, and `now()` otherwise. Re-checking it here overrode that, so an
+    // explicit "send now" at 9pm was silently deferred to the morning.
+    //
+    // Everything Olera initiates keeps its window and none of it comes through
+    // here: provider nudges, day-2 checks and outcome pings live in
+    // followups.server.ts behind POLITE_START/POLITE_END.
+    //
+    // cityLeadBlocked above is untouched and remains the real gate — opt-outs,
+    // archived leads and do_not_contact still stop a send at any hour.
     const metadata = {lead_id:lead.id,city_message_id:id,sent_by:row.created_by};
     const result = row.channel === 'sms'
       ? await sendSMS({to:lead.phone,body:row.body,emailType:'city_lead_family_manual',recipientType:'family',metadata})

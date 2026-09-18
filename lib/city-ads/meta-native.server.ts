@@ -52,7 +52,13 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
       const lead = await response.json() as MetaLead;
       const normalized = normalizeMetaLead(lead, receipt as NativeReceipt, form);
       const name = normalized.first_name.split(/\s+/)[0];
-      const confirmation = `Hi ${name}, this is Olera. We received your request on Facebook or Instagram about home care in ${cfg.city}. Our team will contact you to learn what you need and discuss local options. No need to fill out another form. Reply STOP to opt out.`;
+      // One question, and it is "who" rather than "when". The form gives us a
+      // name, a phone and a ZIP and nothing about the care, so anything we ask
+      // adds something — but a now-or-later question returns one word, where
+      // "who is this for" returns a sentence that usually carries the timing
+      // anyway ("my mom, she had a fall last week"). Timing is asked second,
+      // by hand, and only of someone who has already replied.
+      const confirmation = `Hi ${name}, this is Olera. We have your request for home care in ${cfg.city}. So we point you to the right provider, who are you looking for care for? Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
       const { error: insertError } = await db.rpc("import_meta_city_lead", {
         receipt_id: receipt.leadgen_id, lead_data: normalized, confirmation,
       });

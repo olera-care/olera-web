@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-09-18 — Meta's instant form sends job seekers, and the archive could not say so (`magical-snyder`, PR #1960, open to staging)
+
+The first one arrived in Dallas. Gwen Makone came through the Meta instant form as a family lead, got the qualifying SMS, and replied **"I'm looking for work as a caregiver"**. A call script was already drafted to her ("I tried calling about the help at home you asked for"), which would have read like nobody had read her reply. It was not sent.
+
+**Why this needed a code change rather than a note.** The archive dropdown offered *No longer needs help*, *Asked us to stop*, *Duplicate* and *Other*. She never needed help, so filing her under the first is false, and it mixes wrong-audience leads in with families who went cold. That distinction is the only thing that can tell us whether the ad targeting is leaking. Added `looking_for_work` — labeled **"Looking for work, not care"**, second in the list because TJ expects it to be common. `app/admin/city-ads/page.tsx:687` and the API allowlist at `app/api/admin/city-ads/route.ts:157`. **No migration:** `city_leads.archive_reason` is plain `text` with no CHECK, verified against the live PostgREST schema, not just migration 228.
+
+**Deliberately not an opt-out.** Only `opted_out` calls `suppressPhone()`. A job seeker has not asked us to stop; suppressing her phone would block her from ever returning as a family. Archiving already cancels her pending messages, her queued SMS and any open offer via the 228 triggers, which is all that was needed.
+
+**`/pre-test` found nothing wrong with the change and two things wrong around it.** (a) The quick **Archive** button on the collapsed lead row hardcodes `no_longer_needed` (`page.tsx:353`), so the fastest path files the wrong reason. (b) **A reason is permanent once set** — the control is gated behind `{!l.archived_at}`, and `city_lead_archive_guard` restores `OLD.archive_reason` on any later update while still returning `ok:true, "Lead archived."`. A correction reports success and changes nothing. Together: the fast path misfiles, and the misfile cannot be undone. Both left for TJ; each fix is a product decision, not a bug fix.
+
+**The measurement fact, now read rather than assumed.** `app/api/admin/city-ads/meta/route.ts:26-36` counts every non-test `meta_instant_form` lead as "Leads" with no `archived_at` filter. So a job seeker stays in the denominator after archiving. That is **right for CPL** — we paid for her — and **wrong for "Lead-to-client conversion"**, which now treats her as a family who failed to convert. The reason code is the prerequisite for splitting those; the split itself is not built.
+
+**Not yet a pattern.** n=1. If a second job seeker comes through the same form, the audience or creative is leaking to caregivers and the instant-form CPL in [[project_cpl_system_model]] is understated by however many we are paying for.
+
 ### 2026-09-18 — Hoop Cares: the $210 budget ask falsified at source, and her page rebuilt to describe the right business (`happy-planck`, PR #1956 → promotion #1958, in PROD)
 
 The brief was "get Hoop enough traffic to have a real shot at an inquiry", carrying a proposed **~$15/day on Google for two weeks, ~90 clicks for ~$210**. It does not survive a read at source, and the page turned out to be describing a different company.
@@ -5563,6 +5577,11 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+### City lead archive reasons — two decisions left (PR #1960)
+- **Decide what the row-level quick Archive button should do.** It hardcodes `no_longer_needed` (`app/admin/city-ads/page.tsx:353`), so the one-click path cannot file a job seeker correctly and the expanded row is the only place the new reason is reachable. Options: change its default, give it its own reason picker, or drop it and make the row expand.
+- **Decide whether an archived lead's reason should be editable.** Today it is not, in the UI or the database — `city_lead_archive_guard` silently restores the old value and still reports success. Combined with the item above, a wrong reason is permanent.
+- **Only when a second job seeker appears:** split the Meta funnel's denominators so wrong-audience leads stay in CPL but leave "Lead-to-client conversion". Do not build it at n=1.
+
 ### Hoop Cares / Oct 15 renewal (29 days) — the live clock
 1. ~~Widen Google to Harrison + Jackson + George~~ **DONE 17 Sep** via script `12335624`; re-confirmed 18 Sep in change history (*3 geo targets added, 1 proximity removed, 16 Sep 8:52pm*). **Re-read ~22 Sep:** impressions climbed 45 → 55 → 62 while clicks stayed at 4 and cost at $9.04. If reach is up and clicks are not, narrow from three counties to Jackson + Ocean Springs. **Still open: Nextdoor was promised on the 16 Sep call and is not running** — the 30 Sep check-in is the natural place to settle it. Budget corrected on the row 18 Sep to **350/daily** (was 5000/lifetime, a dead free-intro cap); actual burn is ~$91/mo, and on a zero-inquiry month revenue is **$0, not $75**. Any settings change still needs a script while the web editor is down; the real URL is `/aw/settings/campaign/search?campaignId=` and its sub-panels do not hydrate on the automation profile, so read **change history** instead.
 2. **The zero-inquiry guarantee → reframed as THE STARTER DECISION.** See the second delta above and artifact `5i3AaAiEhEtK9V3dRtteK6`. Order of work: **(a)** pin what "inquiry" means in `/managed-ads-terms` by event type — mine, ~1h, unconditional; **(b)** make the guarantee detect itself — a check at each paid month's close, flag in the admin queue + Slack, credit stays manual — mine, ~half a day, unconditional; **(c)** TJ asks Liz why she paid (question 2 on her card) — blocks (d); **(d)** decide whether Starter stays a paid tier. Liz's own month is owed either way: manual Stripe credit, 15 Oct.
@@ -5987,6 +6006,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-09-18 — "Looking for work" archive reason (`magical-snyder`, PR #1960 open)
+
+- `app/admin/city-ads/page.tsx`, `app/api/admin/city-ads/route.ts`. Two lines, no migration.
+- **Keep:** verify a column's type against the live schema, not the migration that created it. PostgREST's root document answers "is this an enum" in one read; `archive_reason` came back `{"format": "text"}`, which is what made this a two-line change instead of a migration.
+- **Keep:** an archive reason is a measurement, not a courtesy. "No longer needs help" and "was never a customer" are different facts and only one of them is about the ads.
+- **Keep:** a trigger that restores an old value and still returns success is indistinguishable from a working edit. Found by reading `city_lead_archive_guard`, not by testing.
+- **Watch:** production reads via curl are blocked by the auto-mode classifier. The schema read went through; the row read did not.
 
 ### 2026-09-17 (pm) — Queue re-filed by whose move it is (`queue/whose-move`, #1948 → prod via #1949)
 

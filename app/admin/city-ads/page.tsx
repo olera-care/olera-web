@@ -1024,18 +1024,46 @@ function CampaignRow({ c, busy, act }: { c: Campaign; busy: boolean; act: (label
 
 function PoolLine({ p, busy, act }: { p: PoolRow; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
   const [ovr, setOvr] = useState<string | null>(null); // null = not editing
+  const [rank, setRank] = useState(String(p.position));
   const current = p.phone_override ?? "";
+  // Lower goes first. Saved on blur rather than per keystroke, so typing "25"
+  // does not briefly write a 2 and reshuffle the queue under a live lead.
+  const saveRank = async () => {
+    const next = Number(rank);
+    if (!Number.isFinite(next) || next <= 0 || next === p.position) {
+      setRank(String(p.position));
+      return;
+    }
+    if (!(await act("Rank", { action: "pool_update", poolId: p.id, fields: { position: next } }))) {
+      setRank(String(p.position));
+    }
+  };
   return (
     <div className="py-2">
-      <label className="flex items-center gap-2.5">
-        <input type="checkbox" className="h-4 w-4 accent-primary-700" checked={p.enabled} disabled={busy} onChange={(e) => void act("On call", { action: "pool_toggle", poolId: p.id, enabled: e.target.checked })} />
-        <span className={`font-medium ${p.enabled ? "text-gray-900" : "text-gray-500"}`}>{p.provider?.display_name ?? p.provider_id.slice(0, 8)}</span>
+      <div className="flex items-center gap-2.5">
+        <label className="flex items-center gap-2.5">
+          <input type="checkbox" className="h-4 w-4 accent-primary-700" checked={p.enabled} disabled={busy} onChange={(e) => void act("On call", { action: "pool_toggle", poolId: p.id, enabled: e.target.checked })} />
+          <span className={`font-medium ${p.enabled ? "text-gray-900" : "text-gray-500"}`}>{p.provider?.display_name ?? p.provider_id.slice(0, 8)}</span>
+        </label>
         {p.is_test && <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500">test</span>}
         <span className="text-xs text-gray-500">
           {p.provider?.city} · {p.care_types.map((t) => CARE[t] ?? t).join(", ")}
         </span>
+        <span className="inline-flex items-center gap-1 text-xs text-gray-500" title="Order offers are made in. Lower goes first.">
+          <span className="text-gray-400">rank</span>
+          <input
+            type="number"
+            min={1}
+            className="w-14 rounded border border-gray-300 px-1.5 py-0.5 text-xs tabular-nums"
+            value={rank}
+            disabled={busy}
+            onChange={(e) => setRank(e.target.value)}
+            onBlur={() => void saveRank()}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+          />
+        </span>
         <span className="ml-auto text-xs text-gray-600">{p.provider?.email ?? <span className="text-warm-700">no email on file</span>}</span>
-      </label>
+      </div>
       {p.enabled && (
         <div className="ml-6 mt-1 text-xs text-gray-500">
           Offers go by email to {p.provider?.email ?? "nobody (add an email)"}, and by text to {phoneFmt(p.phone_override ?? p.provider?.phone) || "no number"} if it can take one.{" "}

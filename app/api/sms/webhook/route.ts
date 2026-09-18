@@ -304,6 +304,66 @@ async function ackedRecently(phone: string): Promise<boolean> {
 }
 
 /**
+ * Claim an inbound as the answer to a city lead's qualifying text.
+ *
+ * The confirmation SMS asks one question — who the care is for — and this is
+ * where the answer lands. Returns the lead id when it claimed the message, or
+ * null to let the caller carry on to the research engine.
+ *
+ * Scoped narrowly on purpose. Only a lead that is still open, not yet routed
+ * and has not already answered can claim a message, so a later "thanks" or a
+ * reply about something else falls through to the normal path rather than
+ * silently overwriting the qualification.
+ *
+ * Best-effort like everything else here: a failure returns null and the
+ * message takes the ordinary route rather than vanishing.
+ */
+async function captureCityQualification(
+  db: NonNullable<ReturnType<typeof getServiceDb>>,
+  phone: string,
+  body: string,
+): Promise<string | null> {
+  const key = last10(phone);
+  if (!key) return null;
+  try {
+    const { data, error } = await db
+      .from("city_leads")
+      .select("id, phone, created_at")
+      .eq("is_test", false)
+      .is("archived_at", null)
+      .is("accepted_offer_id", null)
+      .is("qualification_reply_at", null)
+      .in("status", ["new", "offered"])
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error || !data?.length) return null;
+    const lead = data.find((l) => last10(l.phone as string) === key);
+    if (!lead) return null;
+
+    // Stamp reply and time together. qualification_reply_at is what the offer
+    // relay reads to start the chain early, so it must never be set without
+    // the words that justified it.
+    const { error: updateError } = await db
+      .from("city_leads")
+      .update({
+        qualification_reply: body.slice(0, 2_000),
+        qualification_reply_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", lead.id as string)
+      .is("qualification_reply_at", null);
+    if (updateError) {
+      console.error("[sms-webhook] City qualification write failed:", updateError);
+      return null;
+    }
+    return lead.id as string;
+  } catch (e) {
+    console.error("[sms-webhook] City qualification capture failed:", e);
+    return null;
+  }
+}
+
+/**
  * A family sent us a free-form question. Acknowledge it and queue the research.
  *
  * Everything here is best-effort and swallows its own errors: none of it may
@@ -327,6 +387,24 @@ async function triageFamilyQuestion(args: {
   }
 
   const db = getServiceDb();
+
+  // A reply to the city qualifying text belongs to that lead, not to the
+  // research engine.
+  //
+  // City leads are linked to a care seeker profile, so without this check a
+  // family answering "my mom" would match here, be acknowledged as though she
+  // had asked a free-form care question, and receive a researched answer to a
+  // question she never asked. The engine below is good and stays untouched;
+  // this only claims the replies that are ours.
+  //
+  // Crisis detection above still runs first and still wins, at any hour.
+  if (db) {
+    const claimed = await captureCityQualification(db, phone, body);
+    if (claimed) {
+      console.log(`[sms-webhook] Qualifying reply captured for city lead ${claimed}`);
+      return;
+    }
+  }
 
   // Acknowledge. sendReactiveFamilyAlert owns quiet hours, the opted-out
   // check, the daily safety cap, and the deferred-send queue, so this call

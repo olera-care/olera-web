@@ -66,6 +66,9 @@ export interface CityLeadRow {
   accepted_offer_id: string | null;
   offer_count: number;
   next_offer_at: string | null;
+  created_at: string;
+  qualification_reply: string | null;
+  qualification_reply_at: string | null;
 }
 
 export interface CityOfferRow {
@@ -100,7 +103,26 @@ interface ProviderLite {
 }
 
 const LEAD_COLS =
-  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at";
+  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at, created_at, qualification_reply, qualification_reply_at";
+
+/**
+ * How long a native lead waits for its qualifying reply before being routed
+ * anyway. The confirmation goes out within about five minutes of submission,
+ * so the family is holding the phone by construction and replies concentrate
+ * in those first minutes rather than over hours.
+ *
+ * The asymmetry sets the number rather than any measurement, and there is none
+ * to have: routing early costs a thinner lead, and the reply still arrives
+ * afterwards and can be passed on; routing late costs a family sitting and
+ * waiting, which is the failure this programme already had. It also buys
+ * nothing at the provider end, because providers here open an inquiry within a
+ * day, so a lead offered at T+1h and one offered at T+3h are picked up at the
+ * same moment.
+ *
+ * Watch reply latency across the first leads and lengthen this if most answers
+ * land past the hour.
+ */
+const NATIVE_QUALIFY_MS = 60 * 60 * 1000;
 
 function last10(phone: string | null | undefined): string | null {
   if (!phone) return null;
@@ -153,7 +175,18 @@ export async function startOrAdvance(
   const lead = await getLead(db, leadId);
   if (!lead) return { action: "noop" };
   // Native form promises an Olera conversation before a named introduction.
-  if (lead.capture_method === "meta_instant_form" && !opts.providerId) return { action: "noop" };
+  // The native form promises an Olera conversation before a named
+  // introduction, so a native lead is held back until we have tried to qualify
+  // it — but held back, not stopped. It joins the chain the moment the family
+  // answers the qualifying text, and otherwise once NATIVE_QUALIFY_MS has
+  // passed, so silence delays a lead rather than stranding it. An explicit
+  // admin action (providerId, or force) skips the wait entirely.
+  if (lead.capture_method === "meta_instant_form" && !opts.providerId && !opts.force) {
+    const answered = Boolean(lead.qualification_reply_at);
+    const waited =
+      Date.now() - new Date(lead.created_at).getTime() >= NATIVE_QUALIFY_MS;
+    if (!answered && !waited) return { action: "noop" };
+  }
   if (lead.accepted_offer_id || !["new", "offered", "unfilled"].includes(lead.status)) {
     return { action: "closed" };
   }
@@ -537,12 +570,16 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
   // need ninety minutes, so any chain starting after 10:30am can cross the
   // boundary. startOrAdvance still refuses a lead with a live offer, so
   // including "offered" cannot double-send.
+  // Native leads are no longer excluded here. They used to be, because they
+  // never entered the chain at all; now they wait for a qualifying reply or a
+  // timer, and startOrAdvance is the single place that decides. Including them
+  // costs a no-op call every five minutes for at most an hour and means a
+  // family who answers is routed on the next tick rather than never.
   const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
   const { data: waiting } = await db
     .from("city_leads")
     .select("id, next_offer_at, created_at")
     .eq("is_test", false)
-    .neq("capture_method", "meta_instant_form")
     .in("status", ["new", "offered"])
     .is("accepted_offer_id", null)
     .or(`next_offer_at.lte.${now},and(next_offer_at.is.null,created_at.lte.${twoMinAgo})`)

@@ -174,7 +174,6 @@ export async function startOrAdvance(
   if (await cityLeadBlocked(db, leadId)) return { action: "noop" };
   const lead = await getLead(db, leadId);
   if (!lead) return { action: "noop" };
-  // Native form promises an Olera conversation before a named introduction.
   // The native form promises an Olera conversation before a named
   // introduction, so a native lead is held back until we have tried to qualify
   // it — but held back, not stopped. It joins the chain the moment the family

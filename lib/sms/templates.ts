@@ -183,7 +183,12 @@ export function cityFamilyAcceptedSms(p: { providerName: string; city: string; p
 
 /** Family: three providers missed it; a human is on it. */
 export function cityFamilyStillWorkingSms(p: { firstName: string; city: string }): string {
-  return `Olera: Still working on your request, ${p.firstName}. We are lining up a ${p.city} provider by hand and will text you their name today.`;
+  // Promises only what the system can keep. The previous copy said a provider's
+  // name would arrive "today"; it was sent to four families and kept zero
+  // times, because reaching this function means no enabled provider was left to
+  // introduce. Nothing downstream sends a name on its own, so naming a day put
+  // an appointment in a stranger's diary that nobody had made.
+  return `Olera: We have your request, ${p.firstName}. We are still looking for the right ${p.city} provider for you and will follow up as soon as we have one.`;
 }
 
 /** Family, medical scope: honest redirect, not a lead. */

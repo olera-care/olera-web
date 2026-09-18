@@ -323,22 +323,26 @@ async function captureCityQualification(
   phone: string,
   body: string,
 ): Promise<string | null> {
-  const key = last10(phone);
-  if (!key) return null;
+  if (!phone) return null;
   try {
+    // Matched on phone directly rather than by scanning recent leads and
+    // filtering in memory. city_leads.phone is E.164 NOT NULL with an index,
+    // and the inbound is put through the same normalizeUSPhone, so the two
+    // agree. Scanning would also have quietly stopped working once more than a
+    // page of leads was open at once.
     const { data, error } = await db
       .from("city_leads")
-      .select("id, phone, created_at")
+      .select("id, created_at")
+      .eq("phone", phone)
       .eq("is_test", false)
       .is("archived_at", null)
       .is("accepted_offer_id", null)
       .is("qualification_reply_at", null)
       .in("status", ["new", "offered"])
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(1);
     if (error || !data?.length) return null;
-    const lead = data.find((l) => last10(l.phone as string) === key);
-    if (!lead) return null;
+    const lead = data[0];
 
     // Stamp reply and time together. qualification_reply_at is what the offer
     // relay reads to start the chain early, so it must never be set without
@@ -397,7 +401,13 @@ async function triageFamilyQuestion(args: {
   // question she never asked. The engine below is good and stays untouched;
   // this only claims the replies that are ours.
   //
-  // Crisis detection above still runs first and still wins, at any hour.
+  // Crisis detection above still runs first and still wins, at any hour. That
+  // is why this sits inside triageFamilyQuestion rather than earlier in the
+  // webhook: claiming the message sooner would cover city leads whose care
+  // seeker profile has not linked yet, but it would also let a crisis message
+  // be filed as a qualification answer and never paged. The cost of staying
+  // here is that an unlinked lead's reply goes to alertUnmatchedInbound for a
+  // human instead, and the lead still routes on its timer.
   if (db) {
     const claimed = await captureCityQualification(db, phone, body);
     if (claimed) {

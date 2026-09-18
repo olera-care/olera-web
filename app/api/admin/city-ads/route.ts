@@ -225,6 +225,39 @@ export async function POST(req: NextRequest) {
         if (error) throw error;
         return NextResponse.json({ ok: true });
       }
+      /**
+       * What a caller learned on the phone. This is the way back into the
+       * relay for a lead the qualifying text never reached: it fills the same
+       * field the family's own reply would have filled, so the chain starts on
+       * the next call rather than on the next cron tick.
+       *
+       * Deliberately overwrites an existing answer. A person who has just
+       * spoken to the family knows more than a two-word text did.
+       */
+      case "qualify": {
+        const leadId = String(body.leadId ?? "");
+        const reply = String(body.reply ?? "").trim();
+        if (!reply) return NextResponse.json({ error: "Type what they told you" }, { status: 400 });
+        if (await cityLeadBlocked(db, leadId)) return NextResponse.json({ error: "Lead is archived or opted out" }, { status: 409 });
+        const { error } = await db
+          .from("city_leads")
+          .update({ qualification_reply: reply.slice(0, 2000), qualification_reply_at: now, updated_at: now })
+          .eq("id", leadId);
+        if (error) throw error;
+        const r = await startOrAdvance(db, leadId);
+        return NextResponse.json({
+          ok: true,
+          result: r,
+          message:
+            r.action === "offered"
+              ? `Saved. Offered to ${r.providerName ?? "the next provider"}.`
+              : r.action === "parked"
+                ? "Saved. It will be offered when their morning opens."
+                : r.action === "unfilled"
+                  ? "Saved, but nobody is on call for this city yet."
+                  : "Saved.",
+        });
+      }
       case "offer_next": {
         const r = await startOrAdvance(db, String(body.leadId ?? ""), { force: true });
         return NextResponse.json({ ok: true, result: r });

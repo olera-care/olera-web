@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
     switch (action) {
       case "archive_lead": {
         const reason = String(body.reason ?? "");
-        if (!["opted_out", "no_longer_needed", "duplicate", "other"].includes(reason)) return NextResponse.json({error:"Choose an archive reason"},{status:400});
+        if (!["opted_out", "no_longer_needed", "looking_for_work", "duplicate", "other"].includes(reason)) return NextResponse.json({error:"Choose an archive reason"},{status:400});
         if(reason === "opted_out") {
           const {data:lead,error} = await db.from("city_leads").select("phone").eq("id",String(body.leadId ?? "")).single();
           if(error) throw error;

@@ -2037,7 +2037,7 @@ export function slackCityLead(opts: {
   phone: string;
   careLabel: string;
   recipientLabel: string;
-  urgencyLabel: string;
+  urgencyLabel?: string | null;
   zip?: string | null;
   channel: string | null;
   campaignTag?: string | null;
@@ -2061,7 +2061,7 @@ export function slackCityLead(opts: {
         fields: [
           { type: "mrkdwn", text: `*Family:*\n${opts.firstName} · ${opts.phone}` },
           { type: "mrkdwn", text: `*Needs:*\n${opts.careLabel} for ${opts.recipientLabel}` },
-          { type: "mrkdwn", text: `*Starting:*\n${opts.urgencyLabel}` },
+          { type: "mrkdwn", text: `*Starting:*\n${opts.urgencyLabel ?? "not stated"}` },
           {
             type: "mrkdwn",
             text: `*Source:*\n${opts.paid ? opts.channel ?? "paid" : "direct, no campaign"}${opts.zip ? ` · ZIP ${opts.zip}` : ""}`,

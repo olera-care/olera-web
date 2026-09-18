@@ -139,16 +139,32 @@ export function familyAnswerAckSms(): string {
 // Provider copy is plain and short (feedback_provider_comms_plain_not_hedged).
 
 /** Offer to provider #N. No name, no number. */
-export function cityOfferSms(p: { city: string; careLabel: string; recipientLabel: string; urgencyLabel: string; paymentLabel?: string | null; minutes: number }): string {
-  const pay = p.paymentLabel ? `, ${p.paymentLabel}` : "";
-  return `Olera: a family in ${p.city} needs ${p.careLabel} for ${p.recipientLabel}, ${p.urgencyLabel}${pay}. Reply YES in the next ${p.minutes} min to take it, or NO to pass.`;
+/**
+ * The offer, to one provider at a time.
+ *
+ * The clock exists to protect the family, not to pressure the provider: it is
+ * what makes the offer exclusive, so she gets one call rather than five, and
+ * what keeps her request moving if this provider is busy. The previous copy
+ * stated the countdown without the reason, which is exactly how a lead broker
+ * writes and left the cost of missing it unstated, so it read as a trap.
+ *
+ * "Yours alone" names the window as the benefit it actually is. The reason is
+ * about her. And declining is given an explicit, costless outcome, so NO is a
+ * real option rather than a failure.
+ */
+export function cityOfferSms(p: { city: string; careLabel: string; recipientLabel: string; urgencyLabel?: string | null; paymentLabel?: string | null; minutes: number }): string {
+  const extra = [p.urgencyLabel, p.paymentLabel].filter(Boolean).join(", ");
+  const detail = extra ? ` ${cap(extra)}.` : "";
+  return `Olera: a family in ${p.city} needs ${p.careLabel}.${detail} Yours alone for the next ${p.minutes} min, so we can tell them who to expect. Reply YES to take it, or NO and we'll ask another provider.`;
 }
 
 /** Provider said YES: the family's details, and the expectation. */
-export function cityAcceptedProviderSms(p: { firstName: string; phone: string; careLabel: string; recipientLabel: string; urgencyLabel: string; note?: string | null; callBy: string; providerPhone?: string }): string {
+export function cityAcceptedProviderSms(p: { firstName: string; phone: string; careLabel: string; recipientLabel: string; urgencyLabel?: string | null; note?: string | null; callBy: string; providerPhone?: string }): string {
   const note = p.note ? ` Note: "${p.note.slice(0, 120)}"` : "";
   const told = p.providerPhone ? ` We told them to expect a call from ${p.providerPhone}.` : "";
-  return `It is yours. ${p.firstName}, ${p.phone}. ${cap(p.careLabel)} for ${p.recipientLabel}, ${p.urgencyLabel}.${note} ${p.firstName} is expecting your call ${p.callBy}.${told} We will check with them tomorrow.`;
+  // Same rule as the offer: an urgency nobody gave us is not stated at all.
+  const when = p.urgencyLabel ? `, ${p.urgencyLabel}` : "";
+  return `It is yours. ${p.firstName}, ${p.phone}. ${cap(p.careLabel)} for ${p.recipientLabel}${when}.${note} ${p.firstName} is expecting your call ${p.callBy}.${told} We will check with them tomorrow.`;
 }
 
 /** Provider said NO: one more question, one digit. */
@@ -211,7 +227,10 @@ export function cityFamilyCheckSms(p: { firstName: string; providerName: string 
 
 /** Family said not yet: the provider's one nudge. */
 export function cityProviderNudgeSms(p: { firstName: string; phone: string }): string {
-  return `Olera: ${p.firstName} says they have not heard from you yet. ${p.phone}. If you cannot take it, reply NO and we will pass it on today.`;
+  // "says they have not heard from you" casts the family as a complainant and
+  // the provider as having been reported. Same fact, stated as a fact, with an
+  // easy way out that does not require admitting anything.
+  return `Olera: checking in, ${p.firstName} has not had a call yet. ${p.phone}. If now is not a good time, reply NO and we will pass it on today.`;
 }
 
 /** Family said not yet and the provider still did not call: we move on. */

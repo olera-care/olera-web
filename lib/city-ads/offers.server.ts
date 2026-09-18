@@ -134,7 +134,13 @@ function labels(lead: CityLeadRow) {
   return {
     careLabel: CARE_LABEL[lead.care_type] ?? "care",
     recipientLabel: RECIPIENT_LABEL[lead.care_recipient ?? "other"] ?? "a family member",
-    urgencyLabel: URGENCY_LABEL[lead.urgency ?? "this_month"] ?? "starting soon",
+    // Null urgency stays null. It used to default to "this_month", which meant
+    // a lead nobody had asked about timing reached a provider as "starting this
+    // month" — a commitment the family never made, in a message where the name
+    // and number are withheld, so those few words ARE the lead. Every city lead
+    // in the system has a null urgency, so every offer we could make carried an
+    // invented deadline. Payment already behaved correctly; urgency now matches.
+    urgencyLabel: lead.urgency ? URGENCY_LABEL[lead.urgency] ?? null : null,
     paymentLabel: lead.payment_type ? PAYMENT_LABEL[lead.payment_type] ?? null : null,
   };
 }
@@ -337,7 +343,7 @@ export async function startOrAdvance(
     if (r.success && !r.skipped) channels.push("text");
   }
   await sendSlackAlert(
-    `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} by ${channels.length ? channels.join(" and ") : "NOTHING (both sends failed)"}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`,
+    `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} by ${channels.length ? channels.join(" and ") : "NOTHING (both sends failed)"}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel ?? "urgency not stated"}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`,
   );
   return { action: "offered", providerName: name };
 }

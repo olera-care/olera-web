@@ -6813,14 +6813,14 @@ export function cityOfferEmail(opts: {
   city: string;
   careLabel: string;
   recipientLabel: string;
-  urgencyLabel: string;
+  urgencyLabel?: string | null;
   paymentLabel?: string | null;
   minutes: number;
   offerUrl: string;
 }): string {
   const bits = [
     `${cap(opts.careLabel)} for ${opts.recipientLabel}`,
-    cap(opts.urgencyLabel),
+    opts.urgencyLabel ? cap(opts.urgencyLabel) : null,
     opts.paymentLabel ? cap(opts.paymentLabel) : null,
     opts.city,
   ]

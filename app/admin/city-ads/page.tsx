@@ -684,7 +684,7 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
       )}
       {!l.archived_at && <div className="mt-3 flex flex-wrap items-center gap-2">
         <select aria-label="Archive reason" className={input} value={archiveReason} onChange={e => setArchiveReason(e.target.value)}>
-          <option value="no_longer_needed">No longer needs help</option><option value="opted_out">Asked us to stop</option><option value="duplicate">Duplicate lead</option><option value="other">Other</option>
+          <option value="no_longer_needed">No longer needs help</option><option value="looking_for_work">Looking for work, not care</option><option value="opted_out">Asked us to stop</option><option value="duplicate">Duplicate lead</option><option value="other">Other</option>
         </select>
         <button className={btn} disabled={busy} onClick={() => void act("Archive",{action:"archive_lead",leadId:l.id,reason:archiveReason})}>Archive lead</button>
         <span className="text-xs text-gray-500">Stops follow-ups and pending messages; keeps history.</span>

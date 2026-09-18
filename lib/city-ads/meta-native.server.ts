@@ -58,7 +58,14 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
       // "who is this for" returns a sentence that usually carries the timing
       // anyway ("my mom, she had a fall last week"). Timing is asked second,
       // by hand, and only of someone who has already replied.
-      const confirmation = `Hi ${name}, this is Olera. We have your request for home care in ${cfg.city}. So we point you to the right provider, who are you looking for care for? Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
+      // "Olera:" as a label, not "this is Olera" as an introduction. A company
+      // saying "this is X" reads as a person who is not one, and every other
+      // family message in this system already uses the prefix — cityFamilyCheckSms
+      // is "Olera: Hi {name}, did …". This one was written separately and drifted.
+      // Deliberately not signed with a person's name either: the benefits
+      // navigator already forbids switching a family text thread to an
+      // individual, and that holds here for the same reason.
+      const confirmation = `Olera: Hi ${name}, we have your request for home care in ${cfg.city}. So we can point you to the right provider, who are you looking for care for? Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
       const { error: insertError } = await db.rpc("import_meta_city_lead", {
         receipt_id: receipt.leadgen_id, lead_data: normalized, confirmation,
       });

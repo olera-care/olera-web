@@ -6445,9 +6445,32 @@ Four steps, and three of them are things the engine cannot do for itself.
 - **AppleScript is half-open.** Reading tabs and opening URLs in Chrome works. `execute_javascript` does not: it needs Chrome's *View > Developer > Allow JavaScript from Apple Events*, the menu click needs System Events (TCC-blocked for the shell), and `defaults write com.google.Chrome AllowJavaScriptAppleEvents` was denied by the auto-mode classifier as a security weaken.
 - TJ installed Anthropic's **Control Chrome** extension (`execute_javascript`, `list_tabs`, `close_tab`, `go_forward`), which drives Chrome through the same AppleScript API. It was installed after session start so its tools never loaded. **This session runs as `claude` under Terminal.app**, not Warp and not the Claude app, so the restart that matters is this terminal's.
 
+### Sent, 2026-09-19 04:2x ET
+
+All three cleared the queue. Chrome hand-launched on 9222 with the `chrome-profile-google` profile and driven
+through `chrome-devtools` MCP; **Control Chrome's tools still never loaded**, so the restart in the section
+above is still owed if we want that path.
+
+- **Dorothy Rainey (352-321-8647) — sent immediately**, 4:21 AM her time. Her thread is crisis-flagged and
+  `crisisExempt` in `app/api/admin/sms-inbox/[phone]/route.ts` deliberately skips the quiet-hours hold, so the
+  panel offered a bare *Send text* with no schedule option. Working as designed, but worth knowing that a
+  crisis reply wakes someone up.
+- **352-713-4271 — scheduled**, `send_after` 2026-09-19T12:00Z = 8:00 AM ET, her local.
+- **808-940-6605 — scheduled**, `send_after` 2026-09-19T18:00Z = 8:00 AM HST. It was 10:20 PM for her.
+
+Both scheduled rows are `queued_by tj@findmedjobs.co`. The schedule button double-clicks: the second label is
+**"Schedule unchecked?"**, a confirm gate because neither draft had been through `Re-check`. Neither was
+re-checked before queueing.
+
+### `/answer-sms` written
+
+`.claude/commands/answer-sms.md`, v1, 146 lines. Project command, not a personal skill, because it drives
+`/admin/inbox` and the team should have it. Seven phases: triage, read the profile, read what we already sent,
+verify the program is open today, compose, send, verify against the API. The four steps above are phases 1-4.
+Carries the hand-launch recipe for Chrome on 9222 and the rule that the send never goes through Twilio direct.
+
 ### Next up
 
-1. Send the three drafts from `/admin/inbox`. They survive any restart; they are server-side rows, not context.
-2. Write `/answer-sms` from the four steps above, once browser control is back.
-3. Decide whether the crisis path needs more than a Slack page. Dorothy sat 4 days and nothing in `/admin/inbox` escalates by age.
-4. Decide whether the support inbox gets a suppress-sender action, which is the Karen Shelton gap.
+1. Decide whether the crisis path needs more than a Slack page. Dorothy sat 4 days and nothing in
+   `/admin/inbox` escalates by age.
+2. Decide whether the support inbox gets a suppress-sender action, which is the Karen Shelton gap.

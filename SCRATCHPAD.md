@@ -6345,3 +6345,47 @@ TJ explicitly said publish. Submitted HomeWell ad 1028560608959661348, LumiWell 
 ### Quicksave — 2026-09-16
 
 Branch `codex/nextdoor-pilot-save` from current origin/staging. Saved four shared command updates, postmortem, six audit/rollout artifacts and this log. Resolved the audit heading conflict while retaining staging’s ninth lesson. Verified JSON, $150 selected allocation, three unique ad IDs and tracking-tag matches; docs-only, no application tests needed. Next: confirm Nextdoor approval plus group/campaign activation and actual delivery before declaring live. No auto-merge.
+
+
+## 2026-09-18 — Qualify, then route: the city lead becomes a product
+
+**Shipped and in production.** PRs #1953 and #1955, promoted via #1954 and #1957. Migration 234 applied.
+
+### What went live
+
+The Facebook instant form collects name, phone, ZIP and an optional email, and nothing about the care. The importer writes `care_type='unsure'` on purpose. Every one of the 8 managed inquiries in programme history reached a provider with null `care_recipient`, `care_type` and `urgency`; two of Franchil's three were caregivers asking for a job.
+
+- **The confirmation SMS now asks one question**, and it is *who* the care is for rather than *when* it is needed. A now-or-later question returns one word; "who is this for" returns a sentence that usually carries the timing anyway. `lib/city-ads/meta-native.server.ts`.
+- **Replies are claimed before the research engine sees them.** City leads carry a `care_seeker_id`, so without `captureCityQualification()` a family answering "my mom" would be acknowledged as asking a free-form care question and sent a researched answer. Crisis detection still runs first. `app/api/sms/webhook/route.ts`.
+- **Native leads enter the existing offer cascade** on the qualifying reply, or after `NATIVE_QUALIFY_MS` (60 min) if none comes. The relay, ranked pool, 30-minute window and advance-on-decline chain were already built and running every five minutes; they were gated off by two lines.
+- **Delivery stops re-checking the send window.** Both writers of `city_lead_messages` are responses, and the window decision already lives in `send_after` at insert. Re-checking silently deferred an explicit admin "send now" at 9pm.
+- **Provider copy rewritten.** The offer stated a 30-minute countdown with no reason, which is how a lead broker writes. Now "Yours alone for the next 30 min, so we can tell them who to expect." The nudge stopped casting the family as complainant.
+- **Urgency is no longer invented.** `labels()` defaulted null urgency to `this_month`, so a lead nobody had asked about timing reached a provider as "starting this month". Every city lead has a null urgency. Now omitted when null, matching payment.
+- **Admin rank box** per pool entry, saved on blur.
+
+### It validated itself the same morning
+
+09:45 Gwen Makone submits the form (Garland TX, inside the ring). 09:50 the qualifying text goes out. **09:52 she replies: "I'm looking for work as a caregiver."** Not a family. Caught in two minutes, before any provider saw her. Zero `family_answer_jobs` rows created, so the guard held. Archived by TJ at 11:42.
+
+### Decisions
+
+- **City leads are free during the pilot**, and the emails say we are still learning rather than offering a first-one-free. Olera is NIH-funded (Phase IIB 1R44AG074116, awarded); never reference the CRP, which is an application.
+- **The qualifying text is always action #1 on a lead.** TJ's correction after I offered call-or-text and recommended the call: async scales, a call that is not picked up produces nothing, and headcount is the binding constraint. Memory `feedback_text_first_then_call`.
+- **Do not claim city traffic converts better.** The 12 Sep read has the city quiz at 1.4% of paid clicks against provider pages at 2.8%. The emails describe a difference in kind, not rate.
+- **Nextdoor provider pilots parked until next week.** Spend is $0.00 on all three, so nothing is burning, but the flight windows (Sep 17-21, 17-22) will have passed and they will need re-dating, not just a support ticket.
+
+### Where it stands
+
+**Nothing routes.** All 13 `city_pool` rows are `enabled=false`. Two provider emails sent today (Assisting Hands, Cambridge Caregivers) asking for a written yes and a mobile; the pool rule requires written agreement before a provider goes on call.
+
+**Known conflict, unresolved.** Both emails promise we would hold a request back rather than send an unqualified one. The relay currently routes at 60 minutes whether or not the family replied, and Jyotsna and Selam are both unqualified and past the timer. Either the timer hands unanswered leads to a person instead of a provider, or the sentence comes out. **Do not enable the pool until this is settled.**
+
+### Next up
+
+1. Change the 60-minute timer's destination so an unanswered lead goes to a person, not a provider. Then the pool can be enabled.
+2. Watch for replies from Jyotsna and Selam (qualifying texts sent 13:00 UTC). First real family qualification and the second live test of the guard.
+3. Hoop Cares budget: only paying provider ($75/mo), zero leads, 18 clicks across both channels. A separate session is on it.
+4. The Dallas pool holds no mobile numbers, no service areas and no recorded human contact for any of 7 providers. Outreach sheet: https://claude.ai/artifact/KdXd75RLYcN9W5hXQFboog
+5. 336 untracked `" 2"` duplicate files in the repo, not gitignored. The next `git add -A` commits all of them and they already slow `tsc` to a timeout.
+
+Artifacts: https://claude.ai/artifact/FYpBZcmzvL2DYkFsS1J8wB (four-stage read) · https://claude.ai/artifact/615cNNZt6vCnH344tgbvLa (family journey) · https://claude.ai/artifact/DSUTV9kyVybUkvJZKxArqr (provider journey)

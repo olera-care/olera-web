@@ -183,23 +183,42 @@ export async function startOrAdvance(
   if (lead.accepted_offer_id || !["new", "offered", "unfilled"].includes(lead.status)) {
     return { action: "closed" };
   }
-  // The native form promises an Olera conversation before a named
-  // introduction, and the form itself collects nothing about the care, so an
-  // unanswered native lead IS a blank lead. It joins the chain the moment the
-  // family answers the qualifying text, and never on its own before then: an
-  // hour of silence sends it to a person to call, not to the next provider.
-  //
-  // An explicit admin action (providerId, or force) still routes it. That is
-  // deliberate and it is the only way an unqualified lead reaches a provider —
-  // someone chose to send it, knowing what is in it.
-  if (lead.capture_method === "meta_instant_form" && !lead.qualification_reply_at && !opts.providerId && !opts.force) {
-    return escalateUnqualified(db, lead);
-  }
-  if (lead.status === "unfilled" && !opts.force && !opts.providerId) return { action: "noop" };
-
   const cfg = getCityConfig(lead.slug);
   const tz = cfg?.timeZone ?? "America/New_York";
   const city = cfg?.city ?? lead.slug;
+
+  // NO REQUEST GOES TO A PROVIDER UNANSWERED. One rule, both front doors.
+  //
+  // The Meta form collects a name, a phone and a ZIP, so an unanswered native
+  // lead is a blank lead. The /care/{city} form collects more than that, but in
+  // a CONCIERGE city there is no provider on the hook to receive it: the page
+  // promises a call from Olera, the campaign was sold to providers as requests
+  // we have spoken to, and two Dallas providers have been told in writing that
+  // we would rather hold a request back than send another name with nothing
+  // attached. Either way the request waits for the qualifying answer.
+  //
+  // What differs is who is already on it. A native lead has nobody, so an hour
+  // of silence pages a person (escalateUnqualified). A website lead already
+  // paged one at submission through slackCityLead's "CALL THEM", so a second
+  // alert would only be noise: it holds quietly and sits in Needs you.
+  //
+  // An explicit admin action (providerId, or force) still routes it, and that
+  // is the only way an unqualified request reaches a provider — someone chose
+  // to send it, knowing what is in it.
+  const unanswered = !lead.qualification_reply_at && !opts.providerId && !opts.force;
+  if (unanswered && lead.capture_method === "meta_instant_form") {
+    return escalateUnqualified(db, lead);
+  }
+  if (unanswered && cfg?.routingMode === "concierge") {
+    // Clear a morning that will never come. Parking stamped next_offer_at
+    // before this rule existed, and the admin queue reads it as "waiting for
+    // 8am", which would be a promise the relay no longer intends to keep.
+    if (lead.next_offer_at) {
+      await db.from("city_leads").update({ next_offer_at: null, updated_at: new Date().toISOString() }).eq("id", lead.id);
+    }
+    return { action: "noop" };
+  }
+  if (lead.status === "unfilled" && !opts.force && !opts.providerId) return { action: "noop" };
 
   // An open (unanswered, unexpired) offer means the clock is still running.
   const { data: open } = await db
@@ -352,16 +371,27 @@ async function markUnfilled(db: SupabaseClient, lead: CityLeadRow, city: string)
   const alreadyUnfilled = lead.status === "unfilled";
   await db.from("city_leads").update({ status: "unfilled", next_offer_at: null, updated_at: new Date().toISOString() }).eq("id", lead.id);
   if (alreadyUnfilled) return { action: "unfilled" as const };
+  const askedNobody = lead.offer_count === 0;
   await sendSlackAlert(
-    `⚠️ City lead ${lead.id.slice(0, 8)} (${city}) is UNFILLED: no enabled provider left for ${CARE_LABEL[lead.care_type]}. ${lead.first_name}, ${formatUSPhone(lead.phone)}. Route by hand at /admin/city-ads.`,
+    askedNobody
+      ? `⚠️ City lead ${lead.id.slice(0, 8)} (${city}): nobody is switched on in this pool, so the request was offered to no one. ${lead.first_name}, ${formatUSPhone(lead.phone)}, needs ${CARE_LABEL[lead.care_type]}. They have NOT been texted about this. Call them, or enable a provider at /admin/city-ads.`
+      : `⚠️ City lead ${lead.id.slice(0, 8)} (${city}) is UNFILLED: no enabled provider left for ${CARE_LABEL[lead.care_type]}. ${lead.first_name}, ${formatUSPhone(lead.phone)}. Route by hand at /admin/city-ads.`,
   );
-  await sendSMS({
-    to: lead.phone,
-    body: cityFamilyStillWorkingSms({ firstName: lead.first_name, city }),
-    emailType: "city_lead_family_still_working",
-    recipientType: "family",
-    metadata: { lead_id: lead.id },
-  });
+  // The "still looking" text is for a family whose request three providers
+  // saw and passed on. When the pool is empty nobody saw it, and she has
+  // already been told twice in the last ten minutes that someone from Olera
+  // will call her: at submission, and again when she answered the qualifying
+  // question. A third automated text restating it is noise, and it is the one
+  // that would arrive right after she took the trouble to answer us.
+  if (!askedNobody) {
+    await sendSMS({
+      to: lead.phone,
+      body: cityFamilyStillWorkingSms({ firstName: lead.first_name, city }),
+      emailType: "city_lead_family_still_working",
+      recipientType: "family",
+      metadata: { lead_id: lead.id },
+    });
+  }
   return { action: "unfilled" as const };
 }
 

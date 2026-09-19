@@ -7,6 +7,24 @@
 
 ## Current Focus
 
+### 2026-09-19 — Ad Boost full-book audit, rescored against the North Star; the city pool is ON for the first time (`graceful-gates`, no code, production state + artifacts)
+
+**No code changed.** Outputs are two artifacts, 26 `ad_campaign_log` entries, six `city_campaigns.admin_note` appends, one archived lead, and the provider pool switched on.
+
+**TJ corrected the frame twice, and both corrections are the session.** The audit first headlined "nobody was ever asked" off an empty `city_lead_offers`. That is the *planned sequence*, not a defect: phase one was recruiting families, routing was always next, and 18 Sep established qualification as the prerequisite that goes in front of it. Then: *"We're more interested in building a system than in one-time connections."* Then the North Star itself: **get providers to subscribe to Managed Ads.** City ads are Olera-funded R&D for that product, not a lead source. Written to memory as `project_managed_ads_north_star` and `feedback_score_against_the_plan_not_the_count`; a correction entry is in the case log and appended to all six city notes.
+
+**The one result worth keeping.** Measured the same way on both books — paid click to submitted request — the shipped product runs **2.1%** (9 of 427 clicks, $106 each across 18 provider flights) and our own `/care/{city}` landing page runs **1.4%** (5 of 343, p = 0.594 against it: the same number twice, for $767 of Olera money). The **Meta instant form runs 11.1%** (3 of 27 link clicks, $39.42 each, **Fisher p = 0.029**). It is the only thing in thirteen days that beats what we already sell, and the only arm under the $76 bar — its CI is $15.61–$113.70, so the bar sits inside it. Run it for a *provider* next, not another city.
+
+**Hoop Cares is the North Star's only real test, and her receipt is broken.** Renewal 15 Oct. Her Meta arm is doing 19 of her 23 clicks, and it has no `ad_campaign_requests` row, so `metrics_source` gating shows her **11% of her impressions, 17% of her clicks and 56% of her spend**. The stale-row defect filed as dashboard hygiene for seven audits is, on the one account that pays, the renewal conversation.
+
+**The false-promise defect is fixed and verified in production.** Six families (not the four the 17 Sep audit counted) were texted "we will text you their name today". PRs #1964/#1966 merged to main 02:42 UTC; production deploy verified at 02:47 by fingerprinting the served JS bundle, not by trusting a green check. Scored against itself: the 18 Sep note's claim that this "does not apply on the instant-form path" was falsified by its own data 3.5 hours later. Second time in three days this audit series wrote "X does not happen" hours before X happened.
+
+**THE STATE CHANGE: the city pool is enabled.** 11 of 13 rows on, both test rows off, order verified — Charlotte home care Graceful → Cornerstone → HomeWell, Charlotte AL **Legacy Haven alone**, Dallas home care Assisting Hands → Cambridge → Granny NANNIES → Palm2Palm, Dallas AL Bansfield → Golden Horizon → Care Mountain. TJ flipped them after rejecting the "written yes first" caution as too slow (the panel's own label says `TICK ONLY AFTER A WRITTEN YES`), on the evidence that 11 cold provider email asks got zero replies while a real local family is a different message. **Enabling fires nothing by itself** — unanswered requests are held before the pool is ever read — so the first offer happens when Ces saves a qualification. The toggles initially failed on **HTTP 429**: not the toggle, the edge rate-limiting an admin session with the page open twice (devtools responsive view is a second live copy; `sms-inbox`, `support-email` and `meta` badge fetches were 429ing too, so those sidebar counts may be stale).
+
+**Dispatched.** Ces has the calling task in `#careseeker-support` with artifact `FBVS9tPDiXkt3pTGYbTsNq`: four families, text first then call, each card carrying that person's real message history, a copyable draft, and the questions framed as *what the routing needs* (care type and town pick the list, payment picks who says yes). Steve archived `looking_for_work`. Jillanna pulled off the list — her stored phone is not a valid NANP number and three texts have failed, so TJ and I handle her by email.
+
+**Also settled:** every one of the 8 city leads is an ad, all five families are **Meta**, and there is **zero benefits crossover** (no `seeker_activity` row for any of them), consistent with `project_synergy_thesis_falsified`. Job seekers are cross-channel, not a Meta quirk — two on Franchil's Google campaign, two on Meta.
+
 ### 2026-09-18 — Meta's instant form sends job seekers, and the archive could not say so (`magical-snyder`, PR #1960, open to staging)
 
 The first one arrived in Dallas. Gwen Makone came through the Meta instant form as a family lead, got the qualifying SMS, and replied **"I'm looking for work as a caregiver"**. A call script was already drafted to her ("I tried calling about the help at home you asked for"), which would have read like nobody had read her reply. It was not sent.
@@ -5576,6 +5594,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+### Owed from 19 Sep (city ads / Managed Ads)
+- **Jillanna's email — ours, not Ces's.** Her stored phone `+11214870172` is not a valid NANP number; three SMS have failed since 12 Sep and she has never received one. Email `gracefulllyspeaking2@gmail.com` works (TJ reached her there 13 Sep). Goal of the contact is a working number. She is Medicaid + "this week" + the richest care note in the programme, so she may need the benefits side more than a private agency.
+- **Legacy Haven is alone on the Charlotte assisted-living list.** Rhonda is the only AL lead and likely the first Ces works. If Legacy Haven lets the 30-minute clock lapse there is no rank 20 behind her, so Rhonda goes straight to unfilled *and* gets the "still looking" text (that path fires once a provider has actually been offered it). Add a second Charlotte AL provider, or hand-route Rhonda.
+- **Benefits text is drafted and blocked on two things.** 31 people, phone + explicit `sms_consent` (the number is only ever captured under the disclosure, so the two counts match exactly). TJ has not approved the wording, and **nobody has confirmed a send surface** — the five families go out from `/admin/city-ads`, but it is unverified whether `/admin/family-comms` can send a one-off to a chosen list. If it cannot, this is a build, not a task.
+- **Productise the instant form.** The only lever that beat the product. Next run should be a provider flight, not a city. Three requests is thin; thicken it by running it again, not by modelling it.
+- **Give Hoop a receipt before 15 Oct.** Sync Meta and Nextdoor spend the way Google's already syncs. Until then `metrics_source` correctly withholds unverified numbers and therefore shows her nothing for the channel doing most of her work.
+- **Verify the sidebar badge counts.** Messages 7 / Support Email 1078 were being 429'd for ~40 minutes; they may be stale rather than real.
 
 ### City lead archive reasons — two decisions left (PR #1960)
 - **Decide what the row-level quick Archive button should do.** It hardcodes `no_longer_needed` (`app/admin/city-ads/page.tsx:353`), so the one-click path cannot file a job seeker correctly and the expanded row is the only place the new reason is reachable. Options: change its default, give it its own reason picker, or drop it and make the row expand.

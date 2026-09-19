@@ -176,30 +176,54 @@ export async function startOrAdvance(
   db: SupabaseClient,
   leadId: string,
   opts: { force?: boolean; providerId?: string } = {},
-): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "escalated" | "noop"; providerName?: string }> {
+): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "escalated" | "held" | "noop"; providerName?: string }> {
   if (await cityLeadBlocked(db, leadId)) return { action: "noop" };
   const lead = await getLead(db, leadId);
   if (!lead) return { action: "noop" };
   if (lead.accepted_offer_id || !["new", "offered", "unfilled"].includes(lead.status)) {
     return { action: "closed" };
   }
-  // The native form promises an Olera conversation before a named
-  // introduction, and the form itself collects nothing about the care, so an
-  // unanswered native lead IS a blank lead. It joins the chain the moment the
-  // family answers the qualifying text, and never on its own before then: an
-  // hour of silence sends it to a person to call, not to the next provider.
-  //
-  // An explicit admin action (providerId, or force) still routes it. That is
-  // deliberate and it is the only way an unqualified lead reaches a provider —
-  // someone chose to send it, knowing what is in it.
-  if (lead.capture_method === "meta_instant_form" && !lead.qualification_reply_at && !opts.providerId && !opts.force) {
-    return escalateUnqualified(db, lead);
-  }
-  if (lead.status === "unfilled" && !opts.force && !opts.providerId) return { action: "noop" };
-
   const cfg = getCityConfig(lead.slug);
   const tz = cfg?.timeZone ?? "America/New_York";
   const city = cfg?.city ?? lead.slug;
+
+  // NO REQUEST GOES TO A PROVIDER UNANSWERED. One rule, both front doors.
+  //
+  // The Meta form collects a name, a phone and a ZIP, so an unanswered native
+  // lead is a blank lead. The /care/{city} form collects more than that, but in
+  // a CONCIERGE city there is no provider on the hook to receive it: the page
+  // promises a call from Olera, the campaign was sold to providers as requests
+  // we have spoken to, and two Dallas providers have been told in writing that
+  // we would rather hold a request back than send another name with nothing
+  // attached. Either way the request waits for the qualifying answer.
+  //
+  // What differs is who is already on it. A native lead has nobody, so an hour
+  // of silence pages a person (escalateUnqualified). A website lead already
+  // paged one at submission through slackCityLead's "CALL THEM", so a second
+  // alert would only be noise: it holds quietly and sits in Needs you.
+  //
+  // An explicit admin action (providerId, or force) still routes it, and that
+  // is the only way an unqualified request reaches a provider — someone chose
+  // to send it, knowing what is in it.
+  const unanswered = !lead.qualification_reply_at && !opts.providerId && !opts.force;
+  if (unanswered && lead.capture_method === "meta_instant_form") {
+    return escalateUnqualified(db, lead);
+  }
+  if (unanswered && cfg?.routingMode === "concierge") {
+    // Clear a morning that will never come. Parking stamped next_offer_at
+    // before this rule existed, and the admin queue reads it as "waiting for
+    // 8am", which would be a promise the relay no longer intends to keep.
+    if (lead.next_offer_at) {
+      await db.from("city_leads").update({ next_offer_at: null, updated_at: new Date().toISOString() }).eq("id", lead.id);
+    }
+    // "held", not "noop". The relay reaches this every five minutes and must
+    // stay silent, but a decline or an expiry reaches it too, and those are
+    // the moments a chain an admin started by hand comes back with nowhere to
+    // go. Naming the outcome lets those two callers say so once, without the
+    // relay saying it twelve times an hour.
+    return { action: "held" };
+  }
+  if (lead.status === "unfilled" && !opts.force && !opts.providerId) return { action: "noop" };
 
   // An open (unanswered, unexpired) offer means the clock is still running.
   const { data: open } = await db
@@ -352,17 +376,50 @@ async function markUnfilled(db: SupabaseClient, lead: CityLeadRow, city: string)
   const alreadyUnfilled = lead.status === "unfilled";
   await db.from("city_leads").update({ status: "unfilled", next_offer_at: null, updated_at: new Date().toISOString() }).eq("id", lead.id);
   if (alreadyUnfilled) return { action: "unfilled" as const };
+  const askedNobody = lead.offer_count === 0;
   await sendSlackAlert(
-    `⚠️ City lead ${lead.id.slice(0, 8)} (${city}) is UNFILLED: no enabled provider left for ${CARE_LABEL[lead.care_type]}. ${lead.first_name}, ${formatUSPhone(lead.phone)}. Route by hand at /admin/city-ads.`,
+    askedNobody
+      ? `⚠️ City lead ${lead.id.slice(0, 8)} (${city}): nobody is switched on in this pool, so the request was offered to no one. ${lead.first_name}, ${formatUSPhone(lead.phone)}, needs ${CARE_LABEL[lead.care_type]}. They have NOT been texted about this. Call them, or enable a provider at /admin/city-ads.`
+      : `⚠️ City lead ${lead.id.slice(0, 8)} (${city}) is UNFILLED: no enabled provider left for ${CARE_LABEL[lead.care_type]}. ${lead.first_name}, ${formatUSPhone(lead.phone)}. Route by hand at /admin/city-ads.`,
   );
-  await sendSMS({
-    to: lead.phone,
-    body: cityFamilyStillWorkingSms({ firstName: lead.first_name, city }),
-    emailType: "city_lead_family_still_working",
-    recipientType: "family",
-    metadata: { lead_id: lead.id },
-  });
+  // The "still looking" text is for a family whose request three providers
+  // saw and passed on. When the pool is empty nobody saw it, and she has
+  // already been told twice in the last ten minutes that someone from Olera
+  // will call her: at submission, and again when she answered the qualifying
+  // question. A third automated text restating it is noise, and it is the one
+  // that would arrive right after she took the trouble to answer us.
+  if (!askedNobody) {
+    await sendSMS({
+      to: lead.phone,
+      body: cityFamilyStillWorkingSms({ firstName: lead.first_name, city }),
+      emailType: "city_lead_family_still_working",
+      recipientType: "family",
+      metadata: { lead_id: lead.id },
+    });
+  }
   return { action: "unfilled" as const };
+}
+
+/**
+ * A hand-routed request that came back with nowhere to go.
+ *
+ * An unanswered request in a concierge city is held rather than offered
+ * onwards, which is right for the relay and wrong in silence for the two
+ * moments a chain actually ends: the provider declined, or their thirty
+ * minutes ran out. Before the hold existed both fell through to markUnfilled,
+ * which alerted. Now they reach a "held" and would stop there.
+ *
+ * Called only from those two event paths, never from the relay's scan, so it
+ * fires once per event without a stamp to guard it: an offer expires once and
+ * is declined once.
+ */
+async function alertChainStopped(db: SupabaseClient, leadId: string, what: string) {
+  const lead = await getLead(db, leadId);
+  if (!lead) return;
+  const city = getCityConfig(lead.slug)?.city ?? lead.slug;
+  await sendSlackAlert(
+    `📞 City lead ${leadId.slice(0, 8)} (${city}): the provider ${what}, and the request is held because we still do not know what ${lead.first_name} needs. Nothing else has gone out and nothing else will. Call them: ${formatUSPhone(lead.phone)}, then type what they say into the lead at /admin/city-ads.`,
+  );
 }
 
 /**
@@ -515,6 +572,7 @@ export async function declineOffer(
     .is("accepted_at", null);
   const next = await startOrAdvance(db, offer.lead_id);
   console.log(`[city-ads] offer ${offer.id} declined, advance -> ${next.action}`);
+  if (next.action === "held") await alertChainStopped(db, offer.lead_id, "passed on it");
   return { reply: cityDeclinedAskReasonSms() };
 }
 
@@ -586,9 +644,10 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
   unfilled: number;
   parked: number;
   escalated: number;
+  held: number;
 }> {
   const now = new Date().toISOString();
-  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0, escalated: 0 };
+  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0, escalated: 0, held: 0 };
 
   // 1. Offers past their window.
   const { data: due } = await db
@@ -607,6 +666,9 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
     else if (r.action === "unfilled") out.unfilled++;
     else if (r.action === "parked") out.parked++;
     else if (r.action === "escalated") out.escalated++;
+    // The offer we just expired was the end of the line for a request we
+    // cannot pass on. Same reason as the decline path: once per expiry.
+    else if (r.action === "held") { out.held++; await alertChainStopped(db, o.lead_id, "ran out of time"); }
   }
 
   // 2. Parked leads whose morning has come, plus stragglers never started.

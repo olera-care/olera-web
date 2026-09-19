@@ -182,14 +182,26 @@ export function cityNoOpenOfferSms(): string {
   return `Olera: thanks. There is no open request for you right now; the next one will come from this number.`;
 }
 
-/** Family, right after submit, during staffed hours. */
-export function cityFamilyConfirmSms(p: { firstName: string; city: string }): string {
-  return `Olera: Thanks ${p.firstName}. We are asking a ${p.city} provider to take your request now. We will text you their name as soon as they confirm. Reply STOP to opt out.`;
+/**
+ * Family, right after submit.
+ *
+ * Every one of these now ends in a question. Until 19 Sep they ended in a
+ * promise, and a promise closes a thread: of the five families who came
+ * through the /care/{city} form, not one replied to anything, because nothing
+ * we sent them could be replied to. The Meta form leads, who were asked a
+ * question, replied the same day.
+ *
+ * `question` comes from cityQualifyingQuestion() so the text never asks for
+ * something the form already collected. "A few words is plenty" sets the bar
+ * low deliberately: the answer we want is a sentence, not a form.
+ */
+export function cityFamilyConfirmSms(p: { firstName: string; city: string; question: string }): string {
+  return `Olera: Thanks ${p.firstName}. We are asking a ${p.city} provider to take your request now and will text you their name as soon as they confirm. So we can tell them what matters, ${p.question} A few words is plenty. Reply STOP to opt out.`;
 }
 
 /** Family, right after submit, outside staffed hours. */
-export function cityFamilyConfirmMorningSms(p: { firstName: string; city: string }): string {
-  return `Olera: Thanks ${p.firstName}. A ${p.city} provider will confirm in the morning and call you tomorrow. We will text you their name first. Reply STOP to opt out.`;
+export function cityFamilyConfirmMorningSms(p: { firstName: string; city: string; question: string }): string {
+  return `Olera: Thanks ${p.firstName}. A ${p.city} provider will confirm in the morning and call you. We will text you their name first. So we can tell them what matters, ${p.question} A few words is plenty. Reply STOP to opt out.`;
 }
 
 /** Family: a provider accepted. Names them and the number that will call. */
@@ -252,8 +264,27 @@ export function cityOutcomeThanksSms(outcome: "client" | "talking" | "no"): stri
 
 /** Concierge cities: a person from Olera calls, not a provider. Never promise a
  *  provider call in a city where no provider has agreed to take the request. */
-export function cityFamilyConciergeSms(p: { firstName: string; city: string; today: boolean }): string {
-  return p.today
-    ? `Olera: Thanks ${p.firstName}. Someone from Olera will call you today about care in ${p.city}. Reply STOP to opt out.`
-    : `Olera: Thanks ${p.firstName}. Someone from Olera will call you in the morning about care in ${p.city}. Reply STOP to opt out.`;
+export function cityFamilyConciergeSms(p: { firstName: string; city: string; today: boolean; question: string }): string {
+  const when = p.today ? "today" : "in the morning";
+  return `Olera: Thanks ${p.firstName}. Someone from Olera will call you ${when} about care in ${p.city}. So we can come with the right options, ${p.question} A few words is plenty. Reply STOP to opt out.`;
+}
+
+/**
+ * A family answered the qualifying text.
+ *
+ * Sent because the answer is otherwise met with silence: in a concierge city
+ * nothing else speaks until a person calls, and a family who replies to a
+ * question and hears nothing back has been taught that replying does nothing.
+ * It says what happens next and asks for nothing further.
+ */
+export function cityQualificationThanksSms(p: { firstName: string; city: string; concierge: boolean }): string {
+  // Deliberately no "today" or "in the morning" here. The confirmation text
+  // already named a time, and this one is sent whenever the family gets round
+  // to answering. Re-deriving the window from the clock at reply time is how
+  // a family told at 11am that we would call today hears "in the morning" an
+  // hour later. Say what happens, not when, and let the first promise stand.
+  if (p.concierge) {
+    return `Olera: Thank you ${p.firstName}, that helps. Someone from Olera will call you with what we find.`;
+  }
+  return `Olera: Thank you ${p.firstName}, that helps. We are asking a ${p.city} provider now and will text you their name as soon as they confirm.`;
 }

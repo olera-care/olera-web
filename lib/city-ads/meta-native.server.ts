@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCityConfig } from "./config";
 import { ensureCareSeekerForCityLead } from "./care-seeker.server";
 import { normalizeMetaLead, parseNativeForms, type NativeReceipt, type MetaLead } from "./meta-native";
+import { cityQualifyingQuestion } from "./qualify";
 
 /**
  * How many times a receipt is retried before it is left alone. Exported because
@@ -65,7 +66,10 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
       // Deliberately not signed with a person's name either: the benefits
       // navigator already forbids switching a family text thread to an
       // individual, and that holds here for the same reason.
-      const confirmation = `Olera: Hi ${name}, we have your request for home care in ${cfg.city}. So we can point you to the right provider, who are you looking for care for? Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
+      // The question clause comes from the shared builder so the two front
+      // doors cannot drift apart. A native lead has no care_recipient by
+      // construction, so this is the "who is this for" branch, unchanged.
+      const confirmation = `Olera: Hi ${name}, we have your request for home care in ${cfg.city}. So we can point you to the right provider, ${cityQualifyingQuestion(null)} Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
       const { error: insertError } = await db.rpc("import_meta_city_lead", {
         receipt_id: receipt.leadgen_id, lead_data: normalized, confirmation,
       });

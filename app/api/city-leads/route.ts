@@ -4,6 +4,7 @@ import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { normalizeUSPhone, sendSMS } from "@/lib/twilio";
 import { sendSlackAlert, slackCityLead } from "@/lib/slack";
 import {
+  cityQualificationThanksSms,
   cityFamilyConfirmSms,
   cityFamilyConfirmMorningSms,
   cityFamilyConciergeSms,
@@ -20,6 +21,7 @@ import {
   isStaffedNow,
 } from "@/lib/city-ads/config";
 import { startOrAdvance } from "@/lib/city-ads/offers.server";
+import { cityQualifyingQuestion } from "@/lib/city-ads/qualify";
 import { ensureCareSeekerForCityLead, syncCityLeadDetails } from "@/lib/city-ads/care-seeker.server";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendMetaLeadEvent } from "@/lib/city-ads/meta-capi.server";
@@ -289,13 +291,19 @@ export async function POST(req: NextRequest) {
     adminUrl: `${getSiteUrl()}/admin/city-ads`,
   });
   await sendSlackAlert(alert.text, alert.blocks);
+  // The confirmation asks one question. Which one depends on what this family
+  // already told the form, so it never asks twice for the same thing — see
+  // cityQualifyingQuestion. The answer lands on the lead through the SMS
+  // webhook and is what releases it to a provider; until it arrives the relay
+  // holds the request rather than passing on a name with nothing attached.
+  const question = cityQualifyingQuestion(recipient);
   await sendSMS({
     to: phone,
     body: concierge
-      ? cityFamilyConciergeSms({ firstName, city: cfg.city, today: staffed })
+      ? cityFamilyConciergeSms({ firstName, city: cfg.city, today: staffed, question })
       : staffed
-        ? cityFamilyConfirmSms({ firstName, city: cfg.city })
-        : cityFamilyConfirmMorningSms({ firstName, city: cfg.city }),
+        ? cityFamilyConfirmSms({ firstName, city: cfg.city, question })
+        : cityFamilyConfirmMorningSms({ firstName, city: cfg.city, question }),
     emailType: "city_lead_family_confirm",
     recipientType: "family",
     metadata: { lead_id: lead.id, routing: cfg.routingMode },
@@ -367,20 +375,81 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.note === "string") patch.note = body.note.trim().slice(0, 600) || null;
   if (Object.keys(patch).length === 1) return NextResponse.json({ ok: true });
   const db = getServiceClient();
+
+  /**
+   * A note typed on the thank-you screen IS the answer to the qualifying text.
+   *
+   * The two ask the same thing through different doors, and the door does not
+   * matter: "I'm 63 and my osteoporosis is making it hard" tells a provider
+   * what four radio buttons cannot, whether it was typed or texted. Two of the
+   * five families who used this form wrote one.
+   *
+   * It has to be recorded as the qualification, not just as a note, because
+   * qualification_reply_at is the single thing the relay reads to decide a
+   * request is no longer blank. Without this, a family who answered on the
+   * page is held as though she had said nothing, and we text her a question
+   * she has already answered — the failure that nearly reached Gwen Makone.
+   *
+   * Never overwrites an existing answer: a text reply and a typed note can
+   * both arrive, and the first one is the one the family gave us.
+   */
+  const note = typeof patch.note === "string" ? (patch.note as string) : null;
   const { data: updated, error } = await db
     .from("city_leads")
     .update(patch)
     .eq("id", leadId)
     .eq("phone", phone)
-    .select("care_seeker_id")
+    .is("archived_at", null)
+    .select("care_seeker_id, slug, first_name")
     .maybeSingle();
   if (error) return NextResponse.json({ error: "Could not save." }, { status: 500 });
+
+  // The stamp is a second, conditional write rather than part of the one
+  // above, for two reasons. The note must save whatever else is true of the
+  // lead, so it cannot ride on a predicate that can refuse. And the predicate
+  // is what makes "the first answer wins" true: a family who has already
+  // texted an answer keeps it, and `answered` tells us which happened.
+  let answered = false;
+  if (note && updated) {
+    const { data: stamped } = await db
+      .from("city_leads")
+      .update({ qualification_reply: note, qualification_reply_at: new Date().toISOString() })
+      .eq("id", leadId)
+      .is("qualification_reply_at", null)
+      .select("id");
+    answered = Boolean(stamped?.length);
+  }
   // Carry the same two answers onto the profile, so the record an admin opens
   // during the concierge call has the situation on it and not just a name.
   if (updated?.care_seeker_id) {
     await syncCityLeadDetails(db, updated.care_seeker_id as string, {
       paymentType: patch.payment_type as string | undefined,
       note: patch.note as string | undefined,
+    });
+  }
+  if (answered && updated) {
+    const noteCfg = getCityConfig(String(updated.slug ?? ""));
+    const who = String(updated.first_name ?? "").trim().split(/\s+/)[0] || "there";
+    // Put the words in front of the person who will call. The arrival alert
+    // fired before this note existed, so without this the best thing the
+    // family told us reaches Slack never and the admin panel only.
+    await sendSlackAlert(
+      `City lead ${leadId.slice(0, 8)} (${noteCfg?.city ?? updated.slug}): ${who} wrote on the page: "${(note ?? "").slice(0, 300)}" Read it before you call: ${getSiteUrl()}/admin/city-ads`,
+    );
+    // And close the loop on the question we texted a minute ago. She answered
+    // it on the page instead, so this is what tells her the text needs no
+    // reply. Awaited like every other side effect in this route: a serverless
+    // function may be frozen the moment the response goes back.
+    await sendSMS({
+      to: phone,
+      body: cityQualificationThanksSms({
+        firstName: who,
+        city: noteCfg?.city ?? "your area",
+        concierge: noteCfg?.routingMode === "concierge",
+      }),
+      emailType: "city_lead_qualification_thanks",
+      recipientType: "family",
+      metadata: { lead_id: leadId, source: "page_note" },
     });
   }
   return NextResponse.json({ ok: true });

@@ -7,6 +7,24 @@
 
 ## Current Focus
 
+### 2026-09-19 — Ad Boost full-book audit, rescored against the North Star; the city pool is ON for the first time (`graceful-gates`, no code, production state + artifacts)
+
+**No code changed.** Outputs are two artifacts, 26 `ad_campaign_log` entries, six `city_campaigns.admin_note` appends, one archived lead, and the provider pool switched on.
+
+**TJ corrected the frame twice, and both corrections are the session.** The audit first headlined "nobody was ever asked" off an empty `city_lead_offers`. That is the *planned sequence*, not a defect: phase one was recruiting families, routing was always next, and 18 Sep established qualification as the prerequisite that goes in front of it. Then: *"We're more interested in building a system than in one-time connections."* Then the North Star itself: **get providers to subscribe to Managed Ads.** City ads are Olera-funded R&D for that product, not a lead source. Written to memory as `project_managed_ads_north_star` and `feedback_score_against_the_plan_not_the_count`; a correction entry is in the case log and appended to all six city notes.
+
+**The one result worth keeping.** Measured the same way on both books — paid click to submitted request — the shipped product runs **2.1%** (9 of 427 clicks, $106 each across 18 provider flights) and our own `/care/{city}` landing page runs **1.4%** (5 of 343, p = 0.594 against it: the same number twice, for $767 of Olera money). The **Meta instant form runs 11.1%** (3 of 27 link clicks, $39.42 each, **Fisher p = 0.029**). It is the only thing in thirteen days that beats what we already sell, and the only arm under the $76 bar — its CI is $15.61–$113.70, so the bar sits inside it. Run it for a *provider* next, not another city.
+
+**Hoop Cares is the North Star's only real test, and her receipt is broken.** Renewal 15 Oct. Her Meta arm is doing 19 of her 23 clicks, and it has no `ad_campaign_requests` row, so `metrics_source` gating shows her **11% of her impressions, 17% of her clicks and 56% of her spend**. The stale-row defect filed as dashboard hygiene for seven audits is, on the one account that pays, the renewal conversation.
+
+**The false-promise defect is fixed and verified in production.** Six families (not the four the 17 Sep audit counted) were texted "we will text you their name today". PRs #1964/#1966 merged to main 02:42 UTC; production deploy verified at 02:47 by fingerprinting the served JS bundle, not by trusting a green check. Scored against itself: the 18 Sep note's claim that this "does not apply on the instant-form path" was falsified by its own data 3.5 hours later. Second time in three days this audit series wrote "X does not happen" hours before X happened.
+
+**THE STATE CHANGE: the city pool is enabled.** 11 of 13 rows on, both test rows off, order verified — Charlotte home care Graceful → Cornerstone → HomeWell, Charlotte AL **Legacy Haven alone**, Dallas home care Assisting Hands → Cambridge → Granny NANNIES → Palm2Palm, Dallas AL Bansfield → Golden Horizon → Care Mountain. TJ flipped them after rejecting the "written yes first" caution as too slow (the panel's own label says `TICK ONLY AFTER A WRITTEN YES`), on the evidence that 11 cold provider email asks got zero replies while a real local family is a different message. **Enabling fires nothing by itself** — unanswered requests are held before the pool is ever read — so the first offer happens when Ces saves a qualification. The toggles initially failed on **HTTP 429**: not the toggle, the edge rate-limiting an admin session with the page open twice (devtools responsive view is a second live copy; `sms-inbox`, `support-email` and `meta` badge fetches were 429ing too, so those sidebar counts may be stale).
+
+**Dispatched.** Ces has the calling task in `#careseeker-support` with artifact `FBVS9tPDiXkt3pTGYbTsNq`: four families, text first then call, each card carrying that person's real message history, a copyable draft, and the questions framed as *what the routing needs* (care type and town pick the list, payment picks who says yes). Steve archived `looking_for_work`. Jillanna pulled off the list — her stored phone is not a valid NANP number and three texts have failed, so TJ and I handle her by email.
+
+**Also settled:** every one of the 8 city leads is an ad, all five families are **Meta**, and there is **zero benefits crossover** (no `seeker_activity` row for any of them), consistent with `project_synergy_thesis_falsified`. Job seekers are cross-channel, not a Meta quirk — two on Franchil's Google campaign, two on Meta.
+
 ### 2026-09-18 — Meta's instant form sends job seekers, and the archive could not say so (`magical-snyder`, PR #1960, open to staging)
 
 The first one arrived in Dallas. Gwen Makone came through the Meta instant form as a family lead, got the qualifying SMS, and replied **"I'm looking for work as a caregiver"**. A call script was already drafted to her ("I tried calling about the help at home you asked for"), which would have read like nobody had read her reply. It was not sent.
@@ -5577,6 +5595,19 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+### Owed from 19 Sep (city ads / Managed Ads)
+- **Jillanna's email — ours, not Ces's.** Her stored phone `+11214870172` is not a valid NANP number; three SMS have failed since 12 Sep and she has never received one. Email `gracefulllyspeaking2@gmail.com` works (TJ reached her there 13 Sep). Goal of the contact is a working number. She is Medicaid + "this week" + the richest care note in the programme, so she may need the benefits side more than a private agency.
+- **Legacy Haven is alone on the Charlotte assisted-living list.** Rhonda is the only AL lead and likely the first Ces works. If Legacy Haven lets the 30-minute clock lapse there is no rank 20 behind her, so Rhonda goes straight to unfilled *and* gets the "still looking" text (that path fires once a provider has actually been offered it). Add a second Charlotte AL provider, or hand-route Rhonda.
+- **Benefits text is drafted and blocked on two things.** 31 people, phone + explicit `sms_consent` (the number is only ever captured under the disclosure, so the two counts match exactly). TJ has not approved the wording, and **nobody has confirmed a send surface** — the five families go out from `/admin/city-ads`, but it is unverified whether `/admin/family-comms` can send a one-off to a chosen list. If it cannot, this is a build, not a task.
+- **Productise the instant form.** The only lever that beat the product. Next run should be a provider flight, not a city. Three requests is thin; thicken it by running it again, not by modelling it.
+- **Give Hoop a receipt before 15 Oct.** Sync Meta and Nextdoor spend the way Google's already syncs. Until then `metrics_source` correctly withholds unverified numbers and therefore shows her nothing for the channel doing most of her work.
+- **Verify the sidebar badge counts.** Messages 7 / Support Email 1078 were being 429'd for ~40 minutes; they may be stale rather than real.
+
+### SMS inbox — sent, command written (19 Sep)
+- **The three replies went out.** Dorothy Rainey (352-321-8647) sent immediately; her thread is crisis-flagged and `crisisExempt` skips the quiet-hours hold. 352-713-4271 scheduled 8:00 AM ET, 808-940-6605 scheduled 8:00 AM HST. Neither scheduled draft was `Re-check`ed before queueing.
+- **`/answer-sms` is written** at `.claude/commands/answer-sms.md`. Browser control is solved by hand-launching Chrome on 9222; the Control Chrome extension's tools still never load.
+- **Two decisions left.** Whether the crisis path needs more than a Slack page (Dorothy sat 4 days and nothing in `/admin/inbox` escalates by age), and whether the support inbox gets a suppress-sender action (the Karen Shelton gap).
+
 ### City lead archive reasons — two decisions left (PR #1960)
 - **Decide what the row-level quick Archive button should do.** It hardcodes `no_longer_needed` (`app/admin/city-ads/page.tsx:353`), so the one-click path cannot file a job seeker correctly and the expanded row is the only place the new reason is reachable. Options: change its default, give it its own reason picker, or drop it and make the row expand.
 - **Decide whether an archived lead's reason should be editable.** Today it is not, in the UI or the database — `city_lead_archive_guard` silently restores the old value and still reports success. Combined with the item above, a wrong reason is permanent.
@@ -6345,3 +6376,127 @@ TJ explicitly said publish. Submitted HomeWell ad 1028560608959661348, LumiWell 
 ### Quicksave — 2026-09-16
 
 Branch `codex/nextdoor-pilot-save` from current origin/staging. Saved four shared command updates, postmortem, six audit/rollout artifacts and this log. Resolved the audit heading conflict while retaining staging’s ninth lesson. Verified JSON, $150 selected allocation, three unique ad IDs and tracking-tag matches; docs-only, no application tests needed. Next: confirm Nextdoor approval plus group/campaign activation and actual delivery before declaring live. No auto-merge.
+
+
+## 2026-09-18 — Qualify, then route: the city lead becomes a product
+
+**Shipped and in production.** PRs #1953 and #1955, promoted via #1954 and #1957. Migration 234 applied.
+
+### What went live
+
+The Facebook instant form collects name, phone, ZIP and an optional email, and nothing about the care. The importer writes `care_type='unsure'` on purpose. Every one of the 8 managed inquiries in programme history reached a provider with null `care_recipient`, `care_type` and `urgency`; two of Franchil's three were caregivers asking for a job.
+
+- **The confirmation SMS now asks one question**, and it is *who* the care is for rather than *when* it is needed. A now-or-later question returns one word; "who is this for" returns a sentence that usually carries the timing anyway. `lib/city-ads/meta-native.server.ts`.
+- **Replies are claimed before the research engine sees them.** City leads carry a `care_seeker_id`, so without `captureCityQualification()` a family answering "my mom" would be acknowledged as asking a free-form care question and sent a researched answer. Crisis detection still runs first. `app/api/sms/webhook/route.ts`.
+- **Native leads enter the existing offer cascade** on the qualifying reply, or after `NATIVE_QUALIFY_MS` (60 min) if none comes. The relay, ranked pool, 30-minute window and advance-on-decline chain were already built and running every five minutes; they were gated off by two lines.
+- **Delivery stops re-checking the send window.** Both writers of `city_lead_messages` are responses, and the window decision already lives in `send_after` at insert. Re-checking silently deferred an explicit admin "send now" at 9pm.
+- **Provider copy rewritten.** The offer stated a 30-minute countdown with no reason, which is how a lead broker writes. Now "Yours alone for the next 30 min, so we can tell them who to expect." The nudge stopped casting the family as complainant.
+- **Urgency is no longer invented.** `labels()` defaulted null urgency to `this_month`, so a lead nobody had asked about timing reached a provider as "starting this month". Every city lead has a null urgency. Now omitted when null, matching payment.
+- **Admin rank box** per pool entry, saved on blur.
+
+### It validated itself the same morning
+
+09:45 Gwen Makone submits the form (Garland TX, inside the ring). 09:50 the qualifying text goes out. **09:52 she replies: "I'm looking for work as a caregiver."** Not a family. Caught in two minutes, before any provider saw her. Zero `family_answer_jobs` rows created, so the guard held. Archived by TJ at 11:42.
+
+### Decisions
+
+- **City leads are free during the pilot**, and the emails say we are still learning rather than offering a first-one-free. Olera is NIH-funded (Phase IIB 1R44AG074116, awarded); never reference the CRP, which is an application.
+- **The qualifying text is always action #1 on a lead.** TJ's correction after I offered call-or-text and recommended the call: async scales, a call that is not picked up produces nothing, and headcount is the binding constraint. Memory `feedback_text_first_then_call`.
+- **Do not claim city traffic converts better.** The 12 Sep read has the city quiz at 1.4% of paid clicks against provider pages at 2.8%. The emails describe a difference in kind, not rate.
+- **Nextdoor provider pilots parked until next week.** Spend is $0.00 on all three, so nothing is burning, but the flight windows (Sep 17-21, 17-22) will have passed and they will need re-dating, not just a support ticket.
+
+### Where it stands
+
+**Nothing routes.** All 13 `city_pool` rows are `enabled=false`. Two provider emails sent today (Assisting Hands, Cambridge Caregivers) asking for a written yes and a mobile; the pool rule requires written agreement before a provider goes on call.
+
+**Known conflict, unresolved.** Both emails promise we would hold a request back rather than send an unqualified one. The relay currently routes at 60 minutes whether or not the family replied, and Jyotsna and Selam are both unqualified and past the timer. Either the timer hands unanswered leads to a person instead of a provider, or the sentence comes out. **Do not enable the pool until this is settled.**
+
+### Next up
+
+1. Change the 60-minute timer's destination so an unanswered lead goes to a person, not a provider. Then the pool can be enabled.
+2. Watch for replies from Jyotsna and Selam (qualifying texts sent 13:00 UTC). First real family qualification and the second live test of the guard.
+3. Hoop Cares budget: only paying provider ($75/mo), zero leads, 18 clicks across both channels. A separate session is on it.
+4. The Dallas pool holds no mobile numbers, no service areas and no recorded human contact for any of 7 providers. Outreach sheet: https://claude.ai/artifact/KdXd75RLYcN9W5hXQFboog
+5. 336 untracked `" 2"` duplicate files in the repo, not gitignored. The next `git add -A` commits all of them and they already slow `tsc` to a timeout.
+
+Artifacts: https://claude.ai/artifact/FYpBZcmzvL2DYkFsS1J8wB (four-stage read) · https://claude.ai/artifact/615cNNZt6vCnH344tgbvLa (family journey) · https://claude.ai/artifact/DSUTV9kyVybUkvJZKxArqr (provider journey)
+
+---
+
+## 2026-09-19 — Working the SMS inbox by hand, before writing the command
+
+**Nothing shipped. No code changed.** The session produced three replies parked in `sms_drafts`, one suppression row, three cleared STOPs, and the outline of a slash command we agreed to derive from doing the work rather than imagining it.
+
+### Karen Shelton, closed after two months
+
+Cess flagged it in `#provider-outreach` in July. Karen Shelton (VP BD, Cavalier Healthcare, Trussville AL) asked twice to be left alone, **4 Jun** ("Please remove this email thread as the resident in question admitted to our facility. I have archived it twice!") and **17 Jul** ("I do not want to be reached anymore"). Cess replied on 19 Jul promising the emails would stop. **Nobody suppressed the address**, and we sent her a `question_received` email on **15 Sep**, two months after the promise. 25 emails to Cavalier addresses on record, 5 of them after her first ask.
+
+Added `karenshelton@cavalierhealthcare.com` to `do_not_contact` (row `dc236f11`, reason `provider_request`). Her listing `cavalier-healthcare` / `gtnZf6U` stays live; she never asked for removal, only for the email to stop. **The Jun 4 thread is still `needs_reply` in `/admin/support-email`.**
+
+**The gap, unfixed:** nothing turns "we replied saying we would stop" into a suppression row. The support inbox has a handled state but no suppress-sender action on the thread drawer.
+
+### What the AI messaging stack actually is
+
+Four systems draft messages, and all four stop at a human gate:
+
+1. **Family Answers engine** (`lib/family-answers/engine.server.ts`). Triage (Haiku) → research (Opus + web search) → draft (Opus, <=480 chars) → adversarial attack (Perplexity `sonar`) → rebuttal (Opus). Enqueued by the Twilio webhook into `family_answer_jobs`, drained by `/api/cron/family-answers` every 5 min. Reviewed in `/admin/inbox` via `AnswerPacketPanel`; `RecheckPanel` re-runs stages 4-5 against a human rewrite. **A crisis produces no draft at all**, only a Slack page.
+2. **Support email classifier** (`lib/support-email/classify.server.ts`, Haiku). Category, priority, summary, `suggestedAction`, `suggestedDraft`, risk flags. Synced every 5 min.
+3. **Benefits Care Navigator** (`lib/family-comms/benefits-navigator.server.ts`, Opus 5), composed by `family-comms-coordinator`, parked as `metadata.benefits_navigator.status = 'pending'` for approval in `/admin/benefits`.
+4. **Provider match message** (`app/api/matches/generate-message`, Sonnet 4.6).
+
+**Every gate has a backlog.** Support email: 1,078 `needs_reply`, **294 carrying an AI draft**, and `draft_body` and `gmail_draft_id` are **0 across the whole table**, so the human-draft and Gmail-draft legs have never been used once. Care Navigator: 413 composed, 138 sent, **118 pending**, oldest 22 Aug. SMS: 2 packets waiting, 0 saved drafts.
+
+### The three replies (loaded, not sent)
+
+- **Dorothy Rainey, 352-321-8647.** FL, **age 60**, income under $1,500, chronic lung condition, AC out. Texted 15 Sep, **unanswered 4 days**. The engine wrote no draft because triage read a crisis, which is correct behaviour, and the Slack page was the only alert. Her age was the whole answer and it was one field away in her profile: at 60 she clears **EHEAP**, the one Florida program that has paid for AC repair and replacement, up to $5,000. **EHEAP moved from Elder Affairs to FloridaCommerce this year**, so the Elder Options number we gave another family in August is stale. Apply at FloridaLIHEAP.com or 850-717-8450.
+- **352-713-4271.** Marion County FL, under 60 (she corrected our intake), cancer treatment, AC not cooling. Draft had been `ready` for **6 days**. **Rewrote it.** The engine told her to call CFCAA and ask them to screen her, but she called CFCAA on 18 Aug and came back on 27 Aug with "none help". The real answer to "the website was closed" is that the federal program year ends **30 Sep**, so the ask is a reopen date, not another screening.
+- **808-940-6605.** HI, replied CALLED then APPLIED to the SNAP step. Outcome was already recorded as `moving`; only the inbound rows were unmarked. Told her the 30-day clock, the phone interview, and that under $1,500 she may qualify for expedited.
+
+Also marked three STOP messages handled. All three were already in `do_not_contact` via the webhook, so there was nothing to answer. Queue went from 7 unhandled to 3 real conversations.
+
+### What the command has to do, learned from doing it
+
+Four steps, and three of them are things the engine cannot do for itself.
+
+1. **Read the profile before the message.** Age, income, county and state decide which program is even legal to name. Dorothy's age was the answer.
+2. **Read what we already sent and what they already tried.** Both stale drafts failed the same way, by recommending a path the family had already walked. Highest-value check in the list.
+3. **Verify the program is still open today.** EHEAP changed administrator this year. The **30 Sep** cooling deadline is the most actionable fact for every Florida family in the queue.
+4. **Triage the queue first.** STOPs and outcome keywords are bookkeeping, not conversations.
+
+**Spine of the command:** research and compose against the DB and the web, then hand the finished text to the browser for the send. Sending straight through Twilio would skip the bookkeeping the real send path does (thread marked handled, draft cleared, `family_answer_jobs.sent_body` stamped for the draft-vs-sent comparison). The Send click stays TJ's.
+
+### Blocked on browser control
+
+- **chrome-devtools MCP failed to connect at session start**, so `/open-chrome` and `/open-dia` had no tools.
+- **AppleScript is half-open.** Reading tabs and opening URLs in Chrome works. `execute_javascript` does not: it needs Chrome's *View > Developer > Allow JavaScript from Apple Events*, the menu click needs System Events (TCC-blocked for the shell), and `defaults write com.google.Chrome AllowJavaScriptAppleEvents` was denied by the auto-mode classifier as a security weaken.
+- TJ installed Anthropic's **Control Chrome** extension (`execute_javascript`, `list_tabs`, `close_tab`, `go_forward`), which drives Chrome through the same AppleScript API. It was installed after session start so its tools never loaded. **This session runs as `claude` under Terminal.app**, not Warp and not the Claude app, so the restart that matters is this terminal's.
+
+### Sent, 2026-09-19 04:2x ET
+
+All three cleared the queue. Chrome hand-launched on 9222 with the `chrome-profile-google` profile and driven
+through `chrome-devtools` MCP; **Control Chrome's tools still never loaded**, so the restart in the section
+above is still owed if we want that path.
+
+- **Dorothy Rainey (352-321-8647) — sent immediately**, 4:21 AM her time. Her thread is crisis-flagged and
+  `crisisExempt` in `app/api/admin/sms-inbox/[phone]/route.ts` deliberately skips the quiet-hours hold, so the
+  panel offered a bare *Send text* with no schedule option. Working as designed, but worth knowing that a
+  crisis reply wakes someone up.
+- **352-713-4271 — scheduled**, `send_after` 2026-09-19T12:00Z = 8:00 AM ET, her local.
+- **808-940-6605 — scheduled**, `send_after` 2026-09-19T18:00Z = 8:00 AM HST. It was 10:20 PM for her.
+
+Both scheduled rows are `queued_by tj@findmedjobs.co`. The schedule button double-clicks: the second label is
+**"Schedule unchecked?"**, a confirm gate because neither draft had been through `Re-check`. Neither was
+re-checked before queueing.
+
+### `/answer-sms` written
+
+`.claude/commands/answer-sms.md`, v1, 146 lines. Project command, not a personal skill, because it drives
+`/admin/inbox` and the team should have it. Seven phases: triage, read the profile, read what we already sent,
+verify the program is open today, compose, send, verify against the API. The four steps above are phases 1-4.
+Carries the hand-launch recipe for Chrome on 9222 and the rule that the send never goes through Twilio direct.
+
+### Next up
+
+1. Decide whether the crisis path needs more than a Slack page. Dorothy sat 4 days and nothing in
+   `/admin/inbox` escalates by age.
+2. Decide whether the support inbox gets a suppress-sender action, which is the Karen Shelton gap.

@@ -1223,6 +1223,13 @@ export default function CityLandingClient({
                         ? "We will talk through what you need and introduce you to the right local provider. Nothing is booked or charged."
                         : "You will get a text with the provider\u2019s name, then a call. Not a fit? Reply to the text and we send the next one."}
                     </p>
+                    {/* Only when they left the note empty: the text is then the
+                        one place that question still has to be answered. */}
+                    {!note.trim() && (
+                      <p className="mt-2 text-sm text-gray-500">
+                        Check your texts. We asked one question, and your answer goes straight to whoever calls you.
+                      </p>
+                    )}
                   </>
                 ) : (
                   <>
@@ -1260,6 +1267,11 @@ export default function CityLandingClient({
 
                     <div className="mt-5">
                       <label className="text-xs font-semibold text-gray-600">Anything they should know? Optional.</label>
+                      {/* The confirmation text asks this same question, because
+                          it goes out at submit and most people never reach this
+                          box. Saying so stops the text reading as though nobody
+                          had read what they typed here. */}
+                      <p className="mt-0.5 text-xs text-gray-500">We just texted you the same question. Answer here or there, whichever is easier.</p>
                       <textarea
                         className={`${inputCls} mt-1 min-h-[72px]`}
                         placeholder="Mom is 84, just home from the hospital after a fall, needs help mornings and evenings…"

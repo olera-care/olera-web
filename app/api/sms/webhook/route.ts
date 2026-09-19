@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
 import { createClient } from "@supabase/supabase-js";
-import { normalizeUSPhone } from "@/lib/twilio";
-import { smsHelpReply, familyAnswerAckSms } from "@/lib/sms/templates";
+import { normalizeUSPhone, sendSMS } from "@/lib/twilio";
+import { smsHelpReply, familyAnswerAckSms, cityQualificationThanksSms } from "@/lib/sms/templates";
+import { getCityConfig } from "@/lib/city-ads/config";
+import { getSiteUrl } from "@/lib/site-url";
 import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
 import { isCourtesyOnlyReply, matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
@@ -332,7 +334,7 @@ async function captureCityQualification(
     // page of leads was open at once.
     const { data, error } = await db
       .from("city_leads")
-      .select("id, created_at")
+      .select("id, created_at, slug, first_name")
       .eq("phone", phone)
       .eq("is_test", false)
       .is("archived_at", null)
@@ -359,6 +361,47 @@ async function captureCityQualification(
     if (updateError) {
       console.error("[sms-webhook] City qualification write failed:", updateError);
       return null;
+    }
+
+    // An answer that lands in a column and tells nobody is the same as no
+    // answer. Both of these are best-effort and neither may fail the capture:
+    // the words are already saved, and the webhook must still 200.
+    //
+    // Slack, because the words themselves are what a caller needs and nothing
+    // else was ever going to put them in front of one. Gwen Makone's "I'm
+    // looking for work as a caregiver" sat unread in this column on 18 Sep
+    // while a call script was drafted to her as a family.
+    //
+    // A text back, because in a concierge city nothing else speaks until a
+    // person calls. A family who answers a question and hears nothing has been
+    // taught that replying does nothing, and she is the one we need to reply
+    // again later.
+    const cfg = getCityConfig(String(lead.slug ?? ""));
+    // First word only. Meta sends a full name in one field, so "Hi Jyotsna U
+    // Patel" is what an unsplit greeting produces.
+    const firstName = String(lead.first_name ?? "").trim().split(/\s+/)[0] || "there";
+    try {
+      const { sendSlackAlert } = await import("@/lib/slack");
+      await sendSlackAlert(
+        `City lead ${String(lead.id).slice(0, 8)} (${cfg?.city ?? lead.slug}): ${firstName} answered the qualifying text. "${body.slice(0, 300)}" Read it before you call: ${getSiteUrl()}/admin/city-ads`,
+      );
+    } catch (err) {
+      console.error("[sms-webhook] City qualification Slack ping failed:", err);
+    }
+    try {
+      await sendSMS({
+        to: phone,
+        body: cityQualificationThanksSms({
+          firstName,
+          city: cfg?.city ?? "your area",
+          concierge: cfg?.routingMode === "concierge",
+        }),
+        emailType: "city_lead_qualification_thanks",
+        recipientType: "family",
+        metadata: { lead_id: lead.id },
+      });
+    } catch (err) {
+      console.error("[sms-webhook] City qualification receipt failed:", err);
     }
     return lead.id as string;
   } catch (e) {

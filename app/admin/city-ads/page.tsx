@@ -186,7 +186,10 @@ function needsReason(l: Lead): string | null {
   // minutes is how a queue stops meaning anything.
   if (awaitingQualification(l)) return l.qualification_escalated_at ? "no answer to the qualifying text — call them" : null;
   if (l.status === "new" && !l.accepted_offer_id && l.offers.length === 0) return "call them — concierge city, no chain runs";
-  if (l.status === "unfilled") return "no one on call took it";
+  // Two different facts wore the same label. With an empty pool nobody was
+  // ever asked, and telling the caller "no one took it" sends them looking for
+  // a provider who declined.
+  if (l.status === "unfilled") return l.offers.length === 0 ? "nobody is switched on in this city yet — call them" : "no one on call took it";
   if (l.family_check_reply === "not_yet" && !l.reached_at) return "family says the provider has not called";
   const o = openOffer(l);
   if (o && minsLeft(o.expires_at) < 0) return `offer to ${o.provider?.display_name ?? "a provider"} is past its 30 minutes`;
@@ -502,6 +505,7 @@ function OfferTo({ lead, pool, busy, primary, onPick }: { lead: Lead; pool: Pool
  *  NOT follow the `city_lead_family_*` shape the others use. */
 const TEXT_LABEL: Record<string, string> = {
   city_lead_family_confirm: "Confirmation",
+  city_lead_qualification_thanks: "Thanks for answering",
   city_lead_family_still_working: "Still working on it",
   city_lead_accepted_family: "Provider named",
   city_lead_family_check: "Did they call you?",
@@ -584,9 +588,15 @@ function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (
 }
 
 /**
- * The answer to "who are you looking for care for?" — the one fact that turns a
- * Meta form submission into something a provider can act on, and the only thing
- * standing between this lead and the relay.
+ * The family's answer to the question their confirmation text asked, and the
+ * only thing standing between this lead and the relay.
+ *
+ * Which question that was depends on the door they came through: a Meta form
+ * gives us a name, a phone and a ZIP, so it asks who the care is for, while
+ * the /care/{city} form already collected that and asks what is going on
+ * instead. Either answer is what turns a submission into something a provider
+ * can act on, and a website family can give it by text or by typing it into
+ * the note on the thank-you screen.
  *
  * The box is here rather than on a separate screen because the caller is
  * already looking at this panel: they read what the family has been told, they
@@ -595,13 +605,24 @@ function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (
  */
 function Qualification({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
   const [draft, setDraft] = useState("");
-  if (l.capture_method !== "meta_instant_form") return null;
+  // Shown for every lead, not just the Meta ones: both front doors now ask a
+  // question in the confirmation text, and both are held out of the provider
+  // chain until it is answered.
+  const native = l.capture_method === "meta_instant_form";
+  // What the text actually asked this family, which is what the panel should
+  // label the answer with. The website form already collects who the care is
+  // for, so its text asks what is going on instead.
+  const asked = native ? "Who needs care" : "What is going on";
   const closed = Boolean(l.archived_at) || ["client", "no_fit", "stopped", "redirected"].includes(l.status);
+  // An archived, stopped or medically redirected lead with no answer on it has
+  // no qualification to show and no way to get one. A closed lead that DID
+  // answer keeps showing what it said, which is often the reason it closed.
+  if (closed && !l.qualification_reply) return null;
   return (
     <div className="mt-3 rounded bg-white px-2.5 py-2">
       {l.qualification_reply ? (
         <p className="text-xs text-gray-700">
-          <span className="font-medium text-gray-900">Who needs care:</span> &ldquo;{l.qualification_reply}&rdquo;
+          <span className="font-medium text-gray-900">{asked}:</span> &ldquo;{l.qualification_reply}&rdquo;
           <span className="ml-2 text-gray-400">{fmtTime(l.qualification_reply_at)}</span>
         </p>
       ) : l.qualification_escalated_at ? (
@@ -611,7 +632,14 @@ function Qualification({ lead: l, busy, act }: { lead: Lead; busy: boolean; act:
         </p>
       ) : (
         <p className="text-xs text-gray-600">
-          Asked who needs care. Waiting on their reply — nothing goes to a provider until they answer or you call.
+          {/* Stated as the lead's current state, not as a claim about what we
+              sent. Every website lead before 19 Sep got a confirmation that
+              asked nothing, and telling a caller we had asked would be false
+              on exactly the leads still sitting in this queue. The Meta text
+              has always carried its question, so that one can say so. */}
+          {native
+            ? "Asked who needs care. Waiting on their reply — nothing goes to a provider until they answer or you call."
+            : "No answer on file. Nothing goes to a provider until the family tells us what they need, by text or on a call you type in here."}
         </p>
       )}
       {!closed && !l.accepted_offer_id && (
@@ -653,7 +681,10 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
         {l.utm_medium && <span className="text-gray-400">via {l.utm_medium}</span>}
       </div>
       {l.meta_lead_id && <p className="mt-2 text-xs text-gray-500">Meta lead {l.meta_lead_id} · Form {l.meta_form_id} · Campaign {l.meta_campaign_id || "not supplied"} · Consent {l.consent_form_version} at {fmtTime(l.consent_at)}</p>}
-      {l.note && <p className="mt-2 rounded bg-white px-2.5 py-1.5 text-xs text-gray-700">“{l.note}”</p>}
+      {/* A note written on the thank-you screen is also stored as the
+          qualifying answer, and the Qualification block below renders it with
+          the question it answers. Only show it here when it is something else. */}
+      {l.note && l.note !== l.qualification_reply && <p className="mt-2 rounded bg-white px-2.5 py-1.5 text-xs text-gray-700">“{l.note}”</p>}
       <Qualification lead={l} busy={busy} act={act} />
 
       <ol className="mt-3 space-y-1 text-xs">

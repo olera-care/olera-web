@@ -1,6 +1,15 @@
 -- 236: The website form's requests are qualified by text too, so the ones the
 -- old relay already dead-ended need returning to the queue.
 --
+-- RUN THIS AFTER THE CODE IS DEPLOYED, NOT BEFORE. Returning a lead to 'new'
+-- puts it back in front of the relay's five-minute scan. The new code holds it
+-- there; the old code offers it round the empty pool, marks it 'unfilled'
+-- again and texts the family that we are "still looking for the right
+-- provider" -- the exact text this change exists to stop sending. The same is
+-- true of clearing next_offer_at below. Nothing here is urgent: the code alone
+-- already stops all of that, and this only corrects how the queue describes
+-- three leads that are sitting in it.
+--
 -- Migrations 234 and 235 built this for Meta instant form leads: the
 -- confirmation text asks one question, the answer releases the request to a
 -- provider, and silence hands it to a person. The /care/{city} form did not

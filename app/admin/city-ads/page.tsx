@@ -505,6 +505,7 @@ function OfferTo({ lead, pool, busy, primary, onPick }: { lead: Lead; pool: Pool
  *  NOT follow the `city_lead_family_*` shape the others use. */
 const TEXT_LABEL: Record<string, string> = {
   city_lead_family_confirm: "Confirmation",
+  city_lead_qualification_thanks: "Thanks for answering",
   city_lead_family_still_working: "Still working on it",
   city_lead_accepted_family: "Provider named",
   city_lead_family_check: "Did they call you?",
@@ -604,15 +605,19 @@ function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (
  */
 function Qualification({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
   const [draft, setDraft] = useState("");
-  // Shown for every lead, not just the Meta ones. Both front doors now ask a
-  // question in the confirmation text, so both have an answer to show and both
-  // are held out of the provider chain until it arrives.
+  // Shown for every lead, not just the Meta ones: both front doors now ask a
+  // question in the confirmation text, and both are held out of the provider
+  // chain until it is answered.
   const native = l.capture_method === "meta_instant_form";
   // What the text actually asked this family, which is what the panel should
   // label the answer with. The website form already collects who the care is
   // for, so its text asks what is going on instead.
   const asked = native ? "Who needs care" : "What is going on";
   const closed = Boolean(l.archived_at) || ["client", "no_fit", "stopped", "redirected"].includes(l.status);
+  // An archived, stopped or medically redirected lead with no answer on it has
+  // no qualification to show and no way to get one. A closed lead that DID
+  // answer keeps showing what it said, which is often the reason it closed.
+  if (closed && !l.qualification_reply) return null;
   return (
     <div className="mt-3 rounded bg-white px-2.5 py-2">
       {l.qualification_reply ? (
@@ -627,8 +632,14 @@ function Qualification({ lead: l, busy, act }: { lead: Lead; busy: boolean; act:
         </p>
       ) : (
         <p className="text-xs text-gray-600">
-          Asked {asked.toLowerCase()} in the confirmation text. No reply yet — nothing goes to a provider until they
-          answer or you type what they told you on the phone.
+          {/* Stated as the lead's current state, not as a claim about what we
+              sent. Every website lead before 19 Sep got a confirmation that
+              asked nothing, and telling a caller we had asked would be false
+              on exactly the leads still sitting in this queue. The Meta text
+              has always carried its question, so that one can say so. */}
+          {native
+            ? "Asked who needs care. Waiting on their reply — nothing goes to a provider until they answer or you call."
+            : "No answer on file. Nothing goes to a provider until the family tells us what they need, by text or on a call you type in here."}
         </p>
       )}
       {!closed && !l.accepted_offer_id && (

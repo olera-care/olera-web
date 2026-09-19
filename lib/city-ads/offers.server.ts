@@ -176,7 +176,7 @@ export async function startOrAdvance(
   db: SupabaseClient,
   leadId: string,
   opts: { force?: boolean; providerId?: string } = {},
-): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "escalated" | "noop"; providerName?: string }> {
+): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "escalated" | "held" | "noop"; providerName?: string }> {
   if (await cityLeadBlocked(db, leadId)) return { action: "noop" };
   const lead = await getLead(db, leadId);
   if (!lead) return { action: "noop" };
@@ -216,7 +216,12 @@ export async function startOrAdvance(
     if (lead.next_offer_at) {
       await db.from("city_leads").update({ next_offer_at: null, updated_at: new Date().toISOString() }).eq("id", lead.id);
     }
-    return { action: "noop" };
+    // "held", not "noop". The relay reaches this every five minutes and must
+    // stay silent, but a decline or an expiry reaches it too, and those are
+    // the moments a chain an admin started by hand comes back with nowhere to
+    // go. Naming the outcome lets those two callers say so once, without the
+    // relay saying it twelve times an hour.
+    return { action: "held" };
   }
   if (lead.status === "unfilled" && !opts.force && !opts.providerId) return { action: "noop" };
 
@@ -396,6 +401,28 @@ async function markUnfilled(db: SupabaseClient, lead: CityLeadRow, city: string)
 }
 
 /**
+ * A hand-routed request that came back with nowhere to go.
+ *
+ * An unanswered request in a concierge city is held rather than offered
+ * onwards, which is right for the relay and wrong in silence for the two
+ * moments a chain actually ends: the provider declined, or their thirty
+ * minutes ran out. Before the hold existed both fell through to markUnfilled,
+ * which alerted. Now they reach a "held" and would stop there.
+ *
+ * Called only from those two event paths, never from the relay's scan, so it
+ * fires once per event without a stamp to guard it: an offer expires once and
+ * is declined once.
+ */
+async function alertChainStopped(db: SupabaseClient, leadId: string, what: string) {
+  const lead = await getLead(db, leadId);
+  if (!lead) return;
+  const city = getCityConfig(lead.slug)?.city ?? lead.slug;
+  await sendSlackAlert(
+    `📞 City lead ${leadId.slice(0, 8)} (${city}): the provider ${what}, and the request is held because we still do not know what ${lead.first_name} needs. Nothing else has gone out and nothing else will. Call them: ${formatUSPhone(lead.phone)}, then type what they say into the lead at /admin/city-ads.`,
+  );
+}
+
+/**
  * A native lead that never answered the qualifying text, an hour on. Hand it to
  * a person and stop. Nothing is sent to the family here — they have already had
  * one text and a second one repeating the question is nagging, not service; the
@@ -545,6 +572,7 @@ export async function declineOffer(
     .is("accepted_at", null);
   const next = await startOrAdvance(db, offer.lead_id);
   console.log(`[city-ads] offer ${offer.id} declined, advance -> ${next.action}`);
+  if (next.action === "held") await alertChainStopped(db, offer.lead_id, "passed on it");
   return { reply: cityDeclinedAskReasonSms() };
 }
 
@@ -616,9 +644,10 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
   unfilled: number;
   parked: number;
   escalated: number;
+  held: number;
 }> {
   const now = new Date().toISOString();
-  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0, escalated: 0 };
+  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0, escalated: 0, held: 0 };
 
   // 1. Offers past their window.
   const { data: due } = await db
@@ -637,6 +666,9 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
     else if (r.action === "unfilled") out.unfilled++;
     else if (r.action === "parked") out.parked++;
     else if (r.action === "escalated") out.escalated++;
+    // The offer we just expired was the end of the line for a request we
+    // cannot pass on. Same reason as the decline path: once per expiry.
+    else if (r.action === "held") { out.held++; await alertChainStopped(db, o.lead_id, "ran out of time"); }
   }
 
   // 2. Parked leads whose morning has come, plus stragglers never started.

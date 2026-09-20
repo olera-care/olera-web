@@ -246,14 +246,134 @@ alternative is work that happens off the board.
 
 ---
 
+## 12 · The ask is interest, not a meeting — ALIGN
+
+Raised 20 September, after looking at the shipped follow-up screen. It
+supersedes part of 6: the endings are right in shape and wrong in what they
+sort for.
+
+**The problem.** The whole provider ladder funnels into a meeting, and a
+meeting is a big ask from a cold email. Worse, it is the *wrong* ask — what we
+actually need is a provider who says *yes, tell me more*. Some will want a
+meeting and that is good; some will happily self-serve. Gating onboarding on a
+meeting makes the second kind wait for a calendar slot they never wanted.
+
+**The goal moves.** From *meeting held* to **set up to receive a student**. The
+meeting stops being rungs 4 and 5 of the sequence and becomes a branch a
+provider can pull us into from any rung, running alongside onboarding rather
+than in front of it.
+
+### What the ladder becomes
+
+| Rung | Change |
+|---|---|
+| Research | unchanged |
+| Call to confirm the right contact | gains **They are interested**, which jumps straight to onboarding. A provider who says yes on the first call should not be sent a programme email and seven follow-ups |
+| Send the program info | the ask becomes *would you like to hear more*, not *can we find fifteen minutes* |
+| Follow up × 7 | see below |
+| **Send the onboarding pack** | new. Replaces *Schedule the meeting* |
+| **Confirm they can receive a student** | new. Replaces *Log the meeting*, and answers itself from the portal |
+| Confirm they have signed up | unchanged, and now means what it says |
+| Seasonal | unchanged |
+| Keep the conversation going | unchanged branch, renamed outcome |
+| **Meet them** | new branch. Optional, from anywhere, never a gate |
+
+### The follow-up screen, rebuilt around the two acts
+
+The rung says *check your inbox; no reply, call then email* — and the button
+said **No reply**, which names something the provider did not do rather than
+anything we did. Pressing it logged a non-event and queued another round, when
+what should happen is the calling and the emailing, now.
+
+So the rung opens on the one question that branches it — **have they replied?**
+— and both answers are the start of work, not the end of it.
+
+- **Nothing back** reveals the two acts inline: a click-to-dial button and a
+  copy-the-email button, each with a tick. The log button stays disabled until
+  both are done, and then reads what actually happened rather than what did
+  not. A channel the record does not hold is not offered as a tick.
+- **They replied** reveals what the reply produced: **They are interested** ·
+  **Interested later** · **Not interested**.
+
+### Interest, wherever it comes from
+
+Interest can arrive by email, on a call, on a callback, or in a voicemail they
+left, and all four should start the same thing. Pressing **They are
+interested** asks for two facts and nothing else:
+
+- **How did we hear?** Four chips. Worth having because it is the only way we
+  will ever know which channel works.
+- **They want to meet first.** A checkbox, not a rung. Ticked, it books a
+  meeting *alongside* onboarding. Unticked, onboarding starts on its own.
+
+### The onboarding pack
+
+One email, built around one link, carrying six things: how applications reach
+them (text, email, portal, and students ringing the office); reviewing an
+application in under a minute; setting who they want, through their profile as
+students see it and their requirements; applicant → interview → hire → billing
+in four lines; the terms and what a hire costs; and their portal link. The
+rung will not log without the link, because the email is mostly the link.
+
+**Most of this exists.** `resolveOrClaimProviderProfile` creates the account,
+the demand profile and requirements are already captured on
+`business_profiles.metadata`, `HireCaregiversBoard` is the review surface,
+`pilot/activate` is the self-serve claim, and `interview_terms_accepted_at` is
+already how a provider accepts terms. This is wiring, not a new portal.
+
+### The rung after it answers itself
+
+**Confirm they can receive a student** should read three facts from the portal
+— account claimed, requirements set, a candidate seen — the way the students
+ladder reads its own. A provider set up but not looking is a nudge, not a
+chase, and the rung should say which.
+
+### To settle before any of it ships
+
+1. **The billing terms, which are a live conflict and just moved again.**
+   `07-OPEN-DECISIONS-AND-CONFLICTS.md` records $250+ per hire, provider only,
+   **monthly in arrears**. The new statement is **first hire free, then $250
+   per hire invoiced on the confirmed hire**. Those differ on the free hire and
+   on the trigger. The onboarding email states the terms, so whatever it says
+   becomes the thing providers hold us to — this cannot ship ahead of the
+   decision.
+2. **Where terms get signed.** Today it is at first *interview scheduling*, and
+   that same timestamp is what makes a provider a Client and starts the 90-day
+   pilot. Moving it to first *hire* changes both. Same open decision, second
+   axis.
+3. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
+   rows. Count what is actually sitting there before choosing between a
+   migration and appending:
+
+   ```sql
+   select (payload->>'step')::int as step, t.status, count(*) as rows
+   from student_outreach_tasks t
+   join student_outreach o on o.id = t.outreach_id
+   where o.kind = 'provider' and (payload->>'step')::int >= 4
+   group by 1, 2 order by 1, 2;
+   ```
+4. **Logging a callback on an archived record.** Interest can arrive months
+   later. Reviving and then pressing the outcome works, but it is two steps and
+   the second is not obvious.
+
+### Where it leaves 3 and 5
+
+It decides them. The programme email and the seven follow-ups are asking for
+the wrong thing, so the copy pass is no longer cosmetic — it is the same piece
+of work as this.
+
+---
+
 ## Suggested order
 
 1. ~~**2, 1, 9**~~ — done.
 2. ~~**6, 7, 8**~~ — done. The Calendly question is still open, and the design
    does not wait on it: whichever version we pick fills the same three fields.
-3. **3 and 5** — the copy, once 6 has settled what the emails are asking for.
-4. **4** — the map-pack sweep, small once the instructions are written.
-5. **11** — advisors, the largest, and the one that benefits most from
+3. **12** — the reframe. It changes the goal of the ladder, so it comes before
+   any more copy or flow work. Blocked only on the terms decision.
+4. **3 and 5** — the copy, which 12 has now decided the shape of.
+5. **4** — the map-pack sweep, small once the instructions are written.
+6. **11** — advisors, the largest, and the one that benefits most from
    everything above being settled.
-6. **10** — waits on the qualification criteria, which is a decision rather
+7. **10** — waits on the qualification criteria, which is a decision rather
    than a build.

@@ -4,29 +4,32 @@ The running list of what is left to make providers, students, the job board
 and advisors good end to end. Raised 20 September. Each item carries what it
 is, what has to be decided before it can be built, and where it stands.
 
-**Statuses.** `READY` — agreed, buildable as described. `ALIGN` — the shape
-is not settled; sketch and confirm first. `CONTENT` — the work is words
-rather than code, and needs a sitting of its own.
+**Statuses.** `SHIPPED` — built, on the branch. `READY` — agreed, buildable
+as described. `ALIGN` — the shape is not settled; sketch and confirm first.
+`CONTENT` — the work is words rather than code, and needs a sitting of its
+own.
 
 Once all eleven are done the four worked channels are finished, and student
 orgs, campus events and professors are next.
 
 ---
 
-## 1 · Move between providers from inside the drawer — READY
+## 1 · Move between providers from inside the drawer — SHIPPED
 
 Screening a campus means opening a provider, looking, closing, opening the
-next. The drawer should carry the next and previous record so a pass through
+next. The drawer now carries the next and previous record so a pass through
 sixty providers is sixty clicks rather than a hundred and eighty.
 
-Open: whether the order follows the list (alphabetical) or the queue (what is
-due first). Probably the list, since screening is a sweep.
+Settled: the order follows the list, not the queue, because screening is a
+sweep. The header reads `‹ 3 of 64 ›`, and the count is there because a sweep
+of sixty needs to know how much of it is left.
 
-## 2 · Come back to where you were — READY
+## 2 · Come back to where you were — SHIPPED
 
-Backing out of a record returns to the university with everything collapsed,
-so the section has to be reopened every time. It should return with that
-section already expanded and the record you were on in view.
+Backing out of a record returned to the university with everything collapsed,
+so the section had to be reopened every time. Which sections are open and
+which record you were last on now live above the summary rather than inside
+it; the row is scrolled back to the centre of the view and marked.
 
 ## 3 · Every email and call script, reviewed — CONTENT
 
@@ -75,23 +78,90 @@ Calendly automates reminders and could webhook back to organise meetings,
 which is the argument for it; the argument against is forcing a tool into a
 flow that a pasted link would serve. Not decided.
 
+### Proposal, 20 September — awaiting sign-off
+
+**Four outcomes on every follow-up round**, the same shape already proven on
+*Call to confirm the right contact*, where four buttons with hover hints beat
+one button and a text box.
+
+| Outcome | What it means | What it queues |
+|---|---|---|
+| No reply | Nothing came back. Called and emailed again. | The next round, on the existing cadence |
+| They gave a time | A date is in hand. | Books the meeting; the remaining rounds are dropped |
+| Replied, no time yet | Interested, no date. | The holding rung, three days out |
+| Not interested | They declined. | Archives the record |
+
+**A holding rung the board does not have today** — *Keep the conversation
+going*. It is not a follow-up round and must not read like one: it shows the
+last exchange, and its script replies to a thread rather than opening one.
+Its own outcomes are *They gave a time*, *Still talking* (three days), *Gone
+quiet* (back into the cadence where it left off), *Not interested*. A counter
+runs, and at six rounds without a date a warning suggests archiving or asking
+directly — the same restraint as the three-attempt prompt on the calling
+rung: a hint, never a block.
+
+**Booking captures three fields** — when, where, and optionally what they
+said. Nothing else. `BoardTask.fields` already holds typed values, so this is
+a rung input, not a new table.
+
+**The meeting rung** takes over from the cadence. Outcomes: *Meeting held* →
+on to the ask; *No-show* → reschedule (the record already counts
+reschedules); *Cancelled, rebooking* → repeat.
+
+#### The Calendly question
+
+Three versions, and they differ less than they look:
+
+- **A · a pasted calendar link.** No integration. The admin notices the
+  reply, types the time in. Reminders are on us.
+- **B · a Calendly link in the email, the admin still types the time in.**
+  Identical to A from the board's side, but Calendly holds the calendar and
+  sends the reminders — which is the part we are worst at.
+- **C · Calendly with a webhook.** `invitee.created` fills the booking fields
+  and moves the record on; `invitee.canceled` reopens it. Nobody types
+  anything.
+
+**Recommendation: B now, C later, and the design above is unchanged by which
+one we pick** — a webhook fills the same three fields a person would.
+
+The reason not to start at C: most providers will not click a link. They will
+reply *how about Tuesday at 2* in prose, in a thread, to a person. The manual
+path has to exist under every option, so C removes typing only for the
+minority who self-book, and it cannot be justified until enough of them do.
+B costs one link in one email and fixes the reminders today.
+
 ## 7 · "Not yet" on a follow-up — ALIGN
 
 It may not mean anything here. A follow-up is already a dated thing in a
 cadence; putting it off by two days is what the next round is. Decide
 alongside 6, because the answer depends on what the outcomes become.
 
+**Falls out of the 6 proposal:** "No reply" *is* "Not yet", said honestly —
+it logs the attempt and queues the next round. Two buttons for one act is a
+button too many, so "Not yet" comes off the follow-up rungs and stays where
+it still means something, which is a rung you have not done yet.
+
 ## 8 · The deferral menu — ALIGN
 
 Same question, one level up. Deferring is right for some rungs and noise on
 others. Decide per rung rather than globally, once 6 is settled.
 
-## 9 · Students: the meeting and the application open together — READY
+**Falls out of the same proposal.** Keep it on Research, Call to confirm the
+right contact, Send the program info and the meeting rung — all four are
+things a person does on a day and can honestly put off. Drop it from every
+follow-up round and from the holding rung: both already carry a cadence, and
+deferring a cadence is what the next round is.
+
+## 9 · Students: the meeting and the application open together — SHIPPED
 
 Same as the provider opening block. When an application lands, both are the
 next thing and neither waits on the other. The application rung already
 closes itself when the student goes live, so a student who finishes alone
 needs nothing; a student who needs the meeting to finish it gets both.
+
+Built as `openTogether: 2`, with the same rule the providers block uses: a
+rung the system can already see is satisfied is skipped rather than queued,
+and so is a rung behind a fact that supersedes it.
 
 We meet every student regardless, so the meeting does not disappear when the
 application completes on its own.

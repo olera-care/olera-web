@@ -492,22 +492,59 @@ every interested provider settles C1's amount whatever the log says.
 2. ~~Run the migration.~~ **Run, 20 September: 0 rows moved.** No provider had
    ever reached the old meeting rungs, which is its own small argument for the
    reframe — the gate was never being crossed.
-3. **Design the onboarding phase.** After the pack the ladder should run a
-   block of onboarding follow-ups ending in a meeting where the profile and the
-   process are confirmed, terminal state: *ready to receive their first student
-   in the pilot*. Not built, and the rungs need thinking through — there is a
-   real tension to resolve first, which is that this makes the meeting
-   compulsory again, at the end rather than the front. See the proposal in
-   chat. Today the pack lands on *Confirm they can receive a student*, which is
-   an interim.
-4. **Approve the pilot terms** and build the PDF to
+3. ~~Design the onboarding phase.~~ **Built, 20 September.**
+
+   ```
+    0 Research              5 Chase the meeting
+    1 Confirming call       6 Hold the meeting
+    2 Programme email       7 Ready for their first student   (goal)
+    3 Follow up x7          8 Seasonal check
+    4 Onboarding pack       9 Something else                  (branch)
+   ```
+
+   The pack asks for the fifteen minutes outright. **Chase the meeting** is
+   one rung rather than a block, and **never archives** — a provider who said
+   yes must not be lost over a calendar. It nudges every three days, counts
+   them, and at four suggests doing their profile with them on the phone.
+   The count is a prompt, not a countdown, so the closing button keeps saying
+   *Not interested* rather than renaming itself *Archive*; that relabel is
+   now opt-in and only the confirming call asks for it.
+
+   Five ways out: **Meeting booked** (takes the date, puts the meeting on
+   that day), **Nudged them**, **Set up, no meeting needed** — the escape
+   hatch, so somebody who has onboarded themselves is not chased for a call
+   they do not want — **Not interested**, and **Something else**.
+
+   **Hold the meeting** is four confirmations rather than one instruction,
+   and it can end in *Held — not a fit*, which is deliberately a different
+   outcome from never booking: one is a fit problem, the other a scheduling
+   problem, and a board that records them the same way cannot say which it
+   has.
+
+   The goal is no longer *signed up*, which described a signature nobody
+   gives. It is **ready for their first student**.
+
+   `scripts/migration/24b-onboarding-phase-apply.sql` renumbers. Unlike 22,
+   its new values land back inside the set it matches, so a second run would
+   permute the ladder again — running it twice on a fixture did exactly that.
+   Each moved row is stamped and a stamped row is skipped, which makes it
+   safe to run twice rather than merely unlikely to be.
+
+4. **Two things that came out of using it.** The drawer no longer jumps to
+   the next provider when you are working one at a time: the hand-over stays
+   within the record you opened, and the summary catches you at the end of
+   it. Running "Start the next task" is unchanged. And the *what they said
+   last* box is gone from every task screen — the record drawer already has
+   it, a click away.
+
+5. **Approve the pilot terms** and build the PDF to
    `docs/medjobs/MedJobs_Pilot_Terms.pdf`. The route key and the tracing entry
    are in place, so the attachment goes live the moment the file lands.
-5. **Wire the set-up rung to the portal.** Account claimed, requirements set, a
-   candidate opened are all facts `business_profiles` holds; the rung asks a
-   person to read them off the screen because the outreach row is not joined to
-   the provider profile in the board's query yet. The students ladder already
-   does this properly and is the pattern.
+6. **Wire the meeting rung to the portal.** Account claimed, requirements set,
+   a candidate opened are all facts `business_profiles` holds, and the meeting
+   asks a person to read them off the screen because the outreach row is not
+   joined to the provider profile in the board's query. The students ladder
+   already does this properly and is the pattern.
 6. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
    rows. Count what is actually sitting there before choosing between a
    migration and appending:

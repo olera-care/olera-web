@@ -233,9 +233,20 @@ export default function UniversityFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [university]);
 
-  /** Where every change lands: the next task, or back to the summary. */
+  /**
+   * Where every change lands.
+   *
+   * A run-through goes wherever the board says next, including the next
+   * provider — that is what "Start the next task" is for. Working one
+   * provider at a time is a different act: finishing their last rung should
+   * put you back on the university, not drop you into a stranger. So when
+   * you are browsing, the hand-over only happens within the record you
+   * opened, and the summary catches you at the end of it.
+   */
   const land = (effect: Effect) => {
-    go(effect.landOn);
+    const next =
+      running || !record || effect.landOn?.record.id === record.id ? effect.landOn : null;
+    go(next);
     redraw();
     if (effect.universityCleared) {
       celebrate(`${university.name} is clear for today`);

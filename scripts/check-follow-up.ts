@@ -1,16 +1,18 @@
 /**
- * The provider ladder after the reframe: interest first, the meeting beside.
+ * The provider ladder: interest first, then an onboarding phase that ends in
+ * a meeting.
  *
  * Refinements 6, 7, 8 and 12. Most of what is asserted here is about where a
  * record lands, because that is the part no amount of reading the file will
- * tell you — a reply that produced interest, a reply that produced a
- * conversation and a reply that produced a no all used to end up on the same
- * rung, and the meeting used to stand in front of everything.
+ * tell you. The shape has moved twice in a day — the meeting stood in front
+ * of everything, then nowhere, and is now the end of onboarding — and each
+ * move was only safe because this walked the whole ladder afterwards.
  *
  * It also pins the step numbers. Every task row carries its rung as an
  * integer, so a rung that moves has to be matched by a migration
- * (scripts/migration/22-meeting-becomes-a-branch.sql) and a rung that moves
- * without one silently re-labels thousands of rows.
+ * (`22-meeting-becomes-a-branch.sql`, then `24b-onboarding-phase-apply.sql`)
+ * and a rung that moves without one silently re-labels every row pointing at
+ * it.
  *
  *   npx tsx scripts/check-follow-up.ts
  */
@@ -29,7 +31,6 @@ import {
   dueIn,
   isReady,
   iso,
-  lastNote,
   makeRecord,
   resolveNext,
   startOfToday,
@@ -71,10 +72,10 @@ const named = (n: string) => steps.findIndex((r) => (r.branch ?? r.name) === n);
 const CALL = 1;
 const FOLLOW = steps.findIndex((r) => r.rounds);
 const ONBOARD = named("onboarding");
-const SETUP = named("setup");
+const CHASE = named("chase");
+const READY = named("ready");
 const ERRAND = named("errand");
 const MEETING = named("meeting");
-const MEETLOG = named("meetlog");
 
 const at = (step: number, round = 0): [BoardUniversity, BoardRecord] => {
   const u = board();
@@ -94,22 +95,23 @@ const act = (u: BoardUniversity, r: BoardRecord, label: string, fields?: Record<
   return complete(u, r, open, action);
 };
 
-console.log("\nThe step numbers, and the migration that moved two of them");
+console.log("\nThe step numbers, and the migrations that moved them");
 ok("0 Research", steps[0].title === "Research");
 ok("1 the confirming call", steps[1].title === "Call to confirm the right contact");
 ok("2 the program info", steps[2].title === "Send the program info");
 ok("3 the follow-up block", FOLLOW === 3, String(FOLLOW));
 ok("4 the onboarding pack", ONBOARD === 4, String(ONBOARD));
-ok("5 confirming they can receive a student", SETUP === 5, String(SETUP));
-ok("6 signing up, where it always was", steps[6].title.startsWith("Confirm they"));
-ok("7 the seasonal check, where it always was", steps[7].seasonal === true);
-ok("8 the errand rung, where the conversation rung was", ERRAND === 8, String(ERRAND));
-ok("9 the meeting, moved from 4", MEETING === 9, String(MEETING));
-ok("10 logging it, moved from 5", MEETLOG === 10, String(MEETLOG));
-ok("both meeting rungs are branches", Boolean(steps[MEETING].branch && steps[MEETLOG].branch));
+ok("5 chasing the meeting", CHASE === 5, String(CHASE));
+ok("6 holding it", MEETING === 6, String(MEETING));
+ok("7 ready for their first student", READY === 7, String(READY));
+ok("8 the seasonal check", steps[8].seasonal === true);
+ok("9 something else", ERRAND === 9, String(ERRAND));
+ok("and that is the whole ladder", steps.length === 10, String(steps.length));
+ok("only the errand is a branch", steps.filter((r) => r.branch).length === 1);
 ok(
-  "so climbing never reaches either",
-  [MEETING, MEETLOG].every((i) => !steps.slice(0, i).some(() => false) && steps[i].branch),
+  "the goal says what it means",
+  LADDERS.providers.goal === "ready for their first student",
+  LADDERS.providers.goal,
 );
 
 console.log("\nOne rung, one screen");
@@ -150,38 +152,83 @@ for (const [step, round, label, where] of [
   ok("and the rest of the follow-ups are dropped", !r.tasks.some((t) => !t.done && t.step === FOLLOW));
 }
 
-console.log("\nThe meeting is still reachable");
+console.log("\nThe onboarding phase");
 {
-  // Nothing in the sequence leads to it any more, which is the point — it
-  // is not a gate. But a branch nothing can reach is a rung that does not
-  // exist, so the set-up rung carries the way in until the onboarding phase
-  // is built and takes it over.
-  const ways = steps.flatMap((r, i) =>
-    r.actions.filter((a) => a.goto === "meeting").map(() => steps[i].title),
+  const chase = steps[CHASE];
+  ok("chasing is one rung, not a block", !chase.rounds);
+  ok("and it never runs out", chase.actions.every((a) => a.outcome !== "next" || Boolean(a.goto)));
+  ok("it counts nudges", chase.repeats?.noun === "nudge" && chase.repeats.warnAt === 4);
+  // The count is a prompt to try something else, not a countdown to archiving.
+  // Renaming the closing button "Archive — 4 nudges" would say the opposite
+  // of the warning above it.
+  ok("and never renames the closing button to Archive", !chase.repeats?.archive);
+  ok("unlike the confirming call, where archiving is the advice", steps[1].repeats?.archive === true);
+  ok("and offers no deferral, because it is a cadence", chase.defer === false);
+  const labels = chase.actions.map((a) => a.label);
+  ok(
+    "five ways out",
+    labels.join("|") ===
+      "Meeting booked|Nudged them|Set up, no meeting needed|Not interested|Something else",
+    labels.join("|"),
   );
-  ok("exactly one way in", ways.length === 1, ways.join("|"));
-  ok("and it is the set-up rung", ways[0] === steps[SETUP].title, ways[0]);
-  const [u, r] = at(SETUP, 0);
-  act(u, r, "They want a meeting");
-  ok("which reaches it", r.step === MEETING, String(r.step));
+
+  // Nudging forever, which is the point: a provider who said yes is never
+  // archived for failing to pick a date.
+  const [u, r] = at(CHASE, 0);
+  for (let i = 0; i < 9; i += 1) act(u, r, "Nudged them");
+  ok("nine nudges and still on the board", r.step === CHASE && r.state === null, String(r.state));
+  ok("all nine counted", strikesAt(r, CHASE, 0) === 9, String(strikesAt(r, CHASE, 0)));
+
+  // The escape hatch: doing it themselves reaches the same terminal.
+  const [u2, r2] = at(CHASE, 0);
+  act(u2, r2, "Set up, no meeting needed");
+  ok("self-serve reaches ready without a meeting", r2.step === READY, String(r2.step));
+
+  // And the meeting, when they do book one.
+  const day = iso(new Date(startOfToday().getTime() + 11 * 86_400_000));
+  const [u3, r3] = at(CHASE, 0);
+  act(u3, r3, "Meeting booked", { meeting_at: `${day}T14:00`, meeting_where: "Zoom" });
+  const held = r3.tasks.find((t) => !t.done)!;
+  ok("booking queues the meeting", held.step === MEETING, String(held.step));
+  ok("on the day of the meeting", held.dueAt === day, `${held.dueAt} vs ${day}`);
+  ok(
+    "carrying the time and the place",
+    held.fields?.meeting_at?.startsWith(day) && held.fields?.meeting_where === "Zoom",
+    JSON.stringify(held.fields),
+  );
 }
 
-console.log("\nA booked meeting is logged on the day, not today");
+console.log("\nThe meeting, and the two ways it can end");
 {
-  const day = iso(new Date(startOfToday().getTime() + 12 * 86_400_000));
+  const meet = steps[MEETING];
+  ok("four confirmations, not one instruction", meet.steps.length === 4, String(meet.steps.length));
   const [u, r] = at(MEETING, 0);
-  act(u, r, "Meeting booked", { meeting_at: `${day}T14:00` });
-  const log = r.tasks.find((t) => !t.done && t.step === MEETLOG);
-  ok("the log rung exists", Boolean(log), r.tasks.map((t) => t.step).join("+"));
-  ok("and is due on the meeting date", log?.dueAt === day, `${log?.dueAt} vs ${day}`);
+  act(u, r, "Held — they're ready");
+  ok("a good one reaches the goal", r.step === READY, String(r.step));
 
-  const booked = steps[MEETING].actions[0];
+  // Not a fit is a different number from never booking, and has to stay one.
+  const [u2, r2] = at(MEETING, 0);
+  act(u2, r2, "Held — not a fit");
+  ok("and a bad one closes the record", r2.state === "archived", String(r2.state));
+  ok(
+    "which is not the same outcome as never booking",
+    steps[CHASE].actions.every((a) => a.label !== "Held — not a fit"),
+  );
+
+  const [u3, r3] = at(MEETING, 0);
+  act(u3, r3, "No-show");
+  ok("a no-show comes back rather than ending", r3.tasks.some((t) => !t.done && t.step === MEETING));
+}
+
+console.log("\nA date typed in beats a delay");
+{
+  const booked = steps[CHASE].actions[0];
+  ok("the meeting rung takes its date from the field", booked.delayFrom === "meeting_at");
   ok("an empty date falls back to the delay", dueFor(booked, {}) === dueIn(booked.delay));
-  ok("and so does one in the past", dueFor(booked, { meeting_at: "2020-01-01T09:00" }) === dueIn(booked.delay));
-
-  const [u2, r2] = at(MEETLOG, 0);
-  act(u2, r2, "Held");
-  ok("a held meeting rejoins the main line", r2.step === SETUP, String(r2.step));
+  ok(
+    "and so does one in the past",
+    dueFor(booked, { meeting_at: "2020-01-01T09:00" }) === dueIn(booked.delay),
+  );
 }
 
 console.log("\nThe endings that end it");
@@ -199,12 +246,9 @@ console.log("\nThe endings that end it");
   ok("seven silences still end the road", r3.state === "archived — no reply", String(r3.state));
   ok("and it took all seven", r3.tasks.filter((t) => t.done).length === FOLLOW_UP_ROUNDS);
 
-  const [u4, r4] = at(SETUP, 0);
-  for (let i = 0; i < 3; i += 1) act(u4, r4, "Nudged them");
-  ok("three nudges counted", strikesAt(r4, SETUP, 0) === 3, String(strikesAt(r4, SETUP, 0)));
-  ok("and the rung is still open", r4.tasks.some((t) => !t.done && t.step === SETUP));
-  act(u4, r4, "Gone cold");
-  ok("a provider who never sets up can be closed", r4.state === "archived", String(r4.state));
+  const [u4, r4] = at(CHASE, 0);
+  act(u4, r4, "Not interested");
+  ok("a provider who changes their mind can be closed", r4.state === "archived", String(r4.state));
 }
 
 console.log("\nThe screen and the server agree");
@@ -248,7 +292,7 @@ console.log("\nHanded over, not parked");
   // on a day they named, so nothing should be waiting until then.
   {
     const day = iso(new Date(startOfToday().getTime() + 9 * 86_400_000));
-    const { ready } = handed(MEETING, 0, "Meeting booked", { meeting_at: `${day}T14:00` });
+    const { ready } = handed(CHASE, 0, "Meeting booked", { meeting_at: `${day}T14:00` });
     ok("booking hands you nothing today, which is right", !ready, "the log rung came back today");
   }
 
@@ -277,7 +321,10 @@ console.log("\nHanded over, not parked");
 console.log("\nWhat an outcome will not be logged without");
 {
   ok("the pack needs the portal link", steps[ONBOARD].inputs?.[0].required === true);
-  ok("the meeting needs a date", steps[MEETING].inputs?.[0].required === true);
+  ok(
+    "booking needs a date",
+    steps[CHASE].actions[0].inputs?.[0].required === true,
+  );
   ok("and the pack says what it attaches", steps[ONBOARD].attachment?.doc === "pilot-terms");
 }
 
@@ -289,72 +336,17 @@ console.log("\nWhere Not yet is offered");
   ok(
     "only on rungs that already run on a cadence",
     off.join("|") ===
-      "providers:Follow up 1|advisors:Follow up 1|orgs:Follow up 1",
+      "providers:Follow up 1|providers:Chase the meeting|advisors:Follow up 1|orgs:Follow up 1",
     off.join("|"),
   );
   for (const [i, why] of [
     [CALL, "the call"],
     [2, "the programme email"],
     [ONBOARD, "the pack"],
-    [SETUP, "the set-up check"],
-    [MEETING, "the meeting"],
+    [MEETING, "the meeting itself"],
   ] as Array<[number, string]>) {
     ok(`still on ${why}`, steps[i].defer !== false);
   }
-}
-
-console.log("\nWhat was said last time");
-{
-  const [u, r] = at(FOLLOW, 1);
-  r.tasks[0].note = "Interested, swamped until October. Try me then.";
-  act(u, r, "Something else");
-  const seen = lastNote(r, r.tasks.find((t) => !t.done)!);
-  ok("the errand can see it", seen?.note.startsWith("Interested, swamped"), seen?.note);
-  ok("with the rung it came from", seen?.title === "Follow up 1", seen?.title);
-  ok("the errand asks for it", steps[ERRAND].recall === "What they said");
-  ok("and so does the pack", steps[ONBOARD].recall === "What they said");
-}
-
-console.log("\nSomething else, which is whatever they said it was");
-{
-  const errand = ERRAND_ACTION;
-  ok("it asks two things", (errand.inputs ?? []).length === 2);
-  ok("what needs doing", errand.inputs?.[0].key === "todo" && errand.inputs[0].required === true);
-  ok("and the day it comes back", errand.inputs?.[1].key === "due_on" && errand.inputs[1].required === true);
-  ok("the day is the due date, not two working days from now", errand.delayFrom === "due_on");
-  ok("and the errand travels with the task", (errand.carry ?? []).join("+") === "todo");
-
-  const day = iso(new Date(startOfToday().getTime() + 20 * 86_400_000));
-  const [u, r] = at(FOLLOW, 2);
-  r.tasks[0].note = "Asked us to send it to their corporate office first.";
-  act(u, r, "Something else", { todo: "Email corporate and get the right contact", due_on: day });
-  const queued = r.tasks.find((t) => !t.done)!;
-  ok("it lands on the errand rung", queued.step === ERRAND, String(queued.step));
-  ok("on the day that was picked", queued.dueAt === day, `${queued.dueAt} vs ${day}`);
-  ok("and it names itself", taskTitle(queued) === "Email corporate and get the right contact", taskTitle(queued));
-  ok("rather than the rung it is on", steps[ERRAND].title === "Something else");
-
-  // The screen and the server queue the same row, errand and all.
-  ok(
-    "the server carries the same thing",
-    JSON.stringify(carryFrom(errand, { todo: "x", due_on: day })) === JSON.stringify({ todo: "x" }),
-  );
-  ok("and nothing when there is nothing to carry", carryFrom(errand, {}) === undefined);
-
-  // An errand can end three ways, and one of them is another errand.
-  const [u2, r2] = at(ERRAND, 0);
-  act(u2, r2, "Done — they're interested");
-  ok("a yes goes to the pack", r2.step === ONBOARD, String(r2.step));
-
-  const [u3, r3] = at(ERRAND, 0);
-  act(u3, r3, "Done — back to following up");
-  ok("and no answer restarts the block", r3.step === FOLLOW && r3.round === 1, `${r3.step}/${r3.round}`);
-
-  const [u4, r4] = at(ERRAND, 0);
-  for (let i = 0; i < 3; i += 1)
-    act(u4, r4, "Something else again", { todo: `errand ${i}`, due_on: day });
-  ok("errands are counted", strikesAt(r4, ERRAND, 0) === 3, String(strikesAt(r4, ERRAND, 0)));
-  ok("and the rung stays open", r4.tasks.some((t) => !t.done && t.step === ERRAND));
 }
 
 console.log("\nStill to come");

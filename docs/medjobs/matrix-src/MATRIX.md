@@ -327,9 +327,29 @@ email — and why putting it in the attachment is itself a decision about C1.
 days is what the next round is. It stays on the confirming call, the programme email, the pack, the
 set-up check and the meeting.
 
-**The meeting is not a gate.** It was steps 4 and 5 of the sequence; it is a branch now, reached when a
-provider asks to be walked through it. The rung takes the date they gave and puts the logging rung on
-that day rather than two days from today.
+**Then onboarding, which ends in a meeting.** The pack asks for fifteen minutes outright, and the rung
+after it has one job: get them in the diary.
+
+**Chase the meeting** is a single rung, not a block of N, and **it never archives**. This provider has
+said yes; losing them over a calendar would be the worst outcome in the funnel. It nudges every three
+days, counts the nudges, and at four suggests doing their profile with them on the phone there and
+then. The count is a prompt to try something else, not a countdown — so the closing button keeps saying
+*Not interested* rather than renaming itself *Archive*.
+
+It has five ways out: **Meeting booked**, which takes the date and puts the meeting rung on that day;
+**Nudged them**; **Set up, no meeting needed**, which is the escape hatch for a provider who has done it
+themselves and should not be chased for a call they do not want; **Not interested**; and **Something
+else**.
+
+**Hold the meeting** is four confirmations rather than one instruction: their profile as students will
+see it, their requirements, the walk through applicant → interview → hire → billing, and whether this is
+a fit both ways. That last one means the meeting can end in a no, and **that is a different outcome from
+never booking** — one is a fit problem and the other is a scheduling problem, and a board that records
+them the same way cannot tell you which it has.
+
+The goal is no longer *signed up*, which described a signature nobody gives. It is **ready for their
+first student**: profile confirmed, process understood, requirements set. We can send them somebody
+tomorrow.
 
 ### ③ System / handoff
 

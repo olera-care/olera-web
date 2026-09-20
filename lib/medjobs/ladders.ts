@@ -165,15 +165,6 @@ export interface LadderRung {
   /** A longer note recorded on the task itself. Labels the note box. */
   textarea?: string;
   /**
-   * The most recent note on this record, shown before the operator writes.
-   *
-   * Some rungs exist because of something that was said. Replying to a
-   * provider who told you they were busy until October, without that
-   * sentence in front of you, is how a warm thread gets a cold email.
-   * The string is what to call it above the quote.
-   */
-  recall?: string;
-  /**
    * Counting repeated goes at this rung, and what to say after enough of
    * them.
    *
@@ -181,7 +172,21 @@ export interface LadderRung {
    * counts rounds of a conversation going nowhere. One mechanism, and
    * neither is a block — the count prompts a person, it does not decide.
    */
-  repeats?: { noun: string; warnAt: number; warning: string };
+  repeats?: {
+    noun: string;
+    warnAt: number;
+    warning: string;
+    /**
+     * Whether the closing outcome renames itself to "Archive — N attempts"
+     * once the count is reached.
+     *
+     * Only where archiving is what the warning actually advises. On the rung
+     * that chases a meeting it is the opposite of the advice — that provider
+     * said yes, and losing them over a calendar is the worst outcome in the
+     * funnel — so the button keeps saying what it means.
+     */
+    archive?: boolean;
+  };
   /**
    * Whether "Not yet" is offered. Defaults to yes.
    *
@@ -448,7 +453,6 @@ function errandRung(): LadderRung {
       "Do it.",
       "Log what came of it.",
     ],
-    recall: "What they said",
     textarea: "What happened",
     repeats: {
       noun: "errand",
@@ -486,7 +490,7 @@ export const FOLLOW_UP_ROUNDS = 7;
 export const LADDERS: Record<SectionKey, Ladder> = {
   providers: {
     label: "Providers",
-    goal: "signed up",
+    goal: "ready for their first student",
     auto: true,
     openTogether: 3,
     emptyNote: "Providers populate from the catchment when the university is added.",
@@ -515,6 +519,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
           noun: "attempt",
           warnAt: 3,
           warning: "After three attempts and no way to confirm the contact information, archive.",
+          archive: true,
         },
         // The four outcomes a confirming call actually has, which are the
         // four PR1 names. It had one, which always advanced — so a call
@@ -595,15 +600,14 @@ Dr. Logan DuBose's office · Olera`,
         // only possible because 6, 7 and 8 keep their places.
         name: "onboarding",
         title: "Send the onboarding pack",
-        what: "How the programme works, what they want in a caregiver, and the pilot terms to look over.",
+        what: "How the programme works, what they want in a caregiver, the pilot terms, and the ask for fifteen minutes.",
         why: "They have said yes. This is the email that means nobody has to explain it again.",
         steps: [
           "Create their portal account and paste the link in below.",
           "Attach the pilot terms — they are for review, not for signing.",
           "Copy the email and read it through before you send it.",
-          "Send it, then log it.",
+          "Send it, then log it. Getting the meeting booked is the next rung.",
         ],
-        recall: "What they said",
         inputs: [
           {
             key: "portal_link",
@@ -636,7 +640,9 @@ Tell us and we will only send students who fit — hours, shift types, certifica
 THE TERMS, FOR YOUR REVIEW
 Attached. Nothing to sign, and no obligation to carry on — this is a pilot. We will keep sending you students until you hire one and the placement works out. If you like working with our students after that, we agree formal terms then rather than now.
 
-If you would rather I walked you through it, say the word and I will find fifteen minutes. Otherwise you can start looking today.
+One last thing. I would like to put fifteen minutes in the diary to go through this with you — set your profile up together, walk through how a student reaches you, and make sure this is a fit both ways. It is quicker done than read.
+
+What does your week look like?
 
 Best,
 [your name]
@@ -652,67 +658,137 @@ Dr. Logan DuBose's office · Olera`,
         ],
       },
       {
-        // Step 5. Three facts the portal will eventually answer for itself,
-        // the way the students ladder answers its own — account claimed,
-        // requirements set, a candidate looked at. Until the provider
-        // profile is joined to the outreach row they are a checklist, and a
-        // checklist somebody reads off the portal is still better than a
-        // rung that asks them to guess.
-        name: "setup",
-        title: "Confirm they can receive a student",
-        what: "Check in the portal that they are actually set up, and nudge them if not.",
-        why: "A provider who has the link and has not used it is a nudge, not a chase — and nobody is going to notice on their own.",
+        // Step 5. One job: get fifteen minutes in the diary. It is not a
+        // block of N and it never archives, because this provider has said
+        // yes — losing them over scheduling would be the worst outcome in
+        // the funnel. It nudges on a slow cadence, counts the nudges, and
+        // says so after four.
+        name: "chase",
+        defer: false,
+        title: "Chase the meeting",
+        what: "Get the fifteen minutes on the calendar.",
+        why: "They have said yes and they have the pack. What is missing is a date.",
         steps: [
-          "Open their portal profile: have they claimed the account?",
-          "Are their requirements set, or is it still the default?",
-          "Have they opened a candidate?",
-          "If any of it is missing, reply in the thread and offer to do it with them.",
+          "Check their email and your voicemail.",
+          "Reply in the thread you already have — do not start a new one.",
+          "Offer two specific times rather than asking when suits.",
         ],
-        textarea: "Where they got to",
+        textarea: "What happened",
+        repeats: {
+          noun: "nudge",
+          warnAt: 4,
+          warning:
+            "Four nudges and no date. Offer to set their profile up with them on the phone there and then, or log that they are set up without one.",
+        },
+        script:
+          '"Hi, it\'s [your name] from Dr. DuBose\'s office. I sent over the Student Caregiver Program details — I would love fifteen minutes to set your profile up with you. Would Tuesday or Thursday afternoon work?"',
+        email: {
+          subject: "Re: Everything you need — Student Caregiver Program at {university}",
+          body: `Hi {first},
+
+Chasing my last note about the Student Caregiver Program — no rush if now is not the moment.
+
+Would either of these work for fifteen minutes?
+
+  · Tuesday afternoon
+  · Thursday morning
+
+We would set your profile up together, walk through how a student reaches you, and make sure it is a fit both ways. Nothing to prepare.
+
+If a call is not needed and you are happy to go ahead on your own, say so and I will get out of your way — everything is in your portal already.
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [
           {
-            label: "They're set up",
-            outcome: "next",
-            delay: 0,
-            hint: "Account claimed, requirements set. They can receive a student.",
-          },
-          {
-            // Interim, and the only thing that reaches the meeting branch
-            // today. The onboarding phase that will own it — a block of
-            // follow-ups ending in a meeting where the profile and the
-            // process are confirmed — is designed but not built.
-            label: "They want a meeting",
+            label: "Meeting booked",
             outcome: "next",
             goto: "meeting",
             delay: 0,
-            hint: "They would rather be walked through it. Books the meeting.",
+            // The meeting rung comes back on the day of the meeting.
+            delayFrom: "meeting_at",
+            carry: ["meeting_at", "meeting_where"],
+            hint: "A date is in hand. The meeting rung comes back on the day.",
+            inputs: [
+              {
+                key: "meeting_at",
+                label: "Date and time",
+                type: "datetime-local",
+                required: true,
+                needs: "Put the date and time in",
+              },
+              { key: "meeting_where", label: "Where", type: "text" },
+            ],
           },
           {
             label: "Nudged them",
             outcome: "repeat",
             delay: 3,
             strike: true,
-            hint: "Not there yet. Logged, and this comes back in three days.",
+            hint: "No date yet. Logged, and this comes back in three days.",
           },
           {
-            label: "Gone cold",
+            // The escape hatch. A provider who has set themselves up and
+            // does not want a call has done the thing; chasing them for a
+            // meeting would rebuild the gate one rung later.
+            label: "Set up, no meeting needed",
+            outcome: "next",
+            goto: "ready",
+            delay: 0,
+            hint: "They did it themselves. Skips the meeting and marks them ready.",
+          },
+          {
+            label: "Not interested",
             outcome: "archive",
             delay: 0,
-            hint: "Said yes, never set up, stopped answering. Closes the record.",
+            hint: "They have changed their mind. Closes the record.",
           },
+          ERRAND,
         ],
-        repeats: {
-          noun: "nudge",
-          warnAt: 3,
-          warning: "Three nudges and still not set up. Offer to do it on a call, or archive.",
-        },
       },
       {
-        title: "Confirm they've signed up to receive students",
-        what: "The provider is on board and ready for placements.",
-        why: "This is the goal for a provider.",
-        steps: ["Confirm they've completed sign-up.", "Log it."],
-        actions: [{ label: "Signed up", outcome: "goal", delay: 0 }],
+        // Step 6. One rung, not two: booking happened on the rung before,
+        // with the date, so this is the meeting itself and what came of it.
+        name: "meeting",
+        title: "Hold the meeting",
+        what: "Fifteen minutes to confirm four things, and then they are live.",
+        why: "It is the fastest way to get a small agency set up, and the only place we find out whether this is a fit both ways.",
+        steps: [
+          "Confirm their profile is filled in as students will see it.",
+          "Confirm their requirements — hours, shifts, certifications.",
+          "Walk through applicant, interview, hire, billing.",
+          "Decide, out loud, whether this is a fit both ways.",
+        ],
+        textarea: "How it went",
+        actions: [
+          {
+            label: "Held — they're ready",
+            outcome: "next",
+            delay: 0,
+            hint: "Profile confirmed, process understood. They can receive a student.",
+          },
+          {
+            label: "Held — not a fit",
+            outcome: "archive",
+            delay: 0,
+            hint: "We met and it is not right, either way round. Closes the record, and it is not the same as never booking.",
+          },
+          { label: "No-show", outcome: "reschedule", delay: 0 },
+          { label: "Needs rescheduling", outcome: "reschedule", delay: 0 },
+        ],
+      },
+      {
+        // Step 7, and the goal. It used to be "signed up", which described a
+        // signature nobody gives. What it actually means is that a student
+        // can be sent tomorrow.
+        name: "ready",
+        title: "Ready for their first student",
+        what: "Profile confirmed, process understood, requirements set.",
+        why: "This is the goal for a provider: we can send them somebody tomorrow.",
+        steps: ["Check the profile one last time.", "Log it."],
+        actions: [{ label: "Ready", outcome: "goal", delay: 0 }],
       },
       {
         seasonal: true,
@@ -727,62 +803,6 @@ Dr. Logan DuBose's office · Olera`,
       // end is the only place a new rung can go without renumbering every
       // task row already written against this ladder.
       errandRung(),
-      {
-        // Step 9, and a branch. It was step 4, in front of everything; it is
-        // now beside it. Some providers want a meeting and it is the best
-        // thing that can happen — it just must not be what onboarding waits
-        // for.
-        branch: "meeting",
-        title: "Meet them",
-        what: "A short call to answer their questions. They have the pack already.",
-        why: "They asked for one. It is fifteen minutes because the pack did the explaining.",
-        steps: [
-          "Offer two times, or confirm the one they gave.",
-          "Put it in the calendar and invite the sales team.",
-          "Type the time in below.",
-        ],
-        recall: "What they said",
-        inputs: [
-          {
-            key: "meeting_at",
-            label: "Date and time",
-            type: "datetime-local",
-            required: true,
-            needs: "Put the date and time in",
-          },
-          { key: "meeting_where", label: "Where", type: "text" },
-        ],
-        actions: [
-          {
-            label: "Meeting booked",
-            outcome: "next",
-            goto: "meetlog",
-            delay: 0,
-            // The log rung belongs on the day of the meeting, not today.
-            delayFrom: "meeting_at",
-            hint: "On the calendar. Logging it comes back on the day.",
-          },
-        ],
-      },
-      {
-        branch: "meetlog",
-        title: "Log the meeting",
-        what: "What happened at the meeting.",
-        why: "People no-show often. What happens next depends on which.",
-        steps: ["Pick the outcome.", "Write a line about it."],
-        textarea: "How it went",
-        actions: [
-          {
-            label: "Held",
-            outcome: "next",
-            goto: "setup",
-            delay: 0,
-            hint: "Back to the main line — are they set up?",
-          },
-          { label: "No-show", outcome: "reschedule", delay: 0 },
-          { label: "Needs reschedule", outcome: "reschedule", delay: 0 },
-        ],
-      },
     ],
   },
 

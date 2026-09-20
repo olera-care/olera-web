@@ -6,8 +6,6 @@ import {
   DEFERRALS,
   STOP_REASONS,
   canReopen,
-  lastNote,
-  longDate,
   shortDate,
   strikesAt,
   taskTitle,
@@ -113,8 +111,6 @@ export default function TaskView({
   // conversation, and neither number stops anybody.
   const repeats = rung.repeats;
   const attempts = repeats ? strikesAt(record, task.step, task.round) : 0;
-  // What was said last time, for a rung that exists because of it.
-  const recalled = rung.recall ? lastNote(record, task) : null;
   // A value the rung exists to capture. Missing it, there is nothing to log.
   const missing = (rung.inputs ?? []).filter(
     (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
@@ -278,19 +274,6 @@ export default function TaskView({
               <li key={s}>{s}</li>
             ))}
           </ol>
-
-          {recalled && (
-            <div className="mt-2.5 rounded-md border border-gray-200 bg-gray-50 px-3.5 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                {rung.recall}
-                {recalled.on ? ` · ${longDate(recalled.on)}` : ""}
-              </p>
-              <p className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-[12.5px] leading-relaxed text-gray-700">
-                {recalled.note}
-              </p>
-              <p className="mt-1.5 text-[11.5px] text-gray-400">{recalled.title}</p>
-            </div>
-          )}
 
           {rung.attachment && <Attachment attachment={rung.attachment} />}
 
@@ -484,7 +467,7 @@ export default function TaskView({
                           : BTN
                   } ${blocked ? "cursor-not-allowed opacity-40" : ""}`}
                 >
-                  {a.outcome === "archive" && repeats && attempts >= repeats.warnAt
+                  {a.outcome === "archive" && repeats?.archive && attempts >= repeats.warnAt
                     ? `Archive — ${attempts} ${repeats.noun}s`
                     : a.label}
                 </button>

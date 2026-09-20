@@ -46,13 +46,49 @@ import {
 export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
   || process.env.WAR_ROOM_MODEL
   || "claude-opus-5";
-export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v5-split-contract";
+// Bump whenever prompt text changes. Every run row and every failure
+// diagnostic is stamped with this, so leaving it alone after editing a prompt
+// makes runs before and after the change indistinguishable in the data.
+export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v6-bounded-dossiers";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;
 // SDK-level retries would be invisible to our step telemetry and can duplicate
 // a costly request inside one attempt.
 const REQUEST_OPTIONS = { timeout: 240_000, maxRetries: 0 };
+
+/**
+ * The dossier pass is the only call that has ever truncated, and it has done so
+ * four times: 2026-08-18, 08-31, 09-11, 09-20, with the gaps closing (13, 11,
+ * then 9 days). The mechanism is that nothing caps it. The wire schema says
+ * `minItems: 0` with no `maxItems`, and no prompt names a ceiling, so as the
+ * evidence pack grows the model writes more dossiers until it runs past
+ * max_tokens. The archive reader adds up to 25 more evidence items, which
+ * pushes in the same direction.
+ *
+ * Three changes, in increasing order of how much they matter:
+ *   - a little more headroom,
+ *   - an explicit ceiling the model can actually read,
+ *   - and a retry that asks for something different.
+ *
+ * The last one is the real defect. `investigateCompanyStep` has
+ * `maxRetries = 1`, and the retry re-sent a byte-identical request, so a
+ * truncation deterministically failed twice and killed the scan. Both recorded
+ * failures read "failed after 1 retry".
+ *
+ * A wider ceiling is deliberately not the whole answer: REQUEST_OPTIONS caps a
+ * request at 240s, so doubling the token budget trades a truncation failure for
+ * a timeout failure. Asking for less output is what actually fits.
+ */
+const DOSSIER_MAX_TOKENS = 20_000;
+const DOSSIER_RETRY_MAX_TOKENS = 24_000;
+const DOSSIER_CEILING = 6;
+const DOSSIER_RETRY_INSTRUCTION = `Your previous answer exceeded the output budget and was discarded. Return at most 3 dossiers this time, covering only the most material conditions, and keep every prose field to two sentences. A shorter answer that arrives is worth more than a complete one that is thrown away.`;
+
+function isTruncationError(error: unknown, toolName: string) {
+  return error instanceof WarRoomProviderError
+    && error.message === `war_room_truncated_tool_output:${toolName}`;
+}
 const ACTIVE_PROPOSAL_STATUSES = ["proposed", "approved", "dispatching", "executing", "review_ready"];
 
 const INVESTIGATOR_SYSTEM = `You are Olera's autonomous chief-of-staff investigator. Your objective is not to produce work. Your objective is to improve Olera's odds of surviving and thriving while protecting founder attention.
@@ -828,13 +864,26 @@ async function runDossierPass(
   operatingPack: ReturnType<typeof buildOperatingPack>,
   lensReviews: StrategicLensReview[],
 ) {
-  const call = await callWarRoomTool<DossierToolOutput>({
+  const basePrompt = `You already completed the ten-lens sweep below. Preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Zero dossiers is a valid answer, and no more than ${DOSSIER_CEILING} may be returned; if more conditions qualify, keep the most material and leave the rest to the next scan.\n\nTEN-LENS SWEEP:\n${JSON.stringify(lensReviews)}\n\nOPERATING PACK:\n${JSON.stringify(operatingPack)}`;
+
+  const attempt = (maxTokens: number, extra?: string) => callWarRoomTool<DossierToolOutput>({
     stage: "forming_candidates",
     system: INVESTIGATOR_SYSTEM,
     tool: WIRE_DOSSIER_TOOL,
-    maxTokens: 16_000,
-    prompt: `You already completed the ten-lens sweep below. Preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Zero dossiers is a valid answer.\n\nTEN-LENS SWEEP:\n${JSON.stringify(lensReviews)}\n\nOPERATING PACK:\n${JSON.stringify(operatingPack)}`,
+    maxTokens,
+    prompt: extra ? `${basePrompt}\n\n${extra}` : basePrompt,
   });
+
+  let call: Awaited<ReturnType<typeof attempt>>;
+  try {
+    call = await attempt(DOSSIER_MAX_TOKENS);
+  } catch (error) {
+    if (!isTruncationError(error, WIRE_DOSSIER_TOOL.name)) throw error;
+    // Retry with a different ask, not the same one. The durable step's own
+    // retry re-sends an identical request, which is why every truncation so far
+    // has failed twice and taken the scan with it.
+    call = await attempt(DOSSIER_RETRY_MAX_TOKENS, DOSSIER_RETRY_INSTRUCTION);
+  }
   return {
     dossiers: (call.output?.dossiers ?? []).map((dossier, index) => ({
       ...dossier,

@@ -49,6 +49,13 @@ student is not implied by anything Logan said in the meeting; it appears only in
 > **D-011** keeps the price out of the provider onboarding pack for exactly this reason — a number in an
 > email that goes to every interested provider would settle C1 by accident. C1 is still blocking, and its
 > new deadline is the first-hire terms gate in **D-010**, which cannot be built without a number.
+>
+> **And then, later the same day, the number moved into writing anyway.** **D-012** attaches pilot terms
+> to the pack, and those terms name $250 per hire. The email still states no price, which is what D-011
+> asked for, but a document sent to every interested provider is publication. Treat C1's **amount** as
+> settled at $250 unless somebody says otherwise before the terms PDF is approved; what is still genuinely
+> open is the **trigger** — on the confirmed hire, monthly in arrears, or after six shifts — and whether
+> the first hire is free.
 
 **Owner:** Logan (with TJ). **Needed by:** before the first conversion meeting of the operational sprint.
 **Recommendation:** ship the provider-paid, post-hire model Logan described ($250/hire, invoiced monthly),

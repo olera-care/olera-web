@@ -263,38 +263,39 @@ read from**: one entry per attempt, with the operator's name and how long ago. I
 > cadence stopped,"* so the next move is a manual one. The out-of-office option exists precisely because
 > an auto-reply should not count as one.
 
-**On the Tasks board the first ask is interest, not a meeting.** A follow-up round opens on the one question
-that splits it: *have they written back?*: and neither answer is a button that logs a non-event.
+**On the Tasks board the first ask is interest, not a meeting**, and the whole of a follow-up round happens on one screen.
 
-- **Nothing back** puts the two acts the rung has always named in front of the operator: call them,
-  then email them, each with the way to do it to hand and a tick. The log button cannot be pressed until both are done, and then it logs two acts rather than asserting that nothing happened.
-- **They replied** sorts the reply by what it produced.
+Step one is *check their email and your voicemail*: both, because a provider who rang back and got the machine
+has got back to us and the board would never know. Under it sit the two acts a silent round is: **call them**
+and **email them, resending the programme**, each with the way to do it to hand and a tick. The log button
+cannot be pressed until both are done, and then it logs two acts. It used to say *No reply*, which named
+something the provider had not done and recorded nothing that we had.
 
-| Ending | What it means | Where the record goes |
+The other three outcomes sit beside it, on the same screen, with one free-text box for what happened.
+
+| Outcome | What it means | Where the record goes |
 |---|---|---|
-| **They're interested** | Yes, tell me more | **Send the onboarding pack**, today |
-| **Interested later** | Warm, not now | **Keep the conversation going**, today: the reply is answered in the same sitting |
+| **Log the call and the email** | Nothing back, both done | The next round, two business days out |
+| **Start onboarding** | Yes, tell me more | **Send the onboarding pack**, today |
+| **Interested later** | Warm, not now | **Keep the conversation going**, today |
 | **Not interested** | They declined | Archived |
 
-**Interest is logged wherever it arrives** (an email reply, a call, a callback, a voicemail they left) and the
-outcome asks which, because that is the only way we will learn which channel works. It can be logged on the
-confirming call too: a provider who says yes on the phone should not be sent a programme email and seven
-follow-ups to arrive where they already are.
+**Interest can be logged wherever it arrives**, including on the confirming call: a provider who says yes on the phone skips the programme email and the whole block rather than being followed up to arrive where they already are.
 
-**The meeting is a checkbox on that outcome, not a rung in front of it.** Ticked, it opens the meeting
-*beside* onboarding; unticked, onboarding runs on its own. Some providers want a meeting and it is the best
-thing that can happen: it just must not be what the rest waits for. The meeting rung takes the date the
-provider gave and puts the logging rung on that day rather than two days from today.
+**The pack is the email that means nobody has to explain it again.** Three things: how the programme works end
+to end; what they are looking for in a caregiver, which they can simply reply with and we will set up on our
+side; and the pilot terms, attached for review. It carries their portal link, and the rung cannot be logged
+without it: but the portal is offered, not required, because a provider who would rather reply in prose is the
+normal case for this audience, not the exception.
 
-**The pack is the whole process in one email built around one link:** how applications reach them, how to
-review one in under a minute, how to set the students they want through their profile and their requirements,
-and applicant → interview → hire → billing. It states no price (see **C1**, which the pack deliberately does
-not settle) and says terms come at the two gates in **D-010**. The rung cannot be logged without the portal
-link, because the email is mostly the link.
+**The email states no price.** The attached terms describe the pilot: nothing to sign, no obligation, students
+until a hire works out, and formal terms agreed afterwards rather than now. See **C1**, and **D-011** and
+**D-012**, which between them say why the number lives in the attachment and not in the email: and why putting
+it in the attachment is itself a decision about C1.
 
-**Then we check they are actually set up**, in the portal rather than by asking them: account claimed, requirements set, a candidate opened. A provider who said yes and never used the link is a nudge, not a chase, and the rung counts the nudges.
+**"Not yet" is not offered on a rung that already runs on a cadence.** Putting a follow-up off by two days is what the next round is. It stays on the confirming call, the programme email, the pack, the set-up check and the meeting.
 
-**"Not yet" is not offered on a rung that already runs on a cadence.** Putting a follow-up off by two days is what the next round is, so the button would be the same act under a second name. It stays on the rungs that are a thing a person does on a day: the confirming call, the programme email, the pack, the set-up check and the meeting.
+**The meeting is not a gate.** It was steps 4 and 5 of the sequence; it is a branch now, reached when a provider asks to be walked through it. The rung takes the date they gave and puts the logging rung on that day rather than two days from today.
 
 ### ③ System / handoff
 

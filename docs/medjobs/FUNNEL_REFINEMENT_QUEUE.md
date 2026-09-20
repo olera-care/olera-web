@@ -411,20 +411,62 @@ for a meeting.
 
 MATRIX and the Admin manual carry the same thing, and the PDFs are rebuilt.
 
+### Corrected the same day, after looking at it running
+
+Five things, all of them the screen being cleverer than it needed to be.
+
+**One rung, one screen.** The triage question and the outcome panel were two
+mode changes on a screen that should have none. Everything is on the follow-up
+now: the two acts, the note box, and all four outcomes at once. Nothing
+navigates until the rung is logged.
+
+**Step one is email *and* voicemail.** A provider who rang back and got the
+machine has got back to us, and the board would never have known.
+
+**Interest asks for nothing but a note.** The four how-did-we-hear chips and
+the *they want to meet first* checkbox are gone. The button says **Start
+onboarding** and the free-text box is the record. Everything that supported
+them went with them — action-level inputs, the beside-the-main-line branch
+(`also`), and the choice and checkbox field types. Unused machinery is worse
+than machinery that does not exist.
+
+**The pack leads with the programme, not the portal.** Three things: how it
+works, what they want in a caregiver — *reply and we will set it up* is the
+first-offered route, because for this audience a reply is the normal case and
+the portal is the alternative — and the pilot terms, attached for review. The
+portal link is still required on the rung; the email just no longer pretends
+it is the only way in.
+
+**The terms are attached.** Nothing to sign, no obligation, students until a
+hire works out. The draft is `PILOT_TERMS_DRAFT.md`; the PDF does not exist, so
+the attachment link 404s by design rather than sending a draft. See **D-012** —
+and read the honest part of it, which is that a document naming $250 sent to
+every interested provider settles C1's amount whatever the log says.
+
 ### Still to settle
 
 1. **C1, the price and its trigger**, and the terms-at-hire gate that waits on
    it. The one piece of 12 that is not built.
-2. **Run the migration.** `scripts/migration/22-meeting-becomes-a-branch.sql`.
-   Until it runs, a provider sitting on an old meeting rung reads as being on
-   the onboarding pack. The counting query below is no longer needed — the
-   migration reports what it moved.
-3. **Wire the set-up rung to the portal.** Account claimed, requirements set, a
+2. ~~Run the migration.~~ **Run, 20 September: 0 rows moved.** No provider had
+   ever reached the old meeting rungs, which is its own small argument for the
+   reframe — the gate was never being crossed.
+3. **Design the onboarding phase.** After the pack the ladder should run a
+   block of onboarding follow-ups ending in a meeting where the profile and the
+   process are confirmed, terminal state: *ready to receive their first student
+   in the pilot*. Not built, and the rungs need thinking through — there is a
+   real tension to resolve first, which is that this makes the meeting
+   compulsory again, at the end rather than the front. See the proposal in
+   chat. Today the pack lands on *Confirm they can receive a student*, which is
+   an interim.
+4. **Approve the pilot terms** and build the PDF to
+   `docs/medjobs/MedJobs_Pilot_Terms.pdf`. The route key and the tracing entry
+   are in place, so the attachment goes live the moment the file lands.
+5. **Wire the set-up rung to the portal.** Account claimed, requirements set, a
    candidate opened are all facts `business_profiles` holds; the rung asks a
    person to read them off the screen because the outreach row is not joined to
    the provider profile in the board's query yet. The students ladder already
    does this properly and is the pattern.
-4. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
+6. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
    rows. Count what is actually sitting there before choosing between a
    migration and appending:
 
@@ -435,7 +477,7 @@ MATRIX and the Admin manual carry the same thing, and the PDFs are rebuilt.
    where o.kind = 'provider' and (payload->>'step')::int >= 4
    group by 1, 2 order by 1, 2;
    ```
-5. **Logging a callback on an archived record.** Interest can arrive months
+7. **Logging a callback on an archived record.** Interest can arrive months
    later. Reviving and then pressing the outcome works, but it is two steps and
    the second is not obvious.
 

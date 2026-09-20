@@ -166,6 +166,25 @@ when a provider asks the price. C1 is still blocking for that.
 **Reverses if:** providers reach the hire gate and balk at a number they are seeing for the first time. That
 is the failure mode of leaving it out, and it is the reason C1 still has a date on it.
 
+### D-012 · 2026-09-20 · Logan · The pilot terms are attached to the pack, and they name the price
+
+**Status:** DECIDED. **Narrows D-011 and, in practice, decides C1's amount.**
+
+**Reasoning:** a provider deciding whether to try this wants to see what they are agreeing to, and
+D-011's answer — say nothing about money — leaves them guessing. So the pack attaches pilot terms, for
+review, with nothing to sign. The terms say what D-011 keeps out of the email: no obligation, we keep
+sending students until you hire one and it works out, and **$250 per hire** if you want to carry on
+after that, agreed formally then rather than now.
+
+**The thing to be honest about:** this is not a narrowing of D-011 so much as a different route to the
+same place. A number in a document attached to every interested provider is a number we have published.
+C1's *amount* is settled by this in practice whatever the decision log says; what genuinely remains open
+is the trigger and the free-first-hire question. The draft is at `../PILOT_TERMS_DRAFT.md` and the PDF
+does not exist yet, so the attachment link 404s by design rather than sending a draft.
+
+**Reverses if:** the amount comes out anywhere other than $250, in which case a document stating $250 is
+already in providers' inboxes and has to be corrected rather than quietly replaced.
+
 ---
 
 ## Open — awaiting a founder decision
@@ -174,7 +193,7 @@ These are the blockers. Each is detailed in `07-OPEN-DECISIONS-AND-CONFLICTS.md`
 
 | ID | Decision | Owner | Needed by | Recommendation |
 |---|---|---|---|---|
-| **C1** | Price, payer, billing timing | Logan + TJ | Before the first hire gate is built (D-011 buys time, not an answer) | $250/hire, provider-only; the trigger is now the live question — Logan has since described invoicing on the confirmed hire with the first one free |
+| **C1** | Price, payer, billing timing | Logan + TJ | Before the pilot terms PDF is approved — **D-012** puts $250 in writing to every interested provider | The amount is settled in practice at $250/hire, provider-only. What is genuinely still open is the **trigger** and whether the first hire is free |
 | **C2** | What defines a Client | TJ + Logan | Day 3 | Narrowed by **D-010**: interview-terms acceptance stays the Client definition and the pilot start; a second, fuller acceptance sits at the first hire. Eligibility stays the product's feature gate underneath |
 | **O-1** | Site #1 | Logan | Day 1 | Where Logan already has an advisor relationship, not the biggest school |
 | **C5** | Does the provider pipeline stay in MedJobs? | Logan + TJ | Tuesday session | Decide the target; don't migrate now (D-008) |

@@ -24,7 +24,6 @@ import {
   iso,
   lastNote,
   makeRecord,
-  resolveAlso,
   resolveNext,
   startOfToday,
   stillToCome,
@@ -105,27 +104,22 @@ ok(
   [MEETING, MEETLOG].every((i) => !steps.slice(0, i).some(() => false) && steps[i].branch),
 );
 
-console.log("\nThe rung asks one question before it offers anything");
+console.log("\nOne rung, one screen");
 {
   const rung = rungAt("providers", FOLLOW, 1)!;
-  ok("the follow-up triages", Boolean(rung.triage), JSON.stringify(rung.triage));
+  ok("it says to check both", rung.steps[0].includes("email") && rung.steps[0].includes("voicemail"));
+  ok("and nothing else, so the screen is the work", rung.steps.length === 1, rung.steps.join(" · "));
+  const labels = rung.actions.map((a) => a.label);
   ok(
-    "and neither answer is nothing happened",
-    rung.triage?.no === "Nothing back — call and email now" && rung.triage?.yes === "They replied",
+    "four outcomes, all offered at once",
+    labels.join("|") === "Log the call and the email|Start onboarding|Interested later|Not interested",
+    labels.join("|"),
   );
-  const silent = rung.actions.filter((a) => !a.afterReply);
-  ok("one outcome behind no", silent.length === 1, silent.map((a) => a.label).join("|"));
-  ok("and it is the log of two acts", silent[0].label === "Log the call and the email");
-  ok("which are the call and the email", (silent[0].acts ?? []).join("+") === "call+email");
-  const replied = rung.actions.filter((a) => a.afterReply);
-  ok(
-    "three behind yes, sorted by interest",
-    replied.map((a) => a.label).join("|") === "They're interested|Interested later|Not interested",
-    replied.map((a) => a.label).join("|"),
-  );
+  ok("the silent round is the log of two acts", (rung.actions[0].acts ?? []).join("+") === "call+email");
+  ok("and it is the one you will press most, so it leads", rung.actions[0].label.startsWith("Log"));
+  ok("no outcome asks a second screen of questions", rung.actions.every((a) => !("inputs" in a)));
   ok("every outcome says what it means", rung.actions.every((a) => Boolean(a.hint)));
   ok("advisors keep their catch-all until 11", rungAt("advisors", 2, 1)?.reply === true);
-  ok("and have no triage", !rungAt("advisors", 2, 1)?.triage);
 }
 
 console.log("\nInterest starts onboarding, from wherever it arrives");
@@ -135,37 +129,29 @@ for (const [step, round, where] of [
   [TALKING, 0, "from the conversation weeks later"],
 ] as Array<[number, number, string]>) {
   const [u, r] = at(step, round);
-  act(u, r, "They're interested", { heard_via: "On a call" });
+  act(u, r, "Start onboarding");
   ok(where, r.step === ONBOARD, `landed on ${r.step}`);
 }
 {
   const [u, r] = at(FOLLOW, 3);
-  act(u, r, "They're interested", { heard_via: "Email reply" });
+  act(u, r, "Start onboarding");
   ok("and the rest of the follow-ups are dropped", !r.tasks.some((t) => !t.done && t.step === FOLLOW));
 }
 
-console.log("\nThe meeting runs beside onboarding, never in front of it");
+console.log("\nThe meeting is still reachable");
 {
-  const [u, r] = at(FOLLOW, 2);
-  act(u, r, "They're interested", { heard_via: "On a call", wants_meeting: "yes" });
-  const open = r.tasks.filter((t) => !t.done).map((t) => t.step).sort((a, b) => a - b);
-  ok("both rungs are open", open.join("+") === `${ONBOARD}+${MEETING}`, open.join("+"));
-  ok("and the record is on the pack, not the meeting", r.step === ONBOARD, String(r.step));
-
-  const [u2, r2] = at(FOLLOW, 2);
-  act(u2, r2, "They're interested", { heard_via: "Email reply" });
-  ok(
-    "unticked, no meeting is queued",
-    !r2.tasks.some((t) => t.step === MEETING),
-    r2.tasks.map((t) => t.step).join("+"),
+  // Nothing in the sequence leads to it any more, which is the point — it
+  // is not a gate. But a branch nothing can reach is a rung that does not
+  // exist, so the set-up rung carries the way in until the onboarding phase
+  // is built and takes it over.
+  const ways = steps.flatMap((r, i) =>
+    r.actions.filter((a) => a.goto === "meeting").map(() => steps[i].title),
   );
-
-  const action = rungAt("providers", FOLLOW, 1)!.actions.find((a) => a.label === "They're interested")!;
-  ok("the screen and the server resolve it the same way", (() => {
-    const a = resolveAlso("providers", action, { wants_meeting: "yes" });
-    return a?.step === MEETING && a.round === 0;
-  })());
-  ok("and agree there is none when it is unticked", resolveAlso("providers", action, {}) === null);
+  ok("exactly one way in", ways.length === 1, ways.join("|"));
+  ok("and it is the set-up rung", ways[0] === steps[SETUP].title, ways[0]);
+  const [u, r] = at(SETUP, 0);
+  act(u, r, "They want a meeting");
+  ok("which reaches it", r.step === MEETING, String(r.step));
 }
 
 console.log("\nA booked meeting is logged on the day, not today");
@@ -240,7 +226,7 @@ console.log("\nHanded over, not parked");
 
   for (const [step, round, label, why] of [
     [CALL, 0, "Confirmed contact", "a confirmed contact hands you the programme email"],
-    [FOLLOW, 2, "They're interested", "interest hands you the onboarding pack"],
+    [FOLLOW, 2, "Start onboarding", "interest hands you the onboarding pack"],
     [FOLLOW, 2, "Interested later", "a warm reply hands you the reply to write"],
   ] as Array<[number, number, string, string]>) {
     const { same, ready } = handed(step, round, label);
@@ -270,13 +256,7 @@ console.log("\nWhat an outcome will not be logged without");
 {
   ok("the pack needs the portal link", steps[ONBOARD].inputs?.[0].required === true);
   ok("the meeting needs a date", steps[MEETING].inputs?.[0].required === true);
-  const interested = steps[FOLLOW].actions.find((a) => a.label === "They're interested")!;
-  ok("interest needs to say where it came from", interested.inputs?.[0].required === true);
-  ok(
-    "and offers the four ways it arrives",
-    (interested.inputs?.[0].options ?? []).join("|") ===
-      "Email reply|On a call|They called back|Voicemail they left",
-  );
+  ok("and the pack says what it attaches", steps[ONBOARD].attachment?.doc === "pilot-terms");
 }
 
 console.log("\nWhere Not yet is offered");
@@ -328,6 +308,18 @@ console.log("\nNothing still asks for a meeting as the first ask");
   ok("no fifteen minutes in the cold copy", !copy.includes("fifteen minutes"));
   ok("no offering of times", !copy.toLowerCase().includes("tuesday afternoon"));
   ok("the programme email asks to hear more", copy.includes("Would you like to hear more?"));
+}
+
+console.log("\nThe pack, and what it does not say");
+{
+  const pack = JSON.stringify(steps[ONBOARD]);
+  // D-011: the email carries no price. The attached terms describe the
+  // pilot and what follows it, and they are the only place a number lives.
+  ok("no price in the email", !/\$\s?\d/.test(pack) && !pack.includes("250"));
+  ok("the terms are for review, not signature", pack.includes("Nothing to sign"));
+  ok("it says there is no obligation", pack.toLowerCase().includes("no obligation"));
+  ok("a reply is an acceptable way to say what they want", pack.includes("reply to this email"));
+  ok("and the portal is offered rather than required", pack.includes("If you would rather do it yourself"));
 }
 
 console.log(failed === 0 ? "\nAll checks passed.\n" : `\n${failed} failed.\n`);

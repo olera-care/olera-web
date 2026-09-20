@@ -90,16 +90,6 @@ export default function TaskView({
   const [replying, setReplying] = useState(false);
   const [draftName, setDraftName] = useState("");
   /**
-   * A rung that triages asks one question before it offers anything. Null
-   * until it is answered.
-   */
-  const [stage, setStage] = useState<"no" | "yes" | null>(null);
-  /**
-   * The outcome being filled in. An action with inputs does not fire when
-   * it is clicked — it opens, collects, and fires on confirm.
-   */
-  const [picked, setPicked] = useState<number | null>(null);
-  /**
    * The acts done in this sitting. Deliberately not persisted: the log is
    * the record, and a tick that survives a reload would start claiming a
    * call happened when all that happened was a page refresh.
@@ -123,24 +113,9 @@ export default function TaskView({
     (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
   );
 
-  // Which outcomes the rung is currently offering. A rung that triages
-  // offers none until its question is answered, then the half that fits.
-  const offered = rung.triage
-    ? stage === null
-      ? []
-      : rung.actions
-          .map((a, i) => ({ a, i }))
-          .filter(({ a }) => (stage === "yes" ? Boolean(a.afterReply) : !a.afterReply))
-    : rung.actions.map((a, i) => ({ a, i }));
-
-  const chosen = picked === null ? null : rung.actions[picked];
-  // Everything the chosen outcome asked for that is still blank.
-  const chosenMissing = (chosen?.inputs ?? []).filter(
-    (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
-  );
-  // The acts an offered outcome wants done first — call them, email them —
-  // and whether they are.
-  const wanted = offered.find(({ a }) => a.acts)?.a.acts ?? [];
+  // The acts one of the outcomes is the log of — call them, email them —
+  // and whether they are done.
+  const wanted = rung.actions.find((a) => a.acts)?.acts ?? [];
   const canAct = (kind: string) => (kind === "call" ? Boolean(record.phone) : Boolean(record.email));
   const actsLeft = wanted.filter((k) => canAct(k) && !acted[k]);
 
@@ -441,27 +416,12 @@ export default function TaskView({
             />
           ))}
 
-          {/* The one question that splits the rung, asked before anything else. */}
-          {rung.triage && stage === null && (
-            <div className="mt-4 border-t border-gray-100 pt-4">
-              <p className="text-[13.5px] font-medium text-gray-900">{rung.triage.question}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button type="button" onClick={() => setStage("yes")} className={BTN_GO}>
-                  {rung.triage.yes}
-                </button>
-                <button type="button" onClick={() => setStage("no")} className={BTN}>
-                  {rung.triage.no}
-                </button>
-              </div>
-              <p className="mt-2 text-[12.5px] text-gray-500">
-                Neither of these means nothing happened. Both are the start of the work.
-              </p>
-            </div>
-          )}
-
-          {/* Nothing back: the two acts, with the way to do them to hand. */}
+          {/* The two acts a silent round is, with the way to do them to hand. */}
           {wanted.length > 0 && (
-            <div className="mt-3 overflow-hidden rounded-md border border-gray-200 bg-gray-50 px-3.5">
+            <div className="mt-3 overflow-hidden rounded-md border border-gray-200 bg-gray-50 px-3.5 pb-0.5">
+              <p className="pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                If nothing has come back
+              </p>
               {wanted.map((kind) => (
                 <Act
                   key={kind}
@@ -479,52 +439,10 @@ export default function TaskView({
             </div>
           )}
 
-          {!replying && chosen === null && (!rung.triage || stage !== null) && (
-            <Note value={task.note} label={rung.textarea} onChange={onNote} />
-          )}
-
-          {/* The outcome being filled in, and only it. */}
-          {chosen && (
-            <div className="mt-3 rounded-md border border-primary-200 bg-primary-25 px-3.5 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-800">
-                {chosen.label}
-              </p>
-              {chosen.hint && <p className="mt-0.5 text-[12px] text-gray-600">{chosen.hint}</p>}
-              {(chosen.inputs ?? []).map((f) => (
-                <Field
-                  key={f.key}
-                  field={f}
-                  value={task.fields?.[f.key] ?? ""}
-                  onChange={(v: string) => onFieldValue(f.key, v)}
-                />
-              ))}
-              <Note value={task.note} label={rung.textarea} onChange={onNote} />
-              <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  disabled={chosenMissing.length > 0}
-                  onClick={() => {
-                    const i = picked;
-                    setPicked(null);
-                    if (i !== null) onAct(i);
-                  }}
-                  className={chosenMissing.length ? `${BTN_GO} cursor-not-allowed opacity-40` : BTN_GO}
-                >
-                  Confirm
-                </button>
-                <button type="button" onClick={() => setPicked(null)} className={BTN}>
-                  Back
-                </button>
-                {chosenMissing.length > 0 && (
-                  <span className="text-[12px] text-gray-500">{needLine(chosenMissing)}</span>
-                )}
-              </div>
-            </div>
-          )}
+          {!replying && <Note value={task.note} label={rung.textarea} onChange={onNote} />}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
-            {chosen === null &&
-              offered.map(({ a, i }, n) => {
+            {rung.actions.map((a, i) => {
               // Nothing to fan out to, nothing to log, or the two acts this
               // outcome is the log of still to do: the same idea. An outcome
               // that closes the record is never blocked — a provider who says
@@ -539,10 +457,10 @@ export default function TaskView({
                   key={a.label}
                   type="button"
                   disabled={blocked}
-                  onClick={() => ((a.inputs?.length ?? 0) > 0 ? setPicked(i) : onAct(i))}
+                  onClick={() => onAct(i)}
                   title={a.hint}
                   className={`${
-                    n === 0
+                    i === 0
                       ? BTN_GO
                       : a.outcome === "closed" || a.outcome === "archive"
                         ? BTN_BAD
@@ -555,12 +473,8 @@ export default function TaskView({
                 </button>
               );
             })}
-            {rung.triage && stage !== null && chosen === null && (
-              <button type="button" onClick={() => setStage(null)} className={BTN}>
-                Back
-              </button>
-            )}
-            {rung.reply && chosen === null && (
+
+            {rung.reply && (
               <button
                 type="button"
                 onClick={() => {
@@ -573,7 +487,7 @@ export default function TaskView({
                 They replied
               </button>
             )}
-            {rung.defer !== false && chosen === null && (
+            {rung.defer !== false && (
               <button
                 type="button"
                 onClick={() => {
@@ -592,7 +506,7 @@ export default function TaskView({
               "not available here", which belongs with the channel rather
               than on a task, and is not built yet.
             */}
-            {record.section !== "jobboard" && chosen === null && offered.length > 0 && (
+            {record.section !== "jobboard" && (
               <button
                 type="button"
                 aria-label="More"
@@ -607,7 +521,7 @@ export default function TaskView({
             )}
           </div>
 
-          {missing.length > 0 && chosen === null && (
+          {missing.length > 0 && (
             <p className="mt-2 text-[12.5px] text-gray-500">{needLine(missing)}</p>
           )}
 
@@ -829,52 +743,6 @@ function Field({
   value: string;
   onChange: (v: string) => void;
 }) {
-  if (field.type === "check") {
-    const on = Boolean(value);
-    return (
-      <button
-        type="button"
-        onClick={() => onChange(on ? "" : "yes")}
-        aria-pressed={on}
-        className="mt-3 flex w-full items-start gap-2.5 rounded-md border border-primary-200 bg-white px-3 py-2.5 text-left hover:border-primary-600"
-      >
-        <span
-          className={`mt-0.5 flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded border text-[11px] font-bold ${
-            on ? "border-primary-600 bg-primary-600 text-white" : "border-gray-300 text-transparent"
-          }`}
-        >
-          ✓
-        </span>
-        <span className="text-[13px] text-gray-800">{field.label}</span>
-      </button>
-    );
-  }
-  if (field.type === "choice") {
-    return (
-      <div className="mt-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          {field.label}
-          {field.required && <span className="ml-0.5 text-error-600">*</span>}
-        </p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {(field.options ?? []).map((o) => (
-            <button
-              key={o}
-              type="button"
-              onClick={() => onChange(value === o ? "" : o)}
-              className={`rounded-full border px-2.5 py-1 text-[12px] font-medium ${
-                value === o
-                  ? "border-primary-600 bg-primary-600 text-white"
-                  : "border-gray-300 bg-white text-gray-700 hover:border-primary-600 hover:text-primary-700"
-              }`}
-            >
-              {o}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
   return (
     <label className="mt-3 flex items-center gap-2.5">
       <span className="w-24 shrink-0 text-[12px] text-gray-500">

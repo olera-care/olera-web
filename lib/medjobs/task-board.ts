@@ -228,22 +228,6 @@ export function dueFor(action: LadderAction, fields?: Record<string, string>): s
   return dueIn(action.delay);
 }
 
-/**
- * The branch an action opens beside the one it queues, if its condition
- * holds. Exported because the screen and the server both have to make the
- * same call — see LadderAction.also.
- */
-export function resolveAlso(
-  section: SectionKey,
-  action: LadderAction,
-  fields?: Record<string, string>,
-): { step: number; round: number } | null {
-  if (!action.also) return null;
-  if (!(fields?.[action.also.when] ?? "").trim()) return null;
-  const steps = LADDERS[section].steps;
-  const i = steps.findIndex((r) => (r.branch ?? r.name) === action.also!.goto);
-  return i < 0 ? null : { step: i, round: steps[i].rounds ? 1 : 0 };
-}
 
 export function isReady(t: BoardTask): boolean {
   return !t.done && t.dueAt <= iso(startOfToday());
@@ -406,21 +390,6 @@ export function complete(
   let landRecord: BoardRecord | null = null;
 
   /**
-   * A branch opened beside the main line rather than in front of it.
-   *
-   * Deliberately does not move `record.step`: the record is still where the
-   * outcome put it, and this is a second thing now also waiting. The board
-   * reads a record's position from its lowest open rung, so two pending
-   * rungs are a state it already understands.
-   */
-  const queueBeside = (at: { step: number; round: number }) => {
-    if (record.tasks.some((t) => !t.done && t.step === at.step && t.round === at.round)) return;
-    const extra = makeTask(record.section, at.step, at.round, dueIn(0));
-    record.tasks.push(extra);
-    task.spawned.push(extra.id);
-  };
-
-  /**
    * `delay` is the action's, and is taken from the action rather than passed
    * — dueFor has to see `delayFrom` and the fields as well, and two callers
    * computing a due date is two answers.
@@ -547,13 +516,6 @@ export function complete(
         break;
       }
     }
-  }
-
-  // Beside, not instead. Only when the record is still climbing: a branch
-  // opened on an archived record is a task nobody will ever see.
-  if (!reason && !task.redo && record.step !== null) {
-    const beside = resolveAlso(record.section, action, task.fields);
-    if (beside) queueBeside(beside);
   }
 
   if (reason) {

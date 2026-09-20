@@ -61,9 +61,7 @@ export interface LadderInput {
   key: string;
   label: string;
   /** Defaults to a plain text field. */
-  type?: "text" | "datetime-local" | "url" | "number" | "choice" | "check";
-  /** `choice` only: the answers, rendered as one row of chips. */
-  options?: string[];
+  type?: "text" | "datetime-local" | "url" | "number";
   /**
    * The rung cannot be finished without it.
    *
@@ -111,31 +109,13 @@ export interface LadderAction {
    */
   delayFrom?: string;
   /**
-   * Values this outcome asks for. An action with inputs does not fire when
-   * it is clicked: it opens, collects, and fires on confirm.
-   *
-   * On the action rather than the rung because they belong to the outcome.
-   * How we heard that a provider is interested is a question about interest,
-   * and asking it of somebody logging an unanswered call is noise.
-   */
-  inputs?: LadderInput[];
-  /**
    * Things to do before this can be logged, each with the way to do it to
    * hand. The rung already said to call and then email; this is that
    * sentence made operable, so the button logs two acts rather than
    * asserting a non-event.
    */
   acts?: Array<"call" | "email">;
-  /** Behind "they replied" in a rung that triages. */
-  afterReply?: boolean;
-  /**
-   * A second rung to open alongside the first, when a field is set.
-   *
-   * The meeting. Some providers want one and most do not, and it must not
-   * hold up onboarding either way — so it is a checkbox on the outcome that
-   * opens a branch beside the main line, rather than a rung in front of it.
-   */
-  also?: { when: string; goto: string };
+
   /** Criterion keys this answers on the channel, if any. */
   ticks?: string[];
   /**
@@ -159,15 +139,7 @@ export interface LadderRung {
   email?: LadderEmail;
   /** Offers "They replied", which breaks out of a follow-up block. */
   reply?: boolean;
-  /**
-   * The one question that splits the rung, asked before anything else.
-   *
-   * A follow-up is two different tasks wearing one name. If they have
-   * written back, the work is reading it and deciding what it produced; if
-   * they have not, the work is a call and an email, now. Asking first is
-   * what stops the screen offering a button that means nothing happened.
-   */
-  triage?: { question: string; no: string; yes: string };
+
   /** Contact fields this rung collects, written onto the record. */
   collects?: ContactField[];
   /** Values the rung records on the task itself. Typed, so a date is a date
@@ -313,41 +285,23 @@ export const SEASON = "late July";
  */
 export const INTEREST_OUTCOMES: LadderAction[] = [
   {
-    label: "They're interested",
+    label: "Start onboarding",
     outcome: "next",
     goto: "onboarding",
     delay: 0,
-    afterReply: true,
-    hint: "They want to hear more. Onboarding starts now.",
-    inputs: [
-      {
-        key: "heard_via",
-        label: "How did we hear?",
-        type: "choice",
-        required: true,
-        needs: "Pick how we heard",
-        options: ["Email reply", "On a call", "They called back", "Voicemail they left"],
-      },
-      { key: "wants_meeting", label: "They want to meet first", type: "check" },
-    ],
-    // Beside onboarding, never in front of it. A provider who wants a
-    // meeting still gets the pack, and the pack is what makes the meeting
-    // fifteen minutes instead of forty.
-    also: { when: "wants_meeting", goto: "meeting" },
+    hint: "They want to hear more. Sends them the pack next.",
   },
   {
     label: "Interested later",
     outcome: "next",
     goto: "talking",
     delay: 0,
-    afterReply: true,
     hint: "Warm, but not now. Hands you the reply to answer today.",
   },
   {
     label: "Not interested",
     outcome: "archive",
     delay: 0,
-    afterReply: true,
     hint: "They declined. Closes the record.",
   },
 ];
@@ -370,9 +324,9 @@ export function followUp(n: number, section: SectionKey): LadderRung {
     why: "No reply yet.",
     steps:
       section === "providers"
-        ? // The rest of it is the triage below, and saying it twice makes the
-          // screen read like a form rather than a piece of work.
-          ["Check the inbox before anything else."]
+        ? // Both, and in that order. A provider who rang back and got the
+          // machine has got back to us, and the board would never know.
+          ["Check their email and your voicemail before anything else."]
         : ["Check your inbox first.", "No reply — call, then email."],
     script: `"Hi, this is [your name] from Dr. DuBose's office. I emailed ${who} last week about our Student Caregiver Program — students who work paid caregiving shifts around their classes. Did that reach the right person, or is there someone better I should send it to?"`,
     email: {
@@ -397,11 +351,6 @@ Dr. Logan DuBose's office · Olera`,
     textarea: "What happened",
     ...(section === "providers"
       ? {
-          triage: {
-            question: "Have they written back?",
-            no: "Nothing back — call and email now",
-            yes: "They replied",
-          },
           // A follow-up has four endings and the block only ever had one.
           // "They replied" took a summary and moved on, which meant a
           // provider who said "interested, not this month" and a provider
@@ -472,10 +421,9 @@ Best,
 Dr. Logan DuBose's office · Olera`,
     },
     actions: [
-      ...INTEREST_OUTCOMES.filter((a) => a.label === "They're interested").map((a) => ({
+      ...INTEREST_OUTCOMES.filter((a) => a.label === "Start onboarding").map((a) => ({
         ...a,
-        afterReply: false,
-        hint: "They are ready to hear the rest. Onboarding starts now.",
+        hint: "They are ready to hear the rest. Sends them the pack.",
       })),
       {
         label: "Still talking",
@@ -543,10 +491,9 @@ export const LADDERS: Record<SectionKey, Ladder> = {
           // A provider who says yes on the call should not be sent a
           // programme email and seven follow-ups to arrive where they
           // already are.
-          ...INTEREST_OUTCOMES.filter((a) => a.label === "They're interested").map((a) => ({
+          ...INTEREST_OUTCOMES.filter((a) => a.label === "Start onboarding").map((a) => ({
             ...a,
-            afterReply: false,
-            hint: "They said yes on the call. Skips the programme email and starts onboarding.",
+            hint: "They said yes on the call. Skips the programme email and sends the pack.",
           })),
           {
             label: "Voicemail",
@@ -608,11 +555,12 @@ Dr. Logan DuBose's office · Olera`,
         // only possible because 6, 7 and 8 keep their places.
         name: "onboarding",
         title: "Send the onboarding pack",
-        what: "Everything they need to receive a student, in one email built around their portal link.",
-        why: "They have said yes. From here they can do the whole thing themselves, and most will.",
+        what: "How the programme works, what they want in a caregiver, and the pilot terms to look over.",
+        why: "They have said yes. This is the email that means nobody has to explain it again.",
         steps: [
           "Create their portal account and paste the link in below.",
-          "Copy the email and read it through — it is mostly the link.",
+          "Attach the pilot terms — they are for review, not for signing.",
+          "Copy the email and read it through before you send it.",
           "Send it, then log it.",
         ],
         recall: "What they said",
@@ -625,32 +573,30 @@ Dr. Logan DuBose's office · Olera`,
             needs: "Create their account and paste the link in",
           },
         ],
+        attachment: { label: "Pilot terms, for their review", doc: "pilot-terms" },
         email: {
           subject: "Everything you need — Student Caregiver Program at {university}",
           body: `Hi {first},
 
-Good to hear from you. Here is the whole thing in one place.
+Good to hear from you. Here is the whole thing.
 
-Your portal: {portal_link}
+HOW IT WORKS
+When a pre-health student near {org} is ready, we send them over — by email and by text, and they are waiting in your portal too. Some will ring your office directly and say they came through the Student Caregiver Program.
 
-HOW APPLICATIONS REACH YOU
-When a student near {org} is ready, you will hear about them by text and by email, and they will be waiting in the portal. Some students will ring your office directly — they are told to say they came through the Student Caregiver Program.
+Each student arrives as one page: what they are studying, when they can work, what they have done before, and a short video. You invite the ones you want to interview, and you hire on your own terms.
 
-REVIEWING ONE
-Each student has a single page: what they are studying, when they can work, what they have done before, and a short video. It is built to be read in under a minute and decided on there and then.
-
-GETTING THE RIGHT STUDENTS
-Two things in the portal do this. Your profile is what students see when they consider you, so it is worth a look. Your requirements are what we match on — hours, shift types, certifications, anything you will not move on. Set those and the students you hear about change accordingly.
-
-HOW IT RUNS
-  1. We tell you a qualified student is ready
-  2. You invite them to interview, from their page
-  3. You hire the ones you want, on your own terms
+  1. We tell you a student is ready
+  2. You invite them to interview
+  3. You hire the ones you want
   4. We confirm the hire with you and with them
 
-Terms come up twice, both in the portal: a short agreement when you first invite somebody to interview, and the full one at your first hire. Nothing to sign today.
+WHAT YOU ARE LOOKING FOR
+Tell us and we will only send students who fit — hours, shift types, certifications, anything you will not move on. The easiest thing is to reply to this email and say it in your own words; we will set it up on our side. If you would rather do it yourself, it is all in your portal: {portal_link}
 
-If you would rather I walked you through it, say the word and I will find fifteen minutes. Otherwise the portal is live now and you can start looking.
+THE TERMS, FOR YOUR REVIEW
+Attached. Nothing to sign, and no obligation to carry on — this is a pilot. We will keep sending you students until you hire one and the placement works out. If you like working with our students after that, we agree formal terms then rather than now.
+
+If you would rather I walked you through it, say the word and I will find fifteen minutes. Otherwise you can start looking today.
 
 Best,
 [your name]
@@ -689,6 +635,17 @@ Dr. Logan DuBose's office · Olera`,
             outcome: "next",
             delay: 0,
             hint: "Account claimed, requirements set. They can receive a student.",
+          },
+          {
+            // Interim, and the only thing that reaches the meeting branch
+            // today. The onboarding phase that will own it — a block of
+            // follow-ups ending in a meeting where the profile and the
+            // process are confirmed — is designed but not built.
+            label: "They want a meeting",
+            outcome: "next",
+            goto: "meeting",
+            delay: 0,
+            hint: "They would rather be walked through it. Books the meeting.",
           },
           {
             label: "Nudged them",

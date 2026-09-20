@@ -96,7 +96,7 @@ console.log("\nThe outcomes of a confirming call");
     ),
     labels.join("|"),
   );
-  ok("and interest can be logged on the call", labels.includes("They're interested"));
+  ok("and interest can be logged on the call", labels.includes("Start onboarding"));
   ok("every one says what it means on hover", call.actions.every((a) => Boolean(a.hint)));
   ok(
     "voicemail and no answer keep the rung open",

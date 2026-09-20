@@ -64,6 +64,14 @@ const DOCS: Record<string, Doc> = {
     download: "MedJobs-Example-Job-Posting.pdf",
     type: "application/pdf",
   },
+  // Attached to the onboarding pack. Nothing to sign — the provider reads
+  // it and keeps it. Drop the approved file at the path below and the link
+  // is live; until then the route answers 404 rather than sending a draft.
+  "pilot-terms": {
+    file: "docs/medjobs/MedJobs_Pilot_Terms.pdf",
+    download: "Olera-Student-Caregiver-Pilot-Terms.pdf",
+    type: "application/pdf",
+  },
   walkthrough: {
     file: "docs/medjobs/MedJobs_Operating_System_Walkthrough_Summary.pdf",
     download: "MedJobs-Operating-System-Walkthrough-Summary.pdf",

@@ -6,7 +6,6 @@ import {
   dueIn,
   forwardStep,
   formatPhone,
-  resolveAlso,
   resolveNext,
 } from "@/lib/medjobs/task-board";
 import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
@@ -436,9 +435,6 @@ export async function POST(req: Request) {
             )
           : {};
       const nextRung = action ? resolveNext(section, step, round, action) : null;
-      // The branch this outcome opens beside the main line, if its condition
-      // holds — the meeting, when a provider asked for one.
-      const besideRung = action ? resolveAlso(section, action, fields) : null;
       const next = nextRung?.step ?? null;
       const mine = atStep(step).filter((t) => (where(t).round ?? 0) === round);
       const after = next === null ? [] : atStep(next).filter(
@@ -521,23 +517,6 @@ export async function POST(req: Request) {
             payload: { step: nextRung.step, round: nextRung.round },
           });
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-        }
-
-        // And the branch that runs beside it, on the same terms.
-        if (besideRung) {
-          const waiting = atStep(besideRung.step).filter(
-            (t) => (where(t).round ?? 0) === besideRung.round && t.status === "pending",
-          );
-          if (!waiting.length) {
-            const { error } = await db.from("student_outreach_tasks").insert({
-              outreach_id: outreach.id,
-              task_type: taskTypeFor(section, besideRung.step),
-              status: "pending",
-              due_at: dueIn(0),
-              payload: { step: besideRung.step, round: besideRung.round },
-            });
-            if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-          }
         }
       } else {
         // Unticking. Safe only while the rung it queued is untouched: a

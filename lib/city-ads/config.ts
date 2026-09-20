@@ -102,9 +102,17 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
   // min bid limit above the live cap on every row. Meta is interruption rather
   // than intent, so a ~375k-person tri-county can absorb real budget.
   //
-  // `auto` with a pool of one (Hoop) is the point — she is the customer, the
-  // lead is hers. Unqualified native leads still never reach her: they hold for
-  // an hour and page a person (see offers.server.ts:208).
+  // `concierge`, not `auto`, and this is load-bearing twice over. The native
+  // importer REQUIRES it (meta-native.server.ts:48 throws
+  // "Form needs concierge configuration" otherwise, and a 2026-09-20 test lead
+  // failed exactly there), because the published form promises a conversation
+  // before any introduction — which this form's own copy does say: "someone
+  // from Olera will call you, then introduce you to Hoop Cares."
+  //
+  // It costs nothing in automation. offers.server.ts:208 only holds a lead
+  // while it is UNANSWERED; once the family replies the chain falls through to
+  // the pool and offers to Hoop on its own. Concierge buys the honest sequence,
+  // not a manual handoff.
   //
   // The area is her own, confirmed by her on the 16 Sep orientation call:
   // Jackson, Harrison and George County, not a radius around Pascagoula.
@@ -112,7 +120,7 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
     slug: "pascagoula-ms",
     city: "Pascagoula",
     state: "MS",
-    routingMode: "auto",
+    routingMode: "concierge",
     areaLabel: "Jackson, Harrison and George County",
     zipPrefill: "39563",
     timeZone: "America/Chicago",

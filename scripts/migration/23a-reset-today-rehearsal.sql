@@ -39,7 +39,8 @@ with keep as (
         -- add names here, one per line, comma separated
         'Danville Support Services',
         'Arosa Salt Lake',
-        'Compassionate Home Care'
+        'Compassionate Home Care',
+        'Cornerstone Caregiving - Madison Home Care'
       )
       or exists (
         select 1

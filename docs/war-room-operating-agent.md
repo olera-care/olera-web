@@ -254,6 +254,42 @@ the UI describes that as an evidence limitation rather than claiming Olera has
 nothing important to do. Flat but dangerous levels remain active until resolved;
 they do not disappear merely because a comparison window was unchanged.
 
+## The daily brief, delivered
+
+War Room wrote a correct company read every morning to a page nobody opens.
+There was no outbound path in the module at all.
+
+`lib/war-room/brief-delivery.server.ts` sends it, as a durable workflow step
+that runs on **both** the success and the failure path. A failed scan is the
+thing most worth hearing about: on 2026-09-20 the 10:30 run died at the dossier
+step and nobody knew for six hours, because the only way to find out was to
+query the table. It was the fourth truncation failure of that kind and the gaps
+are closing — 13 days, then 11, then 9.
+
+- **DM first, webhook second.** `WAR_ROOM_BRIEF_SLACK_USER_ID` receives a
+  `chat.postMessage` DM. `SLACK_WEBHOOK_URL` is the fallback, and it posts to
+  the shared operations channel alongside lead alerts, claim notifications and
+  QA events — delivered, and easy to skim past.
+- **The DM needs a scope that is not granted yet.** `SLACK_BOT_TOKEN` was
+  created read-only for the Slack reader, so `chat.postMessage` returns
+  `missing_scope` until `chat:write` is added in the Slack app config and the
+  app is reinstalled. Which path actually carried a brief is recorded on
+  `war_room_source_state.brief_delivery.metadata` as `channel`, with
+  `dm_error` when it fell back. Without that field a missing scope looks
+  exactly like a working DM.
+- **Slack answers 200 for application errors.** `chat.postMessage` returns
+  HTTP 200 with `ok: false` and an error string for `missing_scope`,
+  `channel_not_found` and the rest. Checking `res.ok` alone reports a scope
+  failure as a successful send.
+- **Delivery never fails the scan**, and a retried durable step is guarded
+  against sending twice.
+- **The brief leads with what was measured**, not with what failed to clear the
+  agenda gate. Zero proposals is the designed outcome on most days.
+
+Message composition is a pure exported function so the exact text can be
+rendered offline against a real run before a human sees it. Doing that caught a
+missing dollar sign that would have shipped the cost line as `Scan 1.38.`.
+
 ## Slack reader
 
 Use a dedicated Slack bot, not a user token.

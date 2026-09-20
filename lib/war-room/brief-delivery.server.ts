@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { sendSlackAlert } from "@/lib/slack";
+import { sendSlackAlert, sendSlackDirectMessage } from "@/lib/slack";
 import { getSiteUrl } from "@/lib/site-url";
 import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
@@ -107,7 +107,7 @@ export function buildWarRoomBriefText(input: {
 export async function deliverWarRoomBrief(
   db: SupabaseClient,
   runId: string,
-): Promise<{ delivered: boolean; reason?: string }> {
+): Promise<{ delivered: boolean; reason?: string; channel?: "dm" | "webhook"; dmError?: string | null }> {
   try {
     // Durable steps retry. Without this guard a retried step sends the founder
     // the same brief twice, which is exactly the kind of noise that trains
@@ -156,7 +156,26 @@ export async function deliverWarRoomBrief(
       costUsd: warRoomScanCost(run)?.usd ?? null,
     });
 
-    const result = await sendSlackAlert(text);
+    // Prefer a DM. The shared webhook posts to the operations channel, where
+    // this would arrive among lead alerts, claim notifications and QA events —
+    // delivered, and easy to skim past, which is most of the problem it exists
+    // to solve.
+    //
+    // The webhook stays as the fallback because the DM depends on a scope that
+    // may never be granted: SLACK_BOT_TOKEN is read-only today, so
+    // chat.postMessage returns missing_scope until chat:write is added and the
+    // app reinstalled. A brief in the wrong place beats no brief.
+    const dmUserId = process.env.WAR_ROOM_BRIEF_SLACK_USER_ID?.trim();
+    let channel: "dm" | "webhook" = "webhook";
+    let dmError: string | null = null;
+
+    let result: { success: boolean; error?: string } = { success: false, error: "not attempted" };
+    if (dmUserId) {
+      result = await sendSlackDirectMessage(dmUserId, text);
+      if (result.success) channel = "dm";
+      else dmError = result.error ?? "DM failed";
+    }
+    if (!result.success) result = await sendSlackAlert(text);
     if (!result.success) return { delivered: false, reason: result.error ?? "Slack send failed" };
 
     await db.from("war_room_source_state").upsert({
@@ -164,11 +183,13 @@ export async function deliverWarRoomBrief(
       last_synced_at: new Date().toISOString(),
       last_success_at: new Date().toISOString(),
       last_error: null,
-      metadata: { run_id: runId, status: run.status },
+      // Which path actually carried it. Without this a missing chat:write
+      // scope looks identical to a successful DM from the outside.
+      metadata: { run_id: runId, status: run.status, channel, dm_error: dmError },
       updated_at: new Date().toISOString(),
     }, { onConflict: "source_key" }).then(() => undefined, () => undefined);
 
-    return { delivered: true };
+    return { delivered: true, channel, dmError };
   } catch (error) {
     // A scan that produced a real company read must not be recorded as failed
     // because a webhook was down.

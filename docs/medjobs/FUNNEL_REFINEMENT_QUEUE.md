@@ -338,20 +338,35 @@ already how a provider accepts terms. This is wiring, not a new portal.
 ladder reads its own. A provider set up but not looking is a nudge, not a
 chase, and the rung should say which.
 
-### To settle before any of it ships
+### Decided, 20 September
 
-1. **The billing terms, which are a live conflict and just moved again.**
-   `07-OPEN-DECISIONS-AND-CONFLICTS.md` records $250+ per hire, provider only,
-   **monthly in arrears**. The new statement is **first hire free, then $250
-   per hire invoiced on the confirmed hire**. Those differ on the free hire and
-   on the trigger. The onboarding email states the terms, so whatever it says
-   becomes the thing providers hold us to — this cannot ship ahead of the
-   decision.
-2. **Where terms get signed.** Today it is at first *interview scheduling*, and
-   that same timestamp is what makes a provider a Client and starts the 90-day
-   pilot. Moving it to first *hire* changes both. Same open decision, second
-   axis.
-3. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
+**The pack states no price** (`D-011`). Whatever it said about money would
+become the thing providers hold us to, and C1 is still a four-way spread with
+nobody's signature on it. The pack covers the workflow and says terms come at
+the two gates below; price is discussed when a hire is near. This **defers C1,
+it does not answer it** — Chantel still cannot price on a call.
+
+**Terms are accepted twice** (`D-010`): lightly at the first interview, which
+is what ships today and keeps its jobs as the Client definition and the pilot
+start, and fully at the first hire, which is where the price is agreed. The
+second gate does not exist and cannot be built before C1 settles.
+
+Both are in `operating/06-DECISIONS.md`, along with `D-009` — the reframe
+itself, which **reverses `D-006`** (*book the meeting; do not send collateral
+instead*). D-006 was guarding against throwing a contract at a cold provider;
+the pack is not that, because it only goes to somebody who has said yes.
+
+### What this means for sequencing
+
+The pack can be built now. The hire gate cannot. So the ladder ships in two
+pieces: everything up to *Confirm they can receive a student* first, and the
+terms-at-hire gate when C1 lands.
+
+### Still to settle
+
+1. **C1, the price and its trigger.** Deadline moves to the first-hire gate
+   rather than the first conversion meeting, but it has not gone away.
+2. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
    rows. Count what is actually sitting there before choosing between a
    migration and appending:
 
@@ -362,10 +377,10 @@ chase, and the rung should say which.
    where o.kind = 'provider' and (payload->>'step')::int >= 4
    group by 1, 2 order by 1, 2;
    ```
-4. **The meeting log is due on the wrong day.** Booking queues *Log the
+3. **The meeting log is due on the wrong day.** Booking queues *Log the
    meeting* today, when the meeting is next Thursday. The date is on the rung
    already as `meeting_at`; a delay has no way to come from a field yet.
-5. **Logging a callback on an archived record.** Interest can arrive months
+4. **Logging a callback on an archived record.** Interest can arrive months
    later. Reviving and then pressing the outcome works, but it is two steps and
    the second is not obvious.
 

@@ -83,19 +83,6 @@ See **O-7**.
 
 ---
 
-### D-006 · 2026-09-04 · Pod · Book the meeting; do not send collateral instead
-
-**Status:** PROPOSED — this is Logan's existing instruction, written down.
-
-**Reasoning:** direct from the meeting — *"Don't just throw on the contract. Don't throw them to the landing
-page. Just be like, why don't you meet with Dr. DuBose?"* The meeting converts at ~100% of those who agree
-to it; collateral sent in its place converts at an unknown and probably much lower rate. Collateral supports
-the booking; it does not replace it.
-
-**Reverses if:** E-3 shows that sending the price up front increases *meetings booked* (not merely replies).
-
----
-
 ### D-007 · 2026-09-04 · Pod · No designated pod lead for now
 
 **Status:** PROPOSED — Logan's stated preference.
@@ -120,6 +107,65 @@ operating model on the surfaces that exist; move it afterwards. See **C5**.
 **Reverses if:** the current surface actively blocks the sprint — for example, if provider and MedJobs
 outreach collide on the same rows and double-email a provider.
 
+### D-009 · 2026-09-20 · Logan · The first ask is interest, not a meeting — reverses D-006
+
+**Status:** DECIDED.
+
+**Reasoning:** a meeting is a large ask from a cold email, and it is not the thing we need. What we need is
+a provider who says *tell me more*. Two live records made the case: Danville Support Services replied
+*"she would love to see the details first prior to having a quick meeting,"* and Arosa Salt Lake replied
+with a time. Both are interested; only one of them wanted a calendar. The board logged both as a
+follow-up outcome and queued another follow-up, because the ladder had nowhere to put *yes*.
+
+So the ladder's goal moves from **meeting held** to **set up to receive a student**. Interest is confirmed
+first, from any channel — an email reply, a call, a callback, a voicemail they left. Confirming it sends an
+onboarding pack that carries the whole process, and the meeting becomes a checkbox on that outcome: some
+providers want one, and for them it runs *alongside* onboarding rather than in front of it.
+
+D-006 said the opposite — *book the meeting, do not send collateral instead* — and it was right about the
+thing it was guarding against, which is throwing a contract or a landing page at a cold provider. The pack
+is not that. It goes to somebody who has already said they are interested.
+
+**Reverses if:** self-serve providers onboard and then never hire, while meeting-first providers do. That
+would mean the meeting was doing work the pack cannot, and the meeting goes back in front.
+
+---
+
+### D-010 · 2026-09-20 · Logan · Terms are accepted twice — lightly at interview, fully at hire
+
+**Status:** DECIDED. Narrows **C2**; the full-terms half waits on **C1**.
+
+**Reasoning:** agreeing to interview a student is a smaller commitment than agreeing to be billed, and one
+gate cannot honestly carry both. The light gate is what ships today —
+`business_profiles.metadata.interview_terms_accepted_at`, written when a provider schedules an interview —
+and it keeps its current jobs: it is what makes a provider a Client and what starts the pilot window. The
+full gate is new, sits at the first hire, and is where the price is agreed.
+
+**What this costs:** a second acceptance record and a surface at hire time. Neither exists. The full gate
+cannot be built before C1 settles, because there is no price to agree to.
+
+**Reverses if:** two gates produce providers who accepted one and not the other and then hire anyway — at
+which point the question is which gate was real.
+
+---
+
+### D-011 · 2026-09-20 · Logan · The onboarding pack states no price
+
+**Status:** DECIDED. **Defers C1 — it does not resolve it.**
+
+**Reasoning:** whatever the pack says about money becomes the thing providers hold us to, and C1 is a 2.5×
+spread across four sources with no owner's signature on any of them. Writing a number into an email that
+goes to every interested provider would settle C1 by accident, in the worst possible venue. The pack covers
+the workflow — how applications arrive, how to review one, how to set requirements, and applicant →
+interview → hire → billing — and says that terms come at the two gates in D-010. Price is discussed when a
+hire is actually near.
+
+**What this does not buy:** it does not answer the question Chantel asked, which is what to say on a call
+when a provider asks the price. C1 is still blocking for that.
+
+**Reverses if:** providers reach the hire gate and balk at a number they are seeing for the first time. That
+is the failure mode of leaving it out, and it is the reason C1 still has a date on it.
+
 ---
 
 ## Open — awaiting a founder decision
@@ -128,8 +174,8 @@ These are the blockers. Each is detailed in `07-OPEN-DECISIONS-AND-CONFLICTS.md`
 
 | ID | Decision | Owner | Needed by | Recommendation |
 |---|---|---|---|---|
-| **C1** | Price, payer, billing timing | Logan + TJ | Before the first conversion meeting | $250/hire, provider-only, invoiced monthly in arrears; student fee $0 for 2.0 |
-| **C2** | What defines a Client | TJ + Logan | Day 3 | Pilot-terms acceptance is the single definition; the screener writes it; eligibility stays the product's feature gate underneath |
+| **C1** | Price, payer, billing timing | Logan + TJ | Before the first hire gate is built (D-011 buys time, not an answer) | $250/hire, provider-only; the trigger is now the live question — Logan has since described invoicing on the confirmed hire with the first one free |
+| **C2** | What defines a Client | TJ + Logan | Day 3 | Narrowed by **D-010**: interview-terms acceptance stays the Client definition and the pilot start; a second, fuller acceptance sits at the first hire. Eligibility stays the product's feature gate underneath |
 | **O-1** | Site #1 | Logan | Day 1 | Where Logan already has an advisor relationship, not the biggest school |
 | **C5** | Does the provider pipeline stay in MedJobs? | Logan + TJ | Tuesday session | Decide the target; don't migrate now (D-008) |
 | **C8** | Founder handoff schedule for conversion meetings | Logan | Week 2 | Logan Wks 1–2 → Chantel co-runs Wks 3–4 → Chantel alone Wk 5+; measured as Gate F |
@@ -139,4 +185,16 @@ These are the blockers. Each is detailed in `07-OPEN-DECISIONS-AND-CONFLICTS.md`
 
 ## Reversed
 
-*(None yet. When one is reversed, move it here with the reason and the date — the history is the point.)*
+### D-006 · 2026-09-04 · Pod · Book the meeting; do not send collateral instead
+
+**Status:** REVERSED 2026-09-20 by **D-009**.
+
+**What it said:** direct from the meeting — *"Don't just throw on the contract. Don't throw them to the
+landing page. Just be like, why don't you meet with Dr. DuBose?"* The meeting converts at ~100% of those who
+agree to it; collateral sent in its place converts at an unknown and probably much lower rate. Collateral
+supports the booking; it does not replace it.
+
+**Why it was reversed:** the ~100% figure is conversion *of those who agree to a meeting*, and it says
+nothing about how many agree. Making the meeting the ask is what the cold email was failing at. D-009 keeps
+the guard that mattered — nothing is thrown at a cold provider — by putting the pack behind a confirmed
+*yes* rather than in front of it.

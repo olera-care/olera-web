@@ -304,23 +304,29 @@ it in the attachment is itself a decision about C1.
 
 **"Not yet" is not offered on a rung that already runs on a cadence.** Putting a follow-up off by two days is what the next round is. It stays on the confirming call, the programme email, the pack, the set-up check and the meeting.
 
-**Then onboarding, which ends in a meeting.** The pack asks for fifteen minutes outright, and the rung after it has one job: get them in the diary.
+**Then onboarding, which is chasing one sentence.** The pack ends by asking for it: *reply and tell me you are ready to receive your first student and you are clear on what happens when one arrives.* If anything is unclear they reply with the question instead, and we answer it by email.
 
-**Chase the meeting** is a single rung, not a block of N, and **it never archives**. This provider has said
-yes; losing them over a calendar would be the worst outcome in the funnel. It nudges every three days, counts
-the nudges, and at four suggests doing their profile with them on the phone there and then. The count is a
-prompt to try something else, not a countdown: so the closing button keeps saying *Not interested* rather than
-renaming itself *Archive*.
+**Onboarding follow up 1–7** is the same screen as the cold block, because it is the same act: check their
+email and your voicemail, and if nothing has come back, call and email again. Three days apart rather than
+two, because they have already said yes. At the fourth round the rung says to ask straight out on the phone,
+or to offer to set their profile up with them there and then, rather than sending the same thing a fifth time.
 
-It has five ways out: **Meeting booked**, which takes the date and puts the meeting rung on that day; **Nudged them**; **Set up, no meeting needed**, which is the escape hatch for a provider who has done it themselves and should not be chased for a call they do not want; **Not interested**; and **Something else**.
+**It never archives.** After the seventh round it keeps going on the same cadence. Seven unanswered cold calls is a no; seven unanswered nudges at a provider who has already said yes is not, and losing them over scheduling would be the worst outcome in the funnel.
 
-**Hold the meeting** is four confirmations rather than one instruction: their profile as students will see it,
-their requirements, the walk through applicant → interview → hire → billing, and whether this is a fit both
-ways. That last one means the meeting can end in a no, and **that is a different outcome from never booking**:
-one is a fit problem and the other is a scheduling problem, and a board that records them the same way cannot
-tell you which it has.
+| Ending | What it means | Where the record goes |
+|---|---|---|
+| **Log the call and the email** | Nothing back, both done | The next round, three days out |
+| **They are ready** | They have said so | **The goal**: nothing further |
+| **Booked a call to help** | They would rather be walked through it | **Help them on a call**, on the day |
+| **Not interested** | They have changed their mind | Archived |
+| **Something else** | Anything the other four do not cover | A task in the operator's own words |
 
-The goal is no longer *signed up*, which described a signature nobody gives. It is **ready for their first student**: profile confirmed, process understood, requirements set. We can send them somebody tomorrow.
+**A call is a tool, not a stage.** *Help them on a call* is a branch, reached only when somebody books one,
+and most providers never see it. It is fifteen minutes doing whatever is stopping them, usually setting their
+requirements in the portal while you are on the phone, and it ends the same way every other screen does: they
+are ready, or they are not yet and it goes back to chasing.
+
+**The goal is an acknowledgement, not an event.** *Ready for their first student* is not a rung anybody ticks; it is where the ladder stops when a provider says they understand how students reach them and what to do when one arrives. A call, an email and a meeting are all ways of getting that sentence, and none of them is required.
 
 ### ③ System / handoff
 

@@ -131,6 +131,14 @@ export interface LadderAction {
    * asserting a non-event.
    */
   acts?: Array<"call" | "email">;
+  /**
+   * What to call those acts, when the default does not describe them.
+   *
+   * A cold round resends the programme; an onboarding round asks one
+   * question. Same two acts, different sentence, and the sentence is what
+   * tells the operator what to say.
+   */
+  actLabels?: Partial<Record<"call" | "email", string>>;
 
   /** Criterion keys this answers on the channel, if any. */
   ticks?: string[];
@@ -214,6 +222,15 @@ export interface LadderRung {
   fanout?: string[];
   /** A block of N identical follow-ups rather than a single task. */
   rounds?: number;
+  /**
+   * What the last round of a block does. Archives by default.
+   *
+   * Seven unanswered cold calls is a no. Seven unanswered nudges at a
+   * provider who has already said yes is not — losing them over scheduling
+   * would be the worst outcome in the funnel — so that block repeats its
+   * last round instead, on the same cadence, until somebody says otherwise.
+   */
+  exhausted?: "archive" | "repeat";
   /** Comes back every season; never part of the forward sequence. */
   seasonal?: boolean;
   /** Comes back every month; never part of the forward sequence. */
@@ -437,6 +454,93 @@ Dr. Logan DuBose's office · Olera`,
 }
 
 /**
+ * One onboarding nudge.
+ *
+ * The same act as a cold follow-up and deliberately the same screen, but a
+ * different question. They have the pack; what is missing is a sentence from
+ * them saying they are ready. A call, an email and a meeting are all ways of
+ * getting it and none of them is a stage — which is why this block is named
+ * for the chasing rather than for any one of them.
+ */
+export function onboardingFollowUp(n: number): LadderRung {
+  return {
+    title: `Onboarding follow up ${n}`,
+    what: "Check whether they got themselves set up, and help them over the line if not.",
+    why: "They said yes and we sent them everything. What is left is hearing that they are ready.",
+    steps: ["Check their email and your voicemail before anything else."],
+    // They have already said yes, so every two days reads as pestering.
+    defer: false,
+    textarea: "What happened",
+    repeats: {
+      noun: "round",
+      warnAt: 4,
+      warning:
+        "Four rounds. Ask straight out on the phone whether they are ready, or offer to set their profile up with them there and then — sending it again is not working.",
+    },
+    script:
+      '"Hi, it\'s [your name] from Dr. DuBose\'s office — I sent over the Student Caregiver Program details last week. I wanted to check you are happy with how it works, and whether you are ready for us to send your first student. Anything you would like me to run through while I have got you?"',
+    email: {
+      subject: "Re: Everything you need — Student Caregiver Program at {university}",
+      body: `Hi {first},
+
+Following up on the Student Caregiver Program pack I sent over.
+
+Just one question: are you ready for us to send your first student? If yes, a one-line reply is all I need.
+
+If there is anything you would rather go through first, tell me and I will either answer it here or find fifteen minutes — whichever suits you.
+
+Your portal, in case it is buried: {portal_link}
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+    },
+    actions: [
+      {
+        label: "Log the call and the email",
+        outcome: "next",
+        delay: 3,
+        acts: ["call", "email"],
+        actLabels: { email: "Email them, asking the one question" },
+        hint: "Both done, nothing back yet. The next round is queued.",
+      },
+      {
+        label: "They are ready",
+        outcome: "goal",
+        delay: 0,
+        hint: "They have said they understand and are ready to receive a student. That is the goal.",
+      },
+      {
+        label: "Booked a call to help",
+        outcome: "next",
+        goto: "help",
+        delay: 0,
+        delayFrom: "meeting_at",
+        carry: ["meeting_at", "meeting_where"],
+        hint: "They would rather be walked through it. Comes back on the day.",
+        inputs: [
+          {
+            key: "meeting_at",
+            label: "Date and time",
+            type: "datetime-local",
+            required: true,
+            needs: "Put the date and time in",
+          },
+          { key: "meeting_where", label: "Where", type: "text" },
+        ],
+      },
+      {
+        label: "Not interested",
+        outcome: "archive",
+        delay: 0,
+        hint: "They have changed their mind. Closes the record.",
+      },
+      ERRAND,
+    ],
+  };
+}
+
+/**
  * The rung for everything the ladder did not think of.
  *
  * It replaced "Keep the conversation going", which existed for the warm
@@ -610,13 +714,13 @@ Dr. Logan DuBose's office · Olera`,
         // only possible because 6, 7 and 8 keep their places.
         name: "onboarding",
         title: "Send the onboarding pack",
-        what: "How the programme works, what they want in a caregiver, the pilot terms, and the ask for fifteen minutes.",
+        what: "How the programme works, what they want in a caregiver, the pilot terms, and one question back.",
         why: "They have said yes. This is the email that means nobody has to explain it again.",
         steps: [
           "Create their portal account and paste the link in below.",
           "Attach the pilot terms — they are for review, not for signing.",
           "Copy the email and read it through before you send it.",
-          "Send it, then log it. Getting the meeting booked is the next rung.",
+          "Send it, then log it. Chasing the reply is the next rung.",
         ],
         inputs: [
           {
@@ -650,9 +754,10 @@ Tell us and we will only send students who fit — hours, shift types, certifica
 THE TERMS, FOR YOUR REVIEW
 Attached. Nothing to sign, and no obligation to carry on — this is a pilot. We will keep sending you students until you hire one and the placement works out. If you like working with our students after that, we agree formal terms then rather than now.
 
-One last thing. I would like to put fifteen minutes in the diary to go through this with you — set your profile up together, walk through how a student reaches you, and make sure this is a fit both ways. It is quicker done than read.
+ONE THING BACK FROM YOU
+Reply and tell me you are ready to receive your first student and you are clear on what happens when one arrives. If anything is unclear, reply with the question instead and I will answer it here.
 
-What does your week look like?
+When your first student is ready I will get on a call with you then and we will go through reviewing them and inviting them to interview together. And if you would rather talk any of it through sooner — now, at the first student, or later — just say the word.
 
 Best,
 [your name]
@@ -668,137 +773,14 @@ Dr. Logan DuBose's office · Olera`,
         ],
       },
       {
-        // Step 5. One job: get fifteen minutes in the diary. It is not a
-        // block of N and it never archives, because this provider has said
-        // yes — losing them over scheduling would be the worst outcome in
-        // the funnel. It nudges on a slow cadence, counts the nudges, and
-        // says so after four.
-        name: "chase",
-        defer: false,
-        title: "Chase the meeting",
-        what: "Get the fifteen minutes on the calendar.",
-        why: "They have said yes and they have the pack. What is missing is a date.",
-        steps: [
-          "Check their email and your voicemail.",
-          "Reply in the thread you already have — do not start a new one.",
-          "Offer two specific times rather than asking when suits.",
-        ],
-        textarea: "What happened",
-        repeats: {
-          noun: "nudge",
-          warnAt: 4,
-          warning:
-            "Four nudges and no date. Offer to set their profile up with them on the phone there and then, or log that they are set up without one.",
-        },
-        script:
-          '"Hi, it\'s [your name] from Dr. DuBose\'s office. I sent over the Student Caregiver Program details — I would love fifteen minutes to set your profile up with you. Would Tuesday or Thursday afternoon work?"',
-        email: {
-          subject: "Re: Everything you need — Student Caregiver Program at {university}",
-          body: `Hi {first},
-
-Chasing my last note about the Student Caregiver Program — no rush if now is not the moment.
-
-Would either of these work for fifteen minutes?
-
-  · Tuesday afternoon
-  · Thursday morning
-
-We would set your profile up together, walk through how a student reaches you, and make sure it is a fit both ways. Nothing to prepare.
-
-If a call is not needed and you are happy to go ahead on your own, say so and I will get out of your way — everything is in your portal already.
-
-Best,
-[your name]
-Dr. Logan DuBose's office · Olera`,
-        },
-        actions: [
-          {
-            label: "Meeting booked",
-            outcome: "next",
-            goto: "meeting",
-            delay: 0,
-            // The meeting rung comes back on the day of the meeting.
-            delayFrom: "meeting_at",
-            carry: ["meeting_at", "meeting_where"],
-            hint: "A date is in hand. The meeting rung comes back on the day.",
-            inputs: [
-              {
-                key: "meeting_at",
-                label: "Date and time",
-                type: "datetime-local",
-                required: true,
-                needs: "Put the date and time in",
-              },
-              { key: "meeting_where", label: "Where", type: "text" },
-            ],
-          },
-          {
-            label: "Nudged them",
-            outcome: "repeat",
-            delay: 3,
-            strike: true,
-            hint: "No date yet. Logged, and this comes back in three days.",
-          },
-          {
-            // The escape hatch. A provider who has set themselves up and
-            // does not want a call has done the thing; chasing them for a
-            // meeting would rebuild the gate one rung later.
-            label: "Set up, no meeting needed",
-            outcome: "next",
-            goto: "ready",
-            delay: 0,
-            hint: "They did it themselves. Skips the meeting and marks them ready.",
-          },
-          {
-            label: "Not interested",
-            outcome: "archive",
-            delay: 0,
-            hint: "They have changed their mind. Closes the record.",
-          },
-          ERRAND,
-        ],
-      },
-      {
-        // Step 6. One rung, not two: booking happened on the rung before,
-        // with the date, so this is the meeting itself and what came of it.
-        name: "meeting",
-        title: "Hold the meeting",
-        what: "Fifteen minutes to confirm four things, and then they are live.",
-        why: "It is the fastest way to get a small agency set up, and the only place we find out whether this is a fit both ways.",
-        steps: [
-          "Confirm their profile is filled in as students will see it.",
-          "Confirm their requirements — hours, shifts, certifications.",
-          "Walk through applicant, interview, hire, billing.",
-          "Decide, out loud, whether this is a fit both ways.",
-        ],
-        textarea: "How it went",
-        actions: [
-          {
-            label: "Held — they're ready",
-            outcome: "next",
-            delay: 0,
-            hint: "Profile confirmed, process understood. They can receive a student.",
-          },
-          {
-            label: "Held — not a fit",
-            outcome: "archive",
-            delay: 0,
-            hint: "We met and it is not right, either way round. Closes the record, and it is not the same as never booking.",
-          },
-          { label: "No-show", outcome: "reschedule", delay: 0 },
-          { label: "Needs rescheduling", outcome: "reschedule", delay: 0 },
-        ],
-      },
-      {
-        // Step 7, and the goal. It used to be "signed up", which described a
-        // signature nobody gives. What it actually means is that a student
-        // can be sent tomorrow.
-        name: "ready",
-        title: "Ready for their first student",
-        what: "Profile confirmed, process understood, requirements set.",
-        why: "This is the goal for a provider: we can send them somebody tomorrow.",
-        steps: ["Check the profile one last time.", "Log it."],
-        actions: [{ label: "Ready", outcome: "goal", delay: 0 }],
+        // Step 5. The whole of onboarding after the pack: did they get
+        // themselves set up, and if not, help them. Seven rounds three days
+        // apart, and then it keeps going rather than archiving — a provider
+        // who has said yes is never closed for failing to answer.
+        name: "onboardfollow",
+        rounds: FOLLOW_UP_ROUNDS,
+        exhausted: "repeat",
+        ...onboardingFollowUp(1),
       },
       {
         seasonal: true,
@@ -813,6 +795,39 @@ Dr. Logan DuBose's office · Olera`,
       // end is the only place a new rung can go without renumbering every
       // task row already written against this ladder.
       errandRung(),
+      {
+        // A branch, reached only when somebody books one. Most providers
+        // will never see it, which is the point: a call is a way of getting
+        // an acknowledgement, not a stage on the way to one.
+        branch: "help",
+        title: "Help them on a call",
+        what: "Fifteen minutes doing whatever is stopping them, with them.",
+        why: "Some providers will not get set up from an email, and a call is faster than four more rounds of asking.",
+        steps: [
+          "Ask what they are stuck on, and do it with them.",
+          "Set their requirements in the portal while you are on the phone.",
+          "Walk through what happens when the first student arrives.",
+          "Ask them straight: are you ready to receive one?",
+        ],
+        textarea: "How it went",
+        actions: [
+          {
+            label: "They are ready",
+            outcome: "goal",
+            delay: 0,
+            hint: "They have said so. That is the goal.",
+          },
+          {
+            label: "Still not ready",
+            outcome: "next",
+            goto: "onboardfollow",
+            delay: 3,
+            hint: "Back to chasing, with whatever is still missing written down.",
+          },
+          { label: "No-show", outcome: "reschedule", delay: 0 },
+          { label: "Needs rescheduling", outcome: "reschedule", delay: 0 },
+        ],
+      },
     ],
   },
 
@@ -1398,7 +1413,11 @@ export const SECTION_ORDER: SectionKey[] = [
 export function rungAt(section: SectionKey, step: number, round = 1): LadderRung | null {
   const rung = LADDERS[section].steps[step];
   if (!rung) return null;
-  if (rung.rounds) return { ...followUp(round, section), rounds: rung.rounds };
+  if (rung.rounds) {
+    const block =
+      rung.name === "onboardfollow" ? onboardingFollowUp(round) : followUp(round, section);
+    return { ...block, rounds: rung.rounds, exhausted: rung.exhausted, name: rung.name };
+  }
   return rung;
 }
 

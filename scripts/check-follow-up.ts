@@ -72,10 +72,9 @@ const named = (n: string) => steps.findIndex((r) => (r.branch ?? r.name) === n);
 const CALL = 1;
 const FOLLOW = steps.findIndex((r) => r.rounds);
 const ONBOARD = named("onboarding");
-const CHASE = named("chase");
-const READY = named("ready");
+const ONBOARDFOLLOW = named("onboardfollow");
+const HELP = named("help");
 const ERRAND = named("errand");
-const MEETING = named("meeting");
 
 const at = (step: number, round = 0): [BoardUniversity, BoardRecord] => {
   const u = board();
@@ -95,24 +94,24 @@ const act = (u: BoardUniversity, r: BoardRecord, label: string, fields?: Record<
   return complete(u, r, open, action);
 };
 
-console.log("\nThe step numbers, and the migrations that moved them");
+console.log("\nThe step numbers");
 ok("0 Research", steps[0].title === "Research");
 ok("1 the confirming call", steps[1].title === "Call to confirm the right contact");
 ok("2 the program info", steps[2].title === "Send the program info");
-ok("3 the follow-up block", FOLLOW === 3, String(FOLLOW));
+ok("3 the cold follow-up block", FOLLOW === 3, String(FOLLOW));
 ok("4 the onboarding pack", ONBOARD === 4, String(ONBOARD));
-ok("5 chasing the meeting", CHASE === 5, String(CHASE));
-ok("6 holding it", MEETING === 6, String(MEETING));
-ok("7 ready for their first student", READY === 7, String(READY));
-ok("8 the seasonal check", steps[8].seasonal === true);
-ok("9 something else", ERRAND === 9, String(ERRAND));
-ok("and that is the whole ladder", steps.length === 10, String(steps.length));
-ok("only the errand is a branch", steps.filter((r) => r.branch).length === 1);
+ok("5 the onboarding follow-up block", ONBOARDFOLLOW === 5, String(ONBOARDFOLLOW));
+ok("6 the seasonal check", steps[6].seasonal === true);
+ok("7 something else", ERRAND === 7, String(ERRAND));
+ok("8 help them on a call", HELP === 8, String(HELP));
+ok("and that is the whole ladder", steps.length === 9, String(steps.length));
+ok("two branches, both reached by name", steps.filter((r) => r.branch).length === 2);
 ok(
-  "the goal says what it means",
+  "the goal is what we are actually waiting for",
   LADDERS.providers.goal === "ready for their first student",
   LADDERS.providers.goal,
 );
+ok("and no rung claims it", steps.every((r) => r.name !== "ready"));
 
 console.log("\nOne rung, one screen");
 {
@@ -154,75 +153,68 @@ for (const [step, round, label, where] of [
 
 console.log("\nThe onboarding phase");
 {
-  const chase = steps[CHASE];
-  ok("chasing is one rung, not a block", !chase.rounds);
-  ok("and it never runs out", chase.actions.every((a) => a.outcome !== "next" || Boolean(a.goto)));
-  ok("it counts nudges", chase.repeats?.noun === "nudge" && chase.repeats.warnAt === 4);
-  // The count is a prompt to try something else, not a countdown to archiving.
-  // Renaming the closing button "Archive — 4 nudges" would say the opposite
-  // of the warning above it.
-  ok("and never renames the closing button to Archive", !chase.repeats?.archive);
-  ok("unlike the confirming call, where archiving is the advice", steps[1].repeats?.archive === true);
-  ok("and offers no deferral, because it is a cadence", chase.defer === false);
-  const labels = chase.actions.map((a) => a.label);
+  const rung = rungAt("providers", ONBOARDFOLLOW, 1)!;
+  ok("it is a numbered block", rung.rounds === FOLLOW_UP_ROUNDS, String(rung.rounds));
+  ok("named for the chasing, not for a meeting", rung.title === "Onboarding follow up 1");
+  ok("three days apart, not two", rung.actions[0].delay === 3);
+  ok("and it never archives", steps[ONBOARDFOLLOW].exhausted === "repeat");
+  const labels = rung.actions.map((a) => a.label);
   ok(
     "five ways out",
     labels.join("|") ===
-      "Meeting booked|Nudged them|Set up, no meeting needed|Not interested|Something else",
+      "Log the call and the email|They are ready|Booked a call to help|Not interested|Something else",
     labels.join("|"),
   );
+  ok("the silent round is the log of two acts", (rung.actions[0].acts ?? []).join("+") === "call+email");
+  ok("the warning lands on the fourth round", rung.repeats?.warnAt === 4);
+  ok("and does not rename the closing button", !rung.repeats?.archive);
 
-  // Nudging forever, which is the point: a provider who said yes is never
-  // archived for failing to pick a date.
-  const [u, r] = at(CHASE, 0);
-  for (let i = 0; i < 9; i += 1) act(u, r, "Nudged them");
-  ok("nine nudges and still on the board", r.step === CHASE && r.state === null, String(r.state));
-  ok("all nine counted", strikesAt(r, CHASE, 0) === 9, String(strikesAt(r, CHASE, 0)));
+  // Seven rounds, then it keeps going rather than closing them out.
+  const [u, r] = at(ONBOARDFOLLOW, 1);
+  for (let i = 0; i < FOLLOW_UP_ROUNDS + 4; i += 1) act(u, r, "Log the call and the email");
+  ok("eleven rounds and still on the board", r.state === null, String(r.state));
+  ok("holding at the last round", r.round === FOLLOW_UP_ROUNDS, String(r.round));
+  ok("unlike the cold block, which ends", steps[FOLLOW].exhausted === undefined);
 
-  // The escape hatch: doing it themselves reaches the same terminal.
-  const [u2, r2] = at(CHASE, 0);
-  act(u2, r2, "Set up, no meeting needed");
-  ok("self-serve reaches ready without a meeting", r2.step === READY, String(r2.step));
-
-  // And the meeting, when they do book one.
-  const day = iso(new Date(startOfToday().getTime() + 11 * 86_400_000));
-  const [u3, r3] = at(CHASE, 0);
-  act(u3, r3, "Meeting booked", { meeting_at: `${day}T14:00`, meeting_where: "Zoom" });
-  const held = r3.tasks.find((t) => !t.done)!;
-  ok("booking queues the meeting", held.step === MEETING, String(held.step));
-  ok("on the day of the meeting", held.dueAt === day, `${held.dueAt} vs ${day}`);
-  ok(
-    "carrying the time and the place",
-    held.fields?.meeting_at?.startsWith(day) && held.fields?.meeting_where === "Zoom",
-    JSON.stringify(held.fields),
-  );
+  // The acknowledgement is the goal, from anywhere.
+  for (const [step, round, label, where] of [
+    [ONBOARDFOLLOW, 2, "They are ready", "a nudge that produced a yes"],
+    [HELP, 0, "They are ready", "a call that produced one"],
+  ] as Array<[number, number, string, string]>) {
+    const [u2, r2] = at(step, round);
+    act(u2, r2, label);
+    ok(where, r2.state === "ready for their first student" && r2.step === null, String(r2.state));
+  }
 }
 
-console.log("\nThe meeting, and the two ways it can end");
+console.log("\nA call is a tool, not a stage");
 {
-  const meet = steps[MEETING];
-  ok("four confirmations, not one instruction", meet.steps.length === 4, String(meet.steps.length));
-  const [u, r] = at(MEETING, 0);
-  act(u, r, "Held — they're ready");
-  ok("a good one reaches the goal", r.step === READY, String(r.step));
-
-  // Not a fit is a different number from never booking, and has to stay one.
-  const [u2, r2] = at(MEETING, 0);
-  act(u2, r2, "Held — not a fit");
-  ok("and a bad one closes the record", r2.state === "archived", String(r2.state));
-  ok(
-    "which is not the same outcome as never booking",
-    steps[CHASE].actions.every((a) => a.label !== "Held — not a fit"),
+  const ways = steps.flatMap((r, i) =>
+    (rungAt("providers", i, 1)?.actions ?? [])
+      .filter((a) => a.goto === "help")
+      .map(() => steps[i].title),
   );
+  ok("booked from the block, and only there", ways.length === 1, ways.join("|"));
+  ok("and it is a branch, so climbing never reaches it", Boolean(steps[HELP].branch));
 
-  const [u3, r3] = at(MEETING, 0);
-  act(u3, r3, "No-show");
-  ok("a no-show comes back rather than ending", r3.tasks.some((t) => !t.done && t.step === MEETING));
+  const day = iso(new Date(startOfToday().getTime() + 8 * 86_400_000));
+  const [u, r] = at(ONBOARDFOLLOW, 2);
+  act(u, r, "Booked a call to help", { meeting_at: `${day}T14:00`, meeting_where: "Zoom" });
+  const held = r.tasks.find((t) => !t.done)!;
+  ok("it lands on the call", held.step === HELP, String(held.step));
+  ok("on the day", held.dueAt === day, `${held.dueAt} vs ${day}`);
+  ok("carrying the time and the place", held.fields?.meeting_where === "Zoom");
+
+  const [u2, r2] = at(HELP, 0);
+  act(u2, r2, "Still not ready");
+  ok("and a call that did not finish it goes back to chasing", r2.step === ONBOARDFOLLOW, String(r2.step));
 }
 
 console.log("\nA date typed in beats a delay");
 {
-  const booked = steps[CHASE].actions[0];
+  const booked = rungAt("providers", ONBOARDFOLLOW, 1)!.actions.find(
+    (a) => a.label === "Booked a call to help",
+  )!;
   ok("the meeting rung takes its date from the field", booked.delayFrom === "meeting_at");
   ok("an empty date falls back to the delay", dueFor(booked, {}) === dueIn(booked.delay));
   ok(
@@ -246,7 +238,7 @@ console.log("\nThe endings that end it");
   ok("seven silences still end the road", r3.state === "archived — no reply", String(r3.state));
   ok("and it took all seven", r3.tasks.filter((t) => t.done).length === FOLLOW_UP_ROUNDS);
 
-  const [u4, r4] = at(CHASE, 0);
+  const [u4, r4] = at(ONBOARDFOLLOW, 0);
   act(u4, r4, "Not interested");
   ok("a provider who changes their mind can be closed", r4.state === "archived", String(r4.state));
 }
@@ -292,8 +284,10 @@ console.log("\nHanded over, not parked");
   // on a day they named, so nothing should be waiting until then.
   {
     const day = iso(new Date(startOfToday().getTime() + 9 * 86_400_000));
-    const { ready } = handed(CHASE, 0, "Meeting booked", { meeting_at: `${day}T14:00` });
-    ok("booking hands you nothing today, which is right", !ready, "the log rung came back today");
+    const { ready } = handed(ONBOARDFOLLOW, 1, "Booked a call to help", {
+      meeting_at: `${day}T14:00`,
+    });
+    ok("booking a call hands you nothing today, which is right", !ready, "it came back today");
   }
 
   // An errand comes back on the day the operator picked, which is the same
@@ -322,8 +316,10 @@ console.log("\nWhat an outcome will not be logged without");
 {
   ok("the pack needs the portal link", steps[ONBOARD].inputs?.[0].required === true);
   ok(
-    "booking needs a date",
-    steps[CHASE].actions[0].inputs?.[0].required === true,
+    "booking a call needs a date",
+    rungAt("providers", ONBOARDFOLLOW, 1)!
+      .actions.find((a) => a.label === "Booked a call to help")!
+      .inputs?.[0].required === true,
   );
   ok("and the pack says what it attaches", steps[ONBOARD].attachment?.doc === "pilot-terms");
 }
@@ -336,14 +332,14 @@ console.log("\nWhere Not yet is offered");
   ok(
     "only on rungs that already run on a cadence",
     off.join("|") ===
-      "providers:Follow up 1|providers:Chase the meeting|advisors:Follow up 1|orgs:Follow up 1",
+      "providers:Follow up 1|providers:Onboarding follow up 1|advisors:Follow up 1|orgs:Follow up 1",
     off.join("|"),
   );
   for (const [i, why] of [
     [CALL, "the call"],
     [2, "the programme email"],
     [ONBOARD, "the pack"],
-    [MEETING, "the meeting itself"],
+    [HELP, "the call, when there is one"],
   ] as Array<[number, string]>) {
     ok(`still on ${why}`, steps[i].defer !== false);
   }

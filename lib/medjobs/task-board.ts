@@ -467,7 +467,12 @@ export function complete(
           break;
         }
         if (rung?.rounds) {
-          // Seven follow-ups with no reply is the end of the road, not progress.
+          // Seven cold follow-ups with no reply is the end of the road. Seven
+          // nudges at a provider who has already said yes is not.
+          if (rung.exhausted === "repeat") {
+            queue(task.step, task.round);
+            break;
+          }
           stop("archived — no reply");
           break;
         }
@@ -687,7 +692,10 @@ export function resolveNext(
     case "reschedule":
       return { step, round };
     case "next":
-      if (rung?.rounds) return round < rung.rounds ? { step, round: round + 1 } : null;
+      if (rung?.rounds) {
+        if (round < rung.rounds) return { step, round: round + 1 };
+        return rung.exhausted === "repeat" ? { step, round } : null;
+      }
     // falls through: a rung outside a block moves on the same way a reply does
     case "replied": {
       const nxt = forwardStep(section, step + 1, facts);

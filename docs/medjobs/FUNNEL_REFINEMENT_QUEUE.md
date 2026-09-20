@@ -502,8 +502,33 @@ every interested provider settles C1's amount whatever the log says.
     4 Onboarding pack       9 Something else                  (branch)
    ```
 
-   The pack asks for the fifteen minutes outright. **Chase the meeting** is
-   one rung rather than a block, and **never archives** — a provider who said
+   **Revised the same day, after storyboarding it.** The meeting stopped
+   being what onboarding chases. What we are actually waiting for is a
+   sentence — *we are ready, and we know what happens when a student
+   arrives* — and a call, an email and a meeting are all ways of getting it.
+   None is a stage.
+
+   ```
+    0 Research              5 Onboarding follow up 1-7
+    1 Confirming call       6 Seasonal check
+    2 Programme email       7 Something else            (branch)
+    3 Follow up x7          8 Help them on a call       (branch)
+    4 Onboarding pack       goal: ready for their first student
+   ```
+
+   The pack ends by asking for the sentence. The block is the same screen as
+   the cold one — check the inbox and the voicemail, then call and email —
+   three days apart rather than two, with a nudge at four saying to ask
+   straight out rather than send again. **It never archives:** after seven
+   rounds it keeps going, because seven unanswered cold calls is a no and
+   seven unanswered nudges at a provider who said yes is not.
+
+   *Ready for their first student* stopped being a rung. It is the goal,
+   reached from the block or from the call, because the acknowledgement is
+   the thing and there is nothing to tick afterwards.
+
+   Superseded, from earlier the same day: **Chase the meeting** was
+   one rung rather than a block, and **never archived** — a provider who said
    yes must not be lost over a calendar. It nudges every three days, counts
    them, and at four suggests doing their profile with them on the phone.
    The count is a prompt, not a countdown, so the closing button keeps saying

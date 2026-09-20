@@ -122,6 +122,10 @@ export default function TaskView({
   // conversation, and neither number stops anybody.
   const repeats = rung.repeats;
   const attempts = repeats ? strikesAt(record, task.step, task.round) : 0;
+  // A numbered block counts itself — "Onboarding follow up 4 of 7" is the
+  // count — so the warning keys off the round there and off logged attempts
+  // everywhere else.
+  const reached = rung.rounds ? task.round : attempts;
   // A value the rung exists to capture. Missing it, there is nothing to log.
   const missing = (rung.inputs ?? []).filter(
     (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
@@ -134,7 +138,8 @@ export default function TaskView({
 
   // The acts one of the outcomes is the log of — call them, email them —
   // and whether they are done.
-  const wanted = rung.actions.find((a) => a.acts)?.acts ?? [];
+  const acting = rung.actions.find((a) => a.acts);
+  const wanted = acting?.acts ?? [];
   const canAct = (kind: string) => (kind === "call" ? Boolean(record.phone) : Boolean(record.email));
   const actsLeft = wanted.filter((k) => canAct(k) && !acted[k]);
 
@@ -251,14 +256,14 @@ export default function TaskView({
             >
               i
             </button>
-            {repeats && attempts > 0 && (
+            {repeats && !rung.rounds && attempts > 0 && (
               <span className="ml-auto shrink-0 pt-1 text-[12px] tabular-nums text-gray-500">
                 {repeats.noun} {attempts + 1}
               </span>
             )}
           </div>
 
-          {repeats && attempts >= repeats.warnAt && (
+          {repeats && reached >= repeats.warnAt && (
             <p className="mt-2 rounded-md border border-warning-200 bg-warning-50 px-3 py-2 text-[12.5px] leading-snug text-warning-800">
               {repeats.warning}
             </p>
@@ -300,6 +305,7 @@ export default function TaskView({
                 <Act
                   key={kind}
                   kind={kind}
+                  label={acting?.actLabels?.[kind]}
                   done={Boolean(acted[kind])}
                   target={kind === "call" ? record.phone : record.email}
                   onDone={() => setActed((v) => ({ ...v, [kind]: true }))}
@@ -493,7 +499,7 @@ export default function TaskView({
                           : BTN
                   } ${blocked ? "cursor-not-allowed opacity-40" : ""}`}
                 >
-                  {a.outcome === "archive" && repeats?.archive && attempts >= repeats.warnAt
+                  {a.outcome === "archive" && repeats?.archive && reached >= repeats.warnAt
                     ? `Archive — ${attempts} ${repeats.noun}s`
                     : a.label}
                 </button>
@@ -729,19 +735,22 @@ function needLine(missing: LadderInput[]): string {
  */
 function Act({
   kind,
+  label: given,
   done,
   target,
   onDone,
   onCopy,
 }: {
   kind: "call" | "email";
+  /** What this act is here, when the default does not describe it. */
+  label?: string;
   done: boolean;
   /** The number or address. Missing means this act is not available here. */
   target: string;
   onDone: () => void;
   onCopy?: () => void;
 }) {
-  const label = kind === "call" ? "Call them" : "Email them, resending the programme";
+  const label = given ?? (kind === "call" ? "Call them" : "Email them, resending the programme");
   if (!target) {
     return (
       <div className="border-b border-gray-200 py-2 text-[13px] text-gray-500 last:border-b-0">

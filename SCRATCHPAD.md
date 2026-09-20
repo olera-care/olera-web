@@ -6500,3 +6500,56 @@ Carries the hand-launch recipe for Chrome on 9222 and the rule that the send nev
 1. Decide whether the crisis path needs more than a Slack page. Dorothy sat 4 days and nothing in
    `/admin/inbox` escalates by age.
 2. Decide whether the support inbox gets a suppress-sender action, which is the Karen Shelton gap.
+
+---
+
+## 2026-09-20 — The benefits email queue cleared by hand, then `/answer-email` written from it
+
+**Shipped: one command and one script.** Outputs are 11 replies sent, 1 thread closed, 1 suppression row, `.claude/commands/answer-email.md` (178 lines) and `scripts/attack-draft.js` (61 lines). Branch `scratchpad/answer-email`.
+
+### The run
+
+Twelve benefits-funnel threads, oldest waiting 47 days, none of which any sweep would surface because `/email-checker` protects `care_seeker` and stops. Selected on the profile (`source='benefits_intake'` OR `metadata.benefits_cascade`), not the subject line, which finds 9 and misses the most urgent.
+
+Sent: Linda Rials (FL, shutoff next day), beckett@usa.com, Isla Wagner, Susan Rea, Gail Rosenquist, Diane Murphy, Dawnavyn Tryon, Richard Holland, Lorene Valdez, Laura Economos, Michelle Toborowsky. Gerald Dunn closed with no reply, already answered 14 Aug.
+
+### Four programs we had pointed families at were wrong or shut
+
+- **CT PACE does not exist.** NPA's April 2025 roster lists 185 programs in 33 states and DC with no Connecticut row; CT DSS was still running a feasibility study. Susan Rea spent four weeks chasing it. Her pick carried `clearance.cleared:false` and `holds:["program never verified"]` and shipped anyway.
+- **PACE in El Paso for an Austin family**, who was also 46 against a floor of 55. That pick was `cleared:true`. **So the clearance flag verifies the program record, not the fit, and fails in both directions.** Four of twelve were `cleared:false`.
+- **Marion County homeowner rehab**, sent twice by SMS, whose own page says `*APPLICATIONS FOR THIS PROGRAM ARE CURRENTLY ON HOLD*`. The real program for her broken AC is Weatherization through CFCAA, which gives preference to disabled residents — the door EHEAP's age floor had closed.
+- **Cover Virginia's Saturday hours ended 4 April 2026**, and the pipeline's number `833-522-5582` is not on the agency's contact page at all.
+
+### beckett@usa.com IS 352-713-4271
+
+Her email sat 17 days while we texted her three times about a different program. Nothing in either inbox showed the other existed. **Reading the SMS channel before composing is now a phase.**
+
+### The adversarial pass, run six times, and what it is actually for
+
+TJ ran each draft through Perplexity by hand. **Every pass 1 found something real, every pass 2 found something real, passes 3 and 4 were harmful both times** — the same false claim that NC bars family caregivers absent an exemption, contradicted by policy 3K-2, which names a sibling as hireable three times. The exemption clause attaches to guardians and POAs, not relatives.
+
+It is wrong roughly as often as it is right, and it is still worth running, because **its best function is retrieval, not critique**. `hhs.texas.gov`, `azahcccs.gov` and `ssa.gov` block `WebFetch` *and* the browser. It reached AHCCCS's published MSP limits and SSA's Extra Help resource limits when nothing we had could load the page.
+
+Replaced the copy-paste with `scripts/attack-draft.js`, which calls the Perplexity API directly using the key already in `.env.local`. Regression-tested against the known CHCPE age error: it returned it at high confidence with the verbatim quote from `portal.ct.gov`.
+
+### Decisions
+
+- **Redirect and reframe, never absorb blame.** TJ's call on a draft saying "that was our mistake." Correct the information; do not characterize our conduct. We usually have not diagnosed it yet — the CT PACE pick came from the pipeline, not a person.
+- **Two-tier fine print.** The long form, adapted from the Gerald Dunn reply, goes in whenever an email carries a dollar figure, age threshold or eligibility rule. It exists to stop families self-disqualifying: *"Please do not let anything we have written stop you from applying."*
+- **Match the reply to the question.** Diane got 2,700 characters for three substantive questions; Lorene got 420 for "what is this."
+- **Do not port `recheckDraft`.** The script does the attack and Claude is the rebuttal stage with the thread in front of it. The port only matters if this ever runs unattended.
+- **The command is a cohort dispatcher.** `benefits` is derived; `care-requests`, `voicemail`, `provider`, `billing`/`legal` are stubbed with their selection queries and an instruction to work a batch by hand first.
+
+### Product defects found, none fixed
+
+1. **Suppression is unreachable from the thread that needs it.** The drawer button renders only when `suggested_action === 'provider_removal'` (`app/admin/support-email/page.tsx:709`), so a care seeker reporting a death can never reach it, and the route hardcodes `reason:'provider_request'`. `/admin/do-not-contact` works and takes a real reason.
+2. **A reply does not stop the benefits cascade.** The coordinator's `active_thread` gate reads provider inquiry threads, never support email. Isla Wagner was spared a cheerful check-in only because the rung's 14-day window expired eight days before anyone looked.
+3. **Admin search cannot find a care seeker by name or email.** It covers `subject`, `snippet` and `matched_profile_name` only. Linda Rials is unfindable by "Linda" or "Rials".
+4. **`Test McTest` / `tj@olera.care` is a live `benefits_intake` profile** with six threads, one sitting in the care-seeker queue.
+
+### Next up
+
+1. Fix the four defects above, smallest first. 1 and 3 are a few lines each.
+2. Decide whether `voicemail` gets its own command. It is the largest bucket at 425 and the output is a callback, not a reply.
+3. Watch for replies. beckett answers on SMS, not email, so hers will land in `/admin/inbox`.
+4. The 2026-09-19 (later) support-email entry is still uncommitted on `scratchpad/sms-answering` in the `clever-meitner` worktree.

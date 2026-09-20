@@ -98,6 +98,25 @@ async function runProbesStep(runId: string) {
 }
 runProbesStep.maxRetries = 1;
 
+// The mouth. Runs on both the success and the failure path on purpose: a scan
+// that dies is the thing the founder most needs to hear about, and the
+// 2026-09-20 truncation failure went unnoticed for six hours precisely because
+// only the database knew it had happened.
+//
+// Never throws. A Slack outage must not turn a completed company read into a
+// failed run.
+async function deliverBriefStep(runId: string) {
+  "use step";
+  const { deliverWarRoomBrief } = await import("@/lib/war-room/brief-delivery.server");
+  const { getServiceClient } = await import("@/lib/admin");
+  try {
+    return await deliverWarRoomBrief(getServiceClient(), runId);
+  } catch (error) {
+    return { delivered: false, reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+deliverBriefStep.maxRetries = 1;
+
 async function recordDiscoveryFailureStep(runId: string, message: string) {
   "use step";
   const { failWarRoomDiscovery } = await import("@/lib/war-room/discovery.server");
@@ -116,10 +135,14 @@ export async function warRoomDiscoveryWorkflow(runId: string) {
     const council = await challengeCompanyStep(runId, prepared, investigator, triage);
     const persisted = await persistDiscoveryStep(runId, prepared, investigator, council);
     const probes = await runProbesStep(runId);
-    return { ...persisted, probes };
+    const brief = await deliverBriefStep(runId);
+    return { ...persisted, probes, brief };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await recordDiscoveryFailureStep(runId, message || "Unknown durable discovery failure");
+    // Say so out loud. A failed run used to be visible only to whoever thought
+    // to query the table, which is how 2026-09-20 went unnoticed all morning.
+    await deliverBriefStep(runId);
     throw error;
   }
 }

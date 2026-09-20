@@ -165,6 +165,7 @@ console.log("\nThe onboarding phase");
   ok("it is a numbered block", rung.rounds === FOLLOW_UP_ROUNDS, String(rung.rounds));
   ok("named for the chasing, not for a meeting", rung.title === "Onboarding follow up 1");
   ok("three days apart, not two", rung.actions[0].delay === 3);
+  ok("three steps, not six", rung.steps.length === 3, rung.steps.join(" · "));
   ok("with the portal to hand", rung.link?.key === "portal_link");
   ok("and it never archives", steps[ONBOARDFOLLOW].exhausted === "repeat");
   const labels = rung.actions.map((a) => a.label);

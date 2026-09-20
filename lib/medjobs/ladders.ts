@@ -584,12 +584,9 @@ export function onboardingFollowUp(n: number): LadderRung {
     what: "Check whether they got themselves set up, and help them over the line if not.",
     why: "They said yes and we sent them everything. What is left is hearing that they are ready.",
     steps: [
-      "Check their email and your voicemail first.",
-      "Email them the one question: are you ready for students, or do you have questions?",
-      "Call them, refer to the email, and ask the same thing.",
-      "If they have questions, offer to answer them by email or on a quick call.",
-      "Check their portal below. If they emailed what they want in a caregiver, put it in yourself.",
-      "Their word is enough. Press They are ready — the portal can wait until the first hire.",
+      "Check their email and your voicemail first, and respond or log accordingly.",
+      "No response? Email and call to ask if they are ready for students, or have questions.",
+      "Update their portal, or tell them what is missing, if it helps.",
     ],
     link: { key: "portal_link", label: "Their portal" },
     // They have already said yes, so every two days reads as pestering.

@@ -1,4 +1,8 @@
--- Undo the provider task work done today. Run 23a first and read what it lists.
+-- Undo the provider task work done today.
+--
+-- Run 23a first and read what it lists. If any of them are archived and you
+-- want them back, run 23c BEFORE this one -- it finds them by the outcome
+-- that archived them, and this clears that outcome.
 --
 -- The rule is about when a row was created, not what state it is in.
 --

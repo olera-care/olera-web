@@ -15,8 +15,15 @@
 -- set-up check to the rung that chases the fifteen minutes; both are what
 -- happens after the pack, so a stray row reads sensibly either way.
 --
--- Expect zeroes. Nobody has reached these rungs, and the reset in 23b
--- cleared the ones created while testing.
+-- Anything it finds should be from testing today, not from real outreach:
+-- nobody has reached these rungs, and migration 22 proved steps 4 and 5 were
+-- empty this morning. Check the created date and the outcome label with 24c
+-- before concluding otherwise. Test rows are cleared by re-running 23b.
+--
+-- There is no 24b. One was written to renumber old rows onto the new rungs,
+-- and it turned out there were no old rows -- everything at step 5 and above
+-- arrived today under the new numbering already. Renumbering it would have
+-- broken it, so the script was deleted rather than left lying around.
 --
 -- One statement.
 

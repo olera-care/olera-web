@@ -524,11 +524,23 @@ every interested provider settles C1's amount whatever the log says.
    The goal is no longer *signed up*, which described a signature nobody
    gives. It is **ready for their first student**.
 
-   `scripts/migration/24b-onboarding-phase-apply.sql` renumbers. Unlike 22,
-   its new values land back inside the set it matches, so a second run would
-   permute the ladder again — running it twice on a fixture did exactly that.
-   Each moved row is stamped and a stamped row is skipped, which makes it
-   safe to run twice rather than merely unlikely to be.
+   **No migration was needed, and the one written for it was deleted.** The
+   plan was to renumber old rows onto the new rungs, the way migration 22
+   did. The rehearsal then found six rows where it predicted none — and all
+   six turned out to be today's test clicks, carrying labels that only exist
+   in today's code, so they were *already* on the new numbering. Renumbering
+   them would have broken them. Migration 22 had in fact proved the point
+   this morning by moving nothing: there has never been a provider past the
+   follow-up block.
+
+   One of the six also carried an errand outcome at step 8, where errand sat
+   before the onboarding phase moved it to 9 — so the test data spans two of
+   the day's ladder versions. A blanket renumber would have moved that row
+   correctly and the others wrongly, in the same statement. That is the
+   argument against keeping a migration nobody should run.
+
+   `24a` survives as the check, and `24c` names what it finds. Test rows are
+   cleared by re-running `23b`.
 
 4. **Two things that came out of using it.** The drawer no longer jumps to
    the next provider when you are working one at a time: the hand-over stays

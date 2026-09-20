@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { LADDERS, SECTION_ORDER, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   dueLabel,
@@ -31,17 +31,37 @@ const ADD_BY_HAND = new Map<SectionKey, string>([["providers", "provider"]]);
 
 export default function SummaryView({
   university,
+  open,
+  onToggle,
+  cameFrom,
   onStart,
   onOpenRecord,
   onAddRecord,
 }: {
   university: BoardUniversity;
+  /**
+   * Which sections are expanded. Held above this component because it
+   * unmounts every time a record is opened, and coming back to a collapsed
+   * list after every single record is the difference between screening a
+   * campus and fighting the screen.
+   */
+  open: Partial<Record<SectionKey, boolean>>;
+  onToggle: (section: SectionKey) => void;
+  /** The record last looked at, scrolled back into view on the way in. */
+  cameFrom: string | null;
   onStart: () => void;
   onOpenRecord: (record: BoardRecord) => void;
   /** Start a record nobody has in the directory. Providers only, for now. */
   onAddRecord: (section: SectionKey) => void;
 }) {
-  const [open, setOpen] = useState<Partial<Record<SectionKey, boolean>>>({});
+  // Put the record you were just looking at back under your eyes. Centred
+  // rather than at the top, because the rows either side are the context.
+  useEffect(() => {
+    if (!cameFrom) return;
+    document
+      .getElementById(`board-record-${cameFrom}`)
+      ?.scrollIntoView({ block: "center", behavior: "auto" });
+  }, [cameFrom]);
 
   return (
     <div className="px-5 py-4">
@@ -69,9 +89,7 @@ export default function SummaryView({
             <div key={key} className="rounded-lg border border-gray-200">
               <button
                 type="button"
-                onClick={() =>
-                  only ? onOpenRecord(only) : setOpen((o) => ({ ...o, [key]: !o[key] }))
-                }
+                onClick={() => (only ? onOpenRecord(only) : onToggle(key))}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-left hover:bg-gray-50"
               >
                 <span className="w-2.5 shrink-0 text-[10px] text-gray-400">
@@ -108,9 +126,12 @@ export default function SummaryView({
                       return (
                         <button
                           key={r.id}
+                          id={`board-record-${r.id}`}
                           type="button"
                           onClick={() => onOpenRecord(r)}
-                          className="flex w-full items-center gap-2 border-b border-gray-100 py-2 text-left last:border-b-0 hover:bg-gray-50"
+                          className={`flex w-full items-center gap-2 border-b border-gray-100 py-2 text-left last:border-b-0 hover:bg-gray-50 ${
+                            r.id === cameFrom ? "bg-primary-25" : ""
+                          }`}
                         >
                           <span className="min-w-0 flex-1 truncate text-[13px] text-gray-900">
                             {r.name}

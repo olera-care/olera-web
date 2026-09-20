@@ -374,6 +374,10 @@ Dr. Logan DuBose's office · Olera`,
     label: "Students",
     goal: "hired",
     auto: true,
+    // The meeting and the application. Neither waits on the other: most
+    // students finish their own application, some need the meeting to get
+    // there, and we meet every student either way.
+    openTogether: 2,
     emptyNote: "Students appear here when an application lands.",
     steps: [
       {

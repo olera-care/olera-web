@@ -471,11 +471,37 @@ export async function GET() {
             : derivedStep("students", facts);
       const round = pending[0]?.round ?? 0;
 
+      // The rungs that open together: the meeting and the application. Both
+      // are the next thing when an application lands, and neither waits on
+      // the other. A rung the system has already answered is skipped, and so
+      // is everything behind a fact that supersedes it — nobody needs
+      // meeting a student who has already been interviewed.
+      const block = LADDERS.students.openTogether ?? 0;
+      const from = derivedStep("students", facts) ?? block;
+      for (let k = Math.max(0, from); k < block; k += 1) {
+        if (tasks.some((t) => t.step === k)) continue;
+        const key = LADDERS.students.steps[k]?.satisfiedBy;
+        if (key && facts[key]) continue;
+        tasks.push({
+          id: `auto:${st.id}:${k}`,
+          section: "students",
+          step: k,
+          round: 0,
+          dueAt: day(null),
+          done: false,
+          outcome: null,
+          note: "",
+          loggedOn: null,
+          spawned: [],
+          spawnedRecords: [],
+        });
+      }
+
       // Nobody has queued anything for this student, which is the normal
       // case: they arrived from an application, not from somebody pressing
       // start. Give them the rung they are actually on, so the record has
       // something to do rather than only a list of what is coming.
-      if (pending.length === 0 && step !== null) {
+      if (tasks.every((t) => t.done) && step !== null) {
         // A recurring rung is not due the day it is reached. The monthly
         // hours check on somebody hired last week is due a month after the
         // placement, not this afternoon.
@@ -498,6 +524,8 @@ export async function GET() {
           spawnedRecords: [],
         });
       }
+
+      tasks.sort((a, b) => a.step - b.step || a.round - b.round);
 
       const meta = (st.metadata ?? {}) as {
         intended_professional_school?: string;
@@ -530,8 +558,8 @@ export async function GET() {
         completeness: app.percent,
         missing: app.missing,
         facts,
-        step,
-        round,
+        step: tasks.filter((t) => !t.done)[0]?.step ?? step,
+        round: tasks.filter((t) => !t.done)[0]?.round ?? round,
         state: facts.hired ? LADDERS.students.goal : null,
         tasks,
       });

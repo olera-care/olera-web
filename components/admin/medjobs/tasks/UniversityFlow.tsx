@@ -100,6 +100,15 @@ export default function UniversityFlow({
    * the screen can tell.
    */
   const [running, setRunning] = useState(false);
+  /**
+   * Which sections the summary has open, and the record last looked at.
+   *
+   * Held here rather than in the summary, which unmounts on every record.
+   * Coming back to a collapsed list sixty times is the difference between
+   * screening a campus and fighting the screen.
+   */
+  const [openSections, setOpenSections] = useState<Partial<Record<SectionKey, boolean>>>({});
+  const [cameFrom, setCameFrom] = useState<string | null>(null);
   const [, force] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -187,11 +196,20 @@ export default function UniversityFlow({
    * A check rung is worked on the record, so it opens the record. Everything
    * else opens the task screen. Nothing left opens the summary.
    */
+  /** Remember where we were, so the summary can put us back. */
+  const openRecord = (r: BoardRecord) => {
+    setOpenSections((o) => ({ ...o, [r.section]: true }));
+    setCameFrom(r.id);
+    setView({ kind: "record", recordId: r.id });
+  };
+
   const go = (next: { record: BoardRecord; task: BoardTask } | null) => {
     if (!next) {
       setView({ kind: "summary" });
       return;
     }
+    setOpenSections((o) => ({ ...o, [next.record.section]: true }));
+    setCameFrom(next.record.id);
     setView(
       isCheck(next.task)
         ? { kind: "record", recordId: next.record.id }
@@ -304,6 +322,16 @@ export default function UniversityFlow({
     }
 
     land(complete(university, record, task, action));
+  };
+
+  // The record before and after this one, in the order the list shows them.
+  // Screening a campus is a sweep, not a queue, so it follows the list
+  // rather than what happens to be due.
+  const siblings = record ? university.records[record.section] ?? [] : [];
+  const at = record ? siblings.findIndex((r) => r.id === record.id) : -1;
+  const step = (by: number) => {
+    const next = siblings[at + by];
+    if (next) openRecord(next);
   };
 
   const left = readyCount(university);
@@ -495,6 +523,9 @@ export default function UniversityFlow({
           }}
           onOpenTask={(t: BoardTask) => setView({ kind: "task", recordId: record.id, taskId: t.id })}
           onCheck={check}
+          position={at >= 0 ? { at: at + 1, of: siblings.length } : null}
+          onPrev={at > 0 ? () => step(-1) : null}
+          onNext={at >= 0 && at < siblings.length - 1 ? () => step(1) : null}
           campus={
             university.mapsDestination
               ? { name: university.name, destination: university.mapsDestination }
@@ -554,13 +585,16 @@ export default function UniversityFlow({
       ) : (
         <SummaryView
           university={university}
+          open={openSections}
+          onToggle={(k) => setOpenSections((o) => ({ ...o, [k]: !o[k] }))}
+          cameFrom={cameFrom}
           onStart={() => {
             setRunning(true);
             go(nextReady(university));
           }}
           onOpenRecord={(r) => {
             setRunning(false);
-            setView({ kind: "record", recordId: r.id });
+            openRecord(r);
           }}
           onAddRecord={(section) => {
             setRunning(false);

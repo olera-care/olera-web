@@ -96,6 +96,9 @@ export default function RecordView({
   onChannelField,
   onOpenTask,
   onCheck,
+  position,
+  onPrev,
+  onNext,
   onRevive,
   onArchive,
   onDelete,
@@ -119,6 +122,11 @@ export default function RecordView({
   onOpenTask: (task: BoardTask) => void;
   /** Tick or untick a rung that is worked here rather than on its own screen. */
   onCheck: (task: BoardTask, done: boolean) => void;
+  /** Where this record sits in its section, for a screening pass. */
+  position?: { at: number; of: number } | null;
+  /** The record either side, or null at an end. */
+  onPrev?: (() => void) | null;
+  onNext?: (() => void) | null;
   onRevive: () => void;
   onArchive: () => void;
   /** Destroys the record. The caller confirms first. */
@@ -206,6 +214,9 @@ export default function RecordView({
           )}
           {isStudent && <ProfileLinks record={record} />}
         </div>
+        {position && position.of > 1 && (
+          <Neighbours position={position} onPrev={onPrev} onNext={onNext} />
+        )}
         {!fixed && <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />}
       </div>
 
@@ -818,6 +829,54 @@ function LinkIcon() {
       <path d="M6 8a2.5 2.5 0 0 0 3.6.3l2-2a2.5 2.5 0 0 0-3.5-3.6l-1 1" />
       <path d="M8 6a2.5 2.5 0 0 0-3.6-.3l-2 2A2.5 2.5 0 0 0 5.9 11.3l1-1" />
     </svg>
+  );
+}
+
+/**
+ * The record either side, and where you are between them.
+ *
+ * Screening a campus is opening a record, looking, closing, opening the
+ * next. Doing that from the list costs three clicks a record; from here it
+ * costs one. The count is there because a sweep of sixty needs to know how
+ * much of it is left.
+ */
+function Neighbours({
+  position,
+  onPrev,
+  onNext,
+}: {
+  position: { at: number; of: number };
+  onPrev?: (() => void) | null;
+  onNext?: (() => void) | null;
+}) {
+  const arrow =
+    "rounded-md px-1.5 py-1 text-[13px] leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent";
+  return (
+    <div className="flex shrink-0 items-center gap-0.5">
+      <button
+        type="button"
+        onClick={() => onPrev?.()}
+        disabled={!onPrev}
+        aria-label="Previous"
+        title="Previous"
+        className={arrow}
+      >
+        ‹
+      </button>
+      <span className="text-[11.5px] tabular-nums text-gray-500">
+        {position.at} of {position.of}
+      </span>
+      <button
+        type="button"
+        onClick={() => onNext?.()}
+        disabled={!onNext}
+        aria-label="Next"
+        title="Next"
+        className={arrow}
+      >
+        ›
+      </button>
+    </div>
   );
 }
 

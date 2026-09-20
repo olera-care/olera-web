@@ -363,40 +363,6 @@ After merge completes:
 
 ---
 
-## Phase 6: Update the Branch Handoff Report
-
-After the merge completes (or after a reconciliation), record the outcome in the **Branch Handoff Reports** database — the same artifact `/notion-report` writes to. (The old flat "PR Merge Reports" folder is retired; it was a write-only archive nobody read.)
-
-The handoff report is the human-readable, resume-oriented record of this branch's life. A merge is its terminal event, so **close it out** here.
-
-**Database:** Product Development › **Branch Handoff Reports**
-**Data source ID:** `e3014bc0-3a03-40ed-9c09-a66994fb9e78`
-
-**Create-or-update logic:**
-
-1. **Find** an existing handoff page for this branch — query the data source filtering on the `Branch` property = the merged branch name (`mcp__claude_ai_Notion__notion-query-data-sources`, or search by branch name). Short-lived branches often never got a `/notion-report`, so be ready to create one.
-
-2. **If a page exists → update it** (`mcp__claude_ai_Notion__notion-update-page`):
-   - `Status` → `Merged`
-   - Append an **Outcome** section to the body: merged via PR #<number> (GitHub link), final staging SHA, content-regression check result (from Phase 2.5), and the decision taken (merge / rebase / reconcile).
-   - Don't rewrite the existing handoff narrative — add to it.
-
-3. **If no page exists → create one** (`mcp__claude_ai_Notion__notion-create-pages` with `parent: { data_source_id: "e3014bc0-3a03-40ed-9c09-a66994fb9e78" }`, `🧭` icon), following the `/notion-report` structure and properties (`Title`, `Branch`, `Worktree`, `Status`, `PR`, `Date`), but with `Status = Merged` and the body focused on what shipped rather than what's-next:
-   - Callout: PR #<number> + branch + GitHub link
-   - **Context** — why this PR existed, what it changed
-   - **Outcome** — final staging SHA, content-regression check results, decision taken
-   - **File Resolution Table** — for reconciliation PRs, which files came from which workstream (contributor names, not branch names)
-   - **Lesson Learned** (if any) — callout block
-
-Use Notion-flavored Markdown: callout blocks, tables, headings, color attributes for risk levels. Always `await` the Notion call before reporting success. If the primary tool is Cloudflare-blocked, fall back to the raw `mcp__notion__API-*` tools per memory `Notion MCP Tools`.
-
-**When to run this:**
-- Always after a merge completes
-- Always after a reconciliation PR is created
-- Skip for aborted merges (no action taken)
-
----
-
 ## Safety Rails
 
 - **Never force-push without asking**

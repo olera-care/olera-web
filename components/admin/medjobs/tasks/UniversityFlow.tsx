@@ -237,16 +237,25 @@ export default function UniversityFlow({
    * Where every change lands.
    *
    * A run-through goes wherever the board says next, including the next
-   * provider — that is what "Start the next task" is for. Working one
-   * provider at a time is a different act: finishing their last rung should
-   * put you back on the university, not drop you into a stranger. So when
-   * you are browsing, the hand-over only happens within the record you
-   * opened, and the summary catches you at the end of it.
+   * provider — that is what "Start the next task" is for.
+   *
+   * Working one provider at a time is a different act. Within the record you
+   * opened the hand-over still happens, because finishing the call and then
+   * being handed the programme email is the point. But when that record has
+   * nothing left, the drawer stops on the record itself rather than dropping
+   * you into a stranger: the record is where you can see what it is waiting
+   * on next and when, which is the question you actually have at that
+   * moment. The university is one click up from there.
    */
   const land = (effect: Effect) => {
-    const next =
-      running || !record || effect.landOn?.record.id === record.id ? effect.landOn : null;
-    go(next);
+    if (!running && record && effect.landOn?.record.id !== record.id) {
+      setView({ kind: "record", recordId: record.id });
+      redraw();
+      if (effect.universityCleared) celebrate(`${university.name} is clear for today`);
+      else if (effect.recordCleared) say(`${record.name} — done for today`);
+      return;
+    }
+    go(effect.landOn);
     redraw();
     if (effect.universityCleared) {
       celebrate(`${university.name} is clear for today`);

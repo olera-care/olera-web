@@ -29,13 +29,45 @@
 -- older than today, so it is left with none. Nothing added one, but 23a
 -- would show it as a record with rows to delete and none to reopen.
 --
+-- Run 23a first: it marks which records the keep rule is sparing.
+--
 -- One statement.
 
-with deleted as (
+-- Records to spare, in two ways.
+--
+-- By hand: put an organization_name in the list below. Duplicated names are
+-- all spared, which is the safe direction to be wrong in.
+--
+-- By note: put #keep anywhere in the note when you log a real advance. Any
+-- provider with a task completed today carrying it is spared whole -- every
+-- task on it, not just the one you wrote on -- because advancing a record
+-- properly means the chain should stand.
+
+with keep as (
+  select o.id
+  from student_outreach o
+  where o.kind = 'provider'
+    and (
+      o.organization_name in (
+        -- add names here, one per line, comma separated
+        'Danville Support Services',
+        'Arosa Salt Lake'
+      )
+      or exists (
+        select 1
+        from student_outreach_tasks t
+        where t.outreach_id = o.id
+          and t.completed_at >= current_date
+          and t.notes ilike '%#keep%'
+      )
+    )
+)
+, deleted as (
   delete from student_outreach_tasks t
   using student_outreach o
   where o.id = t.outreach_id
     and o.kind = 'provider'
+    and not exists (select 1 from keep k where k.id = o.id)
     and t.created_at >= current_date
   returning t.id
 ),
@@ -49,6 +81,7 @@ reopened as (
   from student_outreach o
   where o.id = t.outreach_id
     and o.kind = 'provider'
+    and not exists (select 1 from keep k where k.id = o.id)
     and t.status = 'completed'
     and t.completed_at >= current_date
     and t.created_at < current_date

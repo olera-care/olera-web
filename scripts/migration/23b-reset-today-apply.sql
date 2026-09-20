@@ -8,7 +8,13 @@
 --     today advanced. It is reopened, and loses the notes, the outcome and
 --     any typed fields, because all three were written today in the same
 --     update that closed it.
---   * A record archived today goes back to researched.
+--
+-- Archived records stay archived. An earlier version put anything archived
+-- and edited today back to researched, and that matched nine records
+-- archived long before -- last_edited_at is stamped by any edit, so it does
+-- not say when the archiving happened, and no column does. A record archived
+-- today by pressing Not interested will have its task reopened and stay
+-- archived; unarchive it from the record menu if you want it back.
 --
 -- The two task rules are deliberately disjoint, which is what makes this
 -- safe to run twice: the first version reopened by completion date and then
@@ -47,16 +53,7 @@ reopened as (
     and t.completed_at >= current_date
     and t.created_at < current_date
   returning t.id
-),
-revived as (
-  update student_outreach o
-  set status = 'researched'
-  where o.kind = 'provider'
-    and o.status = 'archived'
-    and o.last_edited_at >= current_date
-  returning o.id
 )
 select
   (select count(*) from deleted) as tasks_deleted,
-  (select count(*) from reopened) as tasks_reopened,
-  (select count(*) from revived) as records_unarchived;
+  (select count(*) from reopened) as tasks_reopened;

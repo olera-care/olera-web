@@ -33,6 +33,7 @@ import {
   iso,
   makeRecord,
   resolveNext,
+  SKIPPED,
   startOfToday,
   stillToCome,
   strikesAt,
@@ -117,7 +118,7 @@ console.log("\nOne rung, one screen");
 {
   const rung = rungAt("providers", FOLLOW, 1)!;
   ok("it says to check both", rung.steps[0].includes("email") && rung.steps[0].includes("voicemail"));
-  ok("and nothing else, so the screen is the work", rung.steps.length === 1, rung.steps.join(" · "));
+  ok("then the email, then the call that refers to it", rung.steps.length === 3, rung.steps.join(" · "));
   const labels = rung.actions.map((a) => a.label);
   ok(
     "every outcome offered at once",
@@ -127,9 +128,10 @@ console.log("\nOne rung, one screen");
   );
   ok(
     "both ways a call fails are the log of two acts",
-    rung.actions.slice(0, 2).every((a) => (a.acts ?? []).join("+") === "call+email"),
+    rung.actions.slice(0, 2).every((a) => [...(a.acts ?? [])].sort().join("+") === "call+email"),
   );
   ok("and they lead, because they are what you press most", labels[0] === "No answer");
+  ok("the email goes first, so the call can refer to it", rung.actions[0].acts?.[0] === "email");
   // Only the two that cannot be guessed in advance ask anything.
   const asks = rung.actions.filter((a) => a.inputs?.length).map((a) => a.label);
   ok(
@@ -174,7 +176,7 @@ console.log("\nThe onboarding phase");
   );
   ok(
     "both ways a call fails are the log of two acts",
-    rung.actions.slice(0, 2).every((a) => (a.acts ?? []).join("+") === "call+email"),
+    rung.actions.slice(0, 2).every((a) => [...(a.acts ?? [])].sort().join("+") === "call+email"),
   );
   ok("the warning lands on the fourth round", rung.repeats?.warnAt === 4);
   ok("and does not rename the closing button", !rung.repeats?.archive);
@@ -220,7 +222,7 @@ console.log("\nA call is a tool, not a stage");
   ok("and where it came from", held.fields?.from_round === "3", JSON.stringify(held.fields));
 
   // Home is one round on from where it left, never round one.
-  for (const label of ["Helped — back to it", "They did not turn up"]) {
+  for (const label of ["Back to follow up", "They did not turn up"]) {
     const [u2, r2] = at(ONBOARDFOLLOW, 3);
     act(u2, r2, "Booked a call to help", { meeting_at: `${day}T14:00` });
     act(u2, r2, label);
@@ -245,7 +247,7 @@ console.log("\nA call is a tool, not a stage");
 
   // With nothing to go back to, a resuming outcome still has a name to aim at.
   const [u4, r4] = at(HELP, 0);
-  act(u4, r4, "Helped — back to it");
+  act(u4, r4, "Back to follow up");
   ok("and falls back to the named rung when there is no origin", r4.step === ONBOARDFOLLOW, String(r4.step));
 }
 
@@ -381,6 +383,115 @@ console.log("\nWhere Not yet is offered");
   ] as Array<[number, string]>) {
     ok(`still on ${why}`, steps[i].defer !== false);
   }
+}
+
+console.log("\nA jump does not leave rungs behind it open");
+{
+  // The opening block puts three rungs up at once, so a provider who says
+  // yes on the confirming call would otherwise still be told to send the
+  // programme email.
+  const u = board();
+  const r = makeRecord("providers", "Amada", 0, 0);
+  u.records.providers.push(r);
+  for (const k of [1, 2]) {
+    r.tasks.push({
+      id: `open${k}`,
+      section: "providers",
+      step: k,
+      round: 0,
+      dueAt: r.tasks[0].dueAt,
+      done: false,
+      outcome: null,
+      note: "",
+      loggedOn: null,
+      spawned: [],
+      spawnedRecords: [],
+    });
+  }
+  const call = rungAt("providers", CALL, 0)!;
+  complete(u, r, r.tasks.find((t) => t.step === CALL)!, call.actions.find((a) => a.label === "Interested, start onboarding")!);
+  ok("it lands on the pack", r.step === ONBOARD, String(r.step));
+  const open = r.tasks.filter((t) => !t.done).map((t) => t.step);
+  ok("the programme email is not still waiting", !open.includes(2), open.join(","));
+  ok("and it was closed with a reason, not deleted",
+    r.tasks.find((t) => t.step === 2)?.outcome === SKIPPED,
+    String(r.tasks.find((t) => t.step === 2)?.outcome));
+  ok("Research, which is behind it, is untouched", open.includes(0), open.join(","));
+
+  // Something already written on is never closed from under somebody.
+  const u2 = board();
+  const r2 = makeRecord("providers", "Amada", 0, 0);
+  u2.records.providers.push(r2);
+  for (const k of [1, 2]) {
+    r2.tasks.push({
+      id: `o${k}`, section: "providers", step: k, round: 0, dueAt: r2.tasks[0].dueAt,
+      done: false, outcome: null, note: k === 2 ? "half drafted" : "", loggedOn: null,
+      spawned: [], spawnedRecords: [],
+    });
+  }
+  complete(u2, r2, r2.tasks.find((t) => t.step === CALL)!, call.actions.find((a) => a.label === "Interested, start onboarding")!);
+  ok(
+    "a rung with a note on it survives the jump",
+    r2.tasks.some((t) => !t.done && t.step === 2),
+  );
+}
+
+console.log("\nThe screen and the server agree about coming home");
+{
+  // The route forgot to hand resolveNext the fields, so it sent every
+  // provider back to round one while the screen showed the right one until
+  // the next reload. Every resuming action, both ways, with an origin.
+  for (let i = 0; i < steps.length; i += 1) {
+    const rung = rungAt("providers", i, 1)!;
+    for (const action of rung.actions.filter((a) => a.resume)) {
+      const fields = { from_step: String(ONBOARDFOLLOW), from_round: "6" };
+      const [u, r] = at(i, rung.rounds ? 1 : 0);
+      r.tasks[0].fields = fields;
+      complete(u, r, r.tasks[0], action);
+      const screen = r.step === null ? null : { step: r.step, round: r.round };
+      const server = resolveNext("providers", i, rung.rounds ? 1 : 0, action, undefined, fields);
+      ok(
+        `${rung.title} · ${action.label}`,
+        JSON.stringify(server) === JSON.stringify(screen) && screen?.round === 7,
+        `server ${JSON.stringify(server)} vs screen ${JSON.stringify(screen)}`,
+      );
+    }
+  }
+}
+
+console.log("\nWhat is in the row, and what is under the menu");
+{
+  // Two things are available on every rung, which is exactly why they must
+  // not take two buttons on every rung.
+  const ALWAYS = ["Booked a call to help", "Something else"];
+  for (let i = 0; i < steps.length; i += 1) {
+    const rung = rungAt("providers", i, 1)!;
+    // The errand rung offers itself again under a different name; that is
+    // still the errand, and still belongs under the menu.
+    const quiet = rung.actions
+      .filter((a) => a.secondary)
+      .map((a) => (a.label === "Something else again" ? "Something else" : a.label));
+    const loud = rung.actions.filter((a) => !a.secondary).map((a) => a.label);
+    ok(
+      `${rung.title}: nothing always-available is in the row`,
+      loud.every((l) => !ALWAYS.includes(l)),
+      loud.join("|"),
+    );
+    ok(
+      `${rung.title}: and anything always-available is under the menu`,
+      quiet.every((l) => ALWAYS.includes(l)),
+      quiet.join("|"),
+    );
+  }
+}
+
+console.log("\nFlagging for manager review");
+{
+  const flag = ERRAND_ACTION.inputs?.find((f) => f.key === "flag_review");
+  ok("the errand offers it", Boolean(flag), JSON.stringify(ERRAND_ACTION.inputs?.map((f) => f.key)));
+  ok("as a yes or no, not a box to type in", flag?.type === "check");
+  ok("and it is optional", !flag?.required);
+  ok("it travels with the task", (ERRAND_ACTION.carry ?? []).includes("flag_review"));
 }
 
 console.log("\nStill to come");

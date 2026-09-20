@@ -397,6 +397,7 @@ export async function GET() {
         olera_provider_id?: string;
         website?: string;
         address?: string;
+        flagged_on?: string;
       };
       const edited = (research.website ?? "").trim();
       const fromDirectory = dirSite.get(research.olera_provider_id ?? "") ?? "";
@@ -438,6 +439,8 @@ export async function GET() {
         email: c?.email ?? "",
         website: edited || fromDirectory,
         websiteEdited: Boolean(edited),
+        // Raised when somebody hit something they could not settle alone.
+        flaggedOn: research.flagged_on ?? null,
         address: editedAddr || addrFromDirectory,
         addressEdited: Boolean(editedAddr),
         contact2: secondOf.get(row.id),

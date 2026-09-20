@@ -91,6 +91,7 @@ export default function TaskView({
   const [showEmail, setShowEmail] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showDefer, setShowDefer] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const [showStop, setShowStop] = useState(false);
   // "They replied" is the one outcome that carries information nobody can
   // reconstruct later, so it asks for it before moving on. Still here for
@@ -293,6 +294,14 @@ export default function TaskView({
             ))}
           </ol>
 
+          {record.flaggedOn && (
+            <p className="mt-2 rounded-md border border-warning-200 bg-warning-50 px-3 py-2 text-[12.5px] leading-snug text-warning-800">
+              <b className="font-semibold">Flagged for manager review.</b> Message the team in Slack
+              with what they asked for and how we might help. Clear the flag from the record once it
+              is sorted.
+            </p>
+          )}
+
           {/* Somewhere to look, when the rung tells you to go and look. */}
           {rung.link && (task.fields?.[rung.link.key] ?? "").trim() && (
             <a
@@ -488,6 +497,7 @@ export default function TaskView({
 
           <div className="mt-3 flex flex-wrap gap-2">
             {rung.actions.map((a, i) => {
+              if (a.secondary) return null;
               // Nothing to fan out to, nothing to log, or the two acts this
               // outcome is the log of still to do: the same idea. An outcome
               // that closes the record is never blocked — a provider who says
@@ -536,18 +546,7 @@ export default function TaskView({
                 They replied
               </button>
             )}
-            {rung.defer !== false && (
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDefer((v) => !v);
-                  setShowStop(false);
-                }}
-                className={BTN}
-              >
-                Not yet
-              </button>
-            )}
+
             {/*
               Stopping is about a record somebody keeps contacting: a wrong
               number, a person who left, an agency that asked us to stop. A
@@ -555,19 +554,19 @@ export default function TaskView({
               "not available here", which belongs with the channel rather
               than on a task, and is not built yet.
             */}
-            {record.section !== "jobboard" && (
-              <button
-                type="button"
-                aria-label="More"
-                onClick={() => {
-                  setShowStop((v) => !v);
-                  setShowDefer(false);
-                }}
-                className={`${BTN} tracking-widest text-gray-500`}
-              >
-                ···
-              </button>
-            )}
+            <button
+              type="button"
+              aria-label="More"
+              aria-expanded={showMore}
+              onClick={() => {
+                setShowMore((v) => !v);
+                setShowDefer(false);
+                setShowStop(false);
+              }}
+              className={`${showMore ? BTN_GO : BTN} tracking-widest`}
+            >
+              ···
+            </button>
           </div>
 
           {chosen && (
@@ -648,6 +647,64 @@ export default function TaskView({
                   <span className="text-[12px] text-gray-500">Write something first.</span>
                 )}
               </div>
+            </div>
+          )}
+
+          {/*
+            Everything available on every rung, out of the row. Booking a
+            call and logging something nobody foresaw are the two things an
+            operator can always do, and two buttons on every screen for them
+            is two buttons of noise on every screen.
+          */}
+          {showMore && (
+            <div className="mt-2.5 overflow-hidden rounded-md border border-gray-200">
+              {rung.actions.map((a, i) =>
+                a.secondary ? (
+                  <button
+                    key={a.label}
+                    type="button"
+                    onClick={() => {
+                      setShowMore(false);
+                      if ((a.inputs?.length ?? 0) > 0) setPicked(i);
+                      else onAct(i);
+                    }}
+                    className="block w-full border-b border-gray-100 px-3 py-2.5 text-left text-[12.5px] text-gray-700 last:border-b-0 hover:bg-gray-50"
+                  >
+                    {a.label}
+                    {a.hint && <span className="block text-[11.5px] text-gray-400">{a.hint}</span>}
+                  </button>
+                ) : null,
+              )}
+              {rung.defer !== false && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMore(false);
+                    setShowDefer(true);
+                  }}
+                  className="block w-full border-b border-gray-100 px-3 py-2.5 text-left text-[12.5px] text-gray-700 last:border-b-0 hover:bg-gray-50"
+                >
+                  Defer task
+                  <span className="block text-[11.5px] text-gray-400">
+                    Put it off. Nothing else about the record changes.
+                  </span>
+                </button>
+              )}
+              {record.section !== "jobboard" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMore(false);
+                    setShowStop(true);
+                  }}
+                  className="block w-full px-3 py-2.5 text-left text-[12.5px] text-error-700 hover:bg-error-50"
+                >
+                  Can&apos;t be done
+                  <span className="block text-[11.5px] text-gray-400">
+                    Wrong number, they have left, they asked us to stop.
+                  </span>
+                </button>
+              )}
             </div>
           )}
 
@@ -844,6 +901,26 @@ function Field({
   value: string;
   onChange: (v: string) => void;
 }) {
+  if (field.type === "check") {
+    const on = Boolean(value);
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(on ? "" : "yes")}
+        aria-pressed={on}
+        className="mt-3 flex w-full items-start gap-2.5 rounded-md border border-primary-200 bg-white px-3 py-2.5 text-left hover:border-primary-600"
+      >
+        <span
+          className={`mt-0.5 flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded border text-[11px] font-bold ${
+            on ? "border-primary-600 bg-primary-600 text-white" : "border-gray-300 text-transparent"
+          }`}
+        >
+          ✓
+        </span>
+        <span className="text-[13px] text-gray-800">{field.label}</span>
+      </button>
+    );
+  }
   return (
     <label className="mt-3 flex items-center gap-2.5">
       <span className="w-24 shrink-0 text-[12px] text-gray-500">

@@ -568,6 +568,17 @@ export default function UniversityFlow({
             force((n) => n + 1);
           }}
           onSaveFields={saveFields}
+          onClearFlag={() => {
+            record.flaggedOn = null;
+            force((n) => n + 1);
+            void send({ op: "clear_flag", recordId: record.id }, "Flag cleared", {
+              keepBoard: true,
+              undo: () => {
+                record.flaggedOn = new Date().toISOString();
+                redraw();
+              },
+            });
+          }}
           onOpenTask={(t: BoardTask) => setView({ kind: "task", recordId: record.id, taskId: t.id })}
           onCheck={check}
           position={at >= 0 ? { at: at + 1, of: siblings.length } : null}

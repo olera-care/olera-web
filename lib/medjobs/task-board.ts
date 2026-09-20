@@ -17,6 +17,9 @@ import {
 
 export type ChannelStatus = "not_yet" | "in_progress" | "live" | "not_available";
 
+/** What a rung says when the ladder moved past it before anybody worked it. */
+export const SKIPPED = "Not needed — they said yes first";
+
 export interface BoardTask {
   id: string;
   section: SectionKey;
@@ -140,6 +143,13 @@ export interface BoardRecord {
   /** Students only: how much of the application is filled in, and what is not. */
   completeness?: number;
   missing?: string[];
+  /**
+   * Raised when somebody hit something they could not settle alone.
+   *
+   * The date it was raised, so the record can say how long it has been
+   * waiting. Cleared from the record menu once the team has sorted it.
+   */
+  flaggedOn?: string | null;
   /** Null once the record has stopped climbing — reached its goal or stopped. */
   step: number | null;
   round: number;
@@ -215,8 +225,14 @@ export const iso = (d: Date): string => d.toISOString().slice(0, 10);
  */
 export function carryFrom(
   action: LadderAction,
-  fields?: Record<string, string>,
-  from?: { step: number; round: number },
+  fields: Record<string, string> | undefined,
+  /**
+   * Where the record was. Required, not optional: the server forgot to pass
+   * it and the origin never reached the database, so a branch found its way
+   * home on the screen and back to round one on the next reload. A required
+   * argument is the only version of that guard the compiler can enforce.
+   */
+  from: { step: number; round: number },
 ): Record<string, string> | undefined {
   const out: Record<string, string> = {};
   for (const key of action.carry ?? []) {
@@ -224,7 +240,7 @@ export function carryFrom(
     if (v) out[key] = v;
   }
   // Where the record was, so a branch can find its way back.
-  if (action.carryOrigin && from) {
+  if (action.carryOrigin) {
     out.from_step = String(from.step);
     out.from_round = String(from.round);
   }
@@ -441,11 +457,13 @@ export function complete(
     // otherwise add a second copy of the second.
     const open = record.tasks.find((t) => !t.done && t.step === step && t.round === round);
     if (open) {
+      if (step > task.step) skipPast(step);
       record.step = step;
       record.round = round;
       landRecord = record;
       return;
     }
+    if (step > task.step) skipPast(step);
     const next = makeTask(record.section, step, round, dueFor(action, task.fields));
     // An errand is only a task if it carries what the errand is.
     const carried = carryFrom(action, task.fields, { step: task.step, round: task.round });
@@ -455,6 +473,28 @@ export function complete(
     record.step = step;
     record.round = round;
     landRecord = record;
+  };
+
+  /**
+   * Close the rungs a jump went past.
+   *
+   * The opening block leaves three rungs waiting at once, so a provider who
+   * says yes on the confirming call still had "Send the program info" sitting
+   * there — the ladder had moved on and the screen had not. They are closed
+   * with a reason rather than deleted, because a task that vanishes is a task
+   * nobody can explain later.
+   *
+   * Only rungs between the one just finished and the one being jumped to, and
+   * only ones nobody has written anything on.
+   */
+  const skipPast = (to: number) => {
+    for (const t of record.tasks) {
+      if (t.done || t.step <= task.step || t.step >= to) continue;
+      if ((t.note ?? "").trim() || t.fields) continue;
+      t.done = true;
+      t.outcome = SKIPPED;
+      t.loggedOn = iso(startOfToday());
+    }
   };
 
   const stop = (state: string) => {

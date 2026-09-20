@@ -133,6 +133,24 @@ export default function SummaryView({
                             r.id === cameFrom ? "bg-primary-25" : ""
                           }`}
                         >
+                          {/* Visible from the list, which is the point of it. */}
+                          {r.flaggedOn && (
+                            <span
+                              title="Flagged for manager review"
+                              aria-label="Flagged for manager review"
+                              className="shrink-0 text-warning-600"
+                            >
+                              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path
+                                  d="M3.5 14.5V2M3.5 2.5h7.2l-1.3 2.6 1.3 2.6H3.5"
+                                  stroke="currentColor"
+                                  strokeWidth="1.8"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </span>
+                          )}
                           <span className="min-w-0 flex-1 truncate text-[13px] text-gray-900">
                             {r.name}
                           </span>

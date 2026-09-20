@@ -102,6 +102,7 @@ export default function RecordView({
   onRevive,
   onArchive,
   onDelete,
+  onClearFlag,
   campus,
   busy,
 }: {
@@ -129,6 +130,8 @@ export default function RecordView({
   onNext?: (() => void) | null;
   onRevive: () => void;
   onArchive: () => void;
+  /** Take the manager-review flag off, once the team has sorted it. */
+  onClearFlag: () => void;
   /** Destroys the record. The caller confirms first. */
   onDelete: () => void;
   /** The university this record sits under — the other end of the drive. */
@@ -219,6 +222,27 @@ export default function RecordView({
         )}
         {!fixed && <RecordMenu onArchive={onArchive} onDelete={onDelete} disabled={busy} />}
       </div>
+
+      {record.flaggedOn && (
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-warning-200 bg-warning-50 px-3 py-2.5">
+          <span className="mt-0.5 shrink-0 text-warning-700">
+            <FlagIcon />
+          </span>
+          <p className="flex-1 text-[12.5px] leading-snug text-warning-800">
+            <b className="font-semibold">Flagged for manager review</b>
+            {` · ${longDate(record.flaggedOn.slice(0, 10))}`}. Message the team in Slack with what
+            they asked for.
+          </p>
+          <button
+            type="button"
+            onClick={onClearFlag}
+            disabled={busy}
+            className="shrink-0 rounded-md border border-warning-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-warning-800 hover:bg-warning-50 disabled:opacity-40"
+          >
+            Sorted
+          </button>
+        </div>
+      )}
 
       {isStudent ? (
         <StudentFields record={record} />
@@ -710,6 +734,21 @@ function fieldLines(task: BoardTask): string[] {
 
 /** The edit affordance on the name. Grey until hovered, so it is there when
  *  wanted and silent when not. */
+/** A little flag, for a record somebody could not settle alone. */
+function FlagIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3.5 14.5V2M3.5 2.5h7.2l-1.3 2.6 1.3 2.6H3.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function PencilIcon() {
   return (
     <svg

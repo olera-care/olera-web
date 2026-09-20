@@ -191,7 +191,8 @@ what happened.
 
 | Outcome | What it means | Where the record goes |
 |---|---|---|
-| **Log the call and the email** | Nothing back, both done | The next round, two business days out |
+| **No answer** | Nobody picked up; email and call both done | The next round, two business days out |
+| **Left a voicemail** | Same, and they have heard us | The next round, two business days out |
 | **Interested, start onboarding** | Yes, tell me more | **Send the onboarding pack**, today |
 | **Not interested** | They declined | Archived |
 | **Something else** | Anything the first three do not cover | A task in the operator's own words, on the day they pick |
@@ -246,11 +247,22 @@ be the worst outcome in the funnel.
 
 | Ending | What it means | Where the record goes |
 |---|---|---|
-| **Log the call and the email** | Nothing back, both done | The next round, three days out |
+| **No answer** | Nobody picked up; email and call both done | The next round, three days out |
+| **Left a voicemail** | Same, and they have heard us | The next round, three days out |
 | **They are ready** | They have said so | **The goal**, nothing further |
-| **Booked a call to help** | They would rather be walked through it | **Help them on a call**, on the day |
 | **Not interested** | They have changed their mind | Archived |
-| **Something else** | Anything the other four do not cover | A task in your own words |
+
+**Two things are available on every rung, so neither takes a button.** Under the
+menu: **Booked a call to help**, because a provider can ask to be walked through it
+at any point and it must never cost them their place. The call hands the record
+straight back, one round on from where it left. And and **Something else**, which takes
+whatever they actually asked for in your own words, with the day it comes back and a
+tick to flag it for manager review. A flagged record carries a flag in the list and
+says to take it to the team in Slack. Deferring and closing a record live there too.
+
+**Email first, then the call that refers to it.** A call that arrives before the
+email is a cold call; one that follows it has something to be about. Both blocks say
+so in their steps and both log the two acts together.
 
 **A call is a tool, not a stage.** Help them on a call is a branch, reached only
 when somebody books one, and most providers never see it. It is fifteen minutes

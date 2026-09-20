@@ -61,7 +61,7 @@ export interface LadderInput {
   key: string;
   label: string;
   /** Defaults to a plain text field. */
-  type?: "text" | "datetime-local" | "date" | "url" | "number";
+  type?: "text" | "datetime-local" | "date" | "url" | "number" | "check";
   /**
    * The rung cannot be finished without it.
    *
@@ -141,6 +141,14 @@ export interface LadderAction {
    * Falls back to `goto` when there is no origin to go back to.
    */
   resume?: boolean;
+  /**
+   * Offered under the menu rather than in the row of buttons.
+   *
+   * Booking a call and logging something the ladder did not foresee are
+   * available everywhere, which is exactly why they should not take up two
+   * buttons on every screen. The row is for what this rung is about.
+   */
+  secondary?: boolean;
   /**
    * Things to do before this can be logged, each with the way to do it to
    * hand. The rung already said to call and then email; this is that
@@ -354,6 +362,7 @@ export const SEASON = "late July";
  */
 export const BOOK_CALL: LadderAction = {
   label: "Booked a call to help",
+  secondary: true,
   outcome: "next",
   goto: "help",
   delay: 0,
@@ -382,14 +391,15 @@ export const BOOK_CALL: LadderAction = {
  */
 export const ERRAND: LadderAction = {
   label: "Something else",
+  secondary: true,
   outcome: "next",
   goto: "errand",
   delay: 0,
   // The date typed below, not two business days from now.
   delayFrom: "due_on",
-  carry: ["todo"],
   carryOrigin: true,
   hint: "They asked for something the board has no rung for. Queues it.",
+  carry: ["todo", "flag_review"],
   inputs: [
     {
       key: "todo",
@@ -403,6 +413,14 @@ export const ERRAND: LadderAction = {
       type: "date",
       required: true,
       needs: "Pick the day it comes back",
+    },
+    {
+      // Some of these are beyond one operator. Ticking it puts a flag on the
+      // record so it is visible from the list, and the rung then says to
+      // take it to the team rather than sit on it.
+      key: "flag_review",
+      label: "Flag for manager review",
+      type: "check",
     },
   ],
 };
@@ -453,13 +471,18 @@ export const INTEREST_OUTCOMES: LadderAction[] = [
 export function noAnswerOutcomes(
   delay: number,
   carry?: string[],
+  actLabels?: Partial<Record<"call" | "email", string>>,
 ): LadderAction[] {
+  // Email first, then the call refers to it. A call that arrives before the
+  // email is a cold call; one that follows it has something to be about.
+  const acts: Array<"call" | "email"> = ["email", "call"];
   return [
     {
       label: "No answer",
       outcome: "next",
       delay,
-      acts: ["call", "email"],
+      acts,
+      ...(actLabels ? { actLabels } : {}),
       ...(carry ? { carry } : {}),
       hint: "Nobody picked up. Both logged, and the next round is queued.",
     },
@@ -467,7 +490,8 @@ export function noAnswerOutcomes(
       label: "Left a voicemail",
       outcome: "next",
       delay,
-      acts: ["call", "email"],
+      acts,
+      ...(actLabels ? { actLabels } : {}),
       ...(carry ? { carry } : {}),
       hint: "Message left, so they have heard us. Both logged, and the next round is queued.",
     },
@@ -492,9 +516,13 @@ export function followUp(n: number, section: SectionKey): LadderRung {
     why: "No reply yet.",
     steps:
       section === "providers"
-        ? // Both, and in that order. A provider who rang back and got the
-          // machine has got back to us, and the board would never know.
-          ["Check their email and your voicemail before anything else."]
+        ? [
+            // Both, because a provider who rang back and got the machine has
+            // got back to us and the board would never know.
+            "Check their email and your voicemail first.",
+            "Email them, resending the programme.",
+            "Call them, refer to the email, and ask if they want to hear more.",
+          ]
         : ["Check your inbox first.", "No reply — call, then email."],
     script: `"Hi, this is [your name] from Dr. DuBose's office. I emailed ${who} last week about our Student Caregiver Program — students who work paid caregiving shifts around their classes. Did that reach the right person, or is there someone better I should send it to?"`,
     email: {
@@ -526,7 +554,13 @@ Dr. Logan DuBose's office · Olera`,
           // Two acts and a log, not a button that says nobody did anything —
           // and which of the two ways the call failed, because one means
           // they have heard us.
-          actions: [...noAnswerOutcomes(2), ...INTEREST_OUTCOMES],
+          actions: [
+            ...noAnswerOutcomes(2, undefined, {
+              email: "Email them, resending the programme",
+              call: "Call them and refer to the email",
+            }),
+            ...INTEREST_OUTCOMES,
+          ],
         }
       : {
           reply: true,
@@ -550,10 +584,12 @@ export function onboardingFollowUp(n: number): LadderRung {
     what: "Check whether they got themselves set up, and help them over the line if not.",
     why: "They said yes and we sent them everything. What is left is hearing that they are ready.",
     steps: [
-      "Check their email and your voicemail for anything back from them.",
-      "Open their portal below: has the profile been claimed, and are their caregiver requirements filled in?",
-      "If they emailed you what they are looking for, put it in the portal yourself.",
-      "If they have said they are ready, that is enough — press it. The portal can be finished before the first hire.",
+      "Check their email and your voicemail first.",
+      "Email them the one question: are you ready for students, or do you have questions?",
+      "Call them, refer to the email, and ask the same thing.",
+      "If they have questions, offer to answer them by email or on a quick call.",
+      "Check their portal below. If they emailed what they want in a caregiver, put it in yourself.",
+      "Their word is enough. Press They are ready — the portal can wait until the first hire.",
     ],
     link: { key: "portal_link", label: "Their portal" },
     // They have already said yes, so every two days reads as pestering.
@@ -584,10 +620,10 @@ Best,
 Dr. Logan DuBose's office · Olera`,
     },
     actions: [
-      ...noAnswerOutcomes(3, ["portal_link"]).map((a) => ({
-        ...a,
-        actLabels: { email: "Email them, asking the one question" },
-      })),
+      ...noAnswerOutcomes(3, ["portal_link"], {
+        email: "Email them the one question",
+        call: "Call, refer to the email, and ask",
+      }),
       {
         label: "They are ready",
         outcome: "goal",
@@ -675,7 +711,11 @@ export const LADDERS: Record<SectionKey, Ladder> = {
     label: "Providers",
     goal: "ready for their first student",
     auto: true,
-    openTogether: 3,
+    // Two, not three. Look them up and ring them in one sitting — but the
+    // programme email waits on the call, because you cannot send it to an
+    // address nobody has confirmed. With three open, a call that nobody
+    // answered still left "Send the program info" sitting there due today.
+    openTogether: 2,
     emptyNote: "Providers populate from the catchment when the university is added.",
     steps: [
       {
@@ -897,17 +937,11 @@ Dr. Logan DuBose's office · Olera`,
             hint: "They have said so. That is the goal, whatever stage the call was booked from.",
           },
           {
-            // A call booked before the pack went out can produce the yes
-            // that the pack is for.
-            label: "Interested, start onboarding",
-            outcome: "next",
-            goto: "onboarding",
-            delay: 0,
-            hint: "They want the details. Sends them the pack.",
-          },
-          {
             // Back to the round after the one they left, not to round one.
-            label: "Helped — back to it",
+            // A call booked before the pack went out lands back on the cold
+            // block, whose next round carries "Interested, start onboarding"
+            // — so that outcome does not need repeating here.
+            label: "Back to follow up",
             outcome: "next",
             resume: true,
             goto: "onboardfollow",

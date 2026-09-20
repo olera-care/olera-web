@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
+  SKIPPED,
   carryFrom,
   dueFor,
   dueIn,
@@ -66,6 +67,7 @@ type Body =
       address?: string;
     }
   | { op: "unarchive_record"; recordId: string }
+  | { op: "clear_flag"; recordId: string }
   | { op: "delete_record"; recordId: string; reason?: string }
   | {
       op: "save_fields";
@@ -289,6 +291,17 @@ export async function POST(req: Request) {
     }
 
     // ── put it back ───────────────────────────────────────────────────────
+    case "clear_flag": {
+      const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
+      delete research.flagged_on;
+      const { error } = await db
+        .from("student_outreach")
+        .update({ ...stamp(user.id), research_data: research })
+        .eq("id", outreach.id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ ok: true });
+    }
+
     case "unarchive_record": {
       const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
       delete research.archived_reason;
@@ -435,7 +448,11 @@ export async function POST(req: Request) {
               Object.entries(body.fields).map(([k, v]) => [k, String(v ?? "").slice(0, 500)]),
             )
           : {};
-      const nextRung = action ? resolveNext(section, step, round, action) : null;
+      // `fields` is not optional here: it is where a resuming outcome reads
+      // its way back to. Without it the server sent every provider to round
+      // one of the block they had left, while the screen showed the right
+      // one until the next reload.
+      const nextRung = action ? resolveNext(section, step, round, action, undefined, fields) : null;
       const next = nextRung?.step ?? null;
       const mine = atStep(step).filter((t) => (where(t).round ?? 0) === round);
       const after = next === null ? [] : atStep(next).filter(
@@ -508,6 +525,45 @@ export async function POST(req: Request) {
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
+        // Somebody hit something they could not settle alone. The flag is
+        // on the record rather than the task, because the point of it is to
+        // be visible from the list without opening anything.
+        if (fields.flag_review) {
+          const research = (outreach.research_data ?? {}) as Record<string, unknown>;
+          const { error } = await db
+            .from("student_outreach")
+            .update({
+              ...stamp(user.id),
+              research_data: { ...research, flagged_on: new Date().toISOString() },
+            })
+            .eq("id", outreach.id);
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        // Close the rungs a jump went past. The opening block leaves three
+        // waiting at once, so a provider who says yes on the confirming call
+        // would otherwise still be told to send the programme email.
+        if (next !== null && next > step) {
+          const passed = (rows ?? []).filter((t) => {
+            const at = where(t).step ?? 0;
+            return (
+              t.status === "pending" && at > step && at < next && !(t.notes ?? "").trim()
+            );
+          });
+          for (const t of passed) {
+            const { error } = await db
+              .from("student_outreach_tasks")
+              .update({
+                status: "completed",
+                completed_at: new Date().toISOString(),
+                payload: { ...((t.payload ?? {}) as object), outcome: SKIPPED },
+              })
+              .eq("id", t.id);
+            if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+            t.status = "completed";
+          }
+        }
+
         // Queue what comes next, unless it is already waiting.
         if (next !== null && nextRung && !after.some((t) => t.status === "pending")) {
           const { error } = await db.from("student_outreach_tasks").insert({
@@ -519,8 +575,10 @@ export async function POST(req: Request) {
               step: nextRung.step,
               round: nextRung.round,
               // What the errand is, so the queued rung names itself.
-              ...(action && carryFrom(action, fields)
-                ? { fields: carryFrom(action, fields) }
+              // Including where the record was, which is what a branch
+              // reads to find its way home.
+              ...(action && carryFrom(action, fields, { step, round })
+                ? { fields: carryFrom(action, fields, { step, round }) }
                 : {}),
             },
           });

@@ -306,11 +306,18 @@ Dr. Logan DuBose's office · Olera`,
               hint: "Called and emailed again, nothing back. Logged, and the next round is queued.",
             },
             {
+              // Due today, not in three days. The reply is in front of you and
+              // the next move is ours: a delay here answers the question "when
+              // should we next touch them" when the question actually being
+              // asked is "when should the operator do the next thing", and
+              // those are only the same when we are waiting on the provider.
+              // Three days sent the operator to the next provider and left a
+              // warm reply unanswered until Thursday.
               label: "Replied, no time yet",
               outcome: "next" as const,
               goto: "talking",
-              delay: 3,
-              hint: "Interested, no date. Off the cold cadence and into the conversation.",
+              delay: 0,
+              hint: "Interested, no date. Hands you the reply to answer now.",
             },
             {
               label: "Not interested",

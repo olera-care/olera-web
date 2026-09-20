@@ -252,6 +252,16 @@ Raised 20 September, after looking at the shipped follow-up screen. It
 supersedes part of 6: the endings are right in shape and wrong in what they
 sort for.
 
+**Fixed on the way past, 20 September.** *Replied, no time yet* queued the
+holding rung three business days out, so the run-through moved to the next
+provider and left a warm reply unanswered until Thursday. A delay answers *when
+should we next touch them*, and the operator had been reading it as *when
+should I do the next thing* — the same only while we are waiting on the
+provider. It is due today now, and `check-follow-up.ts` holds the rule rung by
+rung: a confirmed contact, a time, and a reply all hand the operator the next
+thing; a sent email, a silent round and a conversation we have just answered
+all wait.
+
 **The problem.** The whole provider ladder funnels into a meeting, and a
 meeting is a big ask from a cold email. Worse, it is the *wrong* ask — what we
 actually need is a provider who says *yes, tell me more*. Some will want a
@@ -352,7 +362,10 @@ chase, and the rung should say which.
    where o.kind = 'provider' and (payload->>'step')::int >= 4
    group by 1, 2 order by 1, 2;
    ```
-4. **Logging a callback on an archived record.** Interest can arrive months
+4. **The meeting log is due on the wrong day.** Booking queues *Log the
+   meeting* today, when the meeting is next Thursday. The date is on the rung
+   already as `meeting_at`; a delay has no way to come from a field yet.
+5. **Logging a callback on an archived record.** Interest can arrive months
    later. Reviving and then pressing the outcome works, but it is two steps and
    the second is not obvious.
 

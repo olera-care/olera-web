@@ -18,6 +18,7 @@
 import { FOLLOW_UP_ROUNDS, LADDERS, SECTION_ORDER, rungAt } from "../lib/medjobs/ladders";
 import {
   complete,
+  isReady,
   lastNote,
   makeRecord,
   resolveNext,
@@ -228,6 +229,44 @@ console.log("\nWhat was said last time");
   ok("with the rung it came from", seen?.title === "Follow up 1", seen?.title);
   ok("and the task in hand is never its own recall", lastNote(r, first) === null || true);
   ok("the rung asks for it", steps[TALKING].recall === "Last exchange");
+}
+
+console.log("\nHanded over, not parked");
+{
+  // A delay answers "when should we next touch them". When the next act is
+  // ours and we already hold everything we need, that is now — and the
+  // run-through should hand the operator the rung rather than the next
+  // provider. The two lists below are that rule, rung by rung.
+  const handed = (step: number, round: number, label: string) => {
+    const u = board();
+    const r = makeRecord("providers", "Amanda Senior Care Phoenix", step, round);
+    u.records.providers.push(r);
+    const rung = rungAt("providers", step, round)!;
+    const effect = complete(u, r, r.tasks[0], rung.actions.find((a) => a.label === label)!);
+    return {
+      same: effect.landOn?.record === r,
+      ready: r.tasks.some((t) => !t.done && isReady(t)),
+    };
+  };
+
+  for (const [step, round, label, why] of [
+    [1, 0, "Confirmed contact", "a confirmed contact hands you the programme email"],
+    [FOLLOW, 2, "They gave a time", "a time hands you the booking"],
+    [FOLLOW, 2, "Replied, no time yet", "a reply hands you the reply to write"],
+    [TALKING, 0, "They gave a time", "and so does one weeks later"],
+  ] as Array<[number, number, string, string]>) {
+    const { same, ready } = handed(step, round, label);
+    ok(why, same && ready, `same record ${same}, ready ${ready}`);
+  }
+
+  for (const [step, round, label, why] of [
+    [2, 0, "Log email sent", "a sent email waits two days"],
+    [FOLLOW, 2, "No reply", "and so does a round nobody answered"],
+    [TALKING, 0, "Still talking", "a conversation we have just replied to waits three"],
+  ] as Array<[number, number, string, string]>) {
+    const { ready } = handed(step, round, label);
+    ok(why, !ready, "it came back today");
+  }
 }
 
 console.log("\nStill to come");

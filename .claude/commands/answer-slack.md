@@ -32,7 +32,7 @@ TJ's user id is `U0131NJURA7`.
 |---|---|
 | DMs | `slack_search_public_and_private`, `filters: "is:dm after:YYYY-MM-DD"` |
 | Mentions | `keywords: ["<@U0131NJURA7>"]`, `channel_types: "public_channel,private_channel"` |
-| Threads he is in | `filters: "is:thread with:<@U0131NJURA7>"` |
+| Threads he is in | `filters: "is:thread with:<@U0131NJURA7>"` -- **returns his own thread messages too**, mostly. Apply the newest-message-is-not-his test before treating any of it as a queue. |
 | Where he has replied | `filters: "from:<@U0131NJURA7> after:..."` |
 | Thread contents | `slack_read_thread` with `channel_id` + parent `message_ts` |
 | Channel ids | `slack_search_channels` |
@@ -146,7 +146,8 @@ Then verify, and append the run to `SCRATCHPAD.md`.
 3. **`slack_read_channel`'s `oldest` did not filter.** Verify a window on a small limit before pulling 30 messages.
 4. **Slackbot survives `include_bots: false`.**
 5. **Raw mention count is not backlog.** TJ replies fast. Most mentions are closed within the hour.
-6. **Do not measure from one page and design for it.** A quiet fortnight is not the steady state; he has gone weeks without catching up. Build for the heavy case, report the light one honestly.
+6. **`is:thread with:` mostly returns his own messages.** It answers "which threads is he in", not "which threads are waiting on him". Filter before ranking.
+7. **Do not measure from one page and design for it.** A quiet fortnight is not the steady state; he has gone weeks without catching up. Build for the heavy case, report the light one honestly.
 
 ---
 

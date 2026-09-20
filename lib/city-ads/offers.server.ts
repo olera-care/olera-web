@@ -567,7 +567,10 @@ export async function acceptOffer(
   // `connection_id` because a native lead has no connection row — which also
   // keeps it out of the growth_attribution upsert, where a fabricated
   // conversion id would be worse than a missing one.
-  if (cfg?.managedCampaignTag) {
+  // Both halves required: the tag names a campaign, the id names whose it is.
+  // A pool can hold several providers and only one of them is paying for this
+  // arm, so an unguarded write would put a lead on the wrong dashboard.
+  if (cfg?.managedCampaignTag && cfg.managedProviderId === offer.provider_id) {
     await recordProviderEvent({
       provider_id: provider?.slug ?? offer.provider_id,
       event_type: "lead_received",

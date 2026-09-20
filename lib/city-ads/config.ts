@@ -53,8 +53,20 @@ export interface CityConfig {
    * LEAVE IT UNSET for Olera-funded city arms. Crediting a city-pool lead to a
    * provider's own campaign would tell them their ad produced a family that our
    * ad produced.
+   *
+   * Requires `managedProviderId`. The tag belongs to ONE provider, but a pool
+   * can hold several, so the receipt has to name whose campaign it is.
    */
   managedCampaignTag?: string;
+  /**
+   * The `business_profiles.id` that owns `managedCampaignTag`. The receipt is
+   * written only when this provider is the one who accepted.
+   *
+   * Without it, adding a second provider to the pool would silently credit
+   * their accepted lead to the first provider's campaign — a number on someone
+   * else's dashboard for a family they never received.
+   */
+  managedProviderId?: string;
 }
 
 export const CITY_CONFIGS: Record<string, CityConfig> = {
@@ -106,6 +118,7 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
     timeZone: "America/Chicago",
     campaignTag: "olera-pascagoula-native-sep26",
     managedCampaignTag: "hoop-pascagoula-sep26",
+    managedProviderId: "d0c4738f-77e9-4b4a-a02c-e9cbab6597d3",
   },
 };
 

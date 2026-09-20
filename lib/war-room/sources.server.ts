@@ -447,6 +447,12 @@ function toExternalEvidence(item: StoredSourceItem): WarRoomProposalEvidence {
  * The archive writes up to 80 rows per sync against Slack's handful, so a
  * single shared limit would let one busy week of SCRATCHPAD.md evict every
  * Slack and Notion row and quietly swap one blind spot for another.
+ *
+ * They also differ on recency. The 90-day window is right for conversation and
+ * wrong for the record: a decision written down in April is still the decision.
+ * Applying that window to the archive meant older documents were fetched,
+ * chunked, stored, and then never returned as evidence. Freshness labelling
+ * already tells the analyst how old a reading is.
  */
 export async function loadExternalEvidence(db: SupabaseClient): Promise<WarRoomProposalEvidence[]> {
   const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
@@ -459,7 +465,6 @@ export async function loadExternalEvidence(db: SupabaseClient): Promise<WarRoomP
       .limit(120),
     db.from("war_room_source_items").select(select)
       .eq("source", "archive")
-      .or(`occurred_at.gte.${since},last_edited_at.gte.${since}`)
       .order("occurred_at", { ascending: false })
       .limit(80),
   ]);
@@ -583,6 +588,15 @@ const MAX_ARCHIVE_FILES = 40;
 const MAX_ARCHIVE_CHUNKS = 80;
 const MAX_ARCHIVE_CHUNKS_PER_FILE = 12;
 const MAX_ARCHIVE_FILE_BYTES = 2_000_000;
+/**
+ * .txt as well as .md. The default allowlist names docs/crp/living/, whose two
+ * canonical grant documents are .txt; a markdown-only filter silently fetched
+ * the 587-byte README in that directory instead of the 99KB of content beside
+ * it, which is most of the reason this reader exists.
+ */
+const ARCHIVE_EXTENSIONS = [".md", ".txt"] as const;
+/** Fallback block size for a document with no markdown headings to split on. */
+const ARCHIVE_BLOCK_CHARS = 5_000;
 
 /**
  * Curated priority order, not a tree walk. Earlier entries survive the file
@@ -644,7 +658,7 @@ async function githubArchiveFetch(path: string, timeoutMs = 20_000) {
  */
 function chunkMarkdown(path: string, body: string, fileDate: string) {
   const lines = body.split("\n");
-  const chunks: Array<{ heading: string; content: string; occurredAt: string; dated: boolean }> = [];
+  const chunks: Array<{ heading: string; content: string; occurredAt: string; dated: boolean; occurrence?: number }> = [];
   let heading = path.split("/").pop() || path;
   let buffer: string[] = [];
 
@@ -675,6 +689,45 @@ function chunkMarkdown(path: string, body: string, fileDate: string) {
   }
   flush();
 
+  // A plain-text document has no headings to split on, so everything above
+  // produced a single chunk that bounded() would cut to MAX_SOURCE_CONTENT.
+  // Split it into ordered blocks at paragraph boundaries instead.
+  if (chunks.length <= 1 && body.length > ARCHIVE_BLOCK_CHARS) {
+    const blocks: typeof chunks = [];
+    // Split on single lines, not blank-line paragraphs. The grant documents are
+    // PDF text extractions: 884 hard-wrapped lines and zero blank lines, so a
+    // paragraph split returns the whole file as one element and the block
+    // splitter silently does nothing.
+    const segments = body.split(/\n/);
+    let buffer = "";
+    const push = () => {
+      const content = buffer.trim();
+      if (content.length < 80) return;
+      blocks.push({
+        heading: `${path.split("/").pop() || path} (part ${blocks.length + 1})`,
+        content,
+        occurredAt: fileDate,
+        dated: false,
+      });
+    };
+    for (const segment of segments) {
+      if (buffer.length + segment.length > ARCHIVE_BLOCK_CHARS) { push(); buffer = ""; }
+      buffer += (buffer ? "\n" : "") + segment;
+    }
+    push();
+    if (blocks.length) return blocks.slice(0, MAX_ARCHIVE_CHUNKS_PER_FILE);
+  }
+
+  // Number repeats of the same heading so two sections called "Next up" get
+  // distinct ids. Ordinal rather than position, so inserting a section
+  // elsewhere in the file does not renumber every chunk below it.
+  const headingSeen = new Map<string, number>();
+  for (const chunk of chunks) {
+    const nth = (headingSeen.get(chunk.heading) ?? 0) + 1;
+    headingSeen.set(chunk.heading, nth);
+    chunk.occurrence = nth;
+  }
+
   return chunks
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
     .slice(0, MAX_ARCHIVE_CHUNKS_PER_FILE);
@@ -690,7 +743,7 @@ async function archiveCandidatePaths(allow: ArchivePathConfig[]) {
     item.type === "blob"
     && typeof item.path === "string"
     && typeof item.sha === "string"
-    && item.path.endsWith(".md")
+    && ARCHIVE_EXTENSIONS.some((ext) => (item.path as string).endsWith(ext))
     && (item.size ?? 0) <= MAX_ARCHIVE_FILE_BYTES,
   );
   // Rank by the allowlist's own order so the bound drops reference material
@@ -761,7 +814,7 @@ export async function syncArchiveEvidence(db: SupabaseClient) {
       source: "archive" as const,
       // Keyed on the heading, not the position. A positional id silently remaps
       // every row below an inserted section on the next sync.
-      external_id: `${chunk.path}#${createHash("sha256").update(chunk.heading).digest("hex").slice(0, 16)}`,
+      external_id: `${chunk.path}#${createHash("sha256").update(chunk.heading).digest("hex").slice(0, 16)}-${chunk.occurrence ?? 1}`,
       source_group: chunk.path,
       source_kind: chunk.path === "SCRATCHPAD.md" ? "session_log" : "document",
       title: `${chunk.path} · ${chunk.heading}`,

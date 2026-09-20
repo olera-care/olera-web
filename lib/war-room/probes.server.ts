@@ -262,15 +262,20 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
   /** Where did organic reach actually move, by page family? */
   traffic_by_page_family: async (db) => {
     const from = since(84).slice(0, 10);
-    const { data, error } = await db.from("growth_page_metrics")
-      .select("page_category, organic_sessions, search_clicks, search_impressions, week_start")
-      .gte("week_start", from)
-      .limit(5_000);
-    if (error) throw new Error(`war_room_probe_query_failed:${error.message}`);
-    const rowsIn = (data ?? []) as Array<{
+    // This used to be a bare .limit(5_000) with no ORDER BY, against 17,979
+    // matching rows. Postgres was free to return any 5,000 of them in any
+    // order, so every family total was an arbitrary sample and the headline
+    // reported +131.8% for a page family measured at -43% by the canonical
+    // pipeline. Use the same paged, stably-ordered read the other probes use.
+    const scan = await page<{
       page_category: string | null; organic_sessions: number | null;
       search_clicks: number | null; search_impressions: number | null; week_start: string;
-    }>;
+    }>((lo, hi) => db.from("growth_page_metrics")
+      .select("page_category, organic_sessions, search_clicks, search_impressions, week_start")
+      .gte("week_start", from)
+      .order("id", { ascending: true })
+      .range(lo, hi));
+    const rowsIn = scan.rows;
     if (!rowsIn.length) {
       return {
         headline: "No page-level growth metrics are recorded for the last twelve weeks.",
@@ -279,10 +284,16 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
         caveat: "Run the weekly metrics collection before relying on this probe.",
       };
     }
-    const weeks = [...new Set(rowsIn.map((r) => r.week_start))].sort();
-    const midpoint = weeks[Math.floor(weeks.length / 2)];
+    const allWeeks = [...new Set(rowsIn.map((r) => r.week_start))].sort();
+    // Halves must hold the same number of weeks. weeks[floor(n/2)] as the
+    // boundary put 3 weeks in the early half and 4 in the late half of a
+    // 7-week window, a 33% bias that inflates every change upward. Drop the
+    // oldest week when the count is odd rather than compare unequal periods.
+    const weeks = allWeeks.length % 2 === 1 ? allWeeks.slice(1) : allWeeks;
+    const midpoint = weeks[weeks.length / 2];
     const agg = new Map<string, { early: number; late: number }>();
     for (const row of rowsIn) {
+      if (row.week_start < weeks[0]) continue;
       const key = row.page_category || "uncategorized";
       const bucket = agg.get(key) ?? { early: 0, late: 0 };
       const sessions = row.organic_sessions ?? 0;
@@ -299,13 +310,17 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
       .sort((a, b) => b.later_half - a.later_half);
     const worst = [...rows].filter((r) => r.change !== "n/a")
       .sort((a, b) => parseFloat(a.change) - parseFloat(b.change))[0];
+    const direction = worst && parseFloat(worst.change) < 0 ? "fell most" : "rose least";
+    const half = weeks.length / 2;
     return {
       headline: worst
-        ? `Organic sessions moved most in the ${worst.page_family} family at ${worst.change} across the last twelve weeks.`
+        ? `Organic sessions ${direction} in the ${worst.page_family} family at ${worst.change}, comparing ${half} weeks against the ${half} before them.`
         : "Page-family organic sessions are recorded but no family shows a comparable change.",
-      detail: `Comparing the first half of the window against the second, split at ${midpoint}, across ${weeks.length} weeks and ${rows.length} page families.`,
+      detail: `Comparing ${half} weeks against the ${half} before them, split at ${midpoint}, across ${rows.length} page families.`,
       rows,
-      caveat: "Half-window comparison, not a seasonally adjusted trend. A single unusual week can move a small family.",
+      caveat: scan.truncated
+        ? "Row cap reached: this read is incomplete and the totals understate every family."
+        : "Half-window comparison, not a seasonally adjusted trend. A single unusual week can move a small family.",
     };
   },
 

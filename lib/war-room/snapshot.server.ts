@@ -72,8 +72,27 @@ export async function buildWarRoomSnapshot(
   windowDays = 30,
 ): Promise<WarRoomSnapshot> {
   const generatedAt = new Date().toISOString();
-  const from = new Date(Date.now() - windowDays * 86_400_000).toISOString();
-  const priorFrom = new Date(Date.now() - windowDays * 2 * 86_400_000).toISOString();
+  // Both boundaries used to be computed from `Date.now()`, inside a function the
+  // route calls fresh on every request with nothing cached, and the current
+  // window had no upper bound at all. So both ends slid continuously and the
+  // current window also grew all day against a fixed prior one.
+  //
+  // Re-running the provider-page-views query at six-hour anchors across nine
+  // days returned anywhere from -11% to -31% with no change in code or data.
+  // Three of those readings (-23.8%, -28.1%, -28.3%) were recorded as three
+  // separate magnitudes for "the same nominal window" and raised a company-wide
+  // data-integrity investigation that then blocked every other case for a month.
+  // The card was the defect it was reporting.
+  //
+  // Anchor both windows to the start of the current UTC day and bound the
+  // current one, so a given day's comparison is one number and both periods are
+  // exactly `windowDays` long. Today's partial data is deliberately excluded:
+  // a half-finished day compared against whole ones always reads as a decline.
+  const windowEnd = new Date();
+  windowEnd.setUTCHours(0, 0, 0, 0);
+  const until = windowEnd.toISOString();
+  const from = new Date(windowEnd.getTime() - windowDays * 86_400_000).toISOString();
+  const priorFrom = new Date(windowEnd.getTime() - windowDays * 2 * 86_400_000).toISOString();
 
   const [
     pageViewsResult,
@@ -93,24 +112,27 @@ export async function buildWarRoomSnapshot(
     recentInquiryResult,
     decisionResult,
     questionHealthResult,
+    viewsFloorResult,
+    leadsFloorResult,
+    claimsFloorResult,
   ] = await Promise.all([
     db.from("provider_activity").select("id", { count: "exact", head: true })
-      .eq("event_type", "page_view").gte("created_at", from)
+      .eq("event_type", "page_view").gte("created_at", from).lt("created_at", until)
       .not("metadata->>session_id", "is", null).neq("metadata->>session_id", ""),
     db.from("provider_activity").select("id", { count: "exact", head: true })
-      .eq("event_type", "lead_received").gte("created_at", from),
+      .eq("event_type", "lead_received").gte("created_at", from).lt("created_at", until),
     db.from("provider_question_asks").select("id", { count: "exact", head: true })
-      .gte("created_at", from),
+      .gte("created_at", from).lt("created_at", until),
     db.from("provider_questions").select("id", { count: "exact", head: true })
       .is("canonical_question_id", null)
-      .gte("created_at", from)
+      .gte("created_at", from).lt("created_at", until)
       .not("answer", "is", null).neq("answer", "")
-      .not("answered_at", "is", null).lt("answered_at", generatedAt),
+      .not("answered_at", "is", null).lt("answered_at", until),
     db.from("seeker_activity").select("id", { count: "exact", head: true })
-      .eq("event_type", "benefits_completed").gte("created_at", from),
+      .eq("event_type", "benefits_completed").gte("created_at", from).lt("created_at", until),
     db.from("provider_activity").select("id", { count: "exact", head: true })
-      .eq("event_type", "claim_completed").gte("created_at", from),
-    fetchMeaningfulProviderActivity(db, from, generatedAt),
+      .eq("event_type", "claim_completed").gte("created_at", from).lt("created_at", until),
+    fetchMeaningfulProviderActivity(db, from, until),
     db.from("ad_campaign_requests")
       .select("provider_id, status, plan_status, plan_value, deleted_at")
       .is("deleted_at", null),
@@ -158,6 +180,23 @@ export async function buildWarRoomSnapshot(
       .gte("created_at", from)
       .order("created_at", { ascending: false })
       .limit(50_000),
+    // The oldest instrumented event PER event type. At windowDays=90 (selectable
+    // on the admin route) the prior window opens before these rows exist at all,
+    // so the comparison divides by a period that partly did not happen and
+    // printed a confident +164% rise. A period that predates its own
+    // instrumentation is not a comparison.
+    //
+    // Per type, not per table: provider_activity's first row of any kind is
+    // 2026-03-27, but page_view and lead_received start 2026-04-22 and
+    // claim_completed 2026-04-27. A single table-wide floor silently under-guards
+    // every metric instrumented later than the earliest one.
+    ...(["page_view", "lead_received", "claim_completed"] as const).map((eventType) =>
+      db.from("provider_activity")
+        .select("created_at")
+        .eq("event_type", eventType)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle()),
   ]);
 
   if (providerActivity.error) {
@@ -230,22 +269,49 @@ export async function buildWarRoomSnapshot(
     db.from("provider_activity").select("id", { count: "exact", head: true }).eq("event_type", "claim_completed").gte("created_at", priorFrom).lt("created_at", from),
   ]);
   const prior = priorResults.map((result) => requireCount("prior-period comparison", result));
-  const compare = (id: string, label: string, current: number, priorValue: number, href: string) => ({
+
+  // Only the provider_activity-backed rows are guarded. The other three read
+  // different tables with their own instrumentation dates; extending the guard
+  // means a floor query each, and provider_activity is where the fabricated
+  // number was actually observed.
+  const guardFor = (result: { data: unknown }) => {
+    const floor = (result.data as { created_at?: string } | null)?.created_at ?? null;
+    if (!floor || priorFrom >= floor) return null;
+    return `No comparison: the previous ${windowDays} days open before this metric was instrumented on ${floor.slice(0, 10)}.`;
+  };
+  const viewsGuard = guardFor(viewsFloorResult);
+  const leadsGuard = guardFor(leadsFloorResult);
+  const claimsGuard = guardFor(claimsFloorResult);
+
+  const compare = (
+    id: string,
+    label: string,
+    current: number,
+    priorValue: number,
+    href: string,
+    incomparable: string | null = null,
+  ) => ({
     id,
     label,
     current,
     prior: priorValue,
-    changePct: priorValue === 0 ? null : ((current - priorValue) / priorValue) * 100,
-    detail: `${windowDays} days versus the previous ${windowDays} days`,
+    // A percentage against a period that did not exist, or against zero, is a
+    // number the reader will act on and should never have been shown.
+    changePct: incomparable || priorValue === 0 ? null : ((current - priorValue) / priorValue) * 100,
+    detail: incomparable ?? `${windowDays} days versus the previous ${windowDays} days, both ending ${until.slice(0, 10)}`,
     href,
   });
   const comparisons = [
-    compare("provider-views", "Provider page views", facts.providerPageViews, prior[0], "/admin/analytics"),
-    compare("inquiries", "Care inquiries", facts.leads, prior[1], "/admin/connections?direction=inbound"),
+    // Labelled as server page views, not organic reach. These rows are
+    // bot-inclusive: ~42% of mid-2026 traffic was one AWS datacentre, and this
+    // metric was read as an organic-traffic decline when it is partly bot decay
+    // off a bot-inflated base. The canonical organic series is growth_page_metrics.
+    compare("provider-views", "Provider page views (server events, bot-inclusive)", facts.providerPageViews, prior[0], "/admin/analytics", viewsGuard),
+    compare("inquiries", "Care inquiries", facts.leads, prior[1], "/admin/connections?direction=inbound", leadsGuard),
     compare("questions", "Provider questions", facts.questions, prior[2], "/admin/questions"),
     compare("answers", "Questions answered", facts.questionsAnswered, prior[3], "/admin/questions"),
     compare("benefits", "Benefits completed", facts.benefitsCompleted, prior[4], "/admin/benefits"),
-    compare("claims", "Provider claims", facts.providerClaims, prior[5], "/admin/verification"),
+    compare("claims", "Provider claims", facts.providerClaims, prior[5], "/admin/verification", claimsGuard),
   ];
 
   const sources: WarRoomSource[] = [

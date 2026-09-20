@@ -96,7 +96,9 @@ A program can pass two and fail the third. **An eligibility threshold is a fact 
 
 ## Phase 6 -- Cross-check on a second page of the same domain, and drop conflicts
 
-Two pages on one agency's site disagreed on the hotline's closing time and on the income test. Two AHCCCS pages disagree on whether published limits are gross or post-deduction. **Say the agency is inconsistent rather than picking a side.** A family who finds the contradiction themselves then trusts us; a family we guessed at does not.
+Two pages on one agency's site disagreed on the hotline's closing time and on the income test. Two AHCCCS pages disagree on whether published limits are gross or post-deduction. **Say the agency is inconsistent rather than picking a side.**
+
+**Marketing pages go stale; contact and apply pages do not.** `coverva.dmas.virginia.gov/contact/` and `/apply/how-to-apply/` carry the notice that the call center closed on Saturdays from 4 April 2026. `/learn/our-program/` still advertises "Saturday 9 a.m. to 12 p.m." A thin adversarial pass cited the stale page and tried to reinstate the dead hours. Prefer `/contact/` and `/apply/` over anything that reads like a brochure, and when they conflict, the operational page wins. A family who finds the contradiction themselves then trusts us; a family we guessed at does not.
 
 ---
 
@@ -126,7 +128,7 @@ ENVFILE=$PWD/.env.local node scripts/attack-draft.js <context.json>
 
 `context.json` is `{who, message, verified[], draft}`. **All four fields are required.** Without the family's own message it invents context -- it told a woman to wait until she returned from a trip she had come back from ten days earlier. Without `who` it confuses roles -- it addressed a professional advocate as the mother of her client's son.
 
-- **Exactly two passes.** Every pass 1 found something real. Every pass 2 found something real, because the revision is new text that has never been attacked -- pass 2 caught a routing error in a sentence pass 1's fix had created. **Passes 3 and 4 were harmful both times**, repeating a false claim about NC family-caregiver exemptions that the state's own policy 3K-2 flatly contradicts.
+- **Exactly two passes.** A second reason beyond re-attacking revised text: the pass is **non-deterministic**. At `temperature: 0` the same draft returned between 2 and 7 objections across identical runs, because the variance is in which pages it retrieves. Against a known planted error it scored 8 of 9. Two passes are two independent retrieval draws, which is what turns ~89% into near-certainty. Every pass 1 found something real. Every pass 2 found something real, because the revision is new text that has never been attacked -- pass 2 caught a routing error in a sentence pass 1's fix had created. **Passes 3 and 4 were harmful both times**, repeating a false claim about NC family-caregiver exemptions that the state's own policy 3K-2 flatly contradicts.
 - **Stop** on a repeated objection, on one refuted by a primary source, or at two passes.
 - **Never adopt by attrition.** A repeated objection is not a stronger one. Re-running until the checker is satisfied means adopting its position by exhaustion.
 - **Adopt the objection, never the citation, and never the prose.** Six of ten sources on one pass were content farms; the script flags them. Its rewrites carry bold markdown, "may" in every clause, and drop the recipient's name.

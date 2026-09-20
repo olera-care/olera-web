@@ -5603,6 +5603,12 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 - **Give Hoop a receipt before 15 Oct.** Sync Meta and Nextdoor spend the way Google's already syncs. Until then `metrics_source` correctly withholds unverified numbers and therefore shows her nothing for the channel doing most of her work.
 - **Verify the sidebar badge counts.** Messages 7 / Support Email 1078 were being 429'd for ~40 minutes; they may be stale rather than real.
 
+### Support email + SMS verification (19 Sep, later)
+- **Linda Rials' reply is drafted in Gmail and unsent.** OUC shutoff 21 Sep; Monday 8:30-noon is the only window left. Find it in `/admin/support-email` with type `Care seeker` and search `desperate`.
+- **A Florida SMS went out at 12:00Z pointing at an on-hold program.** Marion County homeowner rehab is not accepting applications. Decide whether she gets a correction.
+- **The Hawaii SMS is cancelled**, text back in the draft box. Its expedited-SNAP claim was off by 10x.
+- **Rule, from TJ: better nothing than wrong.** Agency's own page, cross-checked, confirmed open today. Applies to SMS and email alike.
+
 ### SMS inbox — sent, command written (19 Sep)
 - **The three replies went out.** Dorothy Rainey (352-321-8647) sent immediately; her thread is crisis-flagged and `crisisExempt` skips the quiet-hours hold. 352-713-4271 scheduled 8:00 AM ET, 808-940-6605 scheduled 8:00 AM HST. Neither scheduled draft was `Re-check`ed before queueing.
 - **`/answer-sms` is written** at `.claude/commands/answer-sms.md`. Browser control is solved by hand-launching Chrome on 9222; the Control Chrome extension's tools still never load.
@@ -6423,6 +6429,70 @@ Artifacts: https://claude.ai/artifact/FYpBZcmzvL2DYkFsS1J8wB (four-stage read) �
 
 ---
 
+---
+
+## 2026-09-19 (later) — Support email, and the rule that better nothing than wrong
+
+**No code changed.** Outputs are one email draft parked in Gmail, one scheduled SMS cancelled, two memories, and a verification rule that applies to SMS as much as email.
+
+### Where this started
+
+`/answer-sms` shipped and merged (PR #1969, promoted to main in #1970). TJ asked for the same treatment for support email, scoped to **care seekers who came in through benefits and reply by email**.
+
+### The infrastructure, reviewed
+
+- **The send rail is fully built and had never been used once.** `app/api/admin/support-email/[threadId]/route.ts:244` does `save_draft` and `send`: real Gmail draft with `In-Reply-To`/`References`, send, immediate re-import of Gmail's sent copy, thread marked handled, draft cleared, audit row. `draft_body` and `gmail_draft_id` were **0 across the whole table** before today.
+- **`/email-checker` already owns the other half.** Its Phase 2 protects `care_seeker` from every sweep and its third hunt item is literally "a family asked for help and nobody answered." It finds them, surfaces them, and stops. Nothing picked the pile up. That handoff is the gap, not a missing triage command.
+- **The identity link exists and is not surfaced.** `support_email_threads.matched_profile_id` / `matched_profile_type` are populated for the benefits repliers, because they reply from the address we mailed. But the thread GET returns the uuid and `matched_profile_name` ("Care Seeker") and never follows it. No age, income, county or plan. The SMS route builds a whole `seeker` context; the email route has the foreign key and ignores it.
+
+### The data
+
+1,078 `needs_reply`. **84** are `care_seeker`, only **17** from 2026, and **13** carry a matched profile. Nine are literal `Re: Your first step for <PROGRAM>` replies to the benefits email (`lib/email-templates.tsx:1752`).
+
+**Selecting by subject line is wrong.** Linda Rials' thread is `(no subject)` because she composed a fresh mail instead of replying, yet her profile is `source: benefits_intake` with a full `benefits_cascade` (EHEAP first step sent 10 Sep, `application_status: called` 16 Sep). She is the most urgent thread in the inbox and the obvious filter drops her. **Select on the profile, not the subject.**
+
+Out of scope in that 84: two voicemails, two Jan-2026 replies to old marketing blasts, and a **test record sitting in the live queue** (`Test McTest`, "Your home care request").
+
+### Linda Rials — drafted, not sent
+
+70, Orange County FL, 32811, under $2,500/mo, no Medicaid. Wrote 16 Sep: OUC shutoff **21 Sep**, "I've called and went to the elderly office." She did the step we gave her and is asking what happens now.
+
+The waiting AI draft said *"I'm looking into your application right now to find out the status... Can you reply with the best number to reach you?"* We cannot check her application, and we already have her number. That is the false-promise defect in a new place.
+
+Draft saved to Gmail (`r3748824493315536998`), **unsent**: OUC 407-423-9018 (24-hour automated line, so it works on a weekend) for a payment extension, then Orange County LIHEAP 407-836-7429 Monday 8:30-noon, plus an honest note that we cannot see her application status. Today is Saturday and the shutoff is Monday, so Monday morning is the only window left.
+
+### The rule TJ set, and what it caught
+
+> Better to say nothing than to say the wrong thing. Has to be up to date and cross-checked, not copied from stale resources. **Applies to the text messages too.**
+
+Applied it and found three defects in copy that was already written, two of them already queued:
+
+- **Marion County homeowner rehab. Already sent, 12:00Z.** The SMS told a woman in cancer treatment to call 352-671-8781 about homeowner rehab for her AC. Number and office correct; the county's own page says verbatim **"APPLICATIONS ARE ON HOLD UNTIL FURTHER NOTICE."** Its other half (CFCAA 352-732-3008) is verified good, though the "ask when applications reopen" premise also looks wrong since cfcaa.org says LIHEAP is currently accepting.
+- **Hawaii expedited SNAP. Cancelled before sending.** Said "with income under $1,500 you may qualify for expedited." Federal threshold is **$150** gross monthly income and **$100** liquid resources, or shelter costs exceeding income plus resources. Off by 10x. `cancel_scheduled` ran at 14:2xZ; text is back in the draft box, nothing scheduled.
+- **Orange County crisis benefit.** Draft said a disconnection notice "is what opens up" the $1,000 benefit. The county page adds a second condition: a Home Energy Credit within the preceding 12 months. Softened before sending.
+
+**The pattern: the number is usually right and the status or the rule is wrong.** Verifying a phone number proves nothing about whether the program is open or whether the family qualifies.
+
+Written to memory as `feedback_verify_agency_source_not_search` and `feedback_family_guidance_voice`.
+
+### Voice, corrected twice by TJ
+
+- **We route, we don't rule.** We are not the agency and not the expert. "Here is what I would do, in this order" became "two things that might help." Eligibility is what the agency decides, phrased "from what we can see" and "they would be the ones to tell you where you stand."
+- **Sign "Olera care team", never an individual name**, because cases move between team members. Matches the SMS templates, so a family getting both sees one sender.
+
+### Notes
+
+- `WebFetch` gets **403 from some county sites** (marionfl.org, findhelp.org). Drive the Chrome on 9222 instead; it renders as a real browser and got the verbatim on-hold notice.
+- The admin API **429s under a fast burst** of authenticated fetches. Navigating a real page clears the Vercel checkpoint, then the API works again. Pace the reads.
+
+### Next up
+
+1. **Decide on Linda.** Draft is in Gmail, unsent, and Monday morning is her only window.
+2. **Decide whether the Florida family gets a correction text** about the on-hold rehab program.
+3. **Rewrite the Hawaii SMS** without the expedited claim, or drop that sentence.
+4. **Work the remaining benefits-channel email threads** (roughly ten to twelve), then write `/answer-email` from the run.
+5. **Build the profile join** on the email thread GET. Two independent reasons now: the drafts get eligibility wrong without it, and subject-line selection misses people like Linda.
+
 ## 2026-09-19 — Working the SMS inbox by hand, before writing the command
 
 **Nothing shipped. No code changed.** The session produced three replies parked in `sms_drafts`, one suppression row, three cleared STOPs, and the outline of a slash command we agreed to derive from doing the work rather than imagining it.
@@ -6552,4 +6622,4 @@ Replaced the copy-paste with `scripts/attack-draft.js`, which calls the Perplexi
 1. Fix the four defects above, smallest first. 1 and 3 are a few lines each.
 2. Decide whether `voicemail` gets its own command. It is the largest bucket at 425 and the output is a callback, not a reply.
 3. Watch for replies. beckett answers on SMS, not email, so hers will land in `/admin/inbox`.
-4. The 2026-09-19 (later) support-email entry is still uncommitted on `scratchpad/sms-answering` in the `clever-meitner` worktree.
+4. ~~The 2026-09-19 (later) support-email entry is still uncommitted on `scratchpad/sms-answering`.~~ Committed to staging 2026-09-20; it is the entry immediately above this one.

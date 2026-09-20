@@ -95,6 +95,13 @@ export default function TaskView({
    * call happened when all that happened was a page refresh.
    */
   const [acted, setActed] = useState<Record<string, boolean>>({});
+  /**
+   * The outcome being filled in. An outcome with questions does not fire
+   * when it is clicked — it opens under the buttons, collects, and fires on
+   * confirm. Only "Something else" has any, and only because nobody can
+   * guess in advance what a provider will ask for.
+   */
+  const [picked, setPicked] = useState<number | null>(null);
 
   const rung = rungAt(task.section, task.step, task.round);
   if (!rung) return null;
@@ -110,6 +117,11 @@ export default function TaskView({
   const recalled = rung.recall ? lastNote(record, task) : null;
   // A value the rung exists to capture. Missing it, there is nothing to log.
   const missing = (rung.inputs ?? []).filter(
+    (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
+  );
+
+  const chosen = picked === null ? null : rung.actions[picked];
+  const chosenMissing = (chosen?.inputs ?? []).filter(
     (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
   );
 
@@ -282,6 +294,30 @@ export default function TaskView({
 
           {rung.attachment && <Attachment attachment={rung.attachment} />}
 
+          {/* The two acts a silent round is, with the way to do them to hand. */}
+          {wanted.length > 0 && (
+            <div className="mt-3 overflow-hidden rounded-md border border-gray-200 bg-gray-50 px-3.5 pb-0.5">
+              <p className="pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                If nothing has come back
+              </p>
+              {wanted.map((kind) => (
+                <Act
+                  key={kind}
+                  kind={kind}
+                  done={Boolean(acted[kind])}
+                  target={kind === "call" ? record.phone : record.email}
+                  onDone={() => setActed((v) => ({ ...v, [kind]: true }))}
+                  onCopy={
+                    kind === "email" && rung.email
+                      ? () => navigator.clipboard?.writeText(fill(rung.email!.body, ctx))
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {/* The script and the copy, under the acts they are for. */}
           {(rung.script || rung.email) && (
             <div className="mt-2.5">
               <button
@@ -416,29 +452,6 @@ export default function TaskView({
             />
           ))}
 
-          {/* The two acts a silent round is, with the way to do them to hand. */}
-          {wanted.length > 0 && (
-            <div className="mt-3 overflow-hidden rounded-md border border-gray-200 bg-gray-50 px-3.5 pb-0.5">
-              <p className="pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                If nothing has come back
-              </p>
-              {wanted.map((kind) => (
-                <Act
-                  key={kind}
-                  kind={kind}
-                  done={Boolean(acted[kind])}
-                  target={kind === "call" ? record.phone : record.email}
-                  onDone={() => setActed((v) => ({ ...v, [kind]: true }))}
-                  onCopy={
-                    kind === "email" && rung.email
-                      ? () => navigator.clipboard?.writeText(fill(rung.email!.body, ctx))
-                      : undefined
-                  }
-                />
-              ))}
-            </div>
-          )}
-
           {!replying && <Note value={task.note} label={rung.textarea} onChange={onNote} />}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
@@ -457,14 +470,18 @@ export default function TaskView({
                   key={a.label}
                   type="button"
                   disabled={blocked}
-                  onClick={() => onAct(i)}
+                  onClick={() =>
+                    (a.inputs?.length ?? 0) > 0 ? setPicked(picked === i ? null : i) : onAct(i)
+                  }
                   title={a.hint}
                   className={`${
-                    i === 0
+                    i === picked
                       ? BTN_GO
-                      : a.outcome === "closed" || a.outcome === "archive"
-                        ? BTN_BAD
-                        : BTN
+                      : i === 0
+                        ? BTN_GO
+                        : a.outcome === "closed" || a.outcome === "archive"
+                          ? BTN_BAD
+                          : BTN
                   } ${blocked ? "cursor-not-allowed opacity-40" : ""}`}
                 >
                   {a.outcome === "archive" && repeats && attempts >= repeats.warnAt
@@ -520,6 +537,40 @@ export default function TaskView({
               </button>
             )}
           </div>
+
+          {chosen && (
+            <div className="mt-3 rounded-md border border-primary-200 bg-primary-25 px-3.5 py-3">
+              {chosen.hint && <p className="text-[12.5px] text-gray-600">{chosen.hint}</p>}
+              {(chosen.inputs ?? []).map((f) => (
+                <Field
+                  key={f.key}
+                  field={f}
+                  value={task.fields?.[f.key] ?? ""}
+                  onChange={(v: string) => onFieldValue(f.key, v)}
+                />
+              ))}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={chosenMissing.length > 0}
+                  onClick={() => {
+                    const i = picked;
+                    setPicked(null);
+                    if (i !== null) onAct(i);
+                  }}
+                  className={chosenMissing.length ? `${BTN_GO} cursor-not-allowed opacity-40` : BTN_GO}
+                >
+                  Queue it
+                </button>
+                <button type="button" onClick={() => setPicked(null)} className={BTN}>
+                  Cancel
+                </button>
+                {chosenMissing.length > 0 && (
+                  <span className="text-[12px] text-gray-500">{needLine(chosenMissing)}</span>
+                )}
+              </div>
+            </div>
+          )}
 
           {missing.length > 0 && (
             <p className="mt-2 text-[12.5px] text-gray-500">{needLine(missing)}</p>

@@ -292,9 +292,21 @@ The other three outcomes sit beside it, on the same screen, with one free-text b
 | Outcome | What it means | Where the record goes |
 |---|---|---|
 | **Log the call and the email** | Nothing back, both done | The next round, two business days out |
-| **Start onboarding** | Yes, tell me more | **Send the onboarding pack**, today |
-| **Interested later** | Warm, not now | **Keep the conversation going**, today |
+| **Interested, start onboarding** | Yes, tell me more | **Send the onboarding pack**, today |
 | **Not interested** | They declined | Archived |
+| **Something else** | Anything the first three do not cover | A task in the operator's own words, on the day they pick |
+
+**Something else is the honest fourth outcome.** *Send it to our corporate office. Talk to our RN
+manager. Call me back in March when we budget. We need a W-9 first.* There is no list of those and
+there never will be, so the board takes one at a time: what needs doing, in the operator's words, and
+the day it comes back. The queued task carries that sentence as its own title, so a queue of them reads
+as work rather than as four rows saying *Something else*. It ends the way the reply did — a yes goes to
+the pack, no answer either way restarts the follow-up block, another thing to do queues another one, and
+a no archives.
+
+There is no longer a *warm but not now* outcome. Once the ask is interest rather than a meeting,
+interested-later is interested: they get the pack, and the onboarding block does the chasing. The rung
+that used to hold that state is where *Something else* now sits.
 
 **Interest can be logged wherever it arrives**, including on the confirming call: a provider who says
 yes on the phone skips the programme email and the whole block rather than being followed up to arrive

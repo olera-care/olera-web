@@ -211,6 +211,22 @@ export function dueIn(days: number): string {
 export const iso = (d: Date): string => d.toISOString().slice(0, 10);
 
 /**
+ * The values an outcome hands to the rung it queues — see LadderAction.carry.
+ */
+export function carryFrom(
+  action: LadderAction,
+  fields?: Record<string, string>,
+): Record<string, string> | undefined {
+  if (!action.carry?.length || !fields) return undefined;
+  const out: Record<string, string> = {};
+  for (const key of action.carry) {
+    const v = (fields[key] ?? "").trim();
+    if (v) out[key] = v;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/**
  * When the rung an action queues is due.
  *
  * Normally `delay` business days out. An action that names `delayFrom`
@@ -406,6 +422,9 @@ export function complete(
       return;
     }
     const next = makeTask(record.section, step, round, dueFor(action, task.fields));
+    // An errand is only a task if it carries what the errand is.
+    const carried = carryFrom(action, task.fields);
+    if (carried) next.fields = carried;
     record.tasks.push(next);
     task.spawned.push(next.id);
     record.step = step;
@@ -795,5 +814,10 @@ export function lastNote(
 
 export function taskTitle(task: BoardTask): string {
   if (task.resched) return `Reschedule round ${task.resched}`;
+  // An errand names itself. "Something else" on a queue of them tells an
+  // operator nothing, and the whole point of the rung is that we could not
+  // have known what it would be.
+  const todo = (task.fields?.todo ?? "").trim();
+  if (todo) return todo;
   return rungAt(task.section, task.step, task.round)?.title ?? "Task";
 }

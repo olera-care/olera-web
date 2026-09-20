@@ -437,6 +437,48 @@ the portal is the alternative — and the pilot terms, attached for review. The
 portal link is still required on the rung; the email just no longer pretends
 it is the only way in.
 
+**Then, on the second look:**
+
+- The script and the email copy sit **under** the *if nothing has come back*
+  box, next to the acts they are for, rather than above it.
+- **The follow-up email was still asking for a meeting** — *"a short call is
+  enough to see whether it fits… is there a day this week or next that
+  works?"* — and the check written to catch exactly that had passed, because
+  it looked for one phrase. It now asks the question the other way round and
+  fails on any of eight ways of requesting time, across every cold rung.
+- *Start onboarding* reads **Interested, start onboarding**.
+- ***Interested later* is gone**, and with it the *Keep the conversation
+  going* rung. Once the ask is interest rather than a meeting, interested-
+  later is interested: they get the pack and the onboarding block chases.
+- **Something else** takes its slot — see below.
+
+### Something else
+
+The fourth outcome, and the honest one. *Send it to our corporate office.
+Talk to our RN manager. Call me back in March when we budget. We need a W-9
+first.* There is no list of those and there never will be, so the board takes
+one at a time: **what needs doing**, in the operator's words, and **the day it
+comes back**. Available on the confirming call and on every follow-up round.
+
+The queued task **carries the sentence as its own title**, so a queue of them
+reads as work rather than four rows saying *Something else*. It ends the way a
+reply does: a yes goes to the pack, no answer either way restarts the
+follow-up block, another thing to do queues another one, and a no archives.
+Errands are counted, and three of them says so.
+
+Two judgement calls in it, both worth overruling if they are wrong:
+
+1. **"Done — back to following up" restarts the block at round 1**, giving the
+   provider seven more rounds. The argument for it is that having done what
+   they asked is a fresh start with them; the argument against is that a
+   provider can ping-pong. The errand counter is the only thing bounding it.
+2. **It replaced the holding rung in place**, at step 8, so nothing after it
+   renumbers and no migration is needed.
+
+It also brought back action-level inputs, which had been deleted one round
+earlier for being unused. That was a round too early: an outcome nobody can
+enumerate has to ask what it is at the moment it is chosen.
+
 **The terms are attached.** Nothing to sign, no obligation, students until a
 hire works out. The draft is `PILOT_TERMS_DRAFT.md`; the PDF does not exist, so
 the attachment link 404s by design rather than sending a draft. See **D-012** —

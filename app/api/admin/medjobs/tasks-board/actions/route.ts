@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
+  carryFrom,
   dueFor,
   dueIn,
   forwardStep,
@@ -514,7 +515,14 @@ export async function POST(req: Request) {
             task_type: taskTypeFor(section, next),
             status: "pending",
             due_at: action ? dueFor(action, fields) : dueIn(0),
-            payload: { step: nextRung.step, round: nextRung.round },
+            payload: {
+              step: nextRung.step,
+              round: nextRung.round,
+              // What the errand is, so the queued rung names itself.
+              ...(action && carryFrom(action, fields)
+                ? { fields: carryFrom(action, fields) }
+                : {}),
+            },
           });
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
         }

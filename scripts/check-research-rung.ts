@@ -84,11 +84,11 @@ console.log("\nThe outcomes of a confirming call");
 {
   const call = LADDERS.providers.steps[1];
   const labels = call.actions.map((a) => a.label);
-  // Five, not four. The four PR1 names, plus the one the call can produce
-  // that the ladder had nowhere to put: a provider who says yes on the
-  // phone. See refinement 12 — they used to be sent a programme email and
-  // seven follow-ups to arrive where they already were.
-  ok("five of them", labels.length === 5, labels.join(" · "));
+  // Six. The four PR1 names, plus the two things a confirming call can
+  // produce that the ladder had nowhere to put: a provider who says yes on
+  // the phone, and a provider who asks for something nobody could have
+  // anticipated. See refinement 12.
+  ok("six of them", labels.length === 6, labels.join(" · "));
   ok(
     "the four PR1 names are all still there",
     ["Confirmed contact", "Voicemail", "No answer", "Not interested"].every((n) =>
@@ -96,7 +96,8 @@ console.log("\nThe outcomes of a confirming call");
     ),
     labels.join("|"),
   );
-  ok("and interest can be logged on the call", labels.includes("Start onboarding"));
+  ok("and interest can be logged on the call", labels.includes("Interested, start onboarding"));
+  ok("and so can an errand", labels.includes("Something else"));
   ok("every one says what it means on hover", call.actions.every((a) => Boolean(a.hint)));
   ok(
     "voicemail and no answer keep the rung open",

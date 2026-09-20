@@ -15,8 +15,15 @@
  *   npx tsx scripts/check-follow-up.ts
  */
 
-import { FOLLOW_UP_ROUNDS, LADDERS, SECTION_ORDER, rungAt } from "../lib/medjobs/ladders";
 import {
+  ERRAND as ERRAND_ACTION,
+  FOLLOW_UP_ROUNDS,
+  LADDERS,
+  SECTION_ORDER,
+  rungAt,
+} from "../lib/medjobs/ladders";
+import {
+  carryFrom,
   complete,
   dueFor,
   dueIn,
@@ -28,6 +35,7 @@ import {
   startOfToday,
   stillToCome,
   strikesAt,
+  taskTitle,
   type BoardRecord,
   type BoardUniversity,
 } from "../lib/medjobs/task-board";
@@ -64,7 +72,7 @@ const CALL = 1;
 const FOLLOW = steps.findIndex((r) => r.rounds);
 const ONBOARD = named("onboarding");
 const SETUP = named("setup");
-const TALKING = named("talking");
+const ERRAND = named("errand");
 const MEETING = named("meeting");
 const MEETLOG = named("meetlog");
 
@@ -95,7 +103,7 @@ ok("4 the onboarding pack", ONBOARD === 4, String(ONBOARD));
 ok("5 confirming they can receive a student", SETUP === 5, String(SETUP));
 ok("6 signing up, where it always was", steps[6].title.startsWith("Confirm they"));
 ok("7 the seasonal check, where it always was", steps[7].seasonal === true);
-ok("8 the conversation, where it always was", TALKING === 8, String(TALKING));
+ok("8 the errand rung, where the conversation rung was", ERRAND === 8, String(ERRAND));
 ok("9 the meeting, moved from 4", MEETING === 9, String(MEETING));
 ok("10 logging it, moved from 5", MEETLOG === 10, String(MEETLOG));
 ok("both meeting rungs are branches", Boolean(steps[MEETING].branch && steps[MEETLOG].branch));
@@ -112,29 +120,33 @@ console.log("\nOne rung, one screen");
   const labels = rung.actions.map((a) => a.label);
   ok(
     "four outcomes, all offered at once",
-    labels.join("|") === "Log the call and the email|Start onboarding|Interested later|Not interested",
+    labels.join("|") ===
+      "Log the call and the email|Interested, start onboarding|Not interested|Something else",
     labels.join("|"),
   );
   ok("the silent round is the log of two acts", (rung.actions[0].acts ?? []).join("+") === "call+email");
   ok("and it is the one you will press most, so it leads", rung.actions[0].label.startsWith("Log"));
-  ok("no outcome asks a second screen of questions", rung.actions.every((a) => !("inputs" in a)));
+  // Only the errand asks anything, and only because nobody can guess in
+  // advance what a provider will ask for.
+  const asks = rung.actions.filter((a) => a.inputs?.length).map((a) => a.label);
+  ok("only the errand asks questions", asks.join("|") === "Something else", asks.join("|"));
   ok("every outcome says what it means", rung.actions.every((a) => Boolean(a.hint)));
   ok("advisors keep their catch-all until 11", rungAt("advisors", 2, 1)?.reply === true);
 }
 
 console.log("\nInterest starts onboarding, from wherever it arrives");
-for (const [step, round, where] of [
-  [CALL, 0, "on the confirming call, skipping the programme email"],
-  [FOLLOW, 3, "from a follow-up"],
-  [TALKING, 0, "from the conversation weeks later"],
-] as Array<[number, number, string]>) {
+for (const [step, round, label, where] of [
+  [CALL, 0, "Interested, start onboarding", "on the confirming call, skipping the programme email"],
+  [FOLLOW, 3, "Interested, start onboarding", "from a follow-up"],
+  [ERRAND, 0, "Done — they're interested", "from an errand that produced a yes"],
+] as Array<[number, number, string, string]>) {
   const [u, r] = at(step, round);
-  act(u, r, "Start onboarding");
+  act(u, r, label);
   ok(where, r.step === ONBOARD, `landed on ${r.step}`);
 }
 {
   const [u, r] = at(FOLLOW, 3);
-  act(u, r, "Start onboarding");
+  act(u, r, "Interested, start onboarding");
   ok("and the rest of the follow-ups are dropped", !r.tasks.some((t) => !t.done && t.step === FOLLOW));
 }
 
@@ -178,7 +190,7 @@ console.log("\nThe endings that end it");
   act(u, r, "Not interested");
   ok("a no from a follow-up archives", r.state === "archived", String(r.state));
 
-  const [u2, r2] = at(TALKING, 0);
+  const [u2, r2] = at(ERRAND, 0);
   act(u2, r2, "Not interested");
   ok("and a no from the conversation does too", r2.state === "archived", String(r2.state));
 
@@ -226,8 +238,7 @@ console.log("\nHanded over, not parked");
 
   for (const [step, round, label, why] of [
     [CALL, 0, "Confirmed contact", "a confirmed contact hands you the programme email"],
-    [FOLLOW, 2, "Start onboarding", "interest hands you the onboarding pack"],
-    [FOLLOW, 2, "Interested later", "a warm reply hands you the reply to write"],
+    [FOLLOW, 2, "Interested, start onboarding", "interest hands you the onboarding pack"],
   ] as Array<[number, number, string, string]>) {
     const { same, ready } = handed(step, round, label);
     ok(why, same && ready, `same record ${same}, ready ${ready}`);
@@ -241,10 +252,21 @@ console.log("\nHanded over, not parked");
     ok("booking hands you nothing today, which is right", !ready, "the log rung came back today");
   }
 
+  // An errand comes back on the day the operator picked, which is the same
+  // rule the meeting follows.
+  {
+    const today = iso(startOfToday());
+    const { same, ready } = handed(FOLLOW, 2, "Something else", {
+      todo: "Ring their corporate office",
+      due_on: today,
+    });
+    ok("an errand due today is handed straight over", same && ready, `same ${same}, ready ${ready}`);
+  }
+
   for (const [step, round, label, why] of [
     [2, 0, "Log email sent", "a sent email waits two days"],
     [FOLLOW, 2, "Log the call and the email", "and so does a round nobody answered"],
-    [TALKING, 0, "Still talking", "a conversation we have just replied to waits three"],
+    
     [ONBOARD, 0, "Log the pack sent", "and the pack waits three before we check on them"],
   ] as Array<[number, number, string, string]>) {
     const { ready } = handed(step, round, label, { portal_link: "https://olera.care/x" });
@@ -267,7 +289,7 @@ console.log("\nWhere Not yet is offered");
   ok(
     "only on rungs that already run on a cadence",
     off.join("|") ===
-      "providers:Follow up 1|providers:Keep the conversation going|advisors:Follow up 1|orgs:Follow up 1",
+      "providers:Follow up 1|advisors:Follow up 1|orgs:Follow up 1",
     off.join("|"),
   );
   for (const [i, why] of [
@@ -285,29 +307,95 @@ console.log("\nWhat was said last time");
 {
   const [u, r] = at(FOLLOW, 1);
   r.tasks[0].note = "Interested, swamped until October. Try me then.";
-  act(u, r, "Interested later");
+  act(u, r, "Something else");
   const seen = lastNote(r, r.tasks.find((t) => !t.done)!);
-  ok("the conversation can see it", seen?.note.startsWith("Interested, swamped"), seen?.note);
+  ok("the errand can see it", seen?.note.startsWith("Interested, swamped"), seen?.note);
   ok("with the rung it came from", seen?.title === "Follow up 1", seen?.title);
-  ok("the conversation asks for it", steps[TALKING].recall === "Last exchange");
+  ok("the errand asks for it", steps[ERRAND].recall === "What they said");
   ok("and so does the pack", steps[ONBOARD].recall === "What they said");
+}
+
+console.log("\nSomething else, which is whatever they said it was");
+{
+  const errand = ERRAND_ACTION;
+  ok("it asks two things", (errand.inputs ?? []).length === 2);
+  ok("what needs doing", errand.inputs?.[0].key === "todo" && errand.inputs[0].required === true);
+  ok("and the day it comes back", errand.inputs?.[1].key === "due_on" && errand.inputs[1].required === true);
+  ok("the day is the due date, not two working days from now", errand.delayFrom === "due_on");
+  ok("and the errand travels with the task", (errand.carry ?? []).join("+") === "todo");
+
+  const day = iso(new Date(startOfToday().getTime() + 20 * 86_400_000));
+  const [u, r] = at(FOLLOW, 2);
+  r.tasks[0].note = "Asked us to send it to their corporate office first.";
+  act(u, r, "Something else", { todo: "Email corporate and get the right contact", due_on: day });
+  const queued = r.tasks.find((t) => !t.done)!;
+  ok("it lands on the errand rung", queued.step === ERRAND, String(queued.step));
+  ok("on the day that was picked", queued.dueAt === day, `${queued.dueAt} vs ${day}`);
+  ok("and it names itself", taskTitle(queued) === "Email corporate and get the right contact", taskTitle(queued));
+  ok("rather than the rung it is on", steps[ERRAND].title === "Something else");
+
+  // The screen and the server queue the same row, errand and all.
+  ok(
+    "the server carries the same thing",
+    JSON.stringify(carryFrom(errand, { todo: "x", due_on: day })) === JSON.stringify({ todo: "x" }),
+  );
+  ok("and nothing when there is nothing to carry", carryFrom(errand, {}) === undefined);
+
+  // An errand can end three ways, and one of them is another errand.
+  const [u2, r2] = at(ERRAND, 0);
+  act(u2, r2, "Done — they're interested");
+  ok("a yes goes to the pack", r2.step === ONBOARD, String(r2.step));
+
+  const [u3, r3] = at(ERRAND, 0);
+  act(u3, r3, "Done — back to following up");
+  ok("and no answer restarts the block", r3.step === FOLLOW && r3.round === 1, `${r3.step}/${r3.round}`);
+
+  const [u4, r4] = at(ERRAND, 0);
+  for (let i = 0; i < 3; i += 1)
+    act(u4, r4, "Something else again", { todo: `errand ${i}`, due_on: day });
+  ok("errands are counted", strikesAt(r4, ERRAND, 0) === 3, String(strikesAt(r4, ERRAND, 0)));
+  ok("and the rung stays open", r4.tasks.some((t) => !t.done && t.step === ERRAND));
 }
 
 console.log("\nStill to come");
 {
   const [u, r] = at(FOLLOW, 2);
-  act(u, r, "Interested later");
+  act(u, r, "Something else");
   const ahead = stillToCome(r).map((x) => x.title);
-  ok("a conversation promises nothing it cannot deliver", !ahead.includes("Keep the conversation going"));
+  ok("an errand promises nothing it cannot deliver", !ahead.includes("Something else"));
   ok("and never promises a meeting nobody asked for", !ahead.includes("Meet them"), ahead.join("|"));
 }
 
 console.log("\nNothing still asks for a meeting as the first ask");
 {
-  const copy = JSON.stringify([steps[2], rungAt("providers", FOLLOW, 1), steps[TALKING]]);
-  ok("no fifteen minutes in the cold copy", !copy.includes("fifteen minutes"));
-  ok("no offering of times", !copy.toLowerCase().includes("tuesday afternoon"));
-  ok("the programme email asks to hear more", copy.includes("Would you like to hear more?"));
+  // Every piece of copy a provider sees before they have said yes: the
+  // programme email, every follow-up round, and the holding rung. The first
+  // version of this check looked for one phrase and passed while the
+  // follow-up email was still closing with "is there a day this week or next
+  // that works?" — so it asks the question the other way round now, and
+  // fails on anything that reads as a request for time.
+  const cold = [steps[2], ...Array.from({ length: FOLLOW_UP_ROUNDS }, (_, i) =>
+    rungAt("providers", FOLLOW, i + 1)), steps[ERRAND]];
+  const copy = JSON.stringify(cold).toLowerCase();
+  for (const phrase of [
+    "fifteen minutes",
+    "a short call",
+    "day this week",
+    "that works?",
+    "tuesday afternoon",
+    "find a time",
+    "put it in the calendar",
+    "book a",
+  ]) {
+    ok(`nothing asks for time: "${phrase}"`, !copy.includes(phrase));
+  }
+  // Two wordings, both asking for a reply rather than a slot.
+  const ASKS = ["hear more", "send you the details"];
+  const missed = cold
+    .filter((r) => r?.email)
+    .filter((r) => !ASKS.some((a) => r!.email!.body.includes(a)))
+    .map((r) => r!.title);
+  ok("and every cold email asks for a reply instead", missed.length === 0, missed.join("|"));
 }
 
 console.log("\nThe pack, and what it does not say");

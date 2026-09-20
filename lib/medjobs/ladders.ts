@@ -61,7 +61,7 @@ export interface LadderInput {
   key: string;
   label: string;
   /** Defaults to a plain text field. */
-  type?: "text" | "datetime-local" | "url" | "number";
+  type?: "text" | "datetime-local" | "date" | "url" | "number";
   /**
    * The rung cannot be finished without it.
    *
@@ -108,6 +108,22 @@ export interface LadderAction {
    * answer for a cadence and the wrong one for a date somebody has typed in.
    */
   delayFrom?: string;
+  /**
+   * Values this outcome asks for before it fires.
+   *
+   * On the action rather than the rung because they belong to the outcome.
+   * "What needs doing and when should it come back" is a question about an
+   * errand, and asking it of somebody logging an unanswered call is noise.
+   */
+  inputs?: LadderInput[];
+  /**
+   * Field keys copied onto the task this outcome queues.
+   *
+   * An errand is only a task if it carries what the errand is. Without this
+   * the queued rung would arrive blank and the operator would be looking at
+   * "Something else" with no idea what the something was.
+   */
+  carry?: string[];
   /**
    * Things to do before this can be logged, each with the way to do it to
    * hand. The rung already said to call and then email; this is that
@@ -272,6 +288,38 @@ export interface Ladder {
 export const SEASON = "late July";
 
 /**
+ * An outcome that queues whatever the operator types, on the day they pick.
+ *
+ * Shared, because a provider can say something unaccounted for on the call
+ * as easily as in a reply, and an errand can produce another errand.
+ */
+export const ERRAND: LadderAction = {
+  label: "Something else",
+  outcome: "next",
+  goto: "errand",
+  delay: 0,
+  // The date typed below, not two business days from now.
+  delayFrom: "due_on",
+  carry: ["todo"],
+  hint: "They asked for something the board has no rung for. Queues it.",
+  inputs: [
+    {
+      key: "todo",
+      label: "What needs doing",
+      required: true,
+      needs: "Say what needs doing",
+    },
+    {
+      key: "due_on",
+      label: "Come back on",
+      type: "date",
+      required: true,
+      needs: "Pick the day it comes back",
+    },
+  ],
+};
+
+/**
  * What a reply from a provider can produce.
  *
  * Three, and the first one is the whole point. The ladder used to sort
@@ -285,18 +333,11 @@ export const SEASON = "late July";
  */
 export const INTEREST_OUTCOMES: LadderAction[] = [
   {
-    label: "Start onboarding",
+    label: "Interested, start onboarding",
     outcome: "next",
     goto: "onboarding",
     delay: 0,
     hint: "They want to hear more. Sends them the pack next.",
-  },
-  {
-    label: "Interested later",
-    outcome: "next",
-    goto: "talking",
-    delay: 0,
-    hint: "Warm, but not now. Hands you the reply to answer today.",
   },
   {
     label: "Not interested",
@@ -304,6 +345,12 @@ export const INTEREST_OUTCOMES: LadderAction[] = [
     delay: 0,
     hint: "They declined. Closes the record.",
   },
+  // Everything a provider can say that the other outcomes do not cover, and
+  // there is no short list of those. Send it to our corporate office. Call
+  // me back when we budget in March. Talk to our RN manager. We need a W-9.
+  // The board cannot enumerate them, so it takes them in the operator's own
+  // words with a date, and queues that.
+  ERRAND,
 ];
 
 /**
@@ -335,9 +382,9 @@ export function followUp(n: number, section: SectionKey): LadderRung {
 
 Following up on my note about the Student Caregiver Program. The short version: we place pre-health students at {university} into paid caregiving shifts that work around their class schedule, and they come to you screened and ready.
 
-There is nothing to sign up front — a short call is enough to see whether it fits.
+They come to you screened. You interview and hire the ones you want, on your own terms, and there is nothing to sign to start.
 
-Is there a day this week or next that works?
+Would you like to hear more? A reply is enough and I will send you everything — how it works, what it costs, and the pilot terms to look over.
 
 The one-page overview is here if it is easier to forward: {flyer}
 
@@ -376,67 +423,59 @@ Dr. Logan DuBose's office · Olera`,
 }
 
 /**
- * The rung a provider sits on between replying and naming a time.
+ * The rung for everything the ladder did not think of.
  *
- * The board had nowhere to put this and it is the commonest warm state
- * there is: interested, busy, ask me again. Without it the choice was to
- * keep sending cold follow-ups to somebody who had already answered, or to
- * archive a live lead.
+ * It replaced "Keep the conversation going", which existed for the warm
+ * but-not-now provider — a state that stopped being separate once the ask
+ * became interest rather than a meeting. Interested-later is interested:
+ * they get the pack and the onboarding block chases them.
+ *
+ * What was genuinely missing is the reply that produces work. Send it to
+ * our corporate office. Talk to our RN manager. Call me back in March. The
+ * board cannot hold a list of those, so it holds one of them at a time, in
+ * the operator's words, with the day it comes back.
+ *
+ * It sits where the conversation rung sat, so nothing after it renumbers.
  */
-function keepTalking(): LadderRung {
+function errandRung(): LadderRung {
   return {
-    branch: "talking",
-    defer: false,
-    title: "Keep the conversation going",
-    what: "They are interested and have not named a time. Keep the thread going until they do.",
-    why: "A provider who has replied is not a cold record, and chasing them like one is how a warm lead is lost.",
+    branch: "errand",
+    title: "Something else",
+    what: "Whatever they asked for that the ladder has no rung of its own for.",
+    why: "A provider who asks for something and never hears back is a provider we lost to our own screen.",
     steps: [
-      "Read the last exchange before you write anything.",
-      "Reply in the thread you already have — do not start a new one.",
-      "Ask for a time, and offer two.",
+      "Read what was asked, below.",
+      "Do it.",
+      "Log what came of it.",
     ],
-    recall: "Last exchange",
+    recall: "What they said",
+    textarea: "What happened",
     repeats: {
-      noun: "round",
-      warnAt: 6,
-      warning: "Six rounds and still no date. Ask for one directly, or archive.",
-    },
-    textarea: "What they said",
-    script:
-      '"Hi, it\'s [your name] from Dr. DuBose\'s office — you mentioned the Student Caregiver Program was of interest. Shall I send you the details, so you can look when it suits you?"',
-    email: {
-      subject: "Re: Student Caregiver Program at {university}",
-      body: `Hi {first},
-
-Picking this back up — no rush at your end.
-
-The short version has not changed: screened pre-health students near {org}, working your shifts on your terms, nothing to sign to start.
-
-Shall I send you the details? One email with everything in it — how students reach you, how to review one, and how a hire works — and you can read it whenever suits. No call needed unless you would like one.
-
-The one-page overview again, in case it is easier to forward: {flyer}
-
-Best,
-[your name]
-Dr. Logan DuBose's office · Olera`,
+      noun: "errand",
+      warnAt: 3,
+      warning: "Three errands and still no answer either way. Worth asking them straight.",
     },
     actions: [
-      ...INTEREST_OUTCOMES.filter((a) => a.label === "Start onboarding").map((a) => ({
-        ...a,
-        hint: "They are ready to hear the rest. Sends them the pack.",
-      })),
       {
-        label: "Still talking",
-        outcome: "repeat",
-        delay: 3,
-        strike: true,
-        hint: "Warm, still not ready. Comes back in three days.",
+        label: "Done — they're interested",
+        outcome: "next",
+        goto: "onboarding",
+        delay: 0,
+        hint: "It produced a yes. Sends them the pack.",
       },
+      {
+        label: "Done — back to following up",
+        outcome: "next",
+        goto: "followup",
+        delay: 2,
+        hint: "Done, no answer either way. Restarts the follow-up block.",
+      },
+      { ...ERRAND, label: "Something else again", strike: true },
       {
         label: "Not interested",
         outcome: "archive",
         delay: 0,
-        hint: "They declined, or have stopped answering altogether. Closes the record.",
+        hint: "They declined, or it went nowhere. Closes the record.",
       },
     ],
   };
@@ -491,10 +530,11 @@ export const LADDERS: Record<SectionKey, Ladder> = {
           // A provider who says yes on the call should not be sent a
           // programme email and seven follow-ups to arrive where they
           // already are.
-          ...INTEREST_OUTCOMES.filter((a) => a.label === "Start onboarding").map((a) => ({
+          ...INTEREST_OUTCOMES.filter((a) => a.label === "Interested, start onboarding").map((a) => ({
             ...a,
             hint: "They said yes on the call. Skips the programme email and sends the pack.",
           })),
+          ERRAND,
           {
             label: "Voicemail",
             outcome: "repeat",
@@ -547,7 +587,7 @@ Dr. Logan DuBose's office · Olera`,
         },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
       },
-      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "providers") },
+      { rounds: FOLLOW_UP_ROUNDS, name: "followup", ...followUp(1, "providers") },
       {
         // Step 4. It was the meeting; the meeting is now a branch. The two
         // rungs that stood here moved to the end of the ladder and a
@@ -686,7 +726,7 @@ Dr. Logan DuBose's office · Olera`,
       // climbing, so where it sits does not change the sequence — and the
       // end is the only place a new rung can go without renumbering every
       // task row already written against this ladder.
-      keepTalking(),
+      errandRung(),
       {
         // Step 9, and a branch. It was step 4, in front of everything; it is
         // now beside it. Some providers want a meeting and it is the best

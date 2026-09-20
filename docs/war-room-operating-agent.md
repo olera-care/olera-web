@@ -199,6 +199,10 @@ diagnosis instead of discarding it and re-purchasing Opus blind.
 
 ## Required migrations
 
+Apply `supabase/migrations/237_war_room_archive_source.sql` before the archive
+reader can write; the `source` column is TEXT + CHECK, so an unwidened
+constraint rejects every insert.
+
 Apply `supabase/migrations/177_war_room_operating_agent.sql` before opening the
 supervisor inbox. Apply `178_war_room_ceo_operating_system.sql` before running
 the CEO discovery pipeline.
@@ -278,6 +282,55 @@ and Action Items data sources with it. Set `NOTION_API_KEY` and
 Notion rows retain their creation time, last-edit time, status-like properties,
 and a `current` / `aging` / `stale` label. The analyst is explicitly forbidden
 from treating an old action item as current work merely because it exists.
+
+## Archive reader
+
+War Room could read Slack and Notion but not Olera's own written record.
+
+On 2026-09-20 four binding questions it was carrying as unresolved were each
+checked against the files it cannot see. All four had already been answered:
+the Ad Boost checkout question in `SCRATCHPAD.md` on 2026-09-16, the grant
+traffic figure corrected in `docs/crp` on 2026-08-21, the provider-page decline
+diagnosed on 2026-09-04, and the benefits picture across prior session notes.
+It had spent a month rediscovering closed questions and then, correctly,
+declining to recommend anything it could not corroborate.
+
+`syncArchiveEvidence` in `lib/war-room/sources.server.ts` closes that. It reads
+markdown through the **GitHub Contents API** rather than bundling files into the
+deployment: `WAR_ROOM_GITHUB_TOKEN` already exists for the executor, the content
+always matches the branch, and no `outputFileTracingIncludes` entry can silently
+fall out of date.
+
+- **Allowlisted by path prefix, in priority order.** The corpus is ~4.8MB across
+  167 markdown files and most of it is data dumps, not decisions. A trailing
+  slash means "everything beneath". The bound drops later entries first and
+  records what it dropped under `war_room_source_state` metadata.
+- **Chunked at headings, dated per section.** `SCRATCHPAD.md` alone is 1.2MB, so
+  a whole-file read would be truncated into uselessness. A heading carrying an
+  ISO date dates its own section; that is what keeps freshness honest, because
+  the file's last commit would otherwise mark a March decision as current. A
+  section with no date inherits the file's commit date and is tagged
+  `date_source: "file_commit"` so the analyst can tell the difference.
+- **Trust is `corroborated`, not `context`.** This is Olera's own reviewed
+  record, unlike third-party chatter. Under `sourceFamily` it forms its own
+  evidence family, so an archive citation genuinely helps a proposal satisfy the
+  agenda gate's "multiple evidence families" requirement.
+- **Separate quota from conversation.** `loadExternalEvidence` fetches Slack and
+  Notion under one limit and the archive under another (45 and 25). A single
+  shared limit would let one busy week of `SCRATCHPAD.md` evict every Slack and
+  Notion row and quietly swap one blind spot for another.
+- **A sync failure never fails the scan.** Coverage drops honestly; the error
+  lands on `war_room_source_state` and surfaces as a `stale` integration row.
+
+**This is not the repository reader the capability-index rule refers to.** That
+rule is about proving a *code* feature absent, and it still stands: the archive
+reads prose, not source, so it can prove a decision was made and never that a
+system does not exist.
+
+**Not covered:** Claude Code's memory directory is not in the repository, so it
+remains invisible from Vercel. Two of the four questions above were answered
+there. Reaching it needs a Mac-side sync, which is deliberately out of scope
+here.
 
 ## Repository executor
 

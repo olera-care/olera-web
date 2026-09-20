@@ -365,7 +365,7 @@ export interface WarRoomDiscoveryRun {
 }
 
 export interface WarRoomIntegrationStatus {
-  key: "slack" | "notion" | "repository" | "economics" | "market" | "executor";
+  key: "slack" | "notion" | "archive" | "repository" | "economics" | "market" | "executor";
   label: string;
   status: "live" | "stale" | "missing";
   detail: string;

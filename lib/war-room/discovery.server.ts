@@ -14,6 +14,7 @@ import { buildWarRoomSnapshot } from "@/lib/war-room/snapshot.server";
 import {
   loadExternalEvidence,
   syncNotionEvidence,
+  syncArchiveEvidence,
   syncSlackHistoryEvidence,
 } from "@/lib/war-room/sources.server";
 import type {
@@ -1514,11 +1515,12 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
     await updateDiscoveryStage(db, runId, "refreshing_sources", { stage_attempt: attempt });
   }
 
-  const [slack, notion] = await Promise.all([
+  const [slack, notion, archive] = await Promise.all([
     syncSlackHistoryEvidence(db),
     syncNotionEvidence(db),
+    syncArchiveEvidence(db),
   ]);
-  await updateDiscoveryStage(db, runId, "building_operating_pack", { slack, notion, stage_attempt: attempt });
+  await updateDiscoveryStage(db, runId, "building_operating_pack", { slack, notion, archive, stage_attempt: attempt });
   const [snapshot, sourceEvidence, probeEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
     buildWarRoomSnapshot(db, 30),
     loadExternalEvidence(db),
@@ -1566,6 +1568,7 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
   const sourceSummary = {
     slack,
     notion,
+    archive,
     external_evidence_count: sourceEvidence.length,
     probe_evidence_count: probeEvidence.length,
     internal_evidence_count: factPack.evidenceCatalog.length,

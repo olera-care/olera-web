@@ -6664,3 +6664,43 @@ Replaced the copy-paste with `scripts/attack-draft.js`, which calls the Perplexi
 2. Decide whether `voicemail` gets its own command. It is the largest bucket at 425 and the output is a callback, not a reply.
 3. Watch for replies. beckett answers on SMS, not email, so hers will land in `/admin/inbox`.
 4. ~~The 2026-09-19 (later) support-email entry is still uncommitted on `scratchpad/sms-answering`.~~ Committed to staging 2026-09-20; it is the entry immediately above this one.
+
+---
+
+## 2026-09-20 — War Room has produced nothing for 30 days. It is blind, and one of its own cards lies. (`war-room/archive-reader`, PR #1981)
+
+**The question that started it.** TJ wanted a chief of staff: something that runs twice a day, reads the data, and fires the right slash commands against real objectives. The answer is that he already built one — War Room runs daily at 10:30 UTC, sweeps ten lenses, runs probes, keeps a watchlist, and can dispatch a coding agent. Its own doc calls the core step "a chief-of-staff pass."
+
+**It has handed him a decision zero times in 30+ days.** 53 runs; `proposal_count: 0` on every one going back to 2026-08-22; last real proposals 2026-08-15, all `superseded`. ~166K in / ~22K out of Opus per scan (~$1.38/day) buying nothing.
+
+**Do NOT loosen the agenda gate.** That was the first diagnosis and it was wrong. `applyAgendaGate` runs on drafts the model already submitted, and nothing reaches it: every row in `war_room_investigations` has `cause_confidence: "low"` — that column has never held another value — which `validateInvestigations` demotes (`strategy.ts:275`) and the gate then rejects (`:579`). Loosening it would have manufactured confident proposals on numbers War Room itself had flagged as unreliable 34 times.
+
+**Root cause 1: a rolling-window bug in War Room's own card.** `snapshot.server.ts:75-76` computes both window boundaries from `Date.now()`, inside a function the route calls fresh per request with nothing cached. Re-running that exact query at 6-hour anchors returns **−11% to −31% across nine days** with no change to code or data. The `−23.8% / −28.1% / −28.3%` that spawned the root `data` investigation (occurrence 34, which froze the other eight) are three readings of one sliding query. It also counts `provider_activity` page_views — server events, **bot-inclusive** — so it measures bot decay off a bot-inflated July base, not organic reach. `windowDays=90` is selectable in the UI and prints **+164%**, because instrumentation starts 2026-04-22 and the prior window predates the data. **Not yet fixed.**
+
+**Root cause 2: no file reader.** War Room's entire external intake is Slack history, Slack events, and Notion. Zero references to `SCRATCHPAD.md`, `docs/`, or the memory directory anywhere in `lib/war-room/`. Four binding questions it carried as unresolved were each checked against the files it cannot see. **Four for four, already answered:** Ad Boost checkout in `SCRATCHPAD.md:253-271` (16 Sep), the grant traffic figure in `docs/crp` (corrected 21 Aug), the provider-page decline (4 Sep), benefits across ~8 memory files.
+
+**Shipped today (PR #1981).** `syncArchiveEvidence` reads allowlisted markdown via the GitHub API using the executor's existing token. Blobs API, not Contents — Contents caps at 1MB and above it returns `200` with empty content, and `SCRATCHPAD.md` is 1.2MB, so the most valuable file would have imported as silent nothing. Chunked at headings; a heading carrying an ISO date dates its own section, otherwise it inherits the file's commit date and is tagged `date_source`. Separate evidence quota (45 conversation / 25 archive) so one busy week here cannot evict every Slack row. Stale rows pruned by ingest time; chunk ids keyed on heading, not position. Migration **237 applied by TJ 2026-09-20**.
+
+**Also established.** `war_room_company_models` IS read at scan time (`discovery.server.ts:1413`, falls back to the hardcoded default only on error) — but the row is a byte-for-byte copy of `DEFAULT_COMPANY_MODEL`, never edited, so it reasons off generic starter text rather than TJ's actual objectives. And **nothing pushes**: no Slack, Resend or SMS anywhere in War Room. The daily brief renders only on `/admin/war-room`, a page nobody opens.
+
+**Architecture decided.** Mac, not Vercel (auth and file access; Vercel-in-Vercel has never been worth it). Acting, not advisory, with approvals first and a permanently non-delegable set (spend, first customer contact, merge, delete). One brain (War Room on Vercel, unchanged) and two hands (the Mac). The 49 slash commands are not workers — they are the **catalog of output shapes** the system can produce, and the holes in that catalog are the build list. A command goes stale when its output stops getting used, which is measurable from a run log and is the honest way to audit them.
+
+**Also shipped: `/aloud`** at `~/.claude/skills/aloud/SKILL.md` (user-global). Renders the current state as prose written to be heard, for when TJ is walking and hits Narrate. No markdown structure, numbers as words, strictly linear, chat text never an artifact.
+
+### Next up — War Room 2.0
+
+1. **Fix the sliding-window card.** `snapshot.server.ts:75-76`. Two lines to stop the slide; the real fix is pointing it at `growth_page_metrics` (GA4 Organic + GSC), which printed one stable answer the whole time. Also bound or remove the 90-day option.
+2. **Load the real company model.** TJ's four objectives plus the known data caveats — above all "GA4 `total_users` is ~42% bot-inflated, use GSC clicks or GA4 Organic Search." That caveat is the answer to the `data` investigation that froze everything, and it has been in memory since 18 Aug.
+3. **Give it a mouth.** Slack or SMS push of the daily brief. Highest value per line of code in the whole system.
+4. **The Mac layer.** `chief_of_staff_queue` table (objective, command binding, risk class, status, captured output — the same rows serve the command audit and the reliability record), a `/cos` command to review and approve in-session, and a SessionStart hook guarded to once per N hours.
+5. **Output types, not just proposals.** Five of six action kinds (`research`, `operations`, `business_development`, `content`, `decision`) dead-end with no executor. The highest-value artifact is probably not a queue for TJ at all — it is the per-provider **call sheet** for Chantel, Graize and Ces, built by hand on 14 Sep and flagged there as the open build.
+6. **Not covered by PR #1981:** the Claude Code memory directory is not in the repo, so it stays invisible from Vercel. Two of the four questions above were answered there. That needs the Mac-side sync.
+
+### The four decisions that actually need TJ
+
+Everything else from the four investigations routes to a build or a date. These do not:
+
+1. Whether the **$75 Starter tier** should exist (blocked on asking Liz why she paid — question 2 on her call card, still unasked, and the DB itself records that it is unasked).
+2. Whether a family who says "paying for care" should be led with a **budget-relief program**. Raised repeatedly, most recently 6 Sep, never settled. It is a pick-rule change, not a data problem.
+3. What to do about the **filed Year 2 RPPR**, which reports 25,000–30,000 monthly visits and 1,000+ provider users against the CRP's 15,500 and 700. Already submitted, uneditable, no owner, no decision recorded anywhere in `docs/crp/`.
+4. Whether to run the **synergy falsification test** — 3 nearest providers in-path at the end of a completed screening, 50/50, ~4 weeks. Specified in August, never built. Benefits→inquiry is 0.6%.

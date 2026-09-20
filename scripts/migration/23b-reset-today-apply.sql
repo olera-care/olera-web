@@ -1,4 +1,4 @@
--- Undo today's provider task work. Run 23a first and read what it lists.
+-- Undo the provider task work done today. Run 23a first and read what it lists.
 --
 -- The rule is about when a row was created, not what state it is in.
 --
@@ -24,10 +24,6 @@
 -- One edge it does not cover: a provider added by hand today has no task
 -- older than today, so it is left with none. Nothing added one, but 23a
 -- would show it as a record with rows to delete and none to reopen.
---
--- Records go back to 'researched', which is what the board's own unarchive
--- does. If a record was something else before today, it will need setting by
--- hand; 23a names them so that is visible in advance.
 --
 -- One statement.
 

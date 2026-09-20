@@ -10,7 +10,7 @@
 -- stamped by any edit at all, so it says nothing about when the archiving
 -- happened. There is no column that does.
 --
--- Gracie's backfilled history is not in scope either: those rows carry their
+-- The backfilled history from Gracie is not in scope either: those rows carry their
 -- real completion dates in July and August, so filtering on today cannot
 -- reach them. Nor are field edits -- nothing distinguishes a phone number
 -- corrected today from one corrected last week.

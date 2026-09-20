@@ -120,17 +120,23 @@ console.log("\nOne rung, one screen");
   ok("and nothing else, so the screen is the work", rung.steps.length === 1, rung.steps.join(" · "));
   const labels = rung.actions.map((a) => a.label);
   ok(
-    "four outcomes, all offered at once",
+    "every outcome offered at once",
     labels.join("|") ===
-      "Log the call and the email|Interested, start onboarding|Not interested|Something else",
+      "No answer|Left a voicemail|Interested, start onboarding|Not interested|Booked a call to help|Something else",
     labels.join("|"),
   );
-  ok("the silent round is the log of two acts", (rung.actions[0].acts ?? []).join("+") === "call+email");
-  ok("and it is the one you will press most, so it leads", rung.actions[0].label.startsWith("Log"));
-  // Only the errand asks anything, and only because nobody can guess in
-  // advance what a provider will ask for.
+  ok(
+    "both ways a call fails are the log of two acts",
+    rung.actions.slice(0, 2).every((a) => (a.acts ?? []).join("+") === "call+email"),
+  );
+  ok("and they lead, because they are what you press most", labels[0] === "No answer");
+  // Only the two that cannot be guessed in advance ask anything.
   const asks = rung.actions.filter((a) => a.inputs?.length).map((a) => a.label);
-  ok("only the errand asks questions", asks.join("|") === "Something else", asks.join("|"));
+  ok(
+    "only booking and the errand ask questions",
+    asks.join("|") === "Booked a call to help|Something else",
+    asks.join("|"),
+  );
   ok("every outcome says what it means", rung.actions.every((a) => Boolean(a.hint)));
   ok("advisors keep their catch-all until 11", rungAt("advisors", 2, 1)?.reply === true);
 }
@@ -157,21 +163,25 @@ console.log("\nThe onboarding phase");
   ok("it is a numbered block", rung.rounds === FOLLOW_UP_ROUNDS, String(rung.rounds));
   ok("named for the chasing, not for a meeting", rung.title === "Onboarding follow up 1");
   ok("three days apart, not two", rung.actions[0].delay === 3);
+  ok("with the portal to hand", rung.link?.key === "portal_link");
   ok("and it never archives", steps[ONBOARDFOLLOW].exhausted === "repeat");
   const labels = rung.actions.map((a) => a.label);
   ok(
-    "five ways out",
+    "six ways out",
     labels.join("|") ===
-      "Log the call and the email|They are ready|Booked a call to help|Not interested|Something else",
+      "No answer|Left a voicemail|They are ready|Booked a call to help|Not interested|Something else",
     labels.join("|"),
   );
-  ok("the silent round is the log of two acts", (rung.actions[0].acts ?? []).join("+") === "call+email");
+  ok(
+    "both ways a call fails are the log of two acts",
+    rung.actions.slice(0, 2).every((a) => (a.acts ?? []).join("+") === "call+email"),
+  );
   ok("the warning lands on the fourth round", rung.repeats?.warnAt === 4);
   ok("and does not rename the closing button", !rung.repeats?.archive);
 
   // Seven rounds, then it keeps going rather than closing them out.
   const [u, r] = at(ONBOARDFOLLOW, 1);
-  for (let i = 0; i < FOLLOW_UP_ROUNDS + 4; i += 1) act(u, r, "Log the call and the email");
+  for (let i = 0; i < FOLLOW_UP_ROUNDS + 4; i += 1) act(u, r, "No answer");
   ok("eleven rounds and still on the board", r.state === null, String(r.state));
   ok("holding at the last round", r.round === FOLLOW_UP_ROUNDS, String(r.round));
   ok("unlike the cold block, which ends", steps[FOLLOW].exhausted === undefined);
@@ -189,25 +199,54 @@ console.log("\nThe onboarding phase");
 
 console.log("\nA call is a tool, not a stage");
 {
-  const ways = steps.flatMap((r, i) =>
-    (rungAt("providers", i, 1)?.actions ?? [])
-      .filter((a) => a.goto === "help")
-      .map(() => steps[i].title),
-  );
-  ok("booked from the block, and only there", ways.length === 1, ways.join("|"));
+  // Bookable from anywhere, because a provider can ask to be walked through
+  // it at any point — and it must never cost them their place.
+  const from = steps
+    .map((_, i) => rungAt("providers", i, 1)!)
+    .filter((r) => r.actions.some((a) => a.goto === "help"))
+    .map((r) => r.title);
+  ok("bookable from every rung that talks to them", from.length === 6, from.join(" · "));
+  ok("but not from the call itself", !from.includes("Help them on a call"));
   ok("and it is a branch, so climbing never reaches it", Boolean(steps[HELP].branch));
+  ok("it carries where the record was", steps[5].actions.find((a) => a.goto === "help")?.carryOrigin === true);
 
   const day = iso(new Date(startOfToday().getTime() + 8 * 86_400_000));
-  const [u, r] = at(ONBOARDFOLLOW, 2);
+  const [u, r] = at(ONBOARDFOLLOW, 3);
   act(u, r, "Booked a call to help", { meeting_at: `${day}T14:00`, meeting_where: "Zoom" });
   const held = r.tasks.find((t) => !t.done)!;
   ok("it lands on the call", held.step === HELP, String(held.step));
   ok("on the day", held.dueAt === day, `${held.dueAt} vs ${day}`);
-  ok("carrying the time and the place", held.fields?.meeting_where === "Zoom");
+  ok("carrying the place", held.fields?.meeting_where === "Zoom");
+  ok("and where it came from", held.fields?.from_round === "3", JSON.stringify(held.fields));
 
-  const [u2, r2] = at(HELP, 0);
-  act(u2, r2, "Still not ready");
-  ok("and a call that did not finish it goes back to chasing", r2.step === ONBOARDFOLLOW, String(r2.step));
+  // Home is one round on from where it left, never round one.
+  for (const label of ["Helped — back to it", "They did not turn up"]) {
+    const [u2, r2] = at(ONBOARDFOLLOW, 3);
+    act(u2, r2, "Booked a call to help", { meeting_at: `${day}T14:00` });
+    act(u2, r2, label);
+    ok(
+      `"${label}" goes back to round 4, not round 1`,
+      r2.step === ONBOARDFOLLOW && r2.round === 4,
+      `${r2.step}/${r2.round}`,
+    );
+  }
+
+  // An errand does the same thing.
+  const [u3, r3] = at(FOLLOW, 5);
+  act(u3, r3, "Something else", { todo: "Ring their corporate office", due_on: day });
+  const errand = r3.tasks.find((t) => !t.done)!;
+  ok("an errand carries its origin too", errand.fields?.from_round === "5", JSON.stringify(errand.fields));
+  act(u3, r3, "Done — back to following up");
+  ok(
+    "and comes back to round 6 of the block it left",
+    r3.step === FOLLOW && r3.round === 6,
+    `${r3.step}/${r3.round}`,
+  );
+
+  // With nothing to go back to, a resuming outcome still has a name to aim at.
+  const [u4, r4] = at(HELP, 0);
+  act(u4, r4, "Helped — back to it");
+  ok("and falls back to the named rung when there is no origin", r4.step === ONBOARDFOLLOW, String(r4.step));
 }
 
 console.log("\nA date typed in beats a delay");
@@ -234,7 +273,7 @@ console.log("\nThe endings that end it");
   ok("and a no from the conversation does too", r2.state === "archived", String(r2.state));
 
   const [u3, r3] = at(FOLLOW, 1);
-  for (let i = 0; i < FOLLOW_UP_ROUNDS; i += 1) act(u3, r3, "Log the call and the email");
+  for (let i = 0; i < FOLLOW_UP_ROUNDS; i += 1) act(u3, r3, "No answer");
   ok("seven silences still end the road", r3.state === "archived — no reply", String(r3.state));
   ok("and it took all seven", r3.tasks.filter((t) => t.done).length === FOLLOW_UP_ROUNDS);
 
@@ -303,7 +342,7 @@ console.log("\nHanded over, not parked");
 
   for (const [step, round, label, why] of [
     [2, 0, "Log email sent", "a sent email waits two days"],
-    [FOLLOW, 2, "Log the call and the email", "and so does a round nobody answered"],
+    [FOLLOW, 2, "No answer", "and so does a round nobody answered"],
     
     [ONBOARD, 0, "Log the pack sent", "and the pack waits three before we check on them"],
   ] as Array<[number, number, string, string]>) {
@@ -330,16 +369,15 @@ console.log("\nWhere Not yet is offered");
     LADDERS[s].steps.filter((r) => r.defer === false).map((r) => `${s}:${r.title}`),
   );
   ok(
-    "only on rungs that already run on a cadence",
+    "only where putting it off is the same act as the next round, or is rebooking",
     off.join("|") ===
-      "providers:Follow up 1|providers:Onboarding follow up 1|advisors:Follow up 1|orgs:Follow up 1",
+      "providers:Follow up 1|providers:Onboarding follow up 1|providers:Help them on a call|advisors:Follow up 1|orgs:Follow up 1",
     off.join("|"),
   );
   for (const [i, why] of [
     [CALL, "the call"],
     [2, "the programme email"],
     [ONBOARD, "the pack"],
-    [HELP, "the call, when there is one"],
   ] as Array<[number, string]>) {
     ok(`still on ${why}`, steps[i].defer !== false);
   }

@@ -125,6 +125,23 @@ export interface LadderAction {
    */
   carry?: string[];
   /**
+   * Write where the record was onto the rung this queues.
+   *
+   * A branch has to know its way home. Without it, coming back from an
+   * errand or a call put every provider on round one of the block they had
+   * left — so a provider three rounds in got four more than they were owed,
+   * and the count stopped meaning anything.
+   */
+  carryOrigin?: boolean;
+  /**
+   * Go back to where the branch came from rather than to `goto`.
+   *
+   * One round on from where it left: that round was logged before the
+   * branch opened, so repeating it would be contacting them twice for it.
+   * Falls back to `goto` when there is no origin to go back to.
+   */
+  resume?: boolean;
+  /**
    * Things to do before this can be logged, each with the way to do it to
    * hand. The rung already said to call and then email; this is that
    * sentence made operable, so the button logs two acts rather than
@@ -164,6 +181,14 @@ export interface LadderRung {
   /** Offers "They replied", which breaks out of a follow-up block. */
   reply?: boolean;
 
+  /**
+   * A value carried onto this task, shown as a link.
+   *
+   * The portal is where an operator checks whether a provider got
+   * themselves set up, and telling them to go and look without giving them
+   * the address is an instruction that costs a search every time.
+   */
+  link?: { key: string; label: string };
   /** Contact fields this rung collects, written onto the record. */
   collects?: ContactField[];
   /**
@@ -319,6 +344,37 @@ export interface Ladder {
 export const SEASON = "late July";
 
 /**
+ * Book a call to help, from anywhere.
+ *
+ * A provider can ask to be walked through it at any point — on the
+ * confirming call, after the programme email, three rounds into a chase, in
+ * the middle of an errand. It is never a stage and it must never cost them
+ * their place, so it carries where the record was and the call hands it
+ * straight back, one round on.
+ */
+export const BOOK_CALL: LadderAction = {
+  label: "Booked a call to help",
+  outcome: "next",
+  goto: "help",
+  delay: 0,
+  // The rung comes back on the day of the call, not two days from booking.
+  delayFrom: "meeting_at",
+  carry: ["meeting_at", "meeting_where", "portal_link"],
+  carryOrigin: true,
+  hint: "They would rather be walked through it. Comes back on the day, then returns here.",
+  inputs: [
+    {
+      key: "meeting_at",
+      label: "Date and time",
+      type: "datetime-local",
+      required: true,
+      needs: "Put the date and time in",
+    },
+    { key: "meeting_where", label: "Where", type: "text" },
+  ],
+};
+
+/**
  * An outcome that queues whatever the operator types, on the day they pick.
  *
  * Shared, because a provider can say something unaccounted for on the call
@@ -332,6 +388,7 @@ export const ERRAND: LadderAction = {
   // The date typed below, not two business days from now.
   delayFrom: "due_on",
   carry: ["todo"],
+  carryOrigin: true,
   hint: "They asked for something the board has no rung for. Queues it.",
   inputs: [
     {
@@ -376,6 +433,7 @@ export const INTEREST_OUTCOMES: LadderAction[] = [
     delay: 0,
     hint: "They declined. Closes the record.",
   },
+  BOOK_CALL,
   // Everything a provider can say that the other outcomes do not cover, and
   // there is no short list of those. Send it to our corporate office. Call
   // me back when we budget in March. Talk to our RN manager. We need a W-9.
@@ -383,6 +441,38 @@ export const INTEREST_OUTCOMES: LadderAction[] = [
   // words with a date, and queues that.
   ERRAND,
 ];
+
+/**
+ * The two ways a call can fail, on any rung that makes one.
+ *
+ * Both are the same outcome for the record — nobody was reached, try again
+ * — and they are worth telling apart because one of them means they have
+ * heard us and one means they have not. The confirming call has had these
+ * from the start; every other rung that dials now uses the same words.
+ */
+export function noAnswerOutcomes(
+  delay: number,
+  carry?: string[],
+): LadderAction[] {
+  return [
+    {
+      label: "No answer",
+      outcome: "next",
+      delay,
+      acts: ["call", "email"],
+      ...(carry ? { carry } : {}),
+      hint: "Nobody picked up. Both logged, and the next round is queued.",
+    },
+    {
+      label: "Left a voicemail",
+      outcome: "next",
+      delay,
+      acts: ["call", "email"],
+      ...(carry ? { carry } : {}),
+      hint: "Message left, so they have heard us. Both logged, and the next round is queued.",
+    },
+  ];
+}
 
 /**
  * One follow-up. Providers, advisors and orgs all run the same block of
@@ -433,18 +523,10 @@ Dr. Logan DuBose's office · Olera`,
           // "They replied" took a summary and moved on, which meant a
           // provider who said "interested, not this month" and a provider
           // who named a time landed on the same rung.
-          actions: [
-            // The unanswered round. It is two acts and a log, not a button
-            // that says nobody did anything.
-            {
-              label: "Log the call and the email",
-              outcome: "next" as const,
-              delay: 2,
-              acts: ["call", "email"],
-              hint: "Both done, nothing back yet. The next round is queued.",
-            },
-            ...INTEREST_OUTCOMES,
-          ],
+          // Two acts and a log, not a button that says nobody did anything —
+          // and which of the two ways the call failed, because one means
+          // they have heard us.
+          actions: [...noAnswerOutcomes(2), ...INTEREST_OUTCOMES],
         }
       : {
           reply: true,
@@ -467,7 +549,13 @@ export function onboardingFollowUp(n: number): LadderRung {
     title: `Onboarding follow up ${n}`,
     what: "Check whether they got themselves set up, and help them over the line if not.",
     why: "They said yes and we sent them everything. What is left is hearing that they are ready.",
-    steps: ["Check their email and your voicemail before anything else."],
+    steps: [
+      "Check their email and your voicemail for anything back from them.",
+      "Open their portal below: has the profile been claimed, and are their caregiver requirements filled in?",
+      "If they emailed you what they are looking for, put it in the portal yourself.",
+      "If they have said they are ready, that is enough — press it. The portal can be finished before the first hire.",
+    ],
+    link: { key: "portal_link", label: "Their portal" },
     // They have already said yes, so every two days reads as pestering.
     defer: false,
     textarea: "What happened",
@@ -496,39 +584,17 @@ Best,
 Dr. Logan DuBose's office · Olera`,
     },
     actions: [
-      {
-        label: "Log the call and the email",
-        outcome: "next",
-        delay: 3,
-        acts: ["call", "email"],
+      ...noAnswerOutcomes(3, ["portal_link"]).map((a) => ({
+        ...a,
         actLabels: { email: "Email them, asking the one question" },
-        hint: "Both done, nothing back yet. The next round is queued.",
-      },
+      })),
       {
         label: "They are ready",
         outcome: "goal",
         delay: 0,
         hint: "They have said they understand and are ready to receive a student. That is the goal.",
       },
-      {
-        label: "Booked a call to help",
-        outcome: "next",
-        goto: "help",
-        delay: 0,
-        delayFrom: "meeting_at",
-        carry: ["meeting_at", "meeting_where"],
-        hint: "They would rather be walked through it. Comes back on the day.",
-        inputs: [
-          {
-            key: "meeting_at",
-            label: "Date and time",
-            type: "datetime-local",
-            required: true,
-            needs: "Put the date and time in",
-          },
-          { key: "meeting_where", label: "Where", type: "text" },
-        ],
-      },
+      BOOK_CALL,
       {
         label: "Not interested",
         outcome: "archive",
@@ -581,13 +647,17 @@ function errandRung(): LadderRung {
         hint: "It produced a yes. Sends them the pack.",
       },
       {
+        // Back to whatever rung queued the errand, one round on — not to
+        // round one of a block the provider may be six rounds into.
         label: "Done — back to following up",
         outcome: "next",
+        resume: true,
         goto: "followup",
         delay: 2,
-        hint: "Done, no answer either way. Restarts the follow-up block.",
+        hint: "Done, no answer either way. Back to where this came from.",
       },
       { ...ERRAND, label: "Something else again", strike: true },
+      BOOK_CALL,
       {
         label: "Not interested",
         outcome: "archive",
@@ -653,7 +723,6 @@ export const LADDERS: Record<SectionKey, Ladder> = {
             ...a,
             hint: "They said yes on the call. Skips the programme email and sends the pack.",
           })),
-          ERRAND,
           {
             label: "Voicemail",
             outcome: "repeat",
@@ -674,6 +743,8 @@ export const LADDERS: Record<SectionKey, Ladder> = {
             delay: 0,
             hint: "They declined, or will not give an address. Closes the record.",
           },
+          BOOK_CALL,
+          ERRAND,
         ],
       },
       {
@@ -704,7 +775,7 @@ Best,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
+        actions: [{ label: "Log email sent", outcome: "next", delay: 2 }, BOOK_CALL],
       },
       { rounds: FOLLOW_UP_ROUNDS, name: "followup", ...followUp(1, "providers") },
       {
@@ -768,8 +839,12 @@ Dr. Logan DuBose's office · Olera`,
             label: "Log the pack sent",
             outcome: "next",
             delay: 3,
+            // The link travels with the record from here on, so every
+            // onboarding round can offer it without anybody looking it up.
+            carry: ["portal_link"],
             hint: "Sent. We check in three days on whether they have got set up.",
           },
+          BOOK_CALL,
         ],
       },
       {
@@ -810,22 +885,47 @@ Dr. Logan DuBose's office · Olera`,
           "Ask them straight: are you ready to receive one?",
         ],
         textarea: "How it went",
+        link: { key: "portal_link", label: "Their portal" },
+        // A booked call is a thing you do on a day, and putting it off is
+        // rebooking it — which is what the block is for.
+        defer: false,
         actions: [
           {
             label: "They are ready",
             outcome: "goal",
             delay: 0,
-            hint: "They have said so. That is the goal.",
+            hint: "They have said so. That is the goal, whatever stage the call was booked from.",
           },
           {
-            label: "Still not ready",
+            // A call booked before the pack went out can produce the yes
+            // that the pack is for.
+            label: "Interested, start onboarding",
             outcome: "next",
+            goto: "onboarding",
+            delay: 0,
+            hint: "They want the details. Sends them the pack.",
+          },
+          {
+            // Back to the round after the one they left, not to round one.
+            label: "Helped — back to it",
+            outcome: "next",
+            resume: true,
             goto: "onboardfollow",
             delay: 3,
-            hint: "Back to chasing, with whatever is still missing written down.",
+            hint: "Back to where the call was booked from, one round on.",
           },
-          { label: "No-show", outcome: "reschedule", delay: 0 },
-          { label: "Needs rescheduling", outcome: "reschedule", delay: 0 },
+          {
+            // No reschedule rung. A call nobody turned up to is a call that
+            // did not happen, and the way to get another one is the button
+            // on the rung this returns to.
+            label: "They did not turn up",
+            outcome: "next",
+            resume: true,
+            goto: "onboardfollow",
+            delay: 1,
+            hint: "Logged as a no-show. Back to chasing tomorrow, where you can book another.",
+          },
+          ERRAND,
         ],
       },
     ],

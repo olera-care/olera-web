@@ -216,14 +216,39 @@ export const iso = (d: Date): string => d.toISOString().slice(0, 10);
 export function carryFrom(
   action: LadderAction,
   fields?: Record<string, string>,
+  from?: { step: number; round: number },
 ): Record<string, string> | undefined {
-  if (!action.carry?.length || !fields) return undefined;
   const out: Record<string, string> = {};
-  for (const key of action.carry) {
-    const v = (fields[key] ?? "").trim();
+  for (const key of action.carry ?? []) {
+    const v = (fields?.[key] ?? "").trim();
     if (v) out[key] = v;
   }
+  // Where the record was, so a branch can find its way back.
+  if (action.carryOrigin && from) {
+    out.from_step = String(from.step);
+    out.from_round = String(from.round);
+  }
   return Object.keys(out).length ? out : undefined;
+}
+
+/**
+ * The rung a branch returns to: one round on from where it left.
+ *
+ * That round was logged before the branch opened, so going back to it would
+ * mean contacting them twice for the same one. Capped at the last round of
+ * the block, which repeats rather than ending when the block says so.
+ */
+export function resumeAt(
+  section: SectionKey,
+  fields?: Record<string, string>,
+): { step: number; round: number } | null {
+  const step = Number(fields?.from_step);
+  const round = Number(fields?.from_round);
+  if (!Number.isInteger(step) || !Number.isInteger(round)) return null;
+  const rung = LADDERS[section].steps[step];
+  if (!rung) return null;
+  if (!rung.rounds) return { step, round };
+  return { step, round: Math.min(Math.max(1, round + 1), rung.rounds) };
 }
 
 /**
@@ -423,7 +448,7 @@ export function complete(
     }
     const next = makeTask(record.section, step, round, dueFor(action, task.fields));
     // An errand is only a task if it carries what the errand is.
-    const carried = carryFrom(action, task.fields);
+    const carried = carryFrom(action, task.fields, { step: task.step, round: task.round });
     if (carried) next.fields = carried;
     record.tasks.push(next);
     task.spawned.push(next.id);
@@ -448,6 +473,9 @@ export function complete(
 
   if (task.redo) {
     // A deliberate repeat. It records itself and nothing else.
+  } else if (action.resume && resumeAt(record.section, task.fields)) {
+    const back = resumeAt(record.section, task.fields)!;
+    queue(back.step, back.round);
   } else if (action.goto && action.outcome !== "goal" && branchAt(action.goto) >= 0) {
     // A branch is skipped when climbing, so an outcome that exists to reach
     // one has to name it. Without this the seasonal "it's gone" fell off the
@@ -672,9 +700,17 @@ export function resolveNext(
   round: number,
   action: LadderAction,
   facts?: Record<string, string | true>,
+  /** The finishing task's typed values — where a resuming branch reads its way back. */
+  fields?: Record<string, string>,
 ): { step: number; round: number } | null {
   const steps = LADDERS[section].steps;
   const at = (name: string) => steps.findIndex((r) => (r.branch ?? r.name) === name);
+
+  // Coming home from a branch beats the name it would otherwise aim at.
+  if (action.resume) {
+    const back = resumeAt(section, fields);
+    if (back) return back;
+  }
 
   // A named rung wins: it is the only way to reach a branch, and the only
   // way a finished ladder earns its recurring check.

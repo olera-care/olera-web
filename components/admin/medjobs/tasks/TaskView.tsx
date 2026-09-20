@@ -293,6 +293,23 @@ export default function TaskView({
             ))}
           </ol>
 
+          {/* Somewhere to look, when the rung tells you to go and look. */}
+          {rung.link && (task.fields?.[rung.link.key] ?? "").trim() && (
+            <a
+              href={
+                /^https?:\/\//i.test(task.fields![rung.link.key])
+                  ? task.fields![rung.link.key]
+                  : `https://${task.fields![rung.link.key]}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2.5 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
+            >
+              {rung.link.label}
+              <OpenIcon />
+            </a>
+          )}
+
           {rung.attachment && <Attachment attachment={rung.attachment} />}
 
           {/* The two acts a silent round is, with the way to do them to hand. */}
@@ -714,6 +731,21 @@ function Help({ label, children }: { label: string; children: React.ReactNode })
       <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
       <div className="text-[13px] leading-snug text-gray-700">{children}</div>
     </div>
+  );
+}
+
+/** The usual little arrow for a link that leaves the drawer. */
+function OpenIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M6 3h7v7M13 3 5 11M11 9v4H3V5h4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

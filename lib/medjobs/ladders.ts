@@ -618,8 +618,8 @@ Dr. Logan DuBose's office · Olera`,
     },
     actions: [
       ...noAnswerOutcomes(3, ["portal_link"], {
-        email: "Email them the one question",
-        call: "Call, refer to the email, and ask",
+        email: "Email them",
+        call: "Call, refer to the email, and ask if they are ready for students or have any questions",
       }),
       {
         label: "They are ready",

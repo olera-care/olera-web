@@ -38,7 +38,8 @@ with keep as (
       o.organization_name in (
         -- add names here, one per line, comma separated
         'Danville Support Services',
-        'Arosa Salt Lake'
+        'Arosa Salt Lake',
+        'Compassionate Home Care'
       )
       or exists (
         select 1

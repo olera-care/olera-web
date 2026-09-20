@@ -46,7 +46,10 @@ import {
 export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
   || process.env.WAR_ROOM_MODEL
   || "claude-opus-5";
-export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v5-split-contract";
+// Bump whenever prompt text changes. Every run row and every failure
+// diagnostic is stamped with this, so leaving it alone after editing a prompt
+// makes runs before and after the change indistinguishable in the data.
+export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v6-bounded-dossiers";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;

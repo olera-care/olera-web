@@ -1,8 +1,7 @@
 -- Undo the provider task work done today.
 --
--- Run 23a first and read what it lists. If any of them are archived and you
--- want them back, run 23c BEFORE this one -- it finds them by the outcome
--- that archived them, and this clears that outcome.
+-- Run 23a first and read what it lists. It marks which records the keep rule
+-- is sparing and why.
 --
 -- The rule is about when a row was created, not what state it is in.
 --
@@ -13,12 +12,10 @@
 --     any typed fields, because all three were written today in the same
 --     update that closed it.
 --
--- Archived records stay archived. An earlier version put anything archived
--- and edited today back to researched, and that matched nine records
--- archived long before -- last_edited_at is stamped by any edit, so it does
--- not say when the archiving happened, and no column does. A record archived
--- today by pressing Not interested will have its task reopened and stay
--- archived; unarchive it from the record menu if you want it back.
+-- Archived records are out of scope entirely. Archiving a provider is a real
+-- decision, so the record stays archived and keeps its tasks, its notes and
+-- its outcomes -- nothing on it is deleted or reopened. Unarchive one from
+-- the record menu if you change your mind.
 --
 -- The two task rules are deliberately disjoint, which is what makes this
 -- safe to run twice: the first version reopened by completion date and then
@@ -29,11 +26,11 @@
 -- older than today, so it is left with none. Nothing added one, but 23a
 -- would show it as a record with rows to delete and none to reopen.
 --
--- Run 23a first: it marks which records the keep rule is sparing.
---
 -- One statement.
 
--- Records to spare, in two ways.
+-- Records to spare, in three ways.
+--
+-- Archived: any provider whose record is archived. Nothing on it is touched.
 --
 -- By hand: put an organization_name in the list below. Duplicated names are
 -- all spared, which is the safe direction to be wrong in.
@@ -48,7 +45,8 @@ with keep as (
   from student_outreach o
   where o.kind = 'provider'
     and (
-      o.organization_name in (
+      o.status = 'archived'
+      or o.organization_name in (
         -- add names here, one per line, comma separated
         'Danville Support Services',
         'Arosa Salt Lake',

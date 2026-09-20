@@ -246,7 +246,7 @@ alternative is work that happens off the board.
 
 ---
 
-## 12 · The ask is interest, not a meeting — ALIGN
+## 12 · The ask is interest, not a meeting — SHIPPED, less the hire gate
 
 Raised 20 September, after looking at the shipped follow-up screen. It
 supersedes part of 6: the endings are right in shape and wrong in what they
@@ -362,11 +362,69 @@ The pack can be built now. The hire gate cannot. So the ladder ships in two
 pieces: everything up to *Confirm they can receive a student* first, and the
 terms-at-hire gate when C1 lands.
 
+### Built, 20 September — the first piece
+
+The ladder now reads: Research · the confirming call · the programme email ·
+seven follow-ups · **Send the onboarding pack** · **Confirm they can receive a
+student** · Confirm they have signed up · Seasonal · *Keep the conversation
+going* · *Meet them* · *Log the meeting*. The last three are branches, reached
+by name.
+
+**The meeting moved out of the sequence.** It was steps 4 and 5; it is now 9
+and 10, and a branch, so climbing never reaches it. Steps 6, 7 and 8 keep their
+places, which is what made the move affordable —
+`scripts/migration/22-meeting-becomes-a-branch.sql` renumbers only 4 and 5 on
+provider task rows. **It has not been run yet.** It is one statement, safe on
+an empty result and idempotent, and it was proved on a local Postgres fixture
+covering a provider at each of steps 3, 4, 5 and 6, an advisor at step 4 that
+must not move, and a row with no step at all.
+
+**The follow-up screen asks one question first.** *Have they written back?*
+Nothing back puts the call and the email in front of the operator with a tel
+link, a copy button and a tick each; the log button is disabled until both are
+done and then logs two acts. A channel the record does not hold says so instead
+of offering a tick. The old button said *No reply*, which named something the
+provider had not done.
+
+**Interest is one state, logged wherever it arrives.** The same three outcomes
+sit behind *they replied* on the follow-up and on the holding rung, and the
+confirming call carries the interest one too, so a provider who says yes on the
+phone skips the programme email and the whole block. It asks how we heard —
+four chips, because that is the only way we will learn which channel works.
+
+**The meeting is a checkbox on that outcome.** New in the model: an action can
+name a branch to open *beside* the rung it queues, rather than instead of it.
+Ticked, the record has two rungs open and sits on the pack; unticked, only the
+pack.
+
+**Three things the model could not do before, now shared by the screen and the
+server:** an action can carry its own inputs (so the chips belong to the
+interest outcome rather than to everyone who opens the rung); an action can
+take its due date from a field, so a meeting booked for the 29th puts its log
+rung on the 29th; and typed values are persisted at all — until now a booked
+time survived only until the page reloaded.
+
+**Copy.** The programme email closes with *would you like to hear more?* rather
+than asking for fifteen minutes, the holding rung asks *shall I send you the
+details*, and the pack is written. A check asserts none of the cold copy asks
+for a meeting.
+
+MATRIX and the Admin manual carry the same thing, and the PDFs are rebuilt.
+
 ### Still to settle
 
-1. **C1, the price and its trigger.** Deadline moves to the first-hire gate
-   rather than the first conversion meeting, but it has not gone away.
-2. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
+1. **C1, the price and its trigger**, and the terms-at-hire gate that waits on
+   it. The one piece of 12 that is not built.
+2. **Run the migration.** `scripts/migration/22-meeting-becomes-a-branch.sql`.
+   Until it runs, a provider sitting on an old meeting rung reads as being on
+   the onboarding pack. The counting query below is no longer needed — the
+   migration reports what it moved.
+3. **Wire the set-up rung to the portal.** Account claimed, requirements set, a
+   candidate opened are all facts `business_profiles` holds; the rung asks a
+   person to read them off the screen because the outreach row is not joined to
+   the provider profile in the board's query yet. The students ladder already
+   does this properly and is the pattern.
+4. **Renumbering.** The new rungs take steps 4 and 5, which are written on task
    rows. Count what is actually sitting there before choosing between a
    migration and appending:
 
@@ -377,10 +435,7 @@ terms-at-hire gate when C1 lands.
    where o.kind = 'provider' and (payload->>'step')::int >= 4
    group by 1, 2 order by 1, 2;
    ```
-3. **The meeting log is due on the wrong day.** Booking queues *Log the
-   meeting* today, when the meeting is next Thursday. The date is on the rung
-   already as `meeting_at`; a delay has no way to come from a field yet.
-4. **Logging a callback on an archived record.** Interest can arrive months
+5. **Logging a callback on an archived record.** Interest can arrive months
    later. Reviving and then pressing the outcome works, but it is two steps and
    the second is not obvious.
 

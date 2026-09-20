@@ -61,7 +61,9 @@ export interface LadderInput {
   key: string;
   label: string;
   /** Defaults to a plain text field. */
-  type?: "text" | "datetime-local" | "url" | "number";
+  type?: "text" | "datetime-local" | "url" | "number" | "choice" | "check";
+  /** `choice` only: the answers, rendered as one row of chips. */
+  options?: string[];
   /**
    * The rung cannot be finished without it.
    *
@@ -70,6 +72,13 @@ export interface LadderInput {
    * next person to open the record has no way to tell the difference.
    */
   required?: boolean;
+  /**
+   * What to say when it is required and blank, as an instruction.
+   *
+   * "Fill in the how did we hear? first" is what deriving it from the label
+   * produces, and a screen that reads like that is a screen nobody trusts.
+   */
+  needs?: string;
 }
 
 export interface LadderAction {
@@ -93,6 +102,40 @@ export interface LadderAction {
   strike?: boolean;
   /** Business days until the generated task is due. 0 means today. */
   delay: number;
+  /**
+   * Take the due date from one of this action's own fields instead.
+   *
+   * A meeting booked for next Thursday should put its log rung on next
+   * Thursday. `delay` counts business days from today, which is the right
+   * answer for a cadence and the wrong one for a date somebody has typed in.
+   */
+  delayFrom?: string;
+  /**
+   * Values this outcome asks for. An action with inputs does not fire when
+   * it is clicked: it opens, collects, and fires on confirm.
+   *
+   * On the action rather than the rung because they belong to the outcome.
+   * How we heard that a provider is interested is a question about interest,
+   * and asking it of somebody logging an unanswered call is noise.
+   */
+  inputs?: LadderInput[];
+  /**
+   * Things to do before this can be logged, each with the way to do it to
+   * hand. The rung already said to call and then email; this is that
+   * sentence made operable, so the button logs two acts rather than
+   * asserting a non-event.
+   */
+  acts?: Array<"call" | "email">;
+  /** Behind "they replied" in a rung that triages. */
+  afterReply?: boolean;
+  /**
+   * A second rung to open alongside the first, when a field is set.
+   *
+   * The meeting. Some providers want one and most do not, and it must not
+   * hold up onboarding either way — so it is a checkbox on the outcome that
+   * opens a branch beside the main line, rather than a rung in front of it.
+   */
+  also?: { when: string; goto: string };
   /** Criterion keys this answers on the channel, if any. */
   ticks?: string[];
   /**
@@ -116,6 +159,15 @@ export interface LadderRung {
   email?: LadderEmail;
   /** Offers "They replied", which breaks out of a follow-up block. */
   reply?: boolean;
+  /**
+   * The one question that splits the rung, asked before anything else.
+   *
+   * A follow-up is two different tasks wearing one name. If they have
+   * written back, the work is reading it and deciding what it produced; if
+   * they have not, the work is a call and an email, now. Asking first is
+   * what stops the screen offering a button that means nothing happened.
+   */
+  triage?: { question: string; no: string; yes: string };
   /** Contact fields this rung collects, written onto the record. */
   collects?: ContactField[];
   /** Values the rung records on the task itself. Typed, so a date is a date
@@ -248,6 +300,59 @@ export interface Ladder {
 export const SEASON = "late July";
 
 /**
+ * What a reply from a provider can produce.
+ *
+ * Three, and the first one is the whole point. The ladder used to sort
+ * replies by whether they contained a calendar slot, which asked a cold
+ * provider for the largest thing we want from them before they had agreed
+ * to the smallest. What we actually need is yes, tell me more.
+ *
+ * Shared by the follow-up block and the confirming call, because a provider
+ * who says yes on the first call should not be sent a programme email and
+ * seven follow-ups to arrive at the same place.
+ */
+export const INTEREST_OUTCOMES: LadderAction[] = [
+  {
+    label: "They're interested",
+    outcome: "next",
+    goto: "onboarding",
+    delay: 0,
+    afterReply: true,
+    hint: "They want to hear more. Onboarding starts now.",
+    inputs: [
+      {
+        key: "heard_via",
+        label: "How did we hear?",
+        type: "choice",
+        required: true,
+        needs: "Pick how we heard",
+        options: ["Email reply", "On a call", "They called back", "Voicemail they left"],
+      },
+      { key: "wants_meeting", label: "They want to meet first", type: "check" },
+    ],
+    // Beside onboarding, never in front of it. A provider who wants a
+    // meeting still gets the pack, and the pack is what makes the meeting
+    // fifteen minutes instead of forty.
+    also: { when: "wants_meeting", goto: "meeting" },
+  },
+  {
+    label: "Interested later",
+    outcome: "next",
+    goto: "talking",
+    delay: 0,
+    afterReply: true,
+    hint: "Warm, but not now. Hands you the reply to answer today.",
+  },
+  {
+    label: "Not interested",
+    outcome: "archive",
+    delay: 0,
+    afterReply: true,
+    hint: "They declined. Closes the record.",
+  },
+];
+
+/**
  * One follow-up. Providers, advisors and orgs all run the same block of
  * seven, two business days apart, so the copy lives in one place.
  *
@@ -263,7 +368,12 @@ export function followUp(n: number, section: SectionKey): LadderRung {
     title: `Follow up ${n}`,
     what: "The two-day check on this contact.",
     why: "No reply yet.",
-    steps: ["Check your inbox first.", "No reply — call, then email."],
+    steps:
+      section === "providers"
+        ? // The rest of it is the triage below, and saying it twice makes the
+          // screen read like a form rather than a piece of work.
+          ["Check the inbox before anything else."]
+        : ["Check your inbox first.", "No reply — call, then email."],
     script: `"Hi, this is [your name] from Dr. DuBose's office. I emailed ${who} last week about our Student Caregiver Program — students who work paid caregiving shifts around their classes. Did that reach the right person, or is there someone better I should send it to?"`,
     email: {
       subject: "Following up — Student Caregiver Program at {university}",
@@ -287,44 +397,26 @@ Dr. Logan DuBose's office · Olera`,
     textarea: "What happened",
     ...(section === "providers"
       ? {
+          triage: {
+            question: "Have they written back?",
+            no: "Nothing back — call and email now",
+            yes: "They replied",
+          },
           // A follow-up has four endings and the block only ever had one.
           // "They replied" took a summary and moved on, which meant a
           // provider who said "interested, not this month" and a provider
           // who named a time landed on the same rung.
           actions: [
+            // The unanswered round. It is two acts and a log, not a button
+            // that says nobody did anything.
             {
-              label: "They gave a time",
-              outcome: "replied" as const,
-              goto: "meeting",
-              delay: 0,
-              hint: "They named a date. Books the meeting and drops the rest of the follow-ups.",
-            },
-            {
-              label: "No reply",
+              label: "Log the call and the email",
               outcome: "next" as const,
               delay: 2,
-              hint: "Called and emailed again, nothing back. Logged, and the next round is queued.",
+              acts: ["call", "email"],
+              hint: "Both done, nothing back yet. The next round is queued.",
             },
-            {
-              // Due today, not in three days. The reply is in front of you and
-              // the next move is ours: a delay here answers the question "when
-              // should we next touch them" when the question actually being
-              // asked is "when should the operator do the next thing", and
-              // those are only the same when we are waiting on the provider.
-              // Three days sent the operator to the next provider and left a
-              // warm reply unanswered until Thursday.
-              label: "Replied, no time yet",
-              outcome: "next" as const,
-              goto: "talking",
-              delay: 0,
-              hint: "Interested, no date. Hands you the reply to answer now.",
-            },
-            {
-              label: "Not interested",
-              outcome: "archive" as const,
-              delay: 0,
-              hint: "They declined. Closes the record.",
-            },
+            ...INTEREST_OUTCOMES,
           ],
         }
       : {
@@ -362,19 +454,16 @@ function keepTalking(): LadderRung {
     },
     textarea: "What they said",
     script:
-      '"Hi, it\'s [your name] from Dr. DuBose\'s office — you mentioned the Student Caregiver Program was of interest. Would Tuesday or Thursday afternoon work for fifteen minutes?"',
+      '"Hi, it\'s [your name] from Dr. DuBose\'s office — you mentioned the Student Caregiver Program was of interest. Shall I send you the details, so you can look when it suits you?"',
     email: {
       subject: "Re: Student Caregiver Program at {university}",
       body: `Hi {first},
 
-Picking this back up. Whenever you have fifteen minutes, I can walk you through how the Student Caregiver Program would work for {org} — screened pre-health students, your shifts, your terms, nothing to sign to start.
+Picking this back up — no rush at your end.
 
-Would either of these work?
+The short version has not changed: screened pre-health students near {org}, working your shifts on your terms, nothing to sign to start.
 
-  · Tuesday afternoon
-  · Thursday morning
-
-If neither does, name a day that suits you and I will fit round it.
+Shall I send you the details? One email with everything in it — how students reach you, how to review one, and how a hire works — and you can read it whenever suits. No call needed unless you would like one.
 
 The one-page overview again, in case it is easier to forward: {flyer}
 
@@ -383,19 +472,17 @@ Best,
 Dr. Logan DuBose's office · Olera`,
     },
     actions: [
-      {
-        label: "They gave a time",
-        outcome: "replied",
-        goto: "meeting",
-        delay: 0,
-        hint: "They named a date. Books the meeting.",
-      },
+      ...INTEREST_OUTCOMES.filter((a) => a.label === "They're interested").map((a) => ({
+        ...a,
+        afterReply: false,
+        hint: "They are ready to hear the rest. Onboarding starts now.",
+      })),
       {
         label: "Still talking",
         outcome: "repeat",
         delay: 3,
         strike: true,
-        hint: "Still interested, still no date. Comes back in three days.",
+        hint: "Warm, still not ready. Comes back in three days.",
       },
       {
         label: "Not interested",
@@ -453,6 +540,14 @@ export const LADDERS: Record<SectionKey, Ladder> = {
             delay: 0,
             hint: "You have an address that works. Send them the programme next.",
           },
+          // A provider who says yes on the call should not be sent a
+          // programme email and seven follow-ups to arrive where they
+          // already are.
+          ...INTEREST_OUTCOMES.filter((a) => a.label === "They're interested").map((a) => ({
+            ...a,
+            afterReply: false,
+            hint: "They said yes on the call. Skips the programme email and starts onboarding.",
+          })),
           {
             label: "Voicemail",
             outcome: "repeat",
@@ -480,23 +575,24 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "The first email to this provider, sent by you from your own inbox.",
         why: "It comes from a real person, so replies land in your inbox.",
         steps: ["Copy the email below.", "Check the flyer link opens.", "Send it, then log it."],
+        // Short, and asking for one thing. It used to close by asking for
+        // fifteen minutes, which is the largest thing we want from a
+        // provider requested before they have agreed to the smallest. The
+        // detail lives in the onboarding pack, which goes out once they
+        // have said yes — so this email only has to earn a reply.
         email: {
           subject: "Pre-health students looking for caregiving shifts — {university}",
           body: `Hi {first},
 
 I am writing from Dr. Logan DuBose's office about the Student Caregiver Program at {university}.
 
-We work with pre-health students — pre-med, pre-nursing, pre-PA — who want paid, hands-on caregiving experience before they apply to professional school. They are motivated, they are local, and they are looking for shifts that fit around classes.
+We work with pre-health students — pre-med, pre-nursing, pre-PA — who want paid, hands-on caregiving experience before they apply to professional school. They are motivated, they are local, and they are looking for shifts that fit around their classes.
 
-What it means for {org}:
-
-  · Screened students, matched to your openings
-  · They work your shifts, on your terms
-  · No cost to you, and nothing to sign to start
+They come to you screened. You interview and hire the ones you want, on your own terms, and there is nothing to sign to start.
 
 One-page overview: {flyer}
 
-If it is worth fifteen minutes, I will find a time that suits you.
+Would you like to hear more? A reply is enough and I will send you everything.
 
 Best,
 [your name]
@@ -506,44 +602,113 @@ Dr. Logan DuBose's office · Olera`,
       },
       { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "providers") },
       {
-        // Named, because it is now reached from two places — a follow-up
-        // that produced a time, and a conversation that finally did. It is
-        // the only rung where a provider meeting gets booked, and a second
-        // booking screen would be a second version of the truth.
-        name: "meeting",
-        title: "Schedule the meeting",
-        what: "Put the time they gave on the calendar, with the sales team.",
-        why: "They replied with a time. This is the handover.",
+        // Step 4. It was the meeting; the meeting is now a branch. The two
+        // rungs that stood here moved to the end of the ladder and a
+        // migration renumbers the task rows that pointed at them, which is
+        // only possible because 6, 7 and 8 keep their places.
+        name: "onboarding",
+        title: "Send the onboarding pack",
+        what: "Everything they need to receive a student, in one email built around their portal link.",
+        why: "They have said yes. From here they can do the whole thing themselves, and most will.",
         steps: [
-          "Confirm the time back to them in the thread.",
-          "Put it in the calendar and invite the sales team.",
-          "Type the time in below.",
+          "Create their portal account and paste the link in below.",
+          "Copy the email and read it through — it is mostly the link.",
+          "Send it, then log it.",
         ],
         recall: "What they said",
         inputs: [
-          { key: "meeting_at", label: "Date and time", type: "datetime-local", required: true },
-          { key: "meeting_where", label: "Where", type: "text" },
+          {
+            key: "portal_link",
+            label: "Portal link",
+            type: "url",
+            required: true,
+            needs: "Create their account and paste the link in",
+          },
         ],
+        email: {
+          subject: "Everything you need — Student Caregiver Program at {university}",
+          body: `Hi {first},
+
+Good to hear from you. Here is the whole thing in one place.
+
+Your portal: {portal_link}
+
+HOW APPLICATIONS REACH YOU
+When a student near {org} is ready, you will hear about them by text and by email, and they will be waiting in the portal. Some students will ring your office directly — they are told to say they came through the Student Caregiver Program.
+
+REVIEWING ONE
+Each student has a single page: what they are studying, when they can work, what they have done before, and a short video. It is built to be read in under a minute and decided on there and then.
+
+GETTING THE RIGHT STUDENTS
+Two things in the portal do this. Your profile is what students see when they consider you, so it is worth a look. Your requirements are what we match on — hours, shift types, certifications, anything you will not move on. Set those and the students you hear about change accordingly.
+
+HOW IT RUNS
+  1. We tell you a qualified student is ready
+  2. You invite them to interview, from their page
+  3. You hire the ones you want, on your own terms
+  4. We confirm the hire with you and with them
+
+Terms come up twice, both in the portal: a short agreement when you first invite somebody to interview, and the full one at your first hire. Nothing to sign today.
+
+If you would rather I walked you through it, say the word and I will find fifteen minutes. Otherwise the portal is live now and you can start looking.
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
         actions: [
           {
-            label: "Meeting booked",
+            label: "Log the pack sent",
             outcome: "next",
-            delay: 0,
-            hint: "It is on the calendar. The sales team takes it from here.",
+            delay: 3,
+            hint: "Sent. We check in three days on whether they have got set up.",
           },
         ],
       },
       {
-        title: "Log the meeting",
-        what: "What happened at the meeting.",
-        why: "People no-show often. What happens next depends on which.",
-        steps: ["Pick the outcome.", "Write a line about it."],
-        textarea: "How it went",
-        actions: [
-          { label: "Held", outcome: "next", delay: 0 },
-          { label: "No-show", outcome: "reschedule", delay: 0 },
-          { label: "Needs reschedule", outcome: "reschedule", delay: 0 },
+        // Step 5. Three facts the portal will eventually answer for itself,
+        // the way the students ladder answers its own — account claimed,
+        // requirements set, a candidate looked at. Until the provider
+        // profile is joined to the outreach row they are a checklist, and a
+        // checklist somebody reads off the portal is still better than a
+        // rung that asks them to guess.
+        name: "setup",
+        title: "Confirm they can receive a student",
+        what: "Check in the portal that they are actually set up, and nudge them if not.",
+        why: "A provider who has the link and has not used it is a nudge, not a chase — and nobody is going to notice on their own.",
+        steps: [
+          "Open their portal profile: have they claimed the account?",
+          "Are their requirements set, or is it still the default?",
+          "Have they opened a candidate?",
+          "If any of it is missing, reply in the thread and offer to do it with them.",
         ],
+        textarea: "Where they got to",
+        actions: [
+          {
+            label: "They're set up",
+            outcome: "next",
+            delay: 0,
+            hint: "Account claimed, requirements set. They can receive a student.",
+          },
+          {
+            label: "Nudged them",
+            outcome: "repeat",
+            delay: 3,
+            strike: true,
+            hint: "Not there yet. Logged, and this comes back in three days.",
+          },
+          {
+            label: "Gone cold",
+            outcome: "archive",
+            delay: 0,
+            hint: "Said yes, never set up, stopped answering. Closes the record.",
+          },
+        ],
+        repeats: {
+          noun: "nudge",
+          warnAt: 3,
+          warning: "Three nudges and still not set up. Offer to do it on a call, or archive.",
+        },
       },
       {
         title: "Confirm they've signed up to receive students",
@@ -565,6 +730,62 @@ Dr. Logan DuBose's office · Olera`,
       // end is the only place a new rung can go without renumbering every
       // task row already written against this ladder.
       keepTalking(),
+      {
+        // Step 9, and a branch. It was step 4, in front of everything; it is
+        // now beside it. Some providers want a meeting and it is the best
+        // thing that can happen — it just must not be what onboarding waits
+        // for.
+        branch: "meeting",
+        title: "Meet them",
+        what: "A short call to answer their questions. They have the pack already.",
+        why: "They asked for one. It is fifteen minutes because the pack did the explaining.",
+        steps: [
+          "Offer two times, or confirm the one they gave.",
+          "Put it in the calendar and invite the sales team.",
+          "Type the time in below.",
+        ],
+        recall: "What they said",
+        inputs: [
+          {
+            key: "meeting_at",
+            label: "Date and time",
+            type: "datetime-local",
+            required: true,
+            needs: "Put the date and time in",
+          },
+          { key: "meeting_where", label: "Where", type: "text" },
+        ],
+        actions: [
+          {
+            label: "Meeting booked",
+            outcome: "next",
+            goto: "meetlog",
+            delay: 0,
+            // The log rung belongs on the day of the meeting, not today.
+            delayFrom: "meeting_at",
+            hint: "On the calendar. Logging it comes back on the day.",
+          },
+        ],
+      },
+      {
+        branch: "meetlog",
+        title: "Log the meeting",
+        what: "What happened at the meeting.",
+        why: "People no-show often. What happens next depends on which.",
+        steps: ["Pick the outcome.", "Write a line about it."],
+        textarea: "How it went",
+        actions: [
+          {
+            label: "Held",
+            outcome: "next",
+            goto: "setup",
+            delay: 0,
+            hint: "Back to the main line — are they set up?",
+          },
+          { label: "No-show", outcome: "reschedule", delay: 0 },
+          { label: "Needs reschedule", outcome: "reschedule", delay: 0 },
+        ],
+      },
     ],
   },
 

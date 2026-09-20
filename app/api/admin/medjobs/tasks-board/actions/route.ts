@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
-import { dueIn, forwardStep, formatPhone, resolveNext } from "@/lib/medjobs/task-board";
+import {
+  dueFor,
+  dueIn,
+  forwardStep,
+  formatPhone,
+  resolveAlso,
+  resolveNext,
+} from "@/lib/medjobs/task-board";
 import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
 import { handleStudentOp, type StudentOp, type StudentRow } from "./student";
 
@@ -42,6 +49,8 @@ type Body =
       round: number;
       actionIndex: number;
       note?: string;
+      /** Typed values the outcome asked for — a link, a date, a choice. */
+      fields?: Record<string, string>;
     }
   | { op: "defer_record_task"; recordId: string; step: number; round: number; days: number }
   | {
@@ -420,7 +429,16 @@ export async function POST(req: Request) {
           { status: 400 },
         );
       }
+      const fields =
+        body.op === "complete_record_task" && body.fields && typeof body.fields === "object"
+          ? Object.fromEntries(
+              Object.entries(body.fields).map(([k, v]) => [k, String(v ?? "").slice(0, 500)]),
+            )
+          : {};
       const nextRung = action ? resolveNext(section, step, round, action) : null;
+      // The branch this outcome opens beside the main line, if its condition
+      // holds — the meeting, when a provider asked for one.
+      const besideRung = action ? resolveAlso(section, action, fields) : null;
       const next = nextRung?.step ?? null;
       const mine = atStep(step).filter((t) => (where(t).round ?? 0) === round);
       const after = next === null ? [] : atStep(next).filter(
@@ -454,7 +472,15 @@ export async function POST(req: Request) {
               completed_at: new Date().toISOString(),
               // Which button was pressed. Without it every finished task
               // reads "Logged" and four attempts are indistinguishable.
-              payload: { ...(open.payload ?? {}), step, round, outcome: action?.label },
+              payload: {
+                ...(open.payload ?? {}),
+                step,
+                round,
+                outcome: action?.label,
+                // What the outcome asked for. Unstored until now, which meant
+                // a booked meeting kept its time only until the page reloaded.
+                ...(Object.keys(fields).length ? { fields } : {}),
+              },
               ...(note ? { notes: note } : {}),
             })
             .eq("id", open.id);
@@ -474,7 +500,12 @@ export async function POST(req: Request) {
             status: "completed",
             due_at: new Date().toISOString().slice(0, 10),
             completed_at: new Date().toISOString(),
-            payload: { step, round, outcome: action?.label },
+            payload: {
+              step,
+              round,
+              outcome: action?.label,
+              ...(Object.keys(fields).length ? { fields } : {}),
+            },
             notes: note || null,
           });
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -486,10 +517,27 @@ export async function POST(req: Request) {
             outreach_id: outreach.id,
             task_type: taskTypeFor(section, next),
             status: "pending",
-            due_at: dueIn(action?.delay ?? 0),
+            due_at: action ? dueFor(action, fields) : dueIn(0),
             payload: { step: nextRung.step, round: nextRung.round },
           });
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        // And the branch that runs beside it, on the same terms.
+        if (besideRung) {
+          const waiting = atStep(besideRung.step).filter(
+            (t) => (where(t).round ?? 0) === besideRung.round && t.status === "pending",
+          );
+          if (!waiting.length) {
+            const { error } = await db.from("student_outreach_tasks").insert({
+              outreach_id: outreach.id,
+              task_type: taskTypeFor(section, besideRung.step),
+              status: "pending",
+              due_at: dueIn(0),
+              payload: { step: besideRung.step, round: besideRung.round },
+            });
+            if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+          }
         }
       } else {
         // Unticking. Safe only while the rung it queued is untouched: a

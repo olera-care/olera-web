@@ -306,6 +306,10 @@ export default function UniversityFlow({
           round: task.round,
           actionIndex: index,
           note: task.note,
+          // What the outcome asked for. Without it a booked meeting kept
+          // its time only until the page reloaded, and the checkbox that
+          // opens the meeting branch never reached the server at all.
+          fields: task.fields ?? {},
         },
         "",
         { keepBoard: true },

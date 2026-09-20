@@ -80,12 +80,23 @@ ok(
   forwardStep("providers", steps.length - 1) === null,
 );
 
-console.log("\nThe four outcomes of a confirming call");
+console.log("\nThe outcomes of a confirming call");
 {
   const call = LADDERS.providers.steps[1];
   const labels = call.actions.map((a) => a.label);
-  ok("four of them", labels.length === 4, labels.join(" · "));
-  ok("they are the four PR1 names", labels.join("|") === "Confirmed contact|Voicemail|No answer|Not interested");
+  // Five, not four. The four PR1 names, plus the one the call can produce
+  // that the ladder had nowhere to put: a provider who says yes on the
+  // phone. See refinement 12 — they used to be sent a programme email and
+  // seven follow-ups to arrive where they already were.
+  ok("five of them", labels.length === 5, labels.join(" · "));
+  ok(
+    "the four PR1 names are all still there",
+    ["Confirmed contact", "Voicemail", "No answer", "Not interested"].every((n) =>
+      labels.includes(n),
+    ),
+    labels.join("|"),
+  );
+  ok("and interest can be logged on the call", labels.includes("They're interested"));
   ok("every one says what it means on hover", call.actions.every((a) => Boolean(a.hint)));
   ok(
     "voicemail and no answer keep the rung open",
@@ -100,7 +111,10 @@ console.log("\nThe four outcomes of a confirming call");
     "reaching somebody is never a strike",
     !call.actions.find((a) => a.label === "Confirmed contact")?.strike,
   );
-  ok("a refusal closes the record", call.actions[3].outcome === "archive");
+  ok(
+    "a refusal closes the record",
+    call.actions.find((a) => a.label === "Not interested")?.outcome === "archive",
+  );
 
   // Three unanswered calls, counted from what was pressed.
   const u3 = board();

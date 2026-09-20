@@ -306,6 +306,7 @@ export async function GET() {
       round?: number;
       section?: string;
       outcome?: unknown;
+      fields?: unknown;
     };
     const list = tasksByOutreach.get(t.outreach_id) ?? [];
     list.push({
@@ -323,6 +324,13 @@ export async function GET() {
           ? (typeof payload.outcome === "string" ? payload.outcome : "Logged")
           : null,
       note: t.notes ?? "",
+      // What the outcome asked for — a booked time, a portal link, how we
+      // heard. Read back so a reload does not lose it and the history can
+      // show it.
+      fields:
+        payload.fields && typeof payload.fields === "object"
+          ? (payload.fields as Record<string, string>)
+          : undefined,
       loggedOn: t.completed_at ? day(t.completed_at) : null,
       spawned: [],
       spawnedRecords: [],

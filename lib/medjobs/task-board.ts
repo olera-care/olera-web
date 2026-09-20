@@ -210,6 +210,41 @@ export function dueIn(days: number): string {
 
 export const iso = (d: Date): string => d.toISOString().slice(0, 10);
 
+/**
+ * When the rung an action queues is due.
+ *
+ * Normally `delay` business days out. An action that names `delayFrom`
+ * takes the date from one of its own fields instead — a meeting booked for
+ * next Thursday puts its log rung on next Thursday, not two working days
+ * from whenever it was booked. A field left empty or in the past falls back
+ * to the delay, because a due date in the past is a task that shouts.
+ */
+export function dueFor(action: LadderAction, fields?: Record<string, string>): string {
+  if (action.delayFrom) {
+    const raw = (fields?.[action.delayFrom] ?? "").trim();
+    const day = raw.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(day) && day >= iso(startOfToday())) return day;
+  }
+  return dueIn(action.delay);
+}
+
+/**
+ * The branch an action opens beside the one it queues, if its condition
+ * holds. Exported because the screen and the server both have to make the
+ * same call — see LadderAction.also.
+ */
+export function resolveAlso(
+  section: SectionKey,
+  action: LadderAction,
+  fields?: Record<string, string>,
+): { step: number; round: number } | null {
+  if (!action.also) return null;
+  if (!(fields?.[action.also.when] ?? "").trim()) return null;
+  const steps = LADDERS[section].steps;
+  const i = steps.findIndex((r) => (r.branch ?? r.name) === action.also!.goto);
+  return i < 0 ? null : { step: i, round: steps[i].rounds ? 1 : 0 };
+}
+
 export function isReady(t: BoardTask): boolean {
   return !t.done && t.dueAt <= iso(startOfToday());
 }
@@ -370,7 +405,27 @@ export function complete(
 
   let landRecord: BoardRecord | null = null;
 
-  const queue = (step: number, round: number, delay: number) => {
+  /**
+   * A branch opened beside the main line rather than in front of it.
+   *
+   * Deliberately does not move `record.step`: the record is still where the
+   * outcome put it, and this is a second thing now also waiting. The board
+   * reads a record's position from its lowest open rung, so two pending
+   * rungs are a state it already understands.
+   */
+  const queueBeside = (at: { step: number; round: number }) => {
+    if (record.tasks.some((t) => !t.done && t.step === at.step && t.round === at.round)) return;
+    const extra = makeTask(record.section, at.step, at.round, dueIn(0));
+    record.tasks.push(extra);
+    task.spawned.push(extra.id);
+  };
+
+  /**
+   * `delay` is the action's, and is taken from the action rather than passed
+   * — dueFor has to see `delayFrom` and the fields as well, and two callers
+   * computing a due date is two answers.
+   */
+  const queue = (step: number, round: number) => {
     // A rung that is already waiting is not queued twice. Rungs opened as a
     // block are all pending from the start, so finishing the first would
     // otherwise add a second copy of the second.
@@ -381,7 +436,7 @@ export function complete(
       landRecord = record;
       return;
     }
-    const next = makeTask(record.section, step, round, dueIn(delay));
+    const next = makeTask(record.section, step, round, dueFor(action, task.fields));
     record.tasks.push(next);
     task.spawned.push(next.id);
     record.step = step;
@@ -415,12 +470,12 @@ export function complete(
     // back later — and taking the shortcut here did only the second, so the
     // job board queued its seasonal check and never went live.
     const at = branchAt(action.goto);
-    queue(at, ladder.steps[at].rounds ? 1 : 0, action.delay);
+    queue(at, ladder.steps[at].rounds ? 1 : 0);
   } else {
     switch (action.outcome) {
       case "next": {
         if (rung?.rounds && task.round < rung.rounds) {
-          queue(task.step, task.round + 1, action.delay);
+          queue(task.step, task.round + 1);
           break;
         }
         if (rung?.rounds) {
@@ -430,17 +485,17 @@ export function complete(
         }
         const nxt = forward(task.step + 1);
         if (nxt === null) stop(ladder.goal);
-        else queue(nxt, LADDERS[record.section].steps[nxt].rounds ? 1 : 0, action.delay);
+        else queue(nxt, LADDERS[record.section].steps[nxt].rounds ? 1 : 0);
         break;
       }
       case "replied": {
         const nxt = forward(task.step + 1);
         if (nxt === null) stop(ladder.goal);
-        else queue(nxt, LADDERS[record.section].steps[nxt].rounds ? 1 : 0, 0);
+        else queue(nxt, LADDERS[record.section].steps[nxt].rounds ? 1 : 0);
         break;
       }
       case "repeat":
-        queue(task.step, task.round, action.delay);
+        queue(task.step, task.round);
         break;
       case "goal": {
         // A goal that recurs — monthly hours, or the seasonal check a
@@ -453,7 +508,7 @@ export function complete(
             : { step: task.step, round: task.round };
         stop(ladder.goal);
         if (action.delay) {
-          queue(at.step, at.round, action.delay);
+          queue(at.step, at.round);
           record.state = ladder.goal;
           record.step = null;
         }
@@ -467,7 +522,7 @@ export function complete(
         break;
       case "reschedule": {
         record.reschedules = (record.reschedules ?? 0) + 1;
-        const next = makeTask(record.section, task.step, task.round, dueIn(0));
+        const next = makeTask(record.section, task.step, task.round, dueFor(action, task.fields));
         next.resched = record.reschedules;
         record.tasks.push(next);
         task.spawned.push(next.id);
@@ -492,6 +547,13 @@ export function complete(
         break;
       }
     }
+  }
+
+  // Beside, not instead. Only when the record is still climbing: a branch
+  // opened on an archived record is a task nobody will ever see.
+  if (!reason && !task.redo && record.step !== null) {
+    const beside = resolveAlso(record.section, action, task.fields);
+    if (beside) queueBeside(beside);
   }
 
   if (reason) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
+import { LADDERS, rungAt, type ContactField, type LadderInput } from "@/lib/medjobs/ladders";
 import {
   DEFERRALS,
   STOP_REASONS,
@@ -84,9 +84,27 @@ export default function TaskView({
   const [showDefer, setShowDefer] = useState(false);
   const [showStop, setShowStop] = useState(false);
   // "They replied" is the one outcome that carries information nobody can
-  // reconstruct later, so it asks for it before moving on.
+  // reconstruct later, so it asks for it before moving on. Still here for
+  // the advisors and orgs blocks, which keep the single catch-all until
+  // refinement 11 decides what their first ask is.
   const [replying, setReplying] = useState(false);
   const [draftName, setDraftName] = useState("");
+  /**
+   * A rung that triages asks one question before it offers anything. Null
+   * until it is answered.
+   */
+  const [stage, setStage] = useState<"no" | "yes" | null>(null);
+  /**
+   * The outcome being filled in. An action with inputs does not fire when
+   * it is clicked — it opens, collects, and fires on confirm.
+   */
+  const [picked, setPicked] = useState<number | null>(null);
+  /**
+   * The acts done in this sitting. Deliberately not persisted: the log is
+   * the record, and a tick that survives a reload would start claiming a
+   * call happened when all that happened was a page refresh.
+   */
+  const [acted, setActed] = useState<Record<string, boolean>>({});
 
   const rung = rungAt(task.section, task.step, task.round);
   if (!rung) return null;
@@ -104,6 +122,27 @@ export default function TaskView({
   const missing = (rung.inputs ?? []).filter(
     (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
   );
+
+  // Which outcomes the rung is currently offering. A rung that triages
+  // offers none until its question is answered, then the half that fits.
+  const offered = rung.triage
+    ? stage === null
+      ? []
+      : rung.actions
+          .map((a, i) => ({ a, i }))
+          .filter(({ a }) => (stage === "yes" ? Boolean(a.afterReply) : !a.afterReply))
+    : rung.actions.map((a, i) => ({ a, i }));
+
+  const chosen = picked === null ? null : rung.actions[picked];
+  // Everything the chosen outcome asked for that is still blank.
+  const chosenMissing = (chosen?.inputs ?? []).filter(
+    (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
+  );
+  // The acts an offered outcome wants done first — call them, email them —
+  // and whether they are.
+  const wanted = offered.find(({ a }) => a.acts)?.a.acts ?? [];
+  const canAct = (kind: string) => (kind === "call" ? Boolean(record.phone) : Boolean(record.email));
+  const actsLeft = wanted.filter((k) => canAct(k) && !acted[k]);
 
   // The flyer is a live URL, not an attachment name. Providers and everyone
   // reaching students get the audience the PDF is written for.
@@ -394,40 +433,116 @@ export default function TaskView({
           ))}
 
           {(rung.inputs ?? []).map((f) => (
-            <label key={f.key} className="mt-3 flex items-center gap-2.5">
-              <span className="w-24 shrink-0 text-[12px] text-gray-500">
-                {f.label}
-                {f.required && <span className="ml-0.5 text-error-600">*</span>}
-              </span>
-              <input
-                type={f.type ?? "text"}
-                value={task.fields?.[f.key] ?? ""}
-                onChange={(e) => onFieldValue(f.key, e.target.value)}
-                placeholder={f.type === "url" ? "https://…" : "—"}
-                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
-              />
-            </label>
+            <Field
+              key={f.key}
+              field={f}
+              value={task.fields?.[f.key] ?? ""}
+              onChange={(v: string) => onFieldValue(f.key, v)}
+            />
           ))}
 
-          {!replying && <Note value={task.note} label={rung.textarea} onChange={onNote} />}
+          {/* The one question that splits the rung, asked before anything else. */}
+          {rung.triage && stage === null && (
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <p className="text-[13.5px] font-medium text-gray-900">{rung.triage.question}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" onClick={() => setStage("yes")} className={BTN_GO}>
+                  {rung.triage.yes}
+                </button>
+                <button type="button" onClick={() => setStage("no")} className={BTN}>
+                  {rung.triage.no}
+                </button>
+              </div>
+              <p className="mt-2 text-[12.5px] text-gray-500">
+                Neither of these means nothing happened. Both are the start of the work.
+              </p>
+            </div>
+          )}
+
+          {/* Nothing back: the two acts, with the way to do them to hand. */}
+          {wanted.length > 0 && (
+            <div className="mt-3 overflow-hidden rounded-md border border-gray-200 bg-gray-50 px-3.5">
+              {wanted.map((kind) => (
+                <Act
+                  key={kind}
+                  kind={kind}
+                  done={Boolean(acted[kind])}
+                  target={kind === "call" ? record.phone : record.email}
+                  onDone={() => setActed((v) => ({ ...v, [kind]: true }))}
+                  onCopy={
+                    kind === "email" && rung.email
+                      ? () => navigator.clipboard?.writeText(fill(rung.email!.body, ctx))
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {!replying && chosen === null && (!rung.triage || stage !== null) && (
+            <Note value={task.note} label={rung.textarea} onChange={onNote} />
+          )}
+
+          {/* The outcome being filled in, and only it. */}
+          {chosen && (
+            <div className="mt-3 rounded-md border border-primary-200 bg-primary-25 px-3.5 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-800">
+                {chosen.label}
+              </p>
+              {chosen.hint && <p className="mt-0.5 text-[12px] text-gray-600">{chosen.hint}</p>}
+              {(chosen.inputs ?? []).map((f) => (
+                <Field
+                  key={f.key}
+                  field={f}
+                  value={task.fields?.[f.key] ?? ""}
+                  onChange={(v: string) => onFieldValue(f.key, v)}
+                />
+              ))}
+              <Note value={task.note} label={rung.textarea} onChange={onNote} />
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={chosenMissing.length > 0}
+                  onClick={() => {
+                    const i = picked;
+                    setPicked(null);
+                    if (i !== null) onAct(i);
+                  }}
+                  className={chosenMissing.length ? `${BTN_GO} cursor-not-allowed opacity-40` : BTN_GO}
+                >
+                  Confirm
+                </button>
+                <button type="button" onClick={() => setPicked(null)} className={BTN}>
+                  Back
+                </button>
+                {chosenMissing.length > 0 && (
+                  <span className="text-[12px] text-gray-500">{needLine(chosenMissing)}</span>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
-            {rung.actions.map((a, i) => {
-              // Nothing to fan out to, or nothing to log: the same idea.
-              // An outcome that closes the record is never blocked — a
-              // provider who says no does not owe us a meeting time first.
+            {chosen === null &&
+              offered.map(({ a, i }, n) => {
+              // Nothing to fan out to, nothing to log, or the two acts this
+              // outcome is the log of still to do: the same idea. An outcome
+              // that closes the record is never blocked — a provider who says
+              // no does not owe us a phone call first.
               const closes = a.outcome === "archive" || a.outcome === "closed";
               const blocked =
-                (needsNames && a.outcome === "fanout") || (missing.length > 0 && !closes);
+                (needsNames && a.outcome === "fanout") ||
+                (missing.length > 0 && !closes) ||
+                ((a.acts?.length ?? 0) > 0 && actsLeft.length > 0);
               return (
                 <button
                   key={a.label}
                   type="button"
                   disabled={blocked}
-                  onClick={() => onAct(i)}
+                  onClick={() => ((a.inputs?.length ?? 0) > 0 ? setPicked(i) : onAct(i))}
                   title={a.hint}
                   className={`${
-                    i === 0
+                    n === 0
                       ? BTN_GO
                       : a.outcome === "closed" || a.outcome === "archive"
                         ? BTN_BAD
@@ -440,7 +555,12 @@ export default function TaskView({
                 </button>
               );
             })}
-            {rung.reply && (
+            {rung.triage && stage !== null && chosen === null && (
+              <button type="button" onClick={() => setStage(null)} className={BTN}>
+                Back
+              </button>
+            )}
+            {rung.reply && chosen === null && (
               <button
                 type="button"
                 onClick={() => {
@@ -453,7 +573,7 @@ export default function TaskView({
                 They replied
               </button>
             )}
-            {rung.defer !== false && (
+            {rung.defer !== false && chosen === null && (
               <button
                 type="button"
                 onClick={() => {
@@ -472,7 +592,7 @@ export default function TaskView({
               "not available here", which belongs with the channel rather
               than on a task, and is not built yet.
             */}
-            {record.section !== "jobboard" && (
+            {record.section !== "jobboard" && chosen === null && offered.length > 0 && (
               <button
                 type="button"
                 aria-label="More"
@@ -487,10 +607,8 @@ export default function TaskView({
             )}
           </div>
 
-          {missing.length > 0 && (
-            <p className="mt-2 text-[12.5px] text-gray-500">
-              Fill in the {missing.map((f) => f.label.toLowerCase()).join(" and ")} first.
-            </p>
+          {missing.length > 0 && chosen === null && (
+            <p className="mt-2 text-[12.5px] text-gray-500">{needLine(missing)}</p>
           )}
 
           {replying && (
@@ -616,6 +734,161 @@ function Help({ label, children }: { label: string; children: React.ReactNode })
       <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
       <div className="text-[13px] leading-snug text-gray-700">{children}</div>
     </div>
+  );
+}
+
+/** What is still missing, said as an instruction rather than a field list. */
+function needLine(missing: LadderInput[]): string {
+  const bits = missing.map((f) => f.needs ?? `fill in the ${f.label.toLowerCase()}`);
+  const line = bits.join(" and ");
+  return `${line.charAt(0).toUpperCase()}${line.slice(1)} first.`;
+}
+
+/**
+ * One of the two things a follow-up round is, with the way to do it next to
+ * it and a tick that says it is done.
+ *
+ * The tick is the point. The rung has always said *call, then email*, and
+ * the button under it said "No reply" — which names what the provider did
+ * not do and logs nothing that we did. Here the button underneath cannot be
+ * pressed until both are, and then it logs two acts.
+ */
+function Act({
+  kind,
+  done,
+  target,
+  onDone,
+  onCopy,
+}: {
+  kind: "call" | "email";
+  done: boolean;
+  /** The number or address. Missing means this act is not available here. */
+  target: string;
+  onDone: () => void;
+  onCopy?: () => void;
+}) {
+  const label = kind === "call" ? "Call them" : "Email them, resending the programme";
+  if (!target) {
+    return (
+      <div className="border-b border-gray-200 py-2 text-[13px] text-gray-500 last:border-b-0">
+        {label} — <span className="text-gray-400">nothing on file to reach them on.</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2.5 border-b border-gray-200 py-2 last:border-b-0">
+      <button
+        type="button"
+        onClick={onDone}
+        aria-pressed={done}
+        aria-label={done ? `${label}, done` : label}
+        className={`flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded border text-[11px] font-bold ${
+          done ? "border-primary-600 bg-primary-600 text-white" : "border-gray-300 text-transparent hover:border-gray-400"
+        }`}
+      >
+        ✓
+      </button>
+      <span className={`flex-1 text-[13.5px] ${done ? "text-gray-400 line-through" : "text-gray-900"}`}>
+        {label}
+      </span>
+      {kind === "call" ? (
+        <a
+          href={`tel:${target.replace(/[^\d+]/g, "")}`}
+          onClick={onDone}
+          className="shrink-0 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-primary-700 hover:bg-gray-50"
+        >
+          Call {target}
+        </a>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            onCopy?.();
+            onDone();
+          }}
+          className="shrink-0 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-primary-700 hover:bg-gray-50"
+        >
+          Copy the email
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A value an outcome asked for. A date is a date picker, a choice is a row
+ * of chips, and a yes/no is a checkbox — because a box you can type
+ * anything into is a box that will collect anything.
+ */
+function Field({
+  field,
+  value,
+  onChange,
+}: {
+  field: LadderInput;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  if (field.type === "check") {
+    const on = Boolean(value);
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(on ? "" : "yes")}
+        aria-pressed={on}
+        className="mt-3 flex w-full items-start gap-2.5 rounded-md border border-primary-200 bg-white px-3 py-2.5 text-left hover:border-primary-600"
+      >
+        <span
+          className={`mt-0.5 flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded border text-[11px] font-bold ${
+            on ? "border-primary-600 bg-primary-600 text-white" : "border-gray-300 text-transparent"
+          }`}
+        >
+          ✓
+        </span>
+        <span className="text-[13px] text-gray-800">{field.label}</span>
+      </button>
+    );
+  }
+  if (field.type === "choice") {
+    return (
+      <div className="mt-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          {field.label}
+          {field.required && <span className="ml-0.5 text-error-600">*</span>}
+        </p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {(field.options ?? []).map((o) => (
+            <button
+              key={o}
+              type="button"
+              onClick={() => onChange(value === o ? "" : o)}
+              className={`rounded-full border px-2.5 py-1 text-[12px] font-medium ${
+                value === o
+                  ? "border-primary-600 bg-primary-600 text-white"
+                  : "border-gray-300 bg-white text-gray-700 hover:border-primary-600 hover:text-primary-700"
+              }`}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <label className="mt-3 flex items-center gap-2.5">
+      <span className="w-24 shrink-0 text-[12px] text-gray-500">
+        {field.label}
+        {field.required && <span className="ml-0.5 text-error-600">*</span>}
+      </span>
+      <input
+        type={field.type ?? "text"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.type === "url" ? "https://…" : "—"}
+        className="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:outline-none"
+      />
+    </label>
   );
 }
 

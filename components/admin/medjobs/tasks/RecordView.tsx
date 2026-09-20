@@ -226,61 +226,14 @@ export default function RecordView({
         <ChannelFields record={record} onChannelField={onChannelField} onSaveFields={onSaveFields} />
       ) : (
         <>
-        <div className="mt-4 space-y-1.5">
-          {FIELDS.map((f) => (
-            <label key={f} className="flex items-center gap-2.5">
-              <span className="w-24 shrink-0 text-[12px] text-gray-500">{LABEL[f]}</span>
-              <input
-                value={record[f]}
-                onChange={(e) => onField(f, e.target.value)}
-                onBlur={() => {
-                  // Punctuate on the way out, so the field shows what is saved.
-                  if (f === "phone") onField(f, formatPhone(record.phone));
-                  onSaveFields();
-                }}
-                placeholder="—"
-                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
-              />
-            </label>
-          ))}
-
-          {/* Under Email, so a missing one can be filled in while you are here. */}
-          <label className="flex items-center gap-2.5">
-            <span className="w-24 shrink-0 text-[12px] text-gray-500">Website</span>
-            <input
-              value={site}
-              onChange={(e) => onWebsite(e.target.value)}
-              onBlur={onSaveFields}
-              placeholder="—"
-              className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
-            />
-          </label>
-
-          {/* Under Website, because checking the site and checking where they
-              are is the same pass. */}
-          <label className="flex items-center gap-2.5">
-            <span className="w-24 shrink-0 text-[12px] text-gray-500">Address</span>
-            <input
-              value={record.address ?? ""}
-              onChange={(e) => onAddress(e.target.value)}
-              onBlur={onSaveFields}
-              placeholder="—"
-              className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
-            />
-            {(record.address ?? "").trim() && campus && (
-              <a
-                href={directions(record.address, campus.destination)}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`Drive time to ${campus.name}`}
-                aria-label={`Drive time to ${campus.name}`}
-                className="shrink-0 rounded-md px-1.5 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
-              >
-                <RouteIcon />
-              </a>
-            )}
-          </label>
-        </div>
+        <ContactFields
+          record={record}
+          onField={onField}
+          onWebsite={onWebsite}
+          onAddress={onAddress}
+          onSaveFields={onSaveFields}
+          campus={campus}
+        />
 
         <SecondContact record={record} onField2={onField2} onSaveFields={onSaveFields} />
         </>
@@ -1032,6 +985,90 @@ function SecondContact({
         ))}
       </div>
     </div>
+  );
+}
+
+
+/**
+ * Everything we hold about a person at an organisation, in one block.
+ *
+ * Shared with the task screen, because the rung that exists to confirm this
+ * is a rung you work with the record in front of you — showing only two of
+ * the six fields there meant the other four were confirmed on the call and
+ * then not written down anywhere.
+ */
+export function ContactFields({
+  record,
+  onField,
+  onWebsite,
+  onAddress,
+  onSaveFields,
+  campus,
+}: {
+  record: BoardRecord;
+  onField: (field: ContactField, value: string) => void;
+  onWebsite: (value: string) => void;
+  onAddress: (value: string) => void;
+  onSaveFields: () => void;
+  campus?: { name: string; destination: string } | null;
+}) {
+  const site = record.website ?? "";
+  return (
+    <div className="mt-4 space-y-1.5">
+          {FIELDS.map((f) => (
+            <label key={f} className="flex items-center gap-2.5">
+              <span className="w-24 shrink-0 text-[12px] text-gray-500">{LABEL[f]}</span>
+              <input
+                value={record[f]}
+                onChange={(e) => onField(f, e.target.value)}
+                onBlur={() => {
+                  // Punctuate on the way out, so the field shows what is saved.
+                  if (f === "phone") onField(f, formatPhone(record.phone));
+                  onSaveFields();
+                }}
+                placeholder="—"
+                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+              />
+            </label>
+          ))}
+
+          {/* Under Email, so a missing one can be filled in while you are here. */}
+          <label className="flex items-center gap-2.5">
+            <span className="w-24 shrink-0 text-[12px] text-gray-500">Website</span>
+            <input
+              value={site}
+              onChange={(e) => onWebsite(e.target.value)}
+              onBlur={onSaveFields}
+              placeholder="—"
+              className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+            />
+          </label>
+
+          {/* Under Website, because checking the site and checking where they
+              are is the same pass. */}
+          <label className="flex items-center gap-2.5">
+            <span className="w-24 shrink-0 text-[12px] text-gray-500">Address</span>
+            <input
+              value={record.address ?? ""}
+              onChange={(e) => onAddress(e.target.value)}
+              onBlur={onSaveFields}
+              placeholder="—"
+              className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+            />
+            {(record.address ?? "").trim() && campus && (
+              <a
+                href={directions(record.address, campus.destination)}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Drive time to ${campus.name}`}
+                aria-label={`Drive time to ${campus.name}`}
+                className="shrink-0 rounded-md px-1.5 py-1 text-gray-400 hover:bg-gray-100 hover:text-primary-700"
+              >
+                <RouteIcon />
+              </a>
+            )}
+          </label>
+        </div>
   );
 }
 

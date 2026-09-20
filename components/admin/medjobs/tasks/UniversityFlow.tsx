@@ -358,6 +358,75 @@ export default function UniversityFlow({
     if (next) openRecord(next);
   };
 
+  /**
+   * The record fields both screens write to.
+   *
+   * Lifted out of the record view because the confirming call now shows the
+   * same block — that rung exists to put these right, and it could only
+   * offer two of them.
+   */
+  const setWebsite = (v: string) => {
+    if (!record) return;
+    record.website = v;
+    record.websiteEdited = true;
+    force((n) => n + 1);
+  };
+  const setAddress = (v: string) => {
+    if (!record) return;
+    record.address = v;
+    record.addressEdited = true;
+    force((n) => n + 1);
+  };
+  const setField = (f: ContactField, v: string) => {
+    if (!record) return;
+    record[f] = v;
+    force((n) => n + 1);
+  };
+  const saveFields = () => {
+    if (!record) return;
+    if (record.section === "jobboard") {
+      void send(
+        {
+          op: "save_channel",
+          recordId: record.id,
+          fields: {
+            boardUrl: record.boardUrl,
+            postingUrl: record.postingUrl,
+            contact: record.contact,
+            email: record.email,
+            servicesEmail: record.servicesEmail,
+          },
+        },
+        "Saved",
+        { keepBoard: true },
+      );
+      return;
+    }
+    void send(
+      {
+        op: "save_fields",
+        recordId: record.id,
+        fields: {
+          contact: record.contact,
+          role: record.role,
+          phone: record.phone,
+          email: record.email,
+        },
+        // Only sent when an admin has typed one. Otherwise the directory
+        // stays the source and nothing is overridden with a copy of what it
+        // already says.
+        website: record.websiteEdited ? record.website : undefined,
+        name: record.name,
+        address: record.addressEdited ? record.address : undefined,
+        second: record.contact2,
+      },
+      "Saved",
+    );
+  };
+  const campusFor = university.mapsDestination
+    ? { name: university.name, destination: university.mapsDestination }
+    : null;
+
   const left = readyCount(university);
   const done = doneToday(university);
   const pct = Math.round((done / Math.max(1, done + left)) * 100);
@@ -432,6 +501,10 @@ export default function UniversityFlow({
             task.fields = { ...(task.fields ?? {}), [key]: value };
             force((n) => n + 1);
           }}
+          onWebsite={setWebsite}
+          onAddress={setAddress}
+          onSaveFields={saveFields}
+          campus={campusFor}
           onReopen={() => {
             // Undo has to reach the database wherever the doing did, or the
             // next refetch quietly puts the rung back.
@@ -472,24 +545,13 @@ export default function UniversityFlow({
         <RecordView
           record={record}
           busy={busy}
-          onField={(f, v) => {
-            record[f] = v;
-            force((n) => n + 1);
-          }}
-          onWebsite={(v) => {
-            record.website = v;
-            record.websiteEdited = true;
-            force((n) => n + 1);
-          }}
+          onField={setField}
+          onWebsite={setWebsite}
           onRename={(v) => {
             record.name = v;
             force((n) => n + 1);
           }}
-          onAddress={(v) => {
-            record.address = v;
-            record.addressEdited = true;
-            force((n) => n + 1);
-          }}
+          onAddress={setAddress}
           onChannelField={(f, v) => {
             record[f] = v;
             force((n) => n + 1);
@@ -505,56 +567,13 @@ export default function UniversityFlow({
             };
             force((n) => n + 1);
           }}
-          onSaveFields={() => {
-            if (record.section === "jobboard") {
-              void send(
-                {
-                  op: "save_channel",
-                  recordId: record.id,
-                  fields: {
-                    boardUrl: record.boardUrl,
-                    postingUrl: record.postingUrl,
-                    contact: record.contact,
-                    email: record.email,
-                    servicesEmail: record.servicesEmail,
-                  },
-                },
-                "Saved",
-                { keepBoard: true },
-              );
-              return;
-            }
-            void send(
-              {
-                op: "save_fields",
-                recordId: record.id,
-                fields: {
-                  contact: record.contact,
-                  role: record.role,
-                  phone: record.phone,
-                  email: record.email,
-                },
-                // Only sent when an admin has typed one. Otherwise the
-                // directory stays the source and nothing is overridden with
-                // a copy of what it already says.
-                website: record.websiteEdited ? record.website : undefined,
-                name: record.name,
-                address: record.addressEdited ? record.address : undefined,
-                second: record.contact2,
-              },
-              "Saved",
-            );
-          }}
+          onSaveFields={saveFields}
           onOpenTask={(t: BoardTask) => setView({ kind: "task", recordId: record.id, taskId: t.id })}
           onCheck={check}
           position={at >= 0 ? { at: at + 1, of: siblings.length } : null}
           onPrev={at > 0 ? () => step(-1) : null}
           onNext={at >= 0 && at < siblings.length - 1 ? () => step(1) : null}
-          campus={
-            university.mapsDestination
-              ? { name: university.name, destination: university.mapsDestination }
-              : null
-          }
+          campus={campusFor}
           onRevive={() => {
             const t = revive(record);
             setView({ kind: "task", recordId: record.id, taskId: t.id });

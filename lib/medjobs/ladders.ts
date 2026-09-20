@@ -158,6 +158,15 @@ export interface LadderRung {
 
   /** Contact fields this rung collects, written onto the record. */
   collects?: ContactField[];
+  /**
+   * Show everything we hold about them, not just the fields being collected.
+   *
+   * For the rung whose whole job is confirming what is on file. Two boxes
+   * meant the role, the phone, the website and the address were confirmed on
+   * the call and then written down nowhere, because the screen had not
+   * offered anywhere to put them.
+   */
+  confirmDetails?: boolean;
   /** Values the rung records on the task itself. Typed, so a date is a date
    *  picker and a link is a link field rather than a box you can put
    *  anything in. */
@@ -515,6 +524,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         script:
           '"Hi, this is [your name] from Dr. DuBose\'s office, calling about his Student Caregiver Program. I\'d like to send your team the details — what\'s the best address?"',
         collects: ["contact", "email"],
+        confirmDetails: true,
         repeats: {
           noun: "attempt",
           warnAt: 3,

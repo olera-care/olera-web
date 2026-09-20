@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LADDERS, rungAt, type ContactField, type LadderInput } from "@/lib/medjobs/ladders";
+import { ContactFields } from "./RecordView";
 import {
   DEFERRALS,
   STOP_REASONS,
@@ -57,6 +58,10 @@ export default function TaskView({
   onField,
   onFound,
   onFieldValue,
+  onWebsite,
+  onAddress,
+  onSaveFields,
+  campus,
   onReopen,
   onAgain,
 }: {
@@ -74,6 +79,12 @@ export default function TaskView({
   onFound: (names: string[]) => void;
   /** A typed value the rung asked for. */
   onFieldValue: (key: string, value: string) => void;
+  /** The three record fields a confirming call also puts right. */
+  onWebsite: (value: string) => void;
+  onAddress: (value: string) => void;
+  onSaveFields: () => void;
+  /** The other end of the drive, for the directions link. */
+  campus?: { name: string; destination: string } | null;
   onReopen: () => void;
   onAgain: () => void;
 }) {
@@ -201,8 +212,10 @@ export default function TaskView({
             {taskTitle(task)}
           </h3>
           <p className="mt-1 text-[13.5px] text-gray-600">{rung.what}</p>
-          <Note value={task.note} onChange={onNote} />
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <Note value={task.note} onChange={onNote} />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
             {canReopen(record, task) && (
               <button type="button" onClick={onReopen} className={BTN_GO}>
                 Reopen it
@@ -298,6 +311,29 @@ export default function TaskView({
                 />
               ))}
             </div>
+          )}
+
+          {rung.confirmDetails ? (
+            <ContactFields
+              record={record}
+              onField={onField}
+              onWebsite={onWebsite}
+              onAddress={onAddress}
+              onSaveFields={onSaveFields}
+              campus={campus}
+            />
+          ) : (
+            (rung.collects ?? []).map((f) => (
+              <label key={f} className="mt-3 flex items-center gap-2.5">
+                <span className="w-20 shrink-0 text-[12px] text-gray-500">{FIELD_LABEL[f]}</span>
+                <input
+                  value={record[f]}
+                  onChange={(e) => onField(f, e.target.value)}
+                  placeholder={FIELD_HINT[f] ?? "—"}
+                  className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
+                />
+              </label>
+            ))
           )}
 
           {/* The script and the copy, under the acts they are for. */}
@@ -414,18 +450,6 @@ export default function TaskView({
             </div>
           )}
 
-          {(rung.collects ?? []).map((f) => (
-            <label key={f} className="mt-3 flex items-center gap-2.5">
-              <span className="w-20 shrink-0 text-[12px] text-gray-500">{FIELD_LABEL[f]}</span>
-              <input
-                value={record[f]}
-                onChange={(e) => onField(f, e.target.value)}
-                placeholder={FIELD_HINT[f] ?? "—"}
-                className="min-w-0 flex-1 rounded-md border border-transparent bg-gray-50 px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:bg-white focus:outline-none"
-              />
-            </label>
-          ))}
-
           {(rung.inputs ?? []).map((f) => (
             <Field
               key={f.key}
@@ -435,9 +459,11 @@ export default function TaskView({
             />
           ))}
 
-          {!replying && <Note value={task.note} label={rung.textarea} onChange={onNote} />}
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            {!replying && <Note value={task.note} label={rung.textarea} onChange={onNote} />}
+          </div>
 
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+          <div className="mt-3 flex flex-wrap gap-2">
             {rung.actions.map((a, i) => {
               // Nothing to fan out to, nothing to log, or the two acts this
               // outcome is the log of still to do: the same idea. An outcome

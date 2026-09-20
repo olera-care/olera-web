@@ -459,6 +459,12 @@ export async function POST(req: Request) {
             })
             .eq("id", open.id);
           if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+          // The snapshot still says pending, and for a "repeat" outcome the
+          // rung it leads to is this one — so the guard below would see the
+          // row we just closed, decide the next task was already waiting,
+          // and queue nothing. A voicemail would close the call rung and
+          // leave the provider with no task at all.
+          open.status = "completed";
         } else if (!mine.some((t) => t.status === "completed")) {
           // No row to close — a record that predates the rung. Write the
           // fact rather than dropping it, so the history is still true.

@@ -176,6 +176,34 @@ A real reply stops the cadence automatically. The timeline records *"Reply recei
 \[address\], cadence stopped,"* so the next move is a manual one. The out-of-office
 option exists precisely because an auto-reply should not count as one.
 
+**On the Tasks board a follow-up has four endings, not one.** Each of the seven rounds
+asks what the round actually produced, because a provider who named a time and a
+provider who said *not this month* were landing on the same rung.
+
+| Ending | What it means | Where the record goes |
+|---|---|---|
+| **They gave a time** | They named a date | Straight to **Schedule the meeting**; the remaining rounds are dropped |
+| **No reply** | Called and emailed again, nothing back | The next round, two business days out |
+| **Replied, no time yet** | Interested, no date | **Keep the conversation going**, three days out |
+| **Not interested** | They declined | Archived |
+
+**Keep the conversation going** is a rung of its own, reached only from a reply. It
+shows the last thing the provider said, and it is written as a reply to a thread rather
+than a cold approach. It offers the three endings a conversation has, a time or still
+talking or a no, and it counts the rounds. At six rounds with no date the rung says so
+and offers to archive. It does not archive on its own: a provider who is slow is not a
+provider who said no, and only a person can tell those apart.
+
+**Booking happens in one place.** A meeting is booked on **Schedule the meeting** and
+nowhere else, whether the time came from a follow-up or from a conversation weeks
+later, and the rung cannot be logged without a date and time on it. A booking rung that
+can be logged empty records meetings nobody held.
+
+**Not yet is not offered on a rung that already runs on a cadence.** Putting a follow-up
+off by two days is what the next round is, so the button would be the same act under a
+second name. It stays on the rungs that are a thing a person does on a day: the
+confirming call, the programme email, the booking.
+
 ### What must be recorded
 
 Recipients launched, sends and opens and replies, call outcomes and notes, scheduled
@@ -427,7 +455,7 @@ sequence, handoffs and completion criteria are carried over unchanged.
 | This manual | Master document |
 |---|---|
 | PR1, all of it | PR1, objective, procedure steps 1 to 6, outcomes table, system and handoff row, communications |
-| PR-OUT, all of it | PR-OUT, objective, the cadence, procedure steps 1 to 8, both outcome tables, system and handoff row |
+| PR-OUT, all of it | PR-OUT, objective, the cadence, procedure steps 1 to 8, both outcome tables, the follow-up block and its four endings, system and handoff row |
 | ST1, all of it | ST1, objective, the office-is-the-prospect note, procedure steps 1 to 7, system and handoff row |
 | ST-OUT, all of it | ST-OUT, objective, the same-machinery note, recipients, procedure steps 1 to 8, system and handoff row |
 | Booking and the handoff | PR2 journey step 1 and the booking note; ST2 journey step 1; PR2 exhibit M for *Finding a time* |

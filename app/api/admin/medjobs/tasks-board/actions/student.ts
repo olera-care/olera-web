@@ -172,6 +172,9 @@ export async function handleStudentOp(
       .update(note ? { ...stamp, notes: note } : stamp)
       .eq("id", open.id);
     if (error) return fail(error.message, 500);
+    // See the note in the record route: the snapshot must agree with what
+    // was just written, or a "repeat" outcome queues nothing.
+    open.status = "completed";
   } else if (!mine.some((t) => t.status === "completed")) {
     // Nothing to close. Students arrive from an application rather than from
     // somebody pressing start, so the first rung they finish is usually one

@@ -62,6 +62,14 @@ export interface LadderInput {
   label: string;
   /** Defaults to a plain text field. */
   type?: "text" | "datetime-local" | "url" | "number";
+  /**
+   * The rung cannot be finished without it.
+   *
+   * Only for a value the rung exists to capture. A booking rung logged with
+   * no date is not a booking, it is a claim that one happened — and the
+   * next person to open the record has no way to tell the difference.
+   */
+  required?: boolean;
 }
 
 export interface LadderAction {
@@ -70,12 +78,17 @@ export interface LadderAction {
   /** What this outcome means, on hover. Four buttons need saying apart. */
   hint?: string;
   /**
-   * An unsuccessful attempt: nobody was reached.
+   * Another go at the same rung that did not achieve what the rung is for.
    *
-   * Counted, and three of them is what the operating model calls enough.
-   * Reaching somebody who will not give you an address is not one of these
-   * — the number works and a person answered, which is a stall rather than
-   * a dead line, and archiving on it would be wrong.
+   * Counted, and the rung says through `repeats` how many is enough. A
+   * voicemail did not reach anybody; a round of conversation that produced
+   * no date did not get a date. Both are the same thing from the record's
+   * point of view — this rung again — and both are worth counting, because
+   * a number is the only thing that tells an operator when to stop.
+   *
+   * What is not a strike is reaching somebody who will not give you an
+   * address: the number works and a person answered, which is a refusal
+   * rather than a dead line, and it has its own outcome.
    */
   strike?: boolean;
   /** Business days until the generated task is due. 0 means today. */
@@ -109,8 +122,35 @@ export interface LadderRung {
    *  picker and a link is a link field rather than a box you can put
    *  anything in. */
   inputs?: LadderInput[];
-  /** A longer note recorded on the task itself. */
+  /** A longer note recorded on the task itself. Labels the note box. */
   textarea?: string;
+  /**
+   * The most recent note on this record, shown before the operator writes.
+   *
+   * Some rungs exist because of something that was said. Replying to a
+   * provider who told you they were busy until October, without that
+   * sentence in front of you, is how a warm thread gets a cold email.
+   * The string is what to call it above the quote.
+   */
+  recall?: string;
+  /**
+   * Counting repeated goes at this rung, and what to say after enough of
+   * them.
+   *
+   * The calling rung counts attempts at reaching somebody; the holding rung
+   * counts rounds of a conversation going nowhere. One mechanism, and
+   * neither is a block — the count prompts a person, it does not decide.
+   */
+  repeats?: { noun: string; warnAt: number; warning: string };
+  /**
+   * Whether "Not yet" is offered. Defaults to yes.
+   *
+   * It is right for a rung that is a thing a person does on a day and can
+   * honestly be done tomorrow. It is noise on a rung that already carries a
+   * cadence: putting off a follow-up by two days is what the next round is,
+   * so offering both is offering the same act twice under two names.
+   */
+  defer?: boolean;
   /**
    * A document to look at while doing this. Served through the guarded SOP
    * route by key, never as a public URL — these are internal.
@@ -210,8 +250,15 @@ export const SEASON = "late July";
 /**
  * One follow-up. Providers, advisors and orgs all run the same block of
  * seven, two business days apart, so the copy lives in one place.
+ *
+ * What differs is what a reply is worth. On the provider ladder the whole
+ * block exists to get a meeting, so a reply is sorted into what it actually
+ * produced — a time, a conversation, or a no. On the other two the next
+ * rung is not a meeting and what the first ask should be is still open
+ * (refinement 11), so they keep the single "They replied" they have.
  */
-export function followUp(n: number, who: string): LadderRung {
+export function followUp(n: number, section: SectionKey): LadderRung {
+  const who = followUpWho(section);
   return {
     title: `Follow up ${n}`,
     what: "The two-day check on this contact.",
@@ -234,8 +281,122 @@ Best,
 [your name]
 Dr. Logan DuBose's office · Olera`,
     },
-    reply: true,
-    actions: [{ label: "Log call and email", outcome: "next", delay: 2 }],
+    // Putting a follow-up off by two days is what the next round is, so
+    // "Not yet" here is the same act under a second name.
+    defer: false,
+    textarea: "What happened",
+    ...(section === "providers"
+      ? {
+          // A follow-up has four endings and the block only ever had one.
+          // "They replied" took a summary and moved on, which meant a
+          // provider who said "interested, not this month" and a provider
+          // who named a time landed on the same rung.
+          actions: [
+            {
+              label: "They gave a time",
+              outcome: "replied" as const,
+              goto: "meeting",
+              delay: 0,
+              hint: "They named a date. Books the meeting and drops the rest of the follow-ups.",
+            },
+            {
+              label: "No reply",
+              outcome: "next" as const,
+              delay: 2,
+              hint: "Called and emailed again, nothing back. Logged, and the next round is queued.",
+            },
+            {
+              label: "Replied, no time yet",
+              outcome: "next" as const,
+              goto: "talking",
+              delay: 3,
+              hint: "Interested, no date. Off the cold cadence and into the conversation.",
+            },
+            {
+              label: "Not interested",
+              outcome: "archive" as const,
+              delay: 0,
+              hint: "They declined. Closes the record.",
+            },
+          ],
+        }
+      : {
+          reply: true,
+          actions: [{ label: "Log call and email", outcome: "next" as const, delay: 2 }],
+        }),
+  };
+}
+
+/**
+ * The rung a provider sits on between replying and naming a time.
+ *
+ * The board had nowhere to put this and it is the commonest warm state
+ * there is: interested, busy, ask me again. Without it the choice was to
+ * keep sending cold follow-ups to somebody who had already answered, or to
+ * archive a live lead.
+ */
+function keepTalking(): LadderRung {
+  return {
+    branch: "talking",
+    defer: false,
+    title: "Keep the conversation going",
+    what: "They are interested and have not named a time. Keep the thread going until they do.",
+    why: "A provider who has replied is not a cold record, and chasing them like one is how a warm lead is lost.",
+    steps: [
+      "Read the last exchange before you write anything.",
+      "Reply in the thread you already have — do not start a new one.",
+      "Ask for a time, and offer two.",
+    ],
+    recall: "Last exchange",
+    repeats: {
+      noun: "round",
+      warnAt: 6,
+      warning: "Six rounds and still no date. Ask for one directly, or archive.",
+    },
+    textarea: "What they said",
+    script:
+      '"Hi, it\'s [your name] from Dr. DuBose\'s office — you mentioned the Student Caregiver Program was of interest. Would Tuesday or Thursday afternoon work for fifteen minutes?"',
+    email: {
+      subject: "Re: Student Caregiver Program at {university}",
+      body: `Hi {first},
+
+Picking this back up. Whenever you have fifteen minutes, I can walk you through how the Student Caregiver Program would work for {org} — screened pre-health students, your shifts, your terms, nothing to sign to start.
+
+Would either of these work?
+
+  · Tuesday afternoon
+  · Thursday morning
+
+If neither does, name a day that suits you and I will fit round it.
+
+The one-page overview again, in case it is easier to forward: {flyer}
+
+Best,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+    },
+    actions: [
+      {
+        label: "They gave a time",
+        outcome: "replied",
+        goto: "meeting",
+        delay: 0,
+        hint: "They named a date. Books the meeting.",
+      },
+      {
+        label: "Still talking",
+        outcome: "repeat",
+        delay: 3,
+        strike: true,
+        hint: "Still interested, still no date. Comes back in three days.",
+      },
+      {
+        label: "Not interested",
+        outcome: "archive",
+        delay: 0,
+        hint: "They declined, or have stopped answering altogether. Closes the record.",
+      },
+    ],
   };
 }
 
@@ -269,6 +430,11 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         script:
           '"Hi, this is [your name] from Dr. DuBose\'s office, calling about his Student Caregiver Program. I\'d like to send your team the details — what\'s the best address?"',
         collects: ["contact", "email"],
+        repeats: {
+          noun: "attempt",
+          warnAt: 3,
+          warning: "After three attempts and no way to confirm the contact information, archive.",
+        },
         // The four outcomes a confirming call actually has, which are the
         // four PR1 names. It had one, which always advanced — so a call
         // nobody answered had nowhere to go but the history, leaving the
@@ -331,14 +497,34 @@ Dr. Logan DuBose's office · Olera`,
         },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
       },
-      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "your agency") },
+      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "providers") },
       {
+        // Named, because it is now reached from two places — a follow-up
+        // that produced a time, and a conversation that finally did. It is
+        // the only rung where a provider meeting gets booked, and a second
+        // booking screen would be a second version of the truth.
+        name: "meeting",
         title: "Schedule the meeting",
-        what: "Get a time on the calendar with the sales team.",
-        why: "They replied and they're interested. This is the handover.",
-        steps: ["Offer two or three times.", "Confirm one.", "Put it in the calendar."],
-        inputs: [{ key: "meeting_at", label: "Meeting date and time", type: "datetime-local" }],
-        actions: [{ label: "Meeting booked", outcome: "next", delay: 0 }],
+        what: "Put the time they gave on the calendar, with the sales team.",
+        why: "They replied with a time. This is the handover.",
+        steps: [
+          "Confirm the time back to them in the thread.",
+          "Put it in the calendar and invite the sales team.",
+          "Type the time in below.",
+        ],
+        recall: "What they said",
+        inputs: [
+          { key: "meeting_at", label: "Date and time", type: "datetime-local", required: true },
+          { key: "meeting_where", label: "Where", type: "text" },
+        ],
+        actions: [
+          {
+            label: "Meeting booked",
+            outcome: "next",
+            delay: 0,
+            hint: "It is on the calendar. The sales team takes it from here.",
+          },
+        ],
       },
       {
         title: "Log the meeting",
@@ -367,6 +553,11 @@ Dr. Logan DuBose's office · Olera`,
         steps: ["Book a short call.", "Ask how the students did.", "Ask if they want more next season."],
         actions: [{ label: "Logged", outcome: "goal", delay: 0 }],
       },
+      // Last, and reached only by name. A branch is stepped over when
+      // climbing, so where it sits does not change the sequence — and the
+      // end is the only place a new rung can go without renumbering every
+      // task row already written against this ladder.
+      keepTalking(),
     ],
   },
 
@@ -610,7 +801,7 @@ Dr. Logan DuBose's office · Olera`,
         },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2, ticks: ["flyer_sent"] }],
       },
-      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "the advising office") },
+      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "advisors") },
       {
         title: "Confirm the flyer is circulating",
         what: "Check they actually sent it to students.",
@@ -716,7 +907,7 @@ Dr. Logan DuBose's office · Olera`,
         },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
       },
-      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "your organisation") },
+      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "orgs") },
       {
         title: "Confirm the flyer went out or a presentation is booked",
         what: "Either outcome counts — they circulate it, or they let us present.",
@@ -952,7 +1143,7 @@ export const SECTION_ORDER: SectionKey[] = [
 export function rungAt(section: SectionKey, step: number, round = 1): LadderRung | null {
   const rung = LADDERS[section].steps[step];
   if (!rung) return null;
-  if (rung.rounds) return { ...followUp(round, followUpWho(section)), rounds: rung.rounds };
+  if (rung.rounds) return { ...followUp(round, section), rounds: rung.rounds };
   return rung;
 }
 

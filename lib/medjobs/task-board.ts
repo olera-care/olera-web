@@ -638,6 +638,10 @@ export function resolveNext(
   const rung = rungAt(section, step, round);
   switch (action.outcome) {
     case "repeat":
+    // A no-show is the same rung again, from the record's point of view.
+    // It was missing here, so the server closed the meeting task and
+    // queued nothing: a provider who did not turn up fell off the board.
+    case "reschedule":
       return { step, round };
     case "next":
       if (rung?.rounds) return round < rung.rounds ? { step, round: round + 1 } : null;
@@ -742,6 +746,29 @@ export function isCheck(task: BoardTask): boolean {
 }
 
 /** The title shown for a task, follow-up numbering and all. */
+/**
+ * The last thing anybody wrote down about this record.
+ *
+ * A rung that asks for `recall` is a rung where what was said last time is
+ * the whole context — you cannot reply well to a thread you cannot see. It
+ * reads from the notes already on the record rather than storing a copy,
+ * because a copy of a note is a note that can go stale.
+ */
+export function lastNote(
+  record: BoardRecord,
+  before?: BoardTask,
+): { title: string; on: string; note: string } | null {
+  let best: BoardTask | null = null;
+  for (const t of record.tasks) {
+    if (t.id === before?.id || !t.done || !(t.note ?? "").trim()) continue;
+    // Latest logged wins; among tasks logged the same day, the later one on
+    // the record, which is the order they were written in.
+    if (!best || (t.loggedOn ?? "") >= (best.loggedOn ?? "")) best = t;
+  }
+  if (!best) return null;
+  return { title: taskTitle(best), on: best.loggedOn ?? "", note: best.note.trim() };
+}
+
 export function taskTitle(task: BoardTask): string {
   if (task.resched) return `Reschedule round ${task.resched}`;
   return rungAt(task.section, task.step, task.round)?.title ?? "Task";

@@ -54,7 +54,7 @@ question of instructions, not machinery.
 
 Read it as a whole and improve the copy. Same sitting as 3.
 
-## 6 · The follow-up block, rethought around getting a meeting — ALIGN
+## 6 · The follow-up block, rethought around getting a meeting — SHIPPED
 
 The largest item. Today a follow-up round is *check your inbox, then call and
 email again*, and the only outcomes are logging that or "They replied", which
@@ -78,7 +78,7 @@ Calendly automates reminders and could webhook back to organise meetings,
 which is the argument for it; the argument against is forcing a tool into a
 flow that a pasted link would serve. Not decided.
 
-### Proposal, 20 September — awaiting sign-off
+### Built, 20 September
 
 **Four outcomes on every follow-up round**, the same shape already proven on
 *Call to confirm the right contact*, where four buttons with hover hints beat
@@ -130,27 +130,66 @@ path has to exist under every option, so C removes typing only for the
 minority who self-book, and it cannot be justified until enough of them do.
 B costs one link in one email and fixes the reminders today.
 
-## 7 · "Not yet" on a follow-up — ALIGN
+#### What changed from the proposal
+
+**“Gone quiet” was dropped.** It was going to send a stalled conversation back
+into the cold cadence, and there is no such thing: once a provider has replied,
+the thread is warm for good, and the right next message references what they
+said rather than asking whether the email reached the right person. Chasing is
+what *Still talking* already does. It also removed the only piece of machinery
+in the design — working out which follow-up round to resume at — so the
+holding rung has three endings rather than four.
+
+**Booking stayed on the rung that already existed.** The sketch drew the three
+fields inline on the follow-up; they are on *Schedule the meeting* instead, so
+there is one place a provider meeting is booked no matter which rung the time
+came from. That rung will not log without a date and time on it.
+
+**The advancing outcome leads.** *They gave a time* is the first and primary
+button, matching the confirming call, even though *No reply* is the one pressed
+most often.
+
+**Advisors and student orgs were left alone.** They share the follow-up block,
+but their next rung is not a meeting and what the first ask should be is still
+open — that is refinement 11. They keep the single “They replied” they have.
+
+#### Two bugs this uncovered
+
+Both on paths that were already live, and neither visible from the screen.
+
+**A “repeat” outcome queued nothing.** The server reads the task rows, closes
+the one in hand, then checks whether the rung it leads to is already waiting
+— against the copy it read *before* the write. For a repeat the rung it leads
+to is this one, so it saw the row it had just closed, decided the next task
+existed, and wrote nothing. Voicemail and No answer on the confirming call have
+been silently dropping providers off the board. Fixed in all three write paths.
+
+**A no-show queued nothing either.** `resolveNext` had no case for
+`reschedule`, so the server returned null where the screen queued the rung
+again. Found by an exhaustive check that walks every action on the providers
+ladder through both, which is now part of `scripts/check-follow-up.ts`.
+
+## 7 · "Not yet" on a follow-up — SHIPPED
 
 It may not mean anything here. A follow-up is already a dated thing in a
 cadence; putting it off by two days is what the next round is. Decide
 alongside 6, because the answer depends on what the outcomes become.
 
-**Falls out of the 6 proposal:** "No reply" *is* "Not yet", said honestly —
-it logs the attempt and queues the next round. Two buttons for one act is a
-button too many, so "Not yet" comes off the follow-up rungs and stays where
-it still means something, which is a rung you have not done yet.
+**Built:** "No reply" *is* "Not yet", said honestly — it logs the attempt and
+queues the next round. Two buttons for one act is a button too many, so "Not
+yet" is gone from every follow-up rung on all three ladders, and stays where it
+still means something, which is a rung you have not done yet.
 
-## 8 · The deferral menu — ALIGN
+## 8 · The deferral menu — SHIPPED
 
 Same question, one level up. Deferring is right for some rungs and noise on
 others. Decide per rung rather than globally, once 6 is settled.
 
-**Falls out of the same proposal.** Keep it on Research, Call to confirm the
-right contact, Send the program info and the meeting rung — all four are
-things a person does on a day and can honestly put off. Drop it from every
-follow-up round and from the holding rung: both already carry a cadence, and
-deferring a cadence is what the next round is.
+**Built,** per rung rather than globally: `defer: false` on a rung that already
+runs on a cadence, and nothing else. That is every follow-up round on all three
+ladders plus the holding rung. It stays on the confirming call, the programme
+email and the booking — things a person does on a day and can honestly put off.
+A check asserts the list, so a rung cannot lose its deferral quietly.
 
 ## 9 · Students: the meeting and the application open together — SHIPPED
 
@@ -209,10 +248,9 @@ alternative is work that happens off the board.
 
 ## Suggested order
 
-1. **2, 1, 9** — the three that are agreed and make everything else easier to
-   work with. One pass.
-2. **6, then 7 and 8** — one surface, one decision. The Calendly question
-   first, because the outcomes hang off it.
+1. ~~**2, 1, 9**~~ — done.
+2. ~~**6, 7, 8**~~ — done. The Calendly question is still open, and the design
+   does not wait on it: whichever version we pick fills the same three fields.
 3. **3 and 5** — the copy, once 6 has settled what the emails are asking for.
 4. **4** — the map-pack sweep, small once the instructions are written.
 5. **11** — advisors, the largest, and the one that benefits most from

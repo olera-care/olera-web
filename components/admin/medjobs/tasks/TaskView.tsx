@@ -6,6 +6,8 @@ import {
   DEFERRALS,
   STOP_REASONS,
   canReopen,
+  lastNote,
+  longDate,
   shortDate,
   strikesAt,
   taskTitle,
@@ -20,7 +22,9 @@ import {
  *
  * Deferring lives here as one control rather than a "Not yet" button on
  * every rung: putting something off is the same act everywhere, and it is
- * not an outcome.
+ * not an outcome. It is offered only where it means something — a rung that
+ * already runs on a cadence says `defer: false`, because putting a
+ * follow-up off by two days is what the next round is.
  */
 
 const FIELD_LABEL: Record<ContactField, string> = {
@@ -87,9 +91,19 @@ export default function TaskView({
   const rung = rungAt(task.section, task.step, task.round);
   if (!rung) return null;
   const ladder = LADDERS[record.section];
-  // Unsuccessful attempts already logged against this rung. The one in hand
-  // is the next one, so the label reads one higher.
-  const attempts = strikesAt(record, task.step, task.round);
+  // Unsuccessful goes already logged against this rung. The one in hand is
+  // the next one, so the label reads one higher. What they are called and
+  // when the warning appears come from the rung: the calling rung counts
+  // attempts at reaching somebody, the holding rung counts rounds of a
+  // conversation, and neither number stops anybody.
+  const repeats = rung.repeats;
+  const attempts = repeats ? strikesAt(record, task.step, task.round) : 0;
+  // What was said last time, for a rung that exists because of it.
+  const recalled = rung.recall ? lastNote(record, task) : null;
+  // A value the rung exists to capture. Missing it, there is nothing to log.
+  const missing = (rung.inputs ?? []).filter(
+    (f) => f.required && !(task.fields?.[f.key] ?? "").trim(),
+  );
 
   // The flyer is a live URL, not an attachment name. Providers and everyone
   // reaching students get the audience the PDF is written for.
@@ -202,16 +216,16 @@ export default function TaskView({
             >
               i
             </button>
-            {attempts > 0 && (
+            {repeats && attempts > 0 && (
               <span className="ml-auto shrink-0 pt-1 text-[12px] tabular-nums text-gray-500">
-                attempt {attempts + 1}
+                {repeats.noun} {attempts + 1}
               </span>
             )}
           </div>
 
-          {attempts >= 3 && (
+          {repeats && attempts >= repeats.warnAt && (
             <p className="mt-2 rounded-md border border-warning-200 bg-warning-50 px-3 py-2 text-[12.5px] leading-snug text-warning-800">
-              After three attempts and no way to confirm the contact information, archive.
+              {repeats.warning}
             </p>
           )}
 
@@ -238,6 +252,19 @@ export default function TaskView({
               <li key={s}>{s}</li>
             ))}
           </ol>
+
+          {recalled && (
+            <div className="mt-2.5 rounded-md border border-gray-200 bg-gray-50 px-3.5 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                {rung.recall}
+                {recalled.on ? ` · ${longDate(recalled.on)}` : ""}
+              </p>
+              <p className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-[12.5px] leading-relaxed text-gray-700">
+                {recalled.note}
+              </p>
+              <p className="mt-1.5 text-[11.5px] text-gray-400">{recalled.title}</p>
+            </div>
+          )}
 
           {rung.attachment && <Attachment attachment={rung.attachment} />}
 
@@ -368,7 +395,10 @@ export default function TaskView({
 
           {(rung.inputs ?? []).map((f) => (
             <label key={f.key} className="mt-3 flex items-center gap-2.5">
-              <span className="w-24 shrink-0 text-[12px] text-gray-500">{f.label}</span>
+              <span className="w-24 shrink-0 text-[12px] text-gray-500">
+                {f.label}
+                {f.required && <span className="ml-0.5 text-error-600">*</span>}
+              </span>
               <input
                 type={f.type ?? "text"}
                 value={task.fields?.[f.key] ?? ""}
@@ -379,11 +409,16 @@ export default function TaskView({
             </label>
           ))}
 
-          {!replying && <Note value={task.note} onChange={onNote} />}
+          {!replying && <Note value={task.note} label={rung.textarea} onChange={onNote} />}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
             {rung.actions.map((a, i) => {
-              const blocked = needsNames && a.outcome === "fanout";
+              // Nothing to fan out to, or nothing to log: the same idea.
+              // An outcome that closes the record is never blocked — a
+              // provider who says no does not owe us a meeting time first.
+              const closes = a.outcome === "archive" || a.outcome === "closed";
+              const blocked =
+                (needsNames && a.outcome === "fanout") || (missing.length > 0 && !closes);
               return (
                 <button
                   key={a.label}
@@ -399,8 +434,8 @@ export default function TaskView({
                         : BTN
                   } ${blocked ? "cursor-not-allowed opacity-40" : ""}`}
                 >
-                  {a.outcome === "archive" && attempts >= 3
-                    ? `Archive — ${attempts} attempts`
+                  {a.outcome === "archive" && repeats && attempts >= repeats.warnAt
+                    ? `Archive — ${attempts} ${repeats.noun}s`
                     : a.label}
                 </button>
               );
@@ -418,16 +453,18 @@ export default function TaskView({
                 They replied
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => {
-                setShowDefer((v) => !v);
-                setShowStop(false);
-              }}
-              className={BTN}
-            >
-              Not yet
-            </button>
+            {rung.defer !== false && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDefer((v) => !v);
+                  setShowStop(false);
+                }}
+                className={BTN}
+              >
+                Not yet
+              </button>
+            )}
             {/*
               Stopping is about a record somebody keeps contacting: a wrong
               number, a person who left, an agency that asked us to stop. A
@@ -449,6 +486,12 @@ export default function TaskView({
               </button>
             )}
           </div>
+
+          {missing.length > 0 && (
+            <p className="mt-2 text-[12.5px] text-gray-500">
+              Fill in the {missing.map((f) => f.label.toLowerCase()).join(" and ")} first.
+            </p>
+          )}
 
           {replying && (
             <div className="mt-3 rounded-md border border-primary-200 bg-primary-25 px-3.5 py-3">
@@ -576,12 +619,21 @@ function Help({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-function Note({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function Note({
+  value,
+  label,
+  onChange,
+}: {
+  value: string;
+  /** What this rung wants written down, when it wants something specific. */
+  label?: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="Please leave a note before logging."
+      placeholder={label ? `${label}…` : "Please leave a note before logging."}
       rows={2}
       className="mt-3 w-full resize-y rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
     />

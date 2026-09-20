@@ -256,6 +256,9 @@ export async function handleChannelOp(
         .update(note ? { ...stamp, notes: note } : stamp)
         .eq("id", open.id);
       if (error) return fail(error.message, 500);
+      // See the note in the record route: the snapshot must agree with what
+      // was just written, or a "repeat" outcome queues nothing.
+      open.status = "completed";
     } else if (!mine.some((t: { status: string }) => t.status === "completed")) {
       // No row to close — a rung reached before anything queued it. Write
       // the fact rather than dropping it.

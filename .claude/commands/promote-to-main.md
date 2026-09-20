@@ -204,39 +204,6 @@ Production deploys automatically on push to `main` (GitHub-linked Vercel project
 
 ---
 
-## Phase 7: Record the Promotion in Branch Handoff Reports
-
-After a real promotion completes (skip for dry-run / abort), publish a **per-promotion record** to the **Branch Handoff Reports** database — the same artifact `/notion-report` writes to. (The old flat "PR Merge Reports" folder is retired; nobody read it.)
-
-A promotion isn't a feature branch — it ships *staging → main*, and `staging` is permanent — so this is **always a fresh page**, not an update. It's the canonical "what shipped to production, and when" record.
-
-**Database:** Product Development › **Branch Handoff Reports**
-**Data source ID:** `e3014bc0-3a03-40ed-9c09-a66994fb9e78`
-
-Use `mcp__claude_ai_Notion__notion-create-pages` with `parent: { data_source_id: "e3014bc0-3a03-40ed-9c09-a66994fb9e78" }` and a `🧭` icon.
-
-**Properties:**
-
-| Property | Value |
-|----------|-------|
-| `Title` | `Promote staging → main — <summary> (<YYYY-MM-DD>)` |
-| `Branch` | `staging` |
-| `Worktree` | leave empty (no feature worktree) |
-| `Status` | `Merged` |
-| `PR` | the promotion PR number/URL |
-| `Date` | today |
-
-**Body (Phase 2 of `/notion-report` structure, adapted for a shipped release):**
-1. Callout — promotion PR number + GitHub link + production URL (olera.care)
-2. **Changelog** — the list of PRs/commits shipped (from Phase 3)
-3. **Pre-flight results** — CI state, inverted-hazard check, migration/env flags
-4. **Outcome** — final main SHA, production deploy status, smoke-check + critical-file-indicator results (from Phase 6)
-5. **Lesson Learned** (if any) — callout block
-
-Always `await` the Notion call before reporting success. If Cloudflare-blocked, fall back to the raw `mcp__notion__API-*` tools per memory `Notion MCP Tools`.
-
----
-
 ## Safety Rails
 
 - **Merging to `main` ships to production.** Always confirm explicitly (Phase 4).

@@ -25,6 +25,7 @@ import { cityOfferEmail, cityOfferAcceptedEmail } from "@/lib/email-templates";
 import { generateCityOfferUrl } from "@/lib/claim-tokens";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendSlackAlert } from "@/lib/slack";
+import { recordProviderEvent } from "@/lib/analytics/provider-events";
 import {
   cityOfferSms,
   cityAcceptedProviderSms,
@@ -97,6 +98,7 @@ interface PoolEntry {
 
 interface ProviderLite {
   id: string;
+  slug: string | null;
   display_name: string | null;
   city: string | null;
   phone: string | null;
@@ -158,7 +160,7 @@ async function getLead(db: SupabaseClient, leadId: string): Promise<CityLeadRow 
 async function getProviders(db: SupabaseClient, ids: string[]): Promise<Map<string, ProviderLite>> {
   const out = new Map<string, ProviderLite>();
   if (ids.length === 0) return out;
-  const { data } = await db.from("business_profiles").select("id, display_name, city, phone, email").in("id", ids);
+  const { data } = await db.from("business_profiles").select("id, slug, display_name, city, phone, email").in("id", ids);
   for (const p of (data ?? []) as ProviderLite[]) out.set(p.id, p);
   return out;
 }
@@ -554,6 +556,36 @@ export async function acceptOffer(
   await sendSlackAlert(
     `✅ City lead ${lead.id.slice(0, 8)} (${city}) ACCEPTED by ${providerName}${source === "admin" ? " (admin)" : source === "provider_page" ? " (link)" : " (text)"}. ${lead.first_name} told to expect a call ${callBy}. /admin/city-ads`,
   );
+
+  // The receipt. Only for an arm the provider is actually paying for — see
+  // `managedCampaignTag` in config.ts for why this is opt-in per city.
+  //
+  // Awaited, not fire-and-forget: this runs inside a serverless request and a
+  // dangling promise is the one that does not survive the response.
+  //
+  // Keyed in slug space to stay aggregatable with `page_view`, and carrying no
+  // `connection_id` because a native lead has no connection row — which also
+  // keeps it out of the growth_attribution upsert, where a fabricated
+  // conversion id would be worse than a missing one.
+  // Both halves required: the tag names a campaign, the id names whose it is.
+  // A pool can hold several providers and only one of them is paying for this
+  // arm, so an unguarded write would put a lead on the wrong dashboard.
+  if (cfg?.managedCampaignTag && cfg.managedProviderId === offer.provider_id) {
+    await recordProviderEvent({
+      provider_id: provider?.slug ?? offer.provider_id,
+      event_type: "lead_received",
+      profile_id: offer.provider_id,
+      metadata: {
+        utm_source: "olera_managed",
+        utm_campaign: cfg.managedCampaignTag,
+        city_lead_id: lead.id,
+        city_offer_id: offer.id,
+        capture_method: lead.capture_method ?? null,
+        raw_provider_id: offer.provider_id,
+        source: "city_lead_offer",
+      },
+    });
+  }
   // The reply to the provider's YES itself: the details went in a separate text
   // so they survive as their own message in the thread.
   return { won: true, reply: `Sent ${lead.first_name}'s details in the next text. Thank you.` };

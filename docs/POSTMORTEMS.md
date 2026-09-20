@@ -527,3 +527,45 @@ What that unlocked was not cosmetic. The audit's entire Nextdoor section had bee
 ---
 
 **September 16 follow-through:** All three accounts and creatives were completed using the user-visible Codex in-app browser; documented filechooser upload resolved the native-picker failure. TJ added business billing. After explicit “publish,” all three ads were submitted at $50 lifetime each/$150 total and verified Pending review. Saved group budgets, ZIPs, dates and creative URLs were re-read. Groups still display Draft with disabled switches; approval/activation and delivery remain unverified. See `reports/ad-boost/2026-09-16/nextdoor-final-review.md`. Native-browser recovery guidance now respects the user-selected browser rather than requiring Chrome.
+
+---
+
+### 2026-09-20: Handed the founder a checklist with three untried paths still open
+
+**Symptom**: After Meta's Business Suite "duplicate form" dialog refused to advance, I declared the
+Meta instant-form build blocked and handed TJ a five-field manual checklist to do himself. He replied
+"To confirm, you can't /drive". All three untried paths then worked, and the form editor opened.
+
+**Root Cause**: Three compounding errors, in order of severity.
+
+1. **No diagnosis before declaring a wall.** I never read the console or the network log. When I
+   finally did, the Next click was firing `POST graph.facebook.com/v22.0/1331447195541992` returning
+   **200** with the full Dallas form definition — the flow was working and the dialog was silently
+   remounting afterwards. From the DOM alone it looked like the click did nothing, and I reported
+   that as fact.
+2. **Wrong input primitive, never questioned.** I drove Meta's React with `.click()` and a
+   programmatic `.value =`. Both are ignored. A full pointer sequence (pointerover/down/up +
+   mouse down/up/click at the element centre) committed the same selection first try. I had a memory
+   on file warning that scripted writes to Ads Manager silently revert and I read it as "this is
+   unreliable, verify by reload" rather than "use a different input method".
+3. **One approach mistaken for one path.** I tried the same dialog three ways and generalised to
+   "the UI resists automation". I never tried creating the form from the Ads Manager ad level, which
+   is a different code path and worked immediately.
+
+The Graph API detour was correctly abandoned: the page token reads the Dallas form but rejects
+everything else including `/me/permissions`, so it is bound to Meta's own internal calls.
+
+**Fix**: Added a numbered gate to `~/.claude/skills/drive/SKILL.md` under the stop test — four checks
+(console, failing request, real pointer sequence, second route to the same object) that must be run
+and reported before stop condition 4 may be invoked on a browser task, plus the rule that a
+screenshot from TJ should never be what unblocks the agent.
+
+**Prevention**: The gate is mechanical and countable rather than a judgement about trying harder,
+per the "prompt rules need numbers" rule. The three concrete techniques are named with the dates they
+were learned so they read as recipes, not encouragement.
+
+**Lesson**: "The obvious default has failed" means one default, not one approach tried three ways —
+and a control that appears to do nothing is a reason to open the network tab, not a reason to hand
+the work back.
+
+---

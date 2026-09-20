@@ -39,6 +39,34 @@ export interface CityConfig {
   timeZone: string;
   /** Campaign tag shared across channels for this city (= utm_campaign). */
   campaignTag: string;
+  /**
+   * The provider's OWN managed-ads campaign tag, when this arm is funded as
+   * part of a provider's Managed Ads subscription rather than out of Olera's
+   * city-ads R&D budget.
+   *
+   * Set it and an accepted offer writes a `lead_received` provider_activity
+   * row against that tag, so the lead shows up on the provider's dashboard and
+   * in `countDeliveredByCampaign`. A native instant-form lead never touches the
+   * provider page, so without this the family arrives by text while the product
+   * they pay for still reads zero leads.
+   *
+   * LEAVE IT UNSET for Olera-funded city arms. Crediting a city-pool lead to a
+   * provider's own campaign would tell them their ad produced a family that our
+   * ad produced.
+   *
+   * Requires `managedProviderId`. The tag belongs to ONE provider, but a pool
+   * can hold several, so the receipt has to name whose campaign it is.
+   */
+  managedCampaignTag?: string;
+  /**
+   * The `business_profiles.id` that owns `managedCampaignTag`. The receipt is
+   * written only when this provider is the one who accepted.
+   *
+   * Without it, adding a second provider to the pool would silently credit
+   * their accepted lead to the first provider's campaign — a number on someone
+   * else's dashboard for a family they never received.
+   */
+  managedProviderId?: string;
 }
 
 export const CITY_CONFIGS: Record<string, CityConfig> = {
@@ -67,6 +95,30 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
     zipPrefill: "75201",
     timeZone: "America/Chicago",
     campaignTag: "olera-dallas-sep26",
+  },
+  // Not an Olera city arm. This is Hoop Cares' Managed Ads subscription run as
+  // an instant form, because Google cannot spend money in this market: its own
+  // budget simulator reads 4 clicks/30d at $3.50/day and 9 at $20.89, with a
+  // min bid limit above the live cap on every row. Meta is interruption rather
+  // than intent, so a ~375k-person tri-county can absorb real budget.
+  //
+  // `auto` with a pool of one (Hoop) is the point — she is the customer, the
+  // lead is hers. Unqualified native leads still never reach her: they hold for
+  // an hour and page a person (see offers.server.ts:208).
+  //
+  // The area is her own, confirmed by her on the 16 Sep orientation call:
+  // Jackson, Harrison and George County, not a radius around Pascagoula.
+  "pascagoula-ms": {
+    slug: "pascagoula-ms",
+    city: "Pascagoula",
+    state: "MS",
+    routingMode: "auto",
+    areaLabel: "Jackson, Harrison and George County",
+    zipPrefill: "39563",
+    timeZone: "America/Chicago",
+    campaignTag: "olera-pascagoula-native-sep26",
+    managedCampaignTag: "hoop-pascagoula-sep26",
+    managedProviderId: "d0c4738f-77e9-4b4a-a02c-e9cbab6597d3",
   },
 };
 

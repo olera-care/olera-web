@@ -56,6 +56,57 @@ export async function sendSlackAlert(
   }
 }
 
+/**
+ * Send a direct message to one Slack user.
+ *
+ * Incoming webhooks cannot do this: a webhook is bound at creation time to a
+ * single channel, which is why every other sender in this file posts to the
+ * shared operations channel. A DM needs a bot token and chat.postMessage.
+ *
+ * SLACK_BOT_TOKEN was created read-only for War Room's Slack reader
+ * (channels:history). Adding chat:write to it is a scope change that requires
+ * reinstalling the app; until that happens this returns missing_scope and the
+ * caller should fall back to the webhook.
+ *
+ * Fire-and-forget safe: logs, never throws.
+ */
+export async function sendSlackDirectMessage(
+  userId: string,
+  text: string,
+  options?: { timeoutMs?: number },
+): Promise<{ success: boolean; error?: string }> {
+  const token = process.env.SLACK_BOT_TOKEN;
+  if (!token) return { success: false, error: "SLACK_BOT_TOKEN not configured" };
+
+  try {
+    const res = await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      // Posting to a user id opens the IM automatically; conversations.open and
+      // the im:write scope are not required.
+      body: JSON.stringify({ channel: userId, text }),
+      signal: AbortSignal.timeout(Math.max(1, Math.min(15_000, options?.timeoutMs ?? 10_000))),
+    });
+
+    // Slack answers 200 OK for application errors too, carrying ok:false and an
+    // error string (missing_scope, channel_not_found, ...). Checking res.ok
+    // alone reports a scope failure as a successful send.
+    const payload = (await res.json()) as { ok?: boolean; error?: string };
+    if (!payload.ok) {
+      const error = payload.error ?? `Slack HTTP ${res.status}`;
+      console.error("[slack] chat.postMessage failed:", error);
+      return { success: false, error };
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("[slack] DM send failed:", err);
+    return { success: false, error: String(err) };
+  }
+}
+
 // ── Pre-built alert helpers ─────────────────────────────────────
 
 export function slackNewLead(opts: {

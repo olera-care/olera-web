@@ -718,8 +718,8 @@ Dr. Logan DuBose's office · Olera`,
         why: "They have said yes. This is the email that means nobody has to explain it again.",
         steps: [
           "Create their portal account and paste the link in below.",
-          "Attach the pilot terms — they are for review, not for signing.",
           "Copy the email and read it through before you send it.",
+          "Attach the pilot terms — they are for review, not for signing.",
           "Send it, then log it. Chasing the reply is the next rung.",
         ],
         inputs: [

@@ -41,6 +41,8 @@ export default function HireCaregiversCard({
     ? PRN_OPTIONS.find((o) => o.value === demand.prn_open)?.label ?? null
     : null;
   const reqLabels = REQUIREMENT_OPTIONS.filter((o) => req[o.key]).map((o) => o.label);
+  const hourlyRate = demand?.hourly_rate;
+  const jobDescription = demand?.job_description;
 
   // Local completeness (intentionally separate from the directory meter).
   const checks = [shifts.length > 0, !!shapeLabel, !!prnLabel];
@@ -72,6 +74,16 @@ export default function HireCaregiversCard({
         />
       ) : (
         <div className="space-y-4 text-sm">
+          {hourlyRate != null && (
+            <Row label="Hourly rate">
+              <span className="text-lg font-semibold text-gray-900">${hourlyRate}/hr</span>
+            </Row>
+          )}
+          {jobDescription && (
+            <Row label="Job description">
+              <p className="text-gray-700 line-clamp-3">{jobDescription}</p>
+            </Row>
+          )}
           {shifts.length > 0 && (
             <Row label="Shifts needed">
               <div className="flex flex-wrap gap-2">

@@ -313,11 +313,11 @@ function Board() {
                   priority
                 />
               </div>
-              <div className="absolute -bottom-4 -left-4 sm:-left-6 max-w-[88%] rounded-xl border border-primary-100 bg-white px-4 py-3 shadow-lg shadow-gray-900/10">
+              <div className="absolute -bottom-4 left-0 sm:-left-6 max-w-full sm:max-w-[88%] rounded-xl border border-primary-100 bg-white px-4 py-3 shadow-lg shadow-gray-900/10">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                   Students from
                 </p>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {[
                     { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
                     { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
@@ -331,10 +331,10 @@ function Board() {
                       alt={uni.name}
                       width={120}
                       height={60}
-                      className="h-6 w-auto object-contain opacity-80"
+                      className="h-5 sm:h-6 w-auto shrink-0 object-contain opacity-80"
                     />
                   ))}
-                  <span className="text-lg leading-none text-gray-300" aria-hidden="true">
+                  <span className="text-lg leading-none text-gray-300 shrink-0" aria-hidden="true">
                     …
                   </span>
                 </div>
@@ -376,15 +376,15 @@ function Board() {
 
         {/* ── Top Jobs ── */}
         <div ref={topJobsRef} className="scroll-mt-20">
-          {/* Header — always visible: title + campus filter on one row */}
-          <div className="flex items-center justify-between gap-3 mb-4">
+          {/* Header — title then filter (stacked on mobile, inline on md+) */}
+          <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
               Top jobs near {campusName || "you"}
             </h2>
             <select
               value={campus}
               onChange={(e) => setCampus(e.target.value)}
-              className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+              className="w-full sm:w-auto sm:shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700"
             >
               <option value="">All providers</option>
               {PARTNER_UNIVERSITIES.map((u) => (

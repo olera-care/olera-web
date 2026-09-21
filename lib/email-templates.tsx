@@ -4428,8 +4428,11 @@ export function interviewProposedEmail(opts: {
   alternativeTime?: string | null;
   notes: string | null;
   viewUrl: string;
+  /** Hourly rate offered (e.g., 22 for $22/hr) — shown as headline if provided. */
+  hourlyRate?: number;
 }): string {
   const safeProposerName = escapeHtml(opts.proposerName);
+  const rateDisplay = opts.hourlyRate != null ? `$${opts.hourlyRate}/hr` : null;
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an interview request</h1>
@@ -4438,6 +4441,7 @@ export function interviewProposedEmail(opts: {
     </p>
     <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
       <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
+      ${rateDisplay ? `<p style="font-size:20px;font-weight:700;color:#199087;margin:0 0 12px;line-height:1.2;">${rateDisplay}</p>` : ""}
       <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
         <strong>Format:</strong> ${escapeHtml(opts.interviewType)}
       </p>
@@ -4450,7 +4454,7 @@ export function interviewProposedEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       Review the details and respond to let them know if you're available.
     </p>
-    <div style="margin:0 0 24px;">${button("Review Request", opts.viewUrl)}</div>
+    <div style="margin:0 0 24px;">${button("View Full Job Details", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>

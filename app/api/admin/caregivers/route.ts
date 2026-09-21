@@ -226,10 +226,13 @@ export async function GET(request: NextRequest) {
       error = result.error;
     } else {
       // Fetch ALL data for client-side filtering
-      // When filtering by paused/notLive/pendingReview, we need inactive profiles, so don't pass pausedOnly to DB
+      // - pausedOnly/notLiveOnly need inactive profiles (is_active=false)
+      // - pendingReviewOnly needs ALL profiles (pending students can have any is_active value)
       const dbActiveOnly = activeOnly;
-      const dbInactiveOnly = pausedOnly || notLiveOnly || pendingReviewOnly;
-      data = await fetchAllStudents(db, dbActiveOnly, dbInactiveOnly, cityFilter, fromDate, toDate);
+      const dbInactiveOnly = pausedOnly || notLiveOnly;
+      // For pending review, don't filter by is_active at DB level - filter client-side only
+      const fetchAll = pendingReviewOnly;
+      data = await fetchAllStudents(db, fetchAll ? false : dbActiveOnly, fetchAll ? false : dbInactiveOnly, cityFilter, fromDate, toDate);
       count = data.length;
     }
 

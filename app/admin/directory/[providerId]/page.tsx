@@ -10,6 +10,15 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import ProviderCommsTimeline from "@/components/admin/ProviderCommsTimeline";
 import type { DirectoryProvider } from "@/lib/types";
+import { DEMAND_PROFILE_KEY, type DemandProfile } from "@/lib/medjobs/eligibility";
+import {
+  COVERAGE_OPTIONS,
+  DEMAND_SHAPE_OPTIONS,
+  PRN_OPTIONS,
+  REQUIREMENT_OPTIONS,
+  REQUIREMENTS_KEY,
+  type MedjobsRequirements,
+} from "@/lib/medjobs/hiring-needs-questions";
 
 interface ImageMetadata {
   id: string;
@@ -67,6 +76,25 @@ export default function AdminDirectoryDetailPage() {
   const staffFileRef = useRef<HTMLInputElement>(null);
   const [uploadingStaffPhoto, setUploadingStaffPhoto] = useState(false);
 
+  // Hiring defaults state (stored in business_profiles.metadata)
+  type Bucket = DemandProfile["coverage_buckets"][number];
+  const [hiringRate, setHiringRate] = useState<number | undefined>(undefined);
+  const [hiringDescription, setHiringDescription] = useState("");
+  const [hiringBuckets, setHiringBuckets] = useState<Bucket[]>([]);
+  const [hiringShape, setHiringShape] = useState<DemandProfile["demand_shape"] | undefined>(undefined);
+  const [hiringPrn, setHiringPrn] = useState<DemandProfile["prn_open"] | undefined>(undefined);
+  const [hiringReqs, setHiringReqs] = useState<MedjobsRequirements>({});
+  const [originalHiring, setOriginalHiring] = useState<{
+    rate?: number;
+    description?: string;
+    buckets?: Bucket[];
+    shape?: DemandProfile["demand_shape"];
+    prn?: DemandProfile["prn_open"];
+    reqs?: MedjobsRequirements;
+  }>({});
+  const [savingHiring, setSavingHiring] = useState(false);
+  const [hiringMessage, setHiringMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   // City search state
   const [cityQuery, setCityQuery] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -123,6 +151,29 @@ export default function AdminDirectoryDetailPage() {
 
       // Set claimed status from API response
       setIsClaimed(data.isClaimed ?? false);
+
+      // Populate hiring defaults from business_profiles.metadata
+      const hiringData = data.hiringDefaults as {
+        demand?: Partial<DemandProfile>;
+        requirements?: MedjobsRequirements;
+      } | null;
+      if (hiringData) {
+        const { demand, requirements } = hiringData;
+        setHiringRate(demand?.hourly_rate);
+        setHiringDescription(demand?.job_description ?? "");
+        setHiringBuckets((demand?.coverage_buckets as Bucket[] | undefined) ?? []);
+        setHiringShape(demand?.demand_shape);
+        setHiringPrn(demand?.prn_open);
+        setHiringReqs(requirements ?? {});
+        setOriginalHiring({
+          rate: demand?.hourly_rate,
+          description: demand?.job_description ?? "",
+          buckets: (demand?.coverage_buckets as Bucket[] | undefined) ?? [],
+          shape: demand?.demand_shape,
+          prn: demand?.prn_open,
+          reqs: requirements ?? {},
+        });
+      }
     } catch (err) {
       console.error("Failed to fetch provider:", err);
     } finally {
@@ -307,6 +358,66 @@ export default function AdminDirectoryDetailPage() {
     staffBio !== (originalStaff.bio || "") ||
     staffCareMotivation !== (originalStaff.care_motivation || "") ||
     staffImage !== (originalStaff.image || "");
+
+  const isHiringDirty =
+    hiringRate !== originalHiring.rate ||
+    hiringDescription !== (originalHiring.description ?? "") ||
+    JSON.stringify([...hiringBuckets].sort()) !== JSON.stringify([...(originalHiring.buckets ?? [])].sort()) ||
+    hiringShape !== originalHiring.shape ||
+    hiringPrn !== originalHiring.prn ||
+    JSON.stringify(hiringReqs) !== JSON.stringify(originalHiring.reqs ?? {});
+
+  const toggleHiringBucket = (b: Bucket) =>
+    setHiringBuckets((prev) => (prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]));
+  const toggleHiringReq = (k: keyof MedjobsRequirements) =>
+    setHiringReqs((prev) => ({ ...prev, [k]: !prev[k] }));
+
+  async function handleSaveHiring() {
+    setSavingHiring(true);
+    setHiringMessage(null);
+    const id = canonicalProviderId ?? providerId;
+    try {
+      const demand: Partial<DemandProfile> = {
+        hourly_rate: hiringRate,
+        job_description: hiringDescription.trim() || undefined,
+        coverage_buckets: hiringBuckets.length > 0 ? hiringBuckets : undefined,
+        demand_shape: hiringShape,
+        prn_open: hiringPrn,
+      };
+      // Check if any demand field is actually set (not just truthy - 0 is a valid hourly rate)
+      const hasDemand = demand.hourly_rate != null || demand.job_description || (demand.coverage_buckets && demand.coverage_buckets.length > 0) || demand.demand_shape || demand.prn_open;
+      const hasReqs = Object.values(hiringReqs).some(Boolean);
+      const res = await fetch(`/api/admin/directory/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          _hiring: {
+            demand: hasDemand ? demand : undefined,
+            requirements: hasReqs ? hiringReqs : undefined,
+          },
+        }),
+      });
+      if (res.ok) {
+        setOriginalHiring({
+          rate: hiringRate,
+          description: hiringDescription.trim(),
+          buckets: hiringBuckets,
+          shape: hiringShape,
+          prn: hiringPrn,
+          reqs: hiringReqs,
+        });
+        setHiringMessage({ type: "success", text: "Hiring defaults saved." });
+        setTimeout(() => setHiringMessage(null), 3000);
+      } else {
+        const err = await res.json();
+        setHiringMessage({ type: "error", text: err.error || "Failed to save." });
+      }
+    } catch {
+      setHiringMessage({ type: "error", text: "Network error." });
+    } finally {
+      setSavingHiring(false);
+    }
+  }
 
   async function handleConfirmSendClaimLink() {
     const id = canonicalProviderId ?? providerId;
@@ -1028,6 +1139,136 @@ export default function AdminDirectoryDetailPage() {
               className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {savingStaff ? "Saving..." : "Save Owner Info"}
+            </button>
+          </div>
+        </Section>
+
+        {/* Hiring Defaults (MedJobs) */}
+        <Section title="Hiring Defaults (MedJobs)">
+          <p className="text-sm text-gray-500 mb-4">
+            Pre-fill interview invitations with these defaults. Students see full job details in their portal.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Hourly Rate</label>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">$</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={hiringRate ?? ""}
+                  onChange={(e) => setHiringRate(e.target.value ? Number(e.target.value) : undefined)}
+                  placeholder="e.g. 22"
+                  className="w-24 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                />
+                <span className="text-gray-500 text-sm">/hr</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Job Description</label>
+            <textarea
+              value={hiringDescription}
+              onChange={(e) => setHiringDescription(e.target.value)}
+              placeholder="Describe the role, responsibilities, and what you're looking for..."
+              rows={3}
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            />
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Shifts Hardest to Cover</label>
+            <div className="flex flex-wrap gap-2">
+              {COVERAGE_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => toggleHiringBucket(o.value)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                    hiringBuckets.includes(o.value)
+                      ? "bg-primary-50 border-primary-300 text-primary-700"
+                      : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Staffing Pattern</label>
+            <div className="flex flex-wrap gap-2">
+              {DEMAND_SHAPE_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => setHiringShape(o.value)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                    hiringShape === o.value
+                      ? "bg-primary-50 border-primary-300 text-primary-700"
+                      : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Open to PRN</label>
+            <div className="flex flex-wrap gap-2">
+              {PRN_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => setHiringPrn(o.value)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                    hiringPrn === o.value
+                      ? "bg-primary-50 border-primary-300 text-primary-700"
+                      : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
+            <div className="space-y-2">
+              {REQUIREMENT_OPTIONS.map((o) => (
+                <label key={o.key} className="flex items-center gap-3 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={!!hiringReqs[o.key]}
+                    onChange={() => toggleHiringReq(o.key)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  {o.label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+            <div>
+              {hiringMessage && (
+                <span className={`text-sm ${hiringMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                  {hiringMessage.text}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleSaveHiring}
+              disabled={!isHiringDirty || savingHiring}
+              className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {savingHiring ? "Saving..." : "Save Hiring Defaults"}
             </button>
           </div>
         </Section>

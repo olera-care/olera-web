@@ -1122,6 +1122,7 @@ function StudentPortalContent({
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingCelebration, setPendingCelebration] = useState(false);
   const [showGoLiveReview, setShowGoLiveReview] = useState(false);
+  const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
@@ -1445,6 +1446,130 @@ function StudentPortalContent({
               </div>
             </div>
 
+            {/* ── Mobile-only: Compact progress + Go Live (lg:hidden) ── */}
+            {/* On mobile these appear near top; on desktop they're in the sidebar */}
+            <div className="lg:hidden space-y-3">
+              {/* Mobile Progress Banner — tappable to open detail sheet */}
+              <button
+                type="button"
+                onClick={() => setShowCompletenessSheet(true)}
+                className="w-full bg-vanilla-50/70 rounded-2xl px-4 py-3.5 text-left active:bg-vanilla-100 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  {/* Progress ring */}
+                  <div className="relative w-10 h-10 shrink-0">
+                    <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
+                      <circle
+                        cx="20" cy="20" r="16" fill="none"
+                        stroke="#199087"
+                        strokeWidth="3" strokeLinecap="round"
+                        strokeDasharray={`${completenessPercent * 1.005} 100.5`}
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
+                      {completenessPercent}%
+                    </span>
+                  </div>
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">Profile completeness</p>
+                    <p className="text-xs text-gray-500">
+                      {completeSections.filter((s) => s.done).length} of {completeSections.length} sections complete
+                    </p>
+                  </div>
+                  {/* Chevron */}
+                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+
+              {/* Mobile Go Live / Status Card */}
+              {hasCompletedApplication ? (
+                /* Visibility toggle for users who've gone live */
+                <div className="bg-white rounded-2xl border border-gray-200/80 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      profile.is_active ? "bg-success-100" : "bg-gray-100"
+                    }`}>
+                      {profile.is_active ? (
+                        <svg className="w-5 h-5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {profile.is_active ? "Profile is live" : "Profile hidden"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {profile.is_active ? "Visible to providers" : "Not visible"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={profile.is_active}
+                      onClick={() => handleToggleVisibility(!profile.is_active)}
+                      disabled={togglingVisibility}
+                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                        profile.is_active ? "bg-success-500" : "bg-gray-300"
+                      }`}
+                    >
+                      <span className="sr-only">Toggle visibility</span>
+                      <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        profile.is_active ? "translate-x-5" : "translate-x-0"
+                      }`} />
+                    </button>
+                  </div>
+                </div>
+              ) : isPendingReview ? (
+                /* Pending Review */
+                <div className="bg-amber-50/60 rounded-2xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">Pending Review</p>
+                      <p className="text-xs text-amber-600">We&apos;ll notify you once approved</p>
+                    </div>
+                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  </div>
+                </div>
+              ) : (
+                /* Request Review CTA */
+                <div className="bg-primary-50/50 rounded-2xl p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-semibold text-gray-900">Go Live</p>
+                      <p className="text-sm text-gray-500 mt-0.5">Get discovered by providers</p>
+                      <button
+                        type="button"
+                        onClick={() => setShowGoLiveReview(true)}
+                        className="mt-3 w-full py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors"
+                      >
+                        Request Review
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Individual Profile Section Cards */}
             <ScheduleCard meta={meta} onEdit={() => setEditingSection("schedule")} />
             <AvailabilityCard meta={meta} onEdit={() => setEditingSection("availability")} />
@@ -1624,8 +1749,8 @@ function StudentPortalContent({
             </div>
           </div>
 
-          {/* ── Sidebar (1/3) ── */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* ── Sidebar (1/3) — hidden on mobile, shown on lg+ ── */}
+          <div className="hidden lg:block lg:col-span-1 space-y-6">
             {/* Profile Visibility Card */}
             {hasCompletedApplication ? (
               /* Toggle for users who've gone live before */
@@ -1926,6 +2051,123 @@ function StudentPortalContent({
           refresh();
         }}
       />
+
+      {/* Mobile Completeness Bottom Sheet */}
+      {showCompletenessSheet && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+            onClick={() => setShowCompletenessSheet(false)}
+            style={{ animation: "fade-in 0.2s ease-out both" }}
+          />
+          {/* Sheet */}
+          <div
+            className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto"
+            style={{ animation: "slide-up 0.3s ease-out both" }}
+          >
+            {/* Handle + Header — z-10 ensures content scrolls under it */}
+            <div className="sticky top-0 z-10 bg-white pt-3 pb-2 px-6 border-b border-gray-100">
+              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-display font-bold text-gray-900">
+                  Profile completeness
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowCompletenessSheet(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                  aria-label="Close"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Circular progress */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="relative w-28 h-28 mb-3">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10" />
+                    <circle
+                      cx="50" cy="50" r="42" fill="none"
+                      stroke="#199087"
+                      strokeWidth="10" strokeLinecap="round"
+                      strokeDasharray={`${completenessPercent * 2.64} 264`}
+                      className="transition-all duration-500"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-gray-900">{completenessPercent}%</span>
+                  </div>
+                </div>
+                <p className="text-sm font-semibold tracking-wide uppercase text-gray-900 font-display">
+                  {completenessPercent >= 100 ? "ALL DONE!" :
+                   completenessPercent >= 76 ? "NEARLY COMPLETE!" :
+                   completenessPercent >= 51 ? "LOOKING GOOD!" :
+                   completenessPercent >= 26 ? "ALMOST THERE!" :
+                   "JUST GETTING STARTED"}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Complete your profile to get matched
+                </p>
+              </div>
+
+              {/* Section checklist */}
+              <div className="space-y-1">
+                {completeSections.map((section) => (
+                  <a
+                    key={section.id}
+                    href={`#${section.id}`}
+                    onClick={() => setShowCompletenessSheet(false)}
+                    className="flex items-center justify-between py-3 px-3 -mx-3 rounded-xl hover:bg-vanilla-50 active:bg-vanilla-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {section.done ? (
+                        <div className="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      ) : section.percent > 0 ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-primary-300 bg-primary-50 shrink-0 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-primary-400" />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-200 shrink-0" />
+                      )}
+                      <span className={`text-[15px] ${section.done ? "text-primary-600 font-medium" : "text-gray-700"}`}>
+                        {section.label}
+                      </span>
+                    </div>
+                    {!section.done && (
+                      <span className={`text-sm font-medium ${section.percent > 0 ? "text-primary-600" : "text-gray-400"}`}>
+                        {section.percent}%
+                      </span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Safe area padding for iPhone */}
+            <div className="h-[env(safe-area-inset-bottom)]" />
+          </div>
+          <style jsx>{`
+            @keyframes fade-in {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes slide-up {
+              from { transform: translateY(100%); }
+              to { transform: translateY(0); }
+            }
+          `}</style>
+        </>
+      )}
 
       {/* Celebration Modal - shown when profile goes live */}
       <GoLiveCelebrationModal

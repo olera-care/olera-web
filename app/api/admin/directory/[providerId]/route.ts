@@ -3,6 +3,8 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
 import { classifyDeletionReason } from "@/lib/classify-deletion-reason";
+import { DEMAND_PROFILE_KEY } from "@/lib/medjobs/eligibility";
+import { REQUIREMENTS_KEY } from "@/lib/medjobs/hiring-needs-questions";
 
 const EDITABLE_FIELDS = new Set([
   "provider_name",
@@ -169,6 +171,7 @@ export async function GET(
 
       // Fetch linked business_profiles record for owner/staff metadata and claimed status
       let staffData = null;
+      let hiringDefaults: { demand?: Record<string, unknown>; requirements?: Record<string, unknown> } | null = null;
       let businessProfileId: string | null = bpRow?.id ?? null;
       let isClaimed = false;
 
@@ -183,11 +186,21 @@ export async function GET(
           businessProfileId = data.id;
           const meta = (data.metadata || {}) as Record<string, unknown>;
           staffData = meta.staff || null;
+          const demand = meta[DEMAND_PROFILE_KEY] as Record<string, unknown> | undefined;
+          const requirements = meta[REQUIREMENTS_KEY] as Record<string, unknown> | undefined;
+          if (demand || requirements) {
+            hiringDefaults = { demand, requirements };
+          }
           isClaimed = data.account_id != null;
         }
       } else if (bpRow) {
         const meta = (bpRow.metadata || {}) as Record<string, unknown>;
         staffData = meta.staff || null;
+        const demand = meta[DEMAND_PROFILE_KEY] as Record<string, unknown> | undefined;
+        const requirements = meta[REQUIREMENTS_KEY] as Record<string, unknown> | undefined;
+        if (demand || requirements) {
+          hiringDefaults = { demand, requirements };
+        }
         isClaimed = (bpRow as Record<string, unknown>).account_id != null;
       }
 
@@ -196,6 +209,7 @@ export async function GET(
         images,
         rawImages,
         staffData,
+        hiringDefaults,
         businessProfileId,
         isClaimed,
         source: "scraped",
@@ -338,6 +352,119 @@ export async function PATCH(
         targetType: "directory_provider",
         targetId: providerId,
         details: { staff: body._staff },
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // Handle hiring defaults update (stored in business_profiles.metadata)
+    if (body._hiring !== undefined) {
+      let bp = await db
+        .from("business_profiles")
+        .select("id, metadata")
+        .eq("source_provider_id", providerId)
+        .limit(1)
+        .maybeSingle()
+        .then(r => r.data);
+
+      // Auto-create business_profiles record if none exists
+      if (!bp) {
+        const { data: iosProvider } = await db
+          .from("olera-providers")
+          .select("provider_name, provider_category, city, state, address, zipcode, phone, email, website, provider_description, provider_logo")
+          .eq("provider_id", providerId)
+          .single();
+
+        if (!iosProvider) {
+          return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+        }
+
+        const slug = generateProviderSlug(iosProvider.provider_name, iosProvider.state) + `-${providerId.slice(0, 4).toLowerCase()}`;
+
+        const hiringMeta: Record<string, unknown> = {};
+        if (body._hiring.demand) hiringMeta[DEMAND_PROFILE_KEY] = body._hiring.demand;
+        if (body._hiring.requirements) hiringMeta[REQUIREMENTS_KEY] = body._hiring.requirements;
+
+        const { data: newBp, error: createErr } = await db
+          .from("business_profiles")
+          .insert({
+            source_provider_id: providerId,
+            slug,
+            type: "organization",
+            category: iosProvider.provider_category || "Assisted Living",
+            display_name: iosProvider.provider_name,
+            description: iosProvider.provider_description || null,
+            image_url: iosProvider.provider_logo || null,
+            phone: iosProvider.phone || null,
+            email: iosProvider.email || null,
+            website: iosProvider.website || null,
+            address: iosProvider.address || null,
+            city: iosProvider.city || null,
+            state: iosProvider.state || null,
+            zip: iosProvider.zipcode ? String(iosProvider.zipcode) : null,
+            metadata: hiringMeta,
+            claim_state: "unclaimed",
+            is_active: true,
+          })
+          .select("id, metadata")
+          .single();
+
+        if (createErr || !newBp) {
+          console.error("Failed to create business_profiles record:", createErr);
+          return NextResponse.json({ error: "Failed to create profile for hiring data" }, { status: 500 });
+        }
+
+        bp = newBp;
+
+        await logAuditAction({
+          adminUserId: adminUser.id,
+          action: "auto_create_business_profile",
+          targetType: "directory_provider",
+          targetId: providerId,
+          details: { business_profile_id: bp.id, slug },
+        });
+
+        await logAuditAction({
+          adminUserId: adminUser.id,
+          action: "update_provider_hiring_defaults",
+          targetType: "directory_provider",
+          targetId: providerId,
+          details: { hiring: body._hiring },
+        });
+
+        return NextResponse.json({ success: true });
+      }
+
+      const existingMeta = (bp.metadata || {}) as Record<string, unknown>;
+      const updatedMeta = { ...existingMeta };
+      // Update or clear demand profile
+      if (body._hiring.demand) {
+        updatedMeta[DEMAND_PROFILE_KEY] = body._hiring.demand;
+      } else {
+        delete updatedMeta[DEMAND_PROFILE_KEY];
+      }
+      // Update or clear requirements
+      if (body._hiring.requirements) {
+        updatedMeta[REQUIREMENTS_KEY] = body._hiring.requirements;
+      } else {
+        delete updatedMeta[REQUIREMENTS_KEY];
+      }
+
+      const { error: hiringErr } = await db
+        .from("business_profiles")
+        .update({ metadata: updatedMeta })
+        .eq("id", bp.id);
+
+      if (hiringErr) {
+        return NextResponse.json({ error: "Failed to update hiring data" }, { status: 500 });
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "update_provider_hiring_defaults",
+        targetType: "directory_provider",
+        targetId: providerId,
+        details: { hiring: body._hiring },
       });
 
       return NextResponse.json({ success: true });

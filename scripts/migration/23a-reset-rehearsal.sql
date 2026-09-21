@@ -62,7 +62,8 @@ keep as (
         'Arosa Salt Lake',
         'Compassionate Home Care',
         'Cornerstone Caregiving - Madison Home Care',
-        'Comfort Keepers of Tallahassee, FL'
+        'Comfort Keepers of Tallahassee, FL',
+        'Amada Senior Care'
       ) then 'named'
       else 'noted'
     end as reason
@@ -75,7 +76,8 @@ keep as (
         'Arosa Salt Lake',
         'Compassionate Home Care',
         'Cornerstone Caregiving - Madison Home Care',
-        'Comfort Keepers of Tallahassee, FL'
+        'Comfort Keepers of Tallahassee, FL',
+        'Amada Senior Care'
       )
       or exists (
         select 1

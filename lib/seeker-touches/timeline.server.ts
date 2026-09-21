@@ -896,7 +896,8 @@ async function loadFeeds(
           "id, lead_id, provider_id, position, offered_at, accepted_at, declined_at, decline_reason, expired_at, reached_channels, delivery_note",
         )
         .in("lead_id", g)
-        .order("position"),
+        .order("position")
+        .limit(1000),
   );
   const offerProviderIds = Array.from(new Set(cityOfferRows.map((o) => o.provider_id)));
   const offerProviders = offerProviderIds.length
@@ -1106,8 +1107,16 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   // Somebody had decided she was not a case, and the case desk asked for her
   // anyway. Suppressing the work flags is not hiding her: she stays in All,
   // and un-archiving puts her straight back.
-  const cityClosed = Boolean(lead?.archived_at);
-  if (!cityClosed && inbound.some((it) => it.status === "needs reply")) flags.push("awaiting_reply");
+  // Dated, not blanket. Suppressing on archived_at alone would also bury a
+  // family who was filed months ago and has just written in again about
+  // something real — the archive closes the case we knew about, it does not
+  // close her. Only the unanswered messages from BEFORE the archive are
+  // covered; anything she sends afterwards is a live case and says so.
+  const closedAt = lead?.archived_at ?? null;
+  const unanswered = inbound.filter((it) => it.status === "needs reply");
+  const liveUnanswered = closedAt ? unanswered.filter((it) => it.occurred_at > closedAt) : unanswered;
+  const cityClosed = Boolean(closedAt);
+  if (liveUnanswered.length > 0) flags.push("awaiting_reply");
   if (reach.open.length === 0 && consent !== "opted_out") flags.push("unreachable");
   if (consent === "opted_out") flags.push("opted_out");
   if (

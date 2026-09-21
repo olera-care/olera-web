@@ -504,6 +504,22 @@ export function noAnswerOutcomes(
       ...(carry ? { carry } : {}),
       hint: "Message left, so they have heard us. Both logged, and the next round is queued.",
     },
+    {
+      // You reached a person and they undertook to ring back. That is not a
+      // round spent: "repeat" returns this same round rather than advancing
+      // it, so somebody who is being passed up the chain internally does not
+      // burn through the seven while we wait for them.
+      //
+      // It is not a strike either. A strike is a dead line; this is a live
+      // one with somebody on the other end who has agreed to use it.
+      label: "They will call back",
+      outcome: "repeat",
+      delay: delay + 1,
+      acts,
+      ...(actLabels ? { actLabels } : {}),
+      ...(carry ? { carry } : {}),
+      hint: "Somebody took it on and said they would ring. This round comes back in a few days if they have not.",
+    },
   ];
 }
 
@@ -782,6 +798,16 @@ export const LADDERS: Record<SectionKey, Ladder> = {
             delay: 2,
             strike: true,
             hint: "Nobody picked up. Logged, and this rung comes back in two days.",
+          },
+          {
+            // Reaching a gatekeeper who takes it inside is the most common
+            // outcome on a first call, and it had nowhere to go: logging it
+            // as a voicemail or a no answer counts a strike against a number
+            // that plainly works.
+            label: "They will call back",
+            outcome: "repeat",
+            delay: 3,
+            hint: "You reached somebody and they said they would ring back. No strike, and this comes back in three days.",
           },
           {
             label: "Not interested",

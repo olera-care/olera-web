@@ -134,12 +134,12 @@ console.log("\nOne rung, one screen");
   ok(
     "every outcome offered at once",
     labels.join("|") ===
-      "No answer|Left a voicemail|Interested, start onboarding|Not interested|Booked a call to help|Something else",
+      "No answer|Left a voicemail|They will call back|Interested, start onboarding|Not interested|Booked a call to help|Something else",
     labels.join("|"),
   );
   ok(
-    "both ways a call fails are the log of two acts",
-    rung.actions.slice(0, 2).every((a) => [...(a.acts ?? [])].sort().join("+") === "call+email"),
+    "all three ways a call ends are the log of two acts",
+    rung.actions.slice(0, 3).every((a) => [...(a.acts ?? [])].sort().join("+") === "call+email"),
   );
   ok("and they lead, because they are what you press most", labels[0] === "No answer");
   ok("the email goes first, so the call can refer to it", rung.actions[0].acts?.[0] === "email");
@@ -170,6 +170,25 @@ for (const [step, round, label, where] of [
   ok("and the rest of the follow-ups are dropped", !r.tasks.some((t) => !t.done && t.step === FOLLOW));
 }
 
+console.log("\nA promised call back");
+{
+  // Reaching somebody who takes it inside is not a round spent and not a
+  // strike. Both blocks and the confirming call have to agree on that, or
+  // the same conversation counts against a provider on one rung and not
+  // on another.
+  for (const [where, rung] of [
+    ["the cold block", rungAt("providers", FOLLOW, 3)!],
+    ["the onboarding block", rungAt("providers", ONBOARDFOLLOW, 3)!],
+    ["the confirming call", steps[CALL]],
+  ] as const) {
+    const a = rung.actions.find((x) => x.label === "They will call back");
+    ok(`${where} offers it`, Boolean(a));
+    ok(`${where} does not spend the round`, a?.outcome === "repeat", a?.outcome);
+    ok(`${where} does not count a strike`, !a?.strike);
+    ok(`${where} waits longer than the cadence`, (a?.delay ?? 0) >= 3, String(a?.delay));
+  }
+}
+
 console.log("\nThe onboarding phase");
 {
   const rung = rungAt("providers", ONBOARDFOLLOW, 1)!;
@@ -181,14 +200,14 @@ console.log("\nThe onboarding phase");
   ok("and it never archives", steps[ONBOARDFOLLOW].exhausted === "repeat");
   const labels = rung.actions.map((a) => a.label);
   ok(
-    "six ways out",
+    "seven ways out",
     labels.join("|") ===
-      "No answer|Left a voicemail|They are ready|Booked a call to help|Not interested|Something else",
+      "No answer|Left a voicemail|They will call back|They are ready|Booked a call to help|Not interested|Something else",
     labels.join("|"),
   );
   ok(
-    "both ways a call fails are the log of two acts",
-    rung.actions.slice(0, 2).every((a) => [...(a.acts ?? [])].sort().join("+") === "call+email"),
+    "all three ways a call ends are the log of two acts",
+    rung.actions.slice(0, 3).every((a) => [...(a.acts ?? [])].sort().join("+") === "call+email"),
   );
   ok("the warning lands on the fourth round", rung.repeats?.warnAt === 4);
   ok("and does not rename the closing button", !rung.repeats?.archive);

@@ -84,11 +84,12 @@ console.log("\nThe outcomes of a confirming call");
 {
   const call = LADDERS.providers.steps[1];
   const labels = call.actions.map((a) => a.label);
-  // Seven. The four PR1 names, plus the three things a confirming call can
+  // Eight. The four PR1 names, plus the four things a confirming call can
   // produce that the ladder had nowhere to put: a provider who says yes on
-  // the phone, one who asks to be walked through it, and one who asks for
-  // something nobody could have anticipated. See refinement 12.
-  ok("seven of them", labels.length === 7, labels.join(" · "));
+  // the phone, one who asks to be walked through it, one who asks for
+  // something nobody could have anticipated, and the commonest of the lot —
+  // a gatekeeper who takes it inside and promises somebody will ring back.
+  ok("eight of them", labels.length === 8, labels.join(" · "));
   ok(
     "the four PR1 names are all still there",
     ["Confirmed contact", "Voicemail", "No answer", "Not interested"].every((n) =>
@@ -101,14 +102,22 @@ console.log("\nThe outcomes of a confirming call");
   ok("and a call can be booked here too", labels.includes("Booked a call to help"));
   ok("every one says what it means on hover", call.actions.every((a) => Boolean(a.hint)));
   ok(
-    "voicemail and no answer keep the rung open",
-    call.actions.filter((a) => a.outcome === "repeat").length === 2,
+    "voicemail, no answer and a promised call back all keep the rung open",
+    call.actions.filter((a) => a.outcome === "repeat").length === 3,
   );
   ok(
-    "and come back in two business days",
-    call.actions.filter((a) => a.outcome === "repeat").every((a) => a.delay === 2),
+    "the two that reached nobody come back in two business days",
+    call.actions
+      .filter((a) => a.outcome === "repeat" && a.strike)
+      .every((a) => a.delay === 2),
   );
-  ok("only those two are strikes", call.actions.filter((a) => a.strike).length === 2);
+  // A promised call back waits longer, because chasing on the second day
+  // somebody said they would ring is how you become the caller they avoid.
+  ok(
+    "and a promised call back waits a day longer",
+    call.actions.find((a) => a.label === "They will call back")?.delay === 3,
+  );
+  ok("only the two that reached nobody are strikes", call.actions.filter((a) => a.strike).length === 2);
   ok(
     "reaching somebody is never a strike",
     !call.actions.find((a) => a.label === "Confirmed contact")?.strike,

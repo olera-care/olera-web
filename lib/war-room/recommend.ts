@@ -70,6 +70,17 @@ export function buildWarRoomMetrics(facts: WarRoomFacts): WarRoomMetric[] {
       tone: facts.mrr > 0 ? "good" : "critical",
       href: "/admin/ad-boost",
     },
+    ...(facts.northStarTarget !== null && facts.northStarCurrent !== null ? [{
+      key: "north-star",
+      label: facts.northStarLabel ?? "Target",
+      value: facts.northStarCurrent,
+      display: `${number(facts.northStarCurrent)} of ${number(facts.northStarTarget)}`,
+      detail: facts.northStarDaysRemaining !== null
+        ? `${number(facts.northStarDaysRemaining)} days remaining · ${number(Math.max(0, facts.northStarTarget - facts.northStarCurrent))} to go`
+        : `${number(Math.max(0, facts.northStarTarget - facts.northStarCurrent))} to go`,
+      tone: (facts.northStarCurrent >= facts.northStarTarget ? "good" : "critical") as WarRoomMetric["tone"],
+      href: "/admin/ad-boost",
+    }] : []),
     {
       key: "leads",
       label: "Care inquiries",
@@ -115,12 +126,60 @@ export function buildWarRoomSignals(facts: WarRoomFacts): WarRoomSignal[] {
       href: "/admin/ad-boost",
     });
   }
+  // Was: "Free value reached the paywall and stopped... Close the loop before
+  // starting another clever experiment." That sentence is where the revenue-leak
+  // reading of Ad Boost came from, and it was never model reasoning -- it is a
+  // hardcoded string that counted an expired flight as an abandoned sale. On
+  // 2026-09-21 eleven of twelve ended campaigns ended by `flight_end`, and TJ
+  // confirmed the 27 campaigns were an experiment where revenue was never the
+  // expectation. A campaign that ran its course is not a customer who walked.
   if (facts.adBoostEndedUnpaid > 0) {
     signals.push({
       id: "ended-unpaid-campaigns",
-      title: "Free value reached the paywall and stopped.",
-      detail: `${number(facts.adBoostEndedUnpaid)} ended campaign${facts.adBoostEndedUnpaid === 1 ? " has" : "s have"} no active paid plan. Close the loop before starting another clever experiment.`,
-      severity: facts.mrr === 0 ? "urgent" : "watch",
+      title: "Campaigns ended without converting to a paid plan.",
+      detail: `${number(facts.adBoostEndedUnpaid)} ended campaign${facts.adBoostEndedUnpaid === 1 ? " has" : "s have"} no active paid plan. Check ended_reason before reading this as lost revenue: a flight that expired on schedule is not a provider who declined.`,
+      severity: "watch",
+      href: "/admin/ad-boost",
+    });
+  }
+
+  // The stall split, and only the unattended half is a problem. Reporting "N
+  // stalled" alone is what produced a confident, wrong claim on 2026-09-21 that
+  // four providers had been abandoned when three had dead phone lines and a
+  // fourth never received the email.
+  if (facts.adBoostStalledUnattended > 0) {
+    signals.push({
+      id: "adboost-stalled-unattended",
+      title: "Providers are waiting on us and nobody has called.",
+      detail: `${number(facts.adBoostStalledUnattended)} provider${facts.adBoostStalledUnattended === 1 ? " has" : "s have"} been waiting on a requested change for over two weeks with no call logged since we asked.`,
+      severity: "urgent",
+      href: "/admin/relationships",
+    });
+  }
+  if (facts.adBoostStalledUnreachable > 0) {
+    signals.push({
+      id: "adboost-stalled-unreachable",
+      title: "Providers we cannot reach by phone.",
+      detail: `${number(facts.adBoostStalledUnreachable)} stalled provider${facts.adBoostStalledUnreachable === 1 ? " was" : "s were"} called and the line was dead or unanswered. This is a contactability problem, not neglect, and not a reason to change the offer.`,
+      severity: "watch",
+      href: "/admin/relationships",
+    });
+  }
+  if (!facts.adBoostCallRecordAvailable) {
+    signals.push({
+      id: "adboost-call-record-missing",
+      title: "The call record could not be read.",
+      detail: "Stall counts cannot be split into attended and unattended this scan, so do not read any stall as neglect.",
+      severity: "watch",
+      href: "/admin/relationships",
+    });
+  }
+  if (facts.adBoostSoonestPaidRenewalDays !== null && facts.adBoostSoonestPaidRenewalDays <= 45) {
+    signals.push({
+      id: "paid-renewal-approaching",
+      title: "The paying provider's flight is ending.",
+      detail: `${facts.adBoostSoonestPaidRenewalDays} day${facts.adBoostSoonestPaidRenewalDays === 1 ? "" : "s"} until the soonest paid flight ends. With ${number(facts.payingProviders)} paying provider${facts.payingProviders === 1 ? "" : "s"}, losing one is the largest single move away from the target.`,
+      severity: facts.payingProviders <= 1 ? "urgent" : "watch",
       href: "/admin/ad-boost",
     });
   }

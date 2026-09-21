@@ -42,6 +42,19 @@ export interface PartnerUniversity {
   /** Defaults to DEFAULT_RADIUS_MILES when lat/lon are set. */
   radiusMiles?: number;
   catchment: CatchmentCity[];
+  /**
+   * A teaching campus, not a real one.
+   *
+   * It is in this list because the board reaches students through it: the
+   * campus-university bridge resolves a campus to a university here, and a
+   * campus the bridge cannot resolve has no students. Everything that
+   * reports on universities filters it out instead.
+   *
+   * Its catchment is empty on purpose. With no cities and no coordinates,
+   * nothing in the real provider directory can be pulled into it, so the
+   * demo cannot quietly acquire real agencies to work.
+   */
+  isDemo?: boolean;
 }
 
 export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
@@ -538,7 +551,21 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
       { city: "Taylorsville", state: "UT" },
     ],
   },
+  {
+    // Not a real university. See isDemo above.
+    slug: "dubose-university-of-olera",
+    name: "DuBose University of Olera",
+    city: "Demo",
+    state: "TX",
+    isDemo: true,
+    catchment: [],
+  },
 ];
+
+/** The universities that are real, which is every report's default. */
+export const LIVE_UNIVERSITIES: PartnerUniversity[] = PARTNER_UNIVERSITIES.filter(
+  (u) => !u.isDemo,
+);
 
 export function getUniversityBySlug(slug: string): PartnerUniversity | undefined {
   return PARTNER_UNIVERSITIES.find((u) => u.slug === slug);

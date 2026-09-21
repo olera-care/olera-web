@@ -179,6 +179,8 @@ export interface BoardUniversity {
    * the server because the catchment file that knows it is server-side.
    */
   mapsDestination: string | null;
+  /** A teaching campus. Badged on the board, and out of every rollup. */
+  isDemo?: boolean;
   /** Straight from campus_channels — the dots keep their current meaning. */
   channels: Partial<Record<"st3" | "st4" | "st5" | "st6" | "st7", ChannelStatus>>;
   records: Record<SectionKey, BoardRecord[]>;

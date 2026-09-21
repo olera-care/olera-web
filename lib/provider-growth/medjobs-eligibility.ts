@@ -5,7 +5,7 @@
  * Used during provider claim to auto-populate medjobs_eligible flag.
  */
 
-import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { LIVE_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 
 export interface MedjobsEligibility {
   eligible: boolean;
@@ -30,7 +30,7 @@ export function detectMedjobsCatchment(
   const normalizedCity = city.toLowerCase().trim();
   const normalizedState = state.toUpperCase().trim();
 
-  for (const uni of PARTNER_UNIVERSITIES) {
+  for (const uni of LIVE_UNIVERSITIES) {
     for (const catchment of uni.catchment) {
       if (
         catchment.city.toLowerCase() === normalizedCity &&
@@ -68,7 +68,7 @@ export function detectMedjobsCatchmentBatch(
  * Get all cities within a specific university's catchment.
  */
 export function getCatchmentCities(universitySlug: string): Array<{ city: string; state: string }> {
-  const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === universitySlug);
+  const uni = LIVE_UNIVERSITIES.find((u) => u.slug === universitySlug);
   return uni?.catchment ?? [];
 }
 
@@ -82,7 +82,7 @@ export function getPartnerUniversitySummary(): Array<{
   state: string;
   catchmentCount: number;
 }> {
-  return PARTNER_UNIVERSITIES.map((uni) => ({
+  return LIVE_UNIVERSITIES.map((uni) => ({
     slug: uni.slug,
     name: uni.name,
     city: uni.city,

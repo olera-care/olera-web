@@ -16,7 +16,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  PARTNER_UNIVERSITIES,
+  LIVE_UNIVERSITIES,
   type PartnerUniversity,
 } from "@/lib/staffing-outreach/partner-universities";
 import { fetchNonMedicalProviders } from "@/lib/medjobs/catchment";
@@ -74,7 +74,7 @@ export async function auditCatchments(
   // many universities we audit.
   const allStates = Array.from(
     new Set(
-      PARTNER_UNIVERSITIES.flatMap((u: PartnerUniversity) =>
+      LIVE_UNIVERSITIES.flatMap((u: PartnerUniversity) =>
         u.catchment.map((c) => c.state),
       ),
     ),
@@ -163,7 +163,7 @@ export async function auditCatchments(
   );
 
   const now = Date.now();
-  const rows: CatchmentAuditRow[] = PARTNER_UNIVERSITIES.map((uni) => {
+  const rows: CatchmentAuditRow[] = LIVE_UNIVERSITIES.map((uni) => {
     const matSet = materializedBySlug.get(uni.slug) ?? new Set<string>();
     const emptyCities: Array<{ city: string; state: string }> = [];
     let inCatchment = 0;

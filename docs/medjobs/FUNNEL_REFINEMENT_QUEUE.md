@@ -656,3 +656,46 @@ of work as this.
    everything above being settled.
 7. **10** — waits on the qualification criteria, which is a decision rather
    than a build.
+
+---
+
+## 14 · A university for teaching the board — SHIPPED
+
+**DuBose University of Olera.** A real campus row in the real tables, flagged
+`is_demo`. Not a separate code path: a fake one would drift from the thing
+being taught, and the point is to show the board as it is.
+
+The flag is a column rather than a name match for three reasons and the third
+is the one that matters. The board badges the row so nobody mistakes it for
+live work. The reset scopes to it, so a script written for the demo cannot
+reach a real campus. And the rollups leave it out, so a morning of teaching
+does not move a number anybody reports on. A name match would have done the
+first two and silently failed the third the first time somebody renamed it.
+
+**What is seeded.** Ten providers, one on each rung, plus one at the goal, one
+archived, one flagged for manager review, and one four rounds into the
+follow-up block and overdue so the warning shows. Four students at four
+stages. A job board part way through. Advisors, orgs, events and professors
+stay empty — those ladders are not being taught yet, and an empty section
+reads as not started rather than as broken.
+
+The map sweep is not seeded and does not need to be. The board shows it for
+any campus without a completed one, so it is there on a fresh reset and gone
+again once it has been demonstrated.
+
+**Reset.** `scripts/migration/demo-reset.sql`, run before every demo and safe
+to run twice. Dates are relative to the run, so the board always has
+something overdue, something due today and something due next week.
+
+**Students are invisible outside the board.** `is_active` false keeps them off
+the public candidate pages, and they carry `is_demo` in their own metadata
+rather than a campus id, because a student profile has no campus column. The
+reset matches on that marker, so a real student who typed the demo university
+into their application is not deleted by it.
+
+**The registry.** The demo university is in `PARTNER_UNIVERSITIES`, because
+that is how the campus-university bridge reaches students — a campus the
+bridge cannot resolve has no Students section at all. Its catchment is empty,
+so nothing in the real directory can be pulled into it. Everything that
+enumerates universities to report or to show the public now reads
+`LIVE_UNIVERSITIES` instead.

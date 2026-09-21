@@ -106,7 +106,7 @@ export async function GET() {
     siteTasksRes,
   ] =
     await Promise.all([
-      db.from("student_outreach_campuses").select("id, slug, name").order("name"),
+      db.from("student_outreach_campuses").select("id, slug, name, is_demo").order("name"),
       db.from("campus_channels").select("id, campus_id, channel, status, criteria, detail"),
       db
         .from("campus_channel_records")
@@ -779,6 +779,9 @@ export async function GET() {
       id: campus.id,
       slug: campus.slug,
       name: campus.name,
+      // Badged on the board. A teaching campus that looks like a real one is
+      // a trap for whoever opens the board next and starts working it.
+      isDemo: campus.is_demo === true,
       mapsDestination,
       channels,
       records,

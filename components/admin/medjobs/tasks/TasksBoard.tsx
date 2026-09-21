@@ -100,6 +100,14 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
                     <span className="flex items-center gap-2">
                       <span className="w-2 shrink-0">{n ? <DueDot /> : null}</span>
                       <span className="text-[13px] font-medium text-gray-900">{u.name}</span>
+                      {u.isDemo && (
+                        <span
+                          title="A teaching campus. Safe to work on, and left out of every report."
+                          className="shrink-0 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wide text-gray-500"
+                        >
+                          Demo
+                        </span>
+                      )}
                     </span>
                   </td>
                   <td className="py-2.5 pr-3 text-center text-[13px] font-semibold tabular-nums text-warning-700">

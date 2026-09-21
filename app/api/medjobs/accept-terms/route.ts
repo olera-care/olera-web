@@ -13,7 +13,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient, type SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { jobReadyEmail } from "@/lib/medjobs-email-templates";
-import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { LIVE_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import { recentlyNotifiedEmails } from "@/lib/medjobs/ready-notify";
 
 const TERMS_KEY = "interview_terms_accepted_at";
@@ -139,7 +139,7 @@ async function notifyCatchmentStudents(
   const pstate = provider.state.trim().toUpperCase();
 
   // Universities whose catchment includes this provider's city/state.
-  const matchingUnis = PARTNER_UNIVERSITIES.filter((u) =>
+  const matchingUnis = LIVE_UNIVERSITIES.filter((u) =>
     u.catchment.some((c) => c.city.toLowerCase() === pcity && c.state.toUpperCase() === pstate),
   );
   if (!matchingUnis.length) return;

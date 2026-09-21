@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { seedSections } from "@/lib/medjobs/scripts-seed";
 
 /**
  * The master scripts document, reading and writing.
@@ -46,11 +47,41 @@ export async function GET() {
   const admin = await getAdminUser(user.id);
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { data, error } = await getServiceClient()
-    .from("medjobs_scripts")
-    .select("*")
-    .order("position", { ascending: true });
+  const db = getServiceClient();
+
+  const read = async () =>
+    db.from("medjobs_scripts").select("*").order("position", { ascending: true });
+
+  let { data, error } = await read();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Whatever the document is missing, insert. Never update: an edit made in
+  // the UI is the better version by definition, and a read must not undo it.
+  //
+  // Done here rather than in the migration because the copy is thirty-odd
+  // kilobytes, which the Supabase editor truncates on paste. It also means a
+  // rung added next month gets its section with nothing to remember.
+  const have = new Set((data ?? []).map((r) => r.slug as string));
+  const missing = seedSections().filter((s) => !have.has(s.slug));
+  if (missing.length > 0) {
+    const { error: seedError } = await db.from("medjobs_scripts").insert(
+      missing.map((s) => ({
+        slug: s.slug,
+        kind: s.kind,
+        section: s.section,
+        rung_key: s.rungKey,
+        title: s.title,
+        call_script: s.callScript,
+        email_subject: s.emailSubject,
+        email_body: s.emailBody,
+        notes: s.notes,
+        position: s.position,
+      })),
+    );
+    if (seedError) return NextResponse.json({ error: seedError.message }, { status: 500 });
+    ({ data, error } = await read());
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   const rows: ScriptRow[] = (data ?? []).map((r) => ({
     id: r.id,

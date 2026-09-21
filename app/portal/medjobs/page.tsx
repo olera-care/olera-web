@@ -2066,8 +2066,8 @@ function StudentPortalContent({
             className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto"
             style={{ animation: "slide-up 0.3s ease-out both" }}
           >
-            {/* Handle + Header */}
-            <div className="sticky top-0 bg-white pt-3 pb-2 px-6 border-b border-gray-100">
+            {/* Handle + Header — z-10 ensures content scrolls under it */}
+            <div className="sticky top-0 z-10 bg-white pt-3 pb-2 px-6 border-b border-gray-100">
               <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-display font-bold text-gray-900">

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ORIGIN_LABEL, EPISODE_WORD } from "@/lib/seeker-touches/present";
 import LogFamilyTouch from "@/components/admin/LogFamilyTouch";
@@ -71,8 +71,14 @@ function Fact({ label, value, note, tone }: { label: string; value: string; note
   );
 }
 
-export default function AdminSeekerTimelinePage() {
+function AdminSeekerTimelineInner() {
   const { seekerId } = useParams<{ seekerId: string }>();
+  // The list carries the view it was showing in ?back=, so both ways out of
+  // this page land where you left. The browser button works on its own now
+  // that the list keeps its filters in the URL; this is the same trip for the
+  // link, which would otherwise always dump you on the unfiltered default.
+  const backQuery = useSearchParams().get("back");
+  const backHref = `/admin/relationships/families${backQuery ? `?${backQuery}` : ""}`;
   const [data, setData] = useState<SeekerRelationship | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -119,7 +125,7 @@ export default function AdminSeekerTimelinePage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10">
         <p className="text-sm text-red-600">{error}</p>
-        <Link href="/admin/relationships/families" className="mt-3 inline-block text-sm text-teal-700 hover:underline">
+        <Link href={backHref} className="mt-3 inline-block text-sm text-teal-700 hover:underline">
           ← Back to Care Seeker Relationships
         </Link>
       </div>
@@ -159,7 +165,7 @@ export default function AdminSeekerTimelinePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      <Link href="/admin/relationships/families" className="text-xs text-teal-700 hover:underline">
+      <Link href={backHref} className="text-xs text-teal-700 hover:underline">
         ← Care Seeker Relationships
       </Link>
 
@@ -332,5 +338,13 @@ export default function AdminSeekerTimelinePage() {
         derived from what already happened.
       </p>
     </div>
+  );
+}
+
+export default function AdminSeekerTimelinePage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-4xl px-4 py-10 text-sm text-gray-400">Loading…</div>}>
+      <AdminSeekerTimelineInner />
+    </Suspense>
   );
 }

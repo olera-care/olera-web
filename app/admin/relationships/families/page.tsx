@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { SeekerRelationshipRow } from "@/lib/seeker-touches/types";
 import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, stateOf, type Tone } from "@/lib/seeker-touches/present";
@@ -229,14 +230,54 @@ function ArchiveControl({ row, onDone }: { row: SeekerRelationshipRow; onDone: (
   );
 }
 
-export default function AdminSeekerRelationshipsPage() {
+const ORIGINS = ["city_ad", "ad_boost", "benefits", "provider_page", "unknown"] as const;
+const DAY_CHOICES = [14, 45, 90, 180];
+
+/**
+ * WHICH QUEUE, WHICH ORIGIN AND HOW FAR BACK LIVE IN THE URL, NOT IN STATE.
+ *
+ * They were useState, so the list URL was the same string whatever you were
+ * looking at. Open a family, press the browser back button, and you landed on
+ * the unfiltered default and had to rebuild the view by hand. A filtered queue
+ * IS a place; a place needs an address.
+ *
+ * Filter changes use router.replace, not push. With push, every chip you tried
+ * would become a history entry and getting back out of the page would mean
+ * pressing back once per chip.
+ */
+function AdminSeekerRelationshipsInner() {
+  const router = useRouter();
+  const params = useSearchParams();
   const [rows, setRows] = useState<SeekerRelationshipRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("reply");
+
+  const tab: Tab = (TABS.find((t) => t.key === params.get("tab"))?.key ?? "reply") as Tab;
   // Where they came from, filtered independently of what needs doing. You
   // almost always want "the ad families in this queue", not one or the other.
-  const [origin, setOrigin] = useState<"all" | SeekerRelationshipRow["origin"]>("all");
-  const [days, setDays] = useState(45);
+  const origin = (ORIGINS as readonly string[]).includes(params.get("from") ?? "")
+    ? (params.get("from") as SeekerRelationshipRow["origin"])
+    : ("all" as const);
+  const days = DAY_CHOICES.includes(Number(params.get("days"))) ? Number(params.get("days")) : 45;
+
+  // Defaults are omitted from the URL so the address stays readable and the
+  // bare route keeps meaning "the reply queue, everywhere, 45 days".
+  const setQuery = useCallback(
+    (patch: Record<string, string | null>) => {
+      const next = new URLSearchParams(params.toString());
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === null) next.delete(k);
+        else next.set(k, v);
+      }
+      const qs = next.toString();
+      router.replace(qs ? `?${qs}` : "/admin/relationships/families", { scroll: false });
+    },
+    [params, router],
+  );
+  const setTab = (t: Tab) => setQuery({ tab: t === "reply" ? null : t });
+  const setOrigin = (o: "all" | SeekerRelationshipRow["origin"]) => setQuery({ from: o === "all" ? null : o });
+  const setDays = (d: number) => setQuery({ days: d === 45 ? null : String(d) });
+  // Carried onto each row so the in-page back link returns to this exact view.
+  const listQuery = params.toString();
 
   const load = useCallback(async () => {
     setError(null);
@@ -334,31 +375,43 @@ export default function AdminSeekerRelationshipsPage() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-gray-200 px-3.5 py-3 text-xs">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setTab(t.key)}
-              className={`rounded-full border px-3 py-1 font-medium ${
-                tab === t.key
-                  ? "border-gray-900 bg-gray-900 text-white"
-                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {t.label} {rows ? `· ${counts[t.key]}` : ""}
-            </button>
-          ))}
+        {/* UNDERLINE TABS, NOT PILLS — the same strip /admin/connections uses.
+            Six filled capsules were the loudest thing on the page and they
+            competed with the coloured rails, which are the part that actually
+            says something. They also wrapped: with ml-auto in the same wrapping
+            flow, the window select was pushed onto a line of its own the moment
+            the tabs filled the row. The strip scrolls sideways instead of
+            wrapping, so the chrome is a fixed height at every width, and the
+            select sits outside it and never moves. */}
+        <div className="flex items-stretch gap-2 border-t border-gray-200 pl-2 pr-3.5">
+          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setTab(t.key)}
+                className={`whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+                  tab === t.key
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {t.label}
+                {rows ? <span className={`ml-1.5 ${tab === t.key ? "text-gray-500" : "text-gray-300"}`}>{counts[t.key]}</span> : null}
+              </button>
+            ))}
+          </div>
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
-            className="ml-auto rounded border border-gray-200 bg-white px-1.5 py-1 font-mono text-[11px] text-gray-600"
+            className="my-auto shrink-0 rounded border border-gray-200 bg-white px-1.5 py-1 font-mono text-[11px] text-gray-600"
             aria-label="How far back to look"
           >
-            <option value={14}>14 days</option>
-            <option value={45}>45 days</option>
-            <option value={90}>90 days</option>
-            <option value={180}>180 days</option>
+            {DAY_CHOICES.map((d) => (
+              <option key={d} value={d}>
+                {d} days
+              </option>
+            ))}
           </select>
         </div>
 
@@ -371,29 +424,33 @@ export default function AdminSeekerRelationshipsPage() {
             honest name for the big one — a connection records nothing about
             acquisition, so we know they enquired from a provider page and not
             how they got there. Paid counts are a floor, never a total. */}
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-gray-200 px-3.5 pb-3 text-[11px]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-gray-200 px-3.5 pb-3 text-[11px]">
           <span className="mr-0.5 font-mono uppercase tracking-[0.1em] text-gray-400">From</span>
           <button
             type="button"
             onClick={() => setOrigin("all")}
-            className={`rounded-full border px-2 py-0.5 font-medium ${
-              origin === "all" ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-            }`}
+            className={`font-medium ${origin === "all" ? "text-gray-900 underline underline-offset-2" : "text-gray-500 hover:text-gray-800"}`}
           >
             Anywhere
           </button>
-          {(["city_ad", "ad_boost", "benefits", "provider_page", "unknown"] as const).map((o) => (
-            <button
-              key={o}
-              type="button"
-              disabled={!originCounts[o]}
-              onClick={() => setOrigin(o)}
-              className={`rounded-full border px-2 py-0.5 font-medium disabled:opacity-35 ${
-                origin === o ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {ORIGIN_LABEL[o]} {rows ? originCounts[o] ?? 0 : ""}
-            </button>
+          {/* Only origins that are actually in this queue. A greyed "Ad Boost 0"
+              reads as "we have no Ad Boost families", when it means "none in
+              this queue" — and half the row was that. An origin the filter is
+              currently ON stays visible even at zero, or clicking it would make
+              the control that produced the empty list disappear. */}
+          {ORIGINS.filter((o) => originCounts[o] || origin === o).map((o) => (
+            <span key={o} className="flex items-center gap-2">
+              <span aria-hidden className="text-gray-300">
+                ·
+              </span>
+              <button
+                type="button"
+                onClick={() => setOrigin(o)}
+                className={`font-medium ${origin === o ? "text-gray-900 underline underline-offset-2" : "text-gray-500 hover:text-gray-800"}`}
+              >
+                {ORIGIN_LABEL[o]} {rows ? originCounts[o] ?? 0 : ""}
+              </button>
+            </span>
           ))}
         </div>
 
@@ -452,7 +509,7 @@ export default function AdminSeekerRelationshipsPage() {
               className={`flex items-start border-b border-l-[3px] border-b-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 ${RAIL[st.tone]}`}
             >
             <Link
-              href={`/admin/relationships/families/${r.seeker_id}`}
+              href={`/admin/relationships/families/${r.seeker_id}${listQuery ? `?back=${encodeURIComponent(listQuery)}` : ""}`}
               className="flex min-w-0 flex-1 items-start gap-4 py-3.5 pl-4 pr-2"
             >
               <div className="min-w-0 flex-1">
@@ -498,5 +555,13 @@ export default function AdminSeekerRelationshipsPage() {
         Nothing on this page is stored, so it cannot disagree with the events it is built from.
       </p>
     </div>
+  );
+}
+
+export default function AdminSeekerRelationshipsPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-5xl px-4 py-10 text-sm text-gray-400">Loading…</div>}>
+      <AdminSeekerRelationshipsInner />
+    </Suspense>
   );
 }

@@ -588,6 +588,12 @@ export type WarRoomFailureDiagnostic = {
 
 class WarRoomProviderError extends Error {
   readonly diagnostic: WarRoomFailureDiagnostic;
+  /**
+   * A truncated call was still billed. The dossier pass retries it with a
+   * different ask, so without carrying the usage here the retry's first half
+   * vanishes from the ledger and the pass looks cheaper than it was.
+   */
+  cost?: WarRoomCallCost;
   constructor(message: string, diagnostic: WarRoomFailureDiagnostic) {
     super(message);
     this.name = "WarRoomProviderError";
@@ -784,6 +790,32 @@ function buildOperatingPack(
 }
 
 /**
+ * What one model call actually cost.
+ *
+ * Until 2026-09-22 the only cost number in the system was one total per scan,
+ * so "which pass is expensive" could only be answered by dividing that total by
+ * the number of calls. That estimate was wrong twice in one day, in both
+ * directions, and both times it was used to argue for an optimisation. The
+ * passes are not comparable: the lens sweep and the dossier pass each carry the
+ * whole operating pack, triage carries a reduced context built by
+ * `councilContextFor`, and drafting only runs when something was nominated.
+ *
+ * Cache counters are recorded now, before any caching exists, so that when a
+ * cache breakpoint is added the read and write split is visible immediately
+ * rather than inferred from a total that moved.
+ */
+export type WarRoomCallCost = {
+  stage: string;
+  tool: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheCreationTokens: number;
+  ms: number;
+};
+
+/**
  * Every model call goes through here so a provider rejection always produces a
  * structured, sanitized diagnostic instead of an opaque string. Streaming keeps
  * the connection alive across the provider's grammar-compilation pause, which
@@ -795,9 +827,10 @@ async function callWarRoomTool<T>(input: {
   tool: Anthropic.Messages.Tool;
   maxTokens: number;
   prompt: string;
-}): Promise<{ output: T; inputTokens: number; outputTokens: number }> {
+}): Promise<{ output: T; inputTokens: number; outputTokens: number; cost: WarRoomCallCost }> {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const startedAt = Date.now();
   try {
     const message = await anthropic.messages.stream({
       model: WAR_ROOM_DISCOVERY_MODEL,
@@ -811,7 +844,11 @@ async function callWarRoomTool<T>(input: {
     // silently is how a half-finished sweep turns into a fake company read, so
     // treat it as a hard failure and let the durable step retry.
     if (message.stop_reason === "max_tokens") {
-      throw new WarRoomProviderError(
+      const truncatedUsage = message.usage as typeof message.usage & {
+        cache_read_input_tokens?: number | null;
+        cache_creation_input_tokens?: number | null;
+      };
+      const truncated = new WarRoomProviderError(
         `war_room_truncated_tool_output:${input.tool.name}`,
         {
           stage: input.stage,
@@ -826,11 +863,36 @@ async function callWarRoomTool<T>(input: {
           failedAt: new Date().toISOString(),
         },
       );
+      truncated.cost = {
+        stage: input.stage,
+        tool: input.tool.name,
+        model: WAR_ROOM_DISCOVERY_MODEL,
+        inputTokens: truncatedUsage.input_tokens,
+        outputTokens: truncatedUsage.output_tokens,
+        cacheReadTokens: truncatedUsage.cache_read_input_tokens ?? 0,
+        cacheCreationTokens: truncatedUsage.cache_creation_input_tokens ?? 0,
+        ms: Date.now() - startedAt,
+      };
+      throw truncated;
     }
+    const usage = message.usage as typeof message.usage & {
+      cache_read_input_tokens?: number | null;
+      cache_creation_input_tokens?: number | null;
+    };
     return {
       output: toolInput<T>(message, input.tool.name),
-      inputTokens: message.usage.input_tokens,
-      outputTokens: message.usage.output_tokens,
+      inputTokens: usage.input_tokens,
+      outputTokens: usage.output_tokens,
+      cost: {
+        stage: input.stage,
+        tool: input.tool.name,
+        model: WAR_ROOM_DISCOVERY_MODEL,
+        inputTokens: usage.input_tokens,
+        outputTokens: usage.output_tokens,
+        cacheReadTokens: usage.cache_read_input_tokens ?? 0,
+        cacheCreationTokens: usage.cache_creation_input_tokens ?? 0,
+        ms: Date.now() - startedAt,
+      },
     };
   } catch (error) {
     // The truncation check above throws from inside this try. Re-wrapping it
@@ -871,7 +933,7 @@ async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingP
         ),
       };
     }) as StrategicLensReview[];
-    return { reviews, inputTokens: call.inputTokens, outputTokens: call.outputTokens };
+    return { reviews, inputTokens: call.inputTokens, outputTokens: call.outputTokens, calls: [call.cost] };
   }));
 
   return {
@@ -881,6 +943,7 @@ async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingP
       .filter((review): review is StrategicLensReview => Boolean(review)),
     inputTokens: results.reduce((sum, result) => sum + result.inputTokens, 0),
     outputTokens: results.reduce((sum, result) => sum + result.outputTokens, 0),
+    calls: results.flatMap((result) => result.calls),
   };
 }
 
@@ -899,10 +962,15 @@ async function runDossierPass(
   });
 
   let call: Awaited<ReturnType<typeof attempt>>;
+  // A truncation retry is a second paid call. Recording only the winner hides
+  // the most expensive failure mode this pass has.
+  const calls: WarRoomCallCost[] = [];
   try {
     call = await attempt(DOSSIER_MAX_TOKENS);
   } catch (error) {
     if (!isTruncationError(error, WIRE_DOSSIER_TOOL.name)) throw error;
+    const truncatedCost = (error as WarRoomProviderError).cost;
+    if (truncatedCost) calls.push({ ...truncatedCost, stage: "forming_candidates_truncated" });
     // Retry with a different ask, not the same one. The durable step's own
     // retry re-sends an identical request, which is why every truncation so far
     // has failed twice and taken the scan with it.
@@ -916,6 +984,7 @@ async function runDossierPass(
     portfolioRead: call.output?.portfolioRead ?? "",
     inputTokens: call.inputTokens,
     outputTokens: call.outputTokens,
+    calls: [...calls, call.cost],
   };
 }
 
@@ -945,6 +1014,7 @@ async function runTriagePass(
     rawTriageOutput: call.output,
     inputTokens: call.inputTokens,
     outputTokens: call.outputTokens,
+    calls: [call.cost],
   };
 }
 
@@ -1067,6 +1137,7 @@ ${investigator.rawInvestigatorOutput.portfolioRead}`,
     } as unknown as AgendaProposalDraft,
     inputTokens: call.inputTokens,
     outputTokens: call.outputTokens,
+    calls: [call.cost],
   };
 }
 
@@ -1100,6 +1171,7 @@ async function runProposalPass(
     } as unknown as AgendaProposalDraft,
     inputTokens: call.inputTokens,
     outputTokens: call.outputTokens,
+    calls: [call.cost],
   };
 }
 
@@ -1650,6 +1722,7 @@ export type WarRoomLensSweepCheckpoint = {
   lensReviews: StrategicLensReview[];
   inputTokens: number;
   outputTokens: number;
+  calls: WarRoomCallCost[];
 };
 
 export type WarRoomInvestigatorCheckpoint = {
@@ -1657,19 +1730,52 @@ export type WarRoomInvestigatorCheckpoint = {
   provisionalInvestigations: InvestigationDraft[];
   inputTokens: number;
   outputTokens: number;
+  calls: WarRoomCallCost[];
 };
 
 export type WarRoomTriageCheckpoint = {
   rawTriageOutput: TriageToolOutput;
   inputTokens: number;
   outputTokens: number;
+  calls: WarRoomCallCost[];
 };
 
 export type WarRoomCouncilCheckpoint = {
   rawCouncilOutput: CouncilOutput;
   inputTokens: number;
   outputTokens: number;
+  calls: WarRoomCallCost[];
 };
+
+/**
+ * Append this step's model calls to the run's cost ledger.
+ *
+ * Read-modify-write is safe here because the two callers are separate durable
+ * steps that never overlap: the investigator step completes before the council
+ * step begins. The concurrent pair inside the lens sweep is merged in memory by
+ * `runLensSweepPass` before it ever reaches this function.
+ *
+ * A ledger failure must never fail a scan. The numbers are for deciding what to
+ * optimise; losing a row costs a day of measurement, not a company read.
+ */
+async function appendCostLedger(
+  db: SupabaseClient,
+  runId: string,
+  calls: WarRoomCallCost[],
+): Promise<void> {
+  if (!calls.length) return;
+  try {
+    const { data } = await db.from("war_room_discovery_runs")
+      .select("source_summary")
+      .eq("id", runId)
+      .maybeSingle();
+    const summary = (data?.source_summary ?? {}) as Record<string, unknown>;
+    const existing = Array.isArray(summary.cost_ledger) ? summary.cost_ledger as WarRoomCallCost[] : [];
+    await mergeSourceSummary(db, runId, { cost_ledger: [...existing, ...calls] });
+  } catch {
+    // Deliberately swallowed. See the doc comment.
+  }
+}
 
 async function updateDiscoveryStage(
   db: SupabaseClient,
@@ -1905,7 +2011,9 @@ export async function sweepWarRoomLenses(
 ): Promise<WarRoomLensSweepCheckpoint> {
   const db = getServiceClient();
   const existing = (await readCheckpoints(db, runId)).lensSweep as WarRoomLensSweepCheckpoint | undefined;
-  if (existing?.lensReviews?.length) return existing;
+  // A checkpoint written before the cost ledger existed has no `calls` key, and
+  // an in-flight run resuming across this deploy would spread undefined.
+  if (existing?.lensReviews?.length) return { ...existing, calls: existing.calls ?? [] };
 
   await updateDiscoveryStage(db, runId, "sweeping_lenses", { stage_attempt: attempt });
   return withFailureDiagnostic(runId, "sweeping_lenses", async () => {
@@ -1952,6 +2060,9 @@ export async function investigateWarRoomDiscovery(
       provisionalInvestigations: provisionalFor(rawInvestigatorOutput),
       inputTokens: run.input_tokens ?? 0,
       outputTokens: run.output_tokens ?? 0,
+      // Resumed from a checkpoint: these calls were billed and ledgered on the
+      // earlier attempt. Replaying them here would double-count the scan.
+      calls: [],
     };
   }
 
@@ -1988,7 +2099,9 @@ export async function investigateWarRoomDiscovery(
       output_tokens: outputTokens,
     }).eq("id", runId).eq("status", "running");
     if (checkpointError) throw checkpointError;
-    return { rawInvestigatorOutput, provisionalInvestigations, inputTokens, outputTokens };
+    const calls = [...sweep.calls, ...dossierPass.calls];
+    await appendCostLedger(db, runId, calls);
+    return { rawInvestigatorOutput, provisionalInvestigations, inputTokens, outputTokens, calls };
   });
 }
 
@@ -2000,7 +2113,7 @@ export async function triageWarRoomAgenda(
 ): Promise<WarRoomTriageCheckpoint> {
   const db = getServiceClient();
   const existing = (await readCheckpoints(db, runId)).triage as WarRoomTriageCheckpoint | undefined;
-  if (existing?.rawTriageOutput) return existing;
+  if (existing?.rawTriageOutput) return { ...existing, calls: existing.calls ?? [] };
 
   await updateDiscoveryStage(db, runId, "challenging_candidates", { stage_attempt: attempt });
   return withFailureDiagnostic(runId, "challenging_candidates", async () => {
@@ -2028,6 +2141,7 @@ export async function challengeWarRoomDiscovery(
       rawCouncilOutput: run.raw_council_output as CouncilOutput,
       inputTokens: Math.max(0, (run.input_tokens ?? 0) - investigator.inputTokens),
       outputTokens: Math.max(0, (run.output_tokens ?? 0) - investigator.outputTokens),
+      calls: [],
     };
   }
 
@@ -2043,6 +2157,7 @@ export async function challengeWarRoomDiscovery(
     let proposals: AgendaProposalDraft[] = [];
     let inputTokens = triage.inputTokens;
     let outputTokens = triage.outputTokens;
+    const calls: WarRoomCallCost[] = [...triage.calls];
     // Zero founder decisions is the normal answer, and it costs no extra call.
     if (nominated) {
       await updateDiscoveryStage(db, runId, "drafting_decision", { stage_attempt: attempt });
@@ -2050,6 +2165,7 @@ export async function challengeWarRoomDiscovery(
       proposals = [drafted.proposal];
       inputTokens += drafted.inputTokens;
       outputTokens += drafted.outputTokens;
+      calls.push(...drafted.calls);
     } else {
       // Nothing is decidable, which is the normal case and was previously the
       // end of the scan. It is not the end: a condition that needs evidence
@@ -2067,6 +2183,7 @@ export async function challengeWarRoomDiscovery(
         proposals = [drafted.proposal];
         inputTokens += drafted.inputTokens;
         outputTokens += drafted.outputTokens;
+        calls.push(...drafted.calls);
       }
     }
     const rawCouncilOutput: CouncilOutput = { ...triage.rawTriageOutput, proposals };
@@ -2076,7 +2193,8 @@ export async function challengeWarRoomDiscovery(
       output_tokens: investigator.outputTokens + outputTokens,
     }).eq("id", runId).eq("status", "running");
     if (checkpointError) throw checkpointError;
-    return { rawCouncilOutput, inputTokens, outputTokens };
+    await appendCostLedger(db, runId, calls);
+    return { rawCouncilOutput, inputTokens, outputTokens, calls };
   });
 }
 
@@ -2133,10 +2251,20 @@ export async function persistWarRoomDiscovery(
   );
   await linkInvestigationsToProposals(db, runId, proposalSave.acceptedDrafts);
   await saveOutcomes(db, result.outcomes, result.evidenceCatalog);
+  // `prepared.sourceSummary` is the snapshot taken at prepare time, before the
+  // model ever ran. Spreading it alone discards everything written to
+  // source_summary during the scan -- the cost ledger among it -- so the live
+  // row is read back and layered on top of it.
+  const { data: liveRow } = await db.from("war_room_discovery_runs")
+    .select("source_summary")
+    .eq("id", runId)
+    .maybeSingle();
+  const liveSummary = (liveRow?.source_summary ?? {}) as Record<string, unknown>;
   const { error: finishError } = await db.from("war_room_discovery_runs").update({
     status: "completed",
     source_summary: {
       ...prepared.sourceSummary,
+      ...liveSummary,
       stage: "completed",
       last_heartbeat_at: new Date().toISOString(),
       company_verdict: persistedCompanyRead.summary,

@@ -288,6 +288,16 @@ export type SeekerRelationshipRow = SeekerContact & {
   open_action: SeekerOpenAction | null;
   /** True once a logged touch says we actually spoke to them. */
   ever_reached: boolean;
+  /**
+   * A person decided this row is not a case to work. Null for everyone else.
+   *
+   * Not suppression and not erasure: it says nobody needs to act, never that we
+   * may not write to them. An archived row carries no work flags and sits out
+   * of every queue, which is the whole point — "Test McTest" held the top of
+   * "Reply to them" for 1,098 days because a test message genuinely has no
+   * reply, and no event would ever have said otherwise.
+   */
+  archived: { reason: string; note: string | null; at: string } | null;
 };
 
 export type SeekerRelationship = {
@@ -302,4 +312,6 @@ export type SeekerRelationship = {
   open_action: SeekerOpenAction | null;
   ever_reached: boolean;
   items: SeekerTimelineItem[];
+  /** See SeekerRelationshipRow.archived. */
+  archived: { reason: string; note: string | null; at: string } | null;
 };

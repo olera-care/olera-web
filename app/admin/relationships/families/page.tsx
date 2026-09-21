@@ -162,12 +162,14 @@ export default function AdminSeekerRelationshipsPage() {
             Every family who needs something from us, grouped by what to do about it. Open one for the whole story.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* "Providers" alone also describes the directory at
+              /admin/directory. Name the page it actually opens. */}
           <Link
             href="/admin/relationships"
             className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
           >
-            Providers
+            Provider relationships
           </Link>
           <a
             href={`/api/admin/seeker-touches?days=${days}&format=md`}

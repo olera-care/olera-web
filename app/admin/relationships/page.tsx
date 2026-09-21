@@ -100,9 +100,16 @@ export default function AdminRelationshipsPage() {
             Who is due, and who has gone quiet. Every touch on every channel, from anyone. Open the provider for the whole story.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* flex-wrap because these labels grew. Three buttons at the old
+            short names fitted a phone; "Care seeker relationships" beside
+            them does not, and an un-wrapped row pushes the last one off
+            screen rather than dropping it to a second line. */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Named for where it goes. "Care seekers" is also a DIFFERENT page
+              in the nav — the records list at /admin/care-seekers — so the
+              same two words pointed at two destinations. */}
           <Link href="/admin/relationships/families" className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">
-            Care seekers
+            Care seeker relationships
           </Link>
           <a href="/api/admin/touches?format=md" target="_blank" rel="noreferrer" className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">
             Read as text

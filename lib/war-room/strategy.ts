@@ -621,7 +621,16 @@ function isInstrumentationProposal(
   proposal: AgendaProposalDraft,
   investigation: InvestigationDraft,
 ): boolean {
-  if (proposal.actionKind !== "code") return false;
+  // Repository work is bounded by a pull request nobody has to merge. A human
+  // act is bounded by a named owner plus a founder approval, and the approval
+  // is delivered to TJ rather than to the assignee, so nothing reaches a person
+  // without him forwarding it. Both are acceptable; an unowned human act is
+  // not, because nobody is accountable for it.
+  //
+  // Requiring `code` here contradicted the commission prompt, which tells the
+  // model that an operations act with a named owner is often the right answer.
+  // Two changes written the same day, disagreeing with each other.
+  if (proposal.actionKind !== "code" && !proposal.assignedOwner?.trim()) return false;
   if (!investigation.unknowns.some((unknown) => cleanExecutiveText(unknown).length >= 12)) return false;
   // How it will be read, and how it could be cheaply falsified. An instrument
   // nobody will read is a feature, and one that cannot fail is decoration.

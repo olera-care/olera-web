@@ -970,6 +970,18 @@ function pickCommissionCandidate(
     .map((assessment) => assessment.fingerprint);
   const candidates = investigator.provisionalInvestigations.filter((investigation) =>
     blocked.includes(investigation.fingerprint)
+    // Match the gate's `material` test exactly. Commissioning a medium or
+    // adjacent condition buys a model call that cannot pass, which is paying
+    // to be rejected.
+    && investigation.impact === "high"
+    && investigation.strategicFit === "central"
+    // The rest of the gate, checked before spending the call rather than
+    // after. Measured against live data on 2026-09-21: 7 of 9 high-central
+    // conditions clear these, and the 2 that cannot are lens-retained rows
+    // with no options and no recorded capabilities. Drafting against one of
+    // those is paying to be rejected.
+    && (investigation.options?.length ?? 0) >= 2
+    && (investigation.existingCapabilities ?? []).some((item) => item.trim().length >= 20)
     // Only commission against a condition that actually names something to
     // resolve. Without an unknown there is nothing for an instrument to answer.
     && (investigation.unknowns ?? []).some((unknown) => unknown.trim().length >= 12));

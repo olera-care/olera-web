@@ -98,9 +98,18 @@ export function evaluateWarRoomReasoning(input: {
   const requestedAgendaFingerprints = new Set(initialAssessments
     .filter((assessment) => assessment.disposition === "agenda")
     .map((assessment) => assessment.fingerprint));
+  // A commission comes from a condition triage marked `needs_evidence`, which
+  // by definition is NOT `agenda`. Filtering on agenda alone therefore drafted
+  // the commission, paid for the model call, and dropped it one step before the
+  // gate -- the same "built downstream of a filter nobody checked" defect that
+  // hid the metrics work and the instrument route earlier the same day.
+  const commissionedFingerprints = new Set(initialAssessments
+    .filter((assessment) => assessment.reasonCode === "needs_evidence")
+    .map((assessment) => assessment.fingerprint));
   const proposals = applyAgendaGate(
     eligibleProposals.filter((proposal) =>
-      requestedAgendaFingerprints.has(proposal.sourceInvestigationFingerprint)),
+      requestedAgendaFingerprints.has(proposal.sourceInvestigationFingerprint)
+      || commissionedFingerprints.has(proposal.sourceInvestigationFingerprint)),
     investigations,
     evidenceCatalog,
   ).map((proposal) => ({

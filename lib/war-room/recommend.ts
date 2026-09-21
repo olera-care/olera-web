@@ -25,6 +25,12 @@ export interface WarRoomFacts {
   adBoostStalledAttended: number;
   adBoostSoonestPaidRenewalDays: number | null;
   adBoostCallRecordAvailable: boolean;
+  // The target, from the editable company model rather than a constant. A
+  // priority says what matters; a target says how far away it is.
+  northStarLabel: string | null;
+  northStarTarget: number | null;
+  northStarCurrent: number | null;
+  northStarDaysRemaining: number | null;
   supportUnhandled: number;
   supportUrgent: number;
   latestGrowthAt: string | null;

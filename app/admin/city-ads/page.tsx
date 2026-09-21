@@ -93,6 +93,7 @@ type Provider = { id: string; display_name: string | null; city: string | null; 
 type PoolRow = { id: string; slug: string; provider_id: string; position: number; care_types: string[]; enabled: boolean; is_test: boolean; phone_override: string | null; provider: Provider };
 type Offer = { id: string; provider_id: string; position: number; offered_at: string; expires_at: string; accepted_at: string | null; declined_at: string | null; decline_reason: string | null; expired_at: string | null; reached_channels: string[] | null; delivery_note: string | null; provider: Provider };
 type FamilyText = { id: string; created_at: string; email_type: string; status: string; html_body: string | null };
+type InboundText = { id: string; created_at: string; body: string | null };
 type Lead = {
   is_test?: boolean;
   capture_method?: string;
@@ -106,6 +107,10 @@ type Lead = {
   archived_at: string | null;
   archive_reason: string | null;
   messages: {id:string;channel:string;body:string;subject:string|null;status:string;send_after:string;last_error:string|null}[];
+  inbound?: InboundText[];
+  qualification_verdict?: string | null;
+  qualification_verdict_category?: string | null;
+  qualification_verdict_reason?: string | null;
   utm_medium: string | null;
   care_recipient: string | null;
   care_type: string;
@@ -608,6 +613,29 @@ function firstWord(name: string | null): string {
  */
 function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
   const sent = l.texts ?? [];
+  // BOTH DIRECTIONS, IN ORDER. This panel showed only what we sent, so the
+  // single place a family's own words appeared was the qualification field,
+  // which keeps just the first reply. Bessie Brooks texted three times and the
+  // second named her area; the provider saw all of it and the person deciding
+  // what to do next saw one line.
+  const thread = [
+    ...sent.map((t) => ({
+      kind: "out" as const,
+      id: t.id,
+      at: t.created_at,
+      body: t.html_body,
+      status: t.status,
+      label: TEXT_LABEL[t.email_type] ?? t.email_type.replace(/^city_lead_/, "").replace(/_/g, " "),
+    })),
+    ...(l.inbound ?? []).map((m) => ({
+      kind: "in" as const,
+      id: m.id,
+      at: m.created_at,
+      body: m.body,
+      status: null as string | null,
+      label: "",
+    })),
+  ].sort((a, b) => a.at.localeCompare(b.at));
   const sendWindow = citySendWindow(l.slug);
   const [draft, setDraft] = useState(
     `Hi ${firstWord(l.first_name)}, this is TJ with Olera. I tried calling about the help at home you asked for. Is there a good time to reach you, or would you rather I text you what I find?`,
@@ -623,17 +651,27 @@ function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (
   }
   return (
     <div className="mt-3 border-t border-gray-200 pt-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Texts to {firstWord(l.first_name)}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Conversation with {firstWord(l.first_name)}</p>
       <ul className="mt-2 space-y-1.5">
-        {sent.length === 0 && <li className="text-xs text-gray-500">Nothing sent yet.</li>}
-        {sent.map((t) => (
-          <li key={t.id} className="text-xs">
-            <span className="text-gray-400">{fmtTime(t.created_at)}</span>{" "}
-            <span className="font-medium text-gray-700">{TEXT_LABEL[t.email_type] ?? t.email_type.replace(/^city_lead_/, "").replace(/_/g, " ")}</span>
-            {t.status !== "sent" && <span className="ml-1.5 text-error-700">{t.status}</span>}
-            {t.html_body && <span className="mt-0.5 block text-gray-600">&ldquo;{t.html_body}&rdquo;</span>}
-          </li>
-        ))}
+        {thread.length === 0 && <li className="text-xs text-gray-500">Nothing sent yet.</li>}
+        {thread.map((t) =>
+          t.kind === "out" ? (
+            <li key={`o-${t.id}`} className="text-xs">
+              <span className="text-gray-400">{fmtTime(t.at)}</span>{" "}
+              <span className="font-medium text-gray-700">{t.label}</span>
+              {t.status && t.status !== "sent" && <span className="ml-1.5 text-error-700">{t.status}</span>}
+              {t.body && <span className="mt-0.5 block text-gray-600">&ldquo;{t.body}&rdquo;</span>}
+            </li>
+          ) : (
+            // Their side. Indented and tinted so the two directions are
+            // readable at a glance rather than as one undifferentiated list.
+            <li key={`i-${t.id}`} className="ml-4 border-l-2 border-primary-200 pl-2 text-xs">
+              <span className="text-gray-400">{fmtTime(t.at)}</span>{" "}
+              <span className="font-medium text-primary-800">{firstWord(l.first_name)} replied</span>
+              {t.body && <span className="mt-0.5 block text-gray-900">&ldquo;{t.body}&rdquo;</span>}
+            </li>
+          ),
+        )}
       </ul>
       <ul className="mt-3 space-y-2">
         {(l.messages ?? []).map(m => <li key={m.id} className="rounded border border-gray-200 p-2 text-xs">
@@ -705,12 +743,36 @@ function Qualification({ lead: l, busy, act }: { lead: Lead; busy: boolean; act:
   // no qualification to show and no way to get one. A closed lead that DID
   // answer keeps showing what it said, which is often the reason it closed.
   if (closed && !l.qualification_reply) return null;
+  // WHY THE MACHINE DECIDED WHAT IT DECIDED.
+  //
+  // A classifier reads this reply and can stop a lead reaching any provider,
+  // or file it away on its own. Without the verdict and its reasoning on the
+  // page, a wrong call is invisible: the lead simply never appears, and the
+  // only account of it was a Slack message. Showing the sentence it wrote is
+  // what makes the decision arguable by a person.
+  const verdict = l.qualification_verdict;
+  const verdictTone =
+    verdict === "care_seeker" ? "text-success-700" : verdict === "not_care_seeker" ? "text-error-700" : "text-gray-600";
+  const verdictLabel =
+    verdict === "care_seeker"
+      ? "Read as a family looking for care"
+      : verdict === "not_care_seeker"
+        ? `Read as ${(l.qualification_verdict_category ?? "not a care seeker").replace(/_/g, " ")} — held back from providers`
+        : verdict === "unclear"
+          ? "Could not tell — waiting for a person"
+          : null;
   return (
     <div className="mt-3 rounded bg-white px-2.5 py-2">
       {l.qualification_reply ? (
         <p className="text-xs text-gray-700">
           <span className="font-medium text-gray-900">{asked}:</span> &ldquo;{l.qualification_reply}&rdquo;
           <span className="ml-2 text-gray-400">{fmtTime(l.qualification_reply_at)}</span>
+          {verdictLabel && (
+            <span className="mt-1 block">
+              <span className={`font-medium ${verdictTone}`}>{verdictLabel}.</span>
+              {l.qualification_verdict_reason && <span className="text-gray-500"> {l.qualification_verdict_reason}</span>}
+            </span>
+          )}
         </p>
       ) : l.qualification_escalated_at ? (
         <p className="text-xs text-warm-700">

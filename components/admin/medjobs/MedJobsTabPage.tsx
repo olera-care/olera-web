@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
@@ -54,14 +54,12 @@ import { CandidateCard } from "@/components/admin/medjobs/cards/SpecialtyCards";
 import { CardOverflowMenu } from "@/components/admin/medjobs/cards/CardOverflowMenu";
 import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTabContent";
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
-import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import ActivationTab from "@/components/admin/medjobs/activation/ActivationTab";
-import TasksTab from "@/components/admin/medjobs/activation/TasksTab";
+import TasksBoard from "@/components/admin/medjobs/tasks/TasksBoard";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
 import { BulkReengageModal } from "@/components/admin/medjobs/BulkReengageModal";
 import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import Select from "@/components/ui/Select";
-import Input from "@/components/ui/Input";
 
 interface MedJobsTabPageProps {
   initialTab: TabKey;
@@ -81,7 +79,6 @@ export function MedJobsTabPage({
   title = "MedJobs · In Basket",
 }: MedJobsTabPageProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const tabParam = searchParams?.get("tab");
   const tabFromUrl =
     tabParam && VALID_TAB_KEYS.has(tabParam as TabKey)
@@ -94,9 +91,6 @@ export function MedJobsTabPage({
   const [tab, setTab] = useState<TabKey>(tabFromUrl ?? initialTab);
   // Set when a next-check date hands off from Universities to Tasks, so the
   // task opens expanded rather than leaving the manager to find it.
-  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
   // Total queued calls across all days (Calls-tab denominator; the tab_counts
@@ -149,11 +143,6 @@ export function MedJobsTabPage({
     }
   }, [tab]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(t);
-  }, [search]);
-
   // Stale-response guard: overlapping fetches happen (a drawer's mark_read
   // fires the global refresh while it's open, then close fires another; tab
   // switches mid-flight). Each fetch tags itself with a sequence number and
@@ -180,7 +169,6 @@ export function MedJobsTabPage({
       if (campusSlug) queueParams.set("campus", campusSlug);
       if (typeFilter !== "all") queueParams.set("type", typeFilter);
       queueParams.set("tab", queueTab);
-      if (debouncedSearch) queueParams.set("search", debouncedSearch);
 
       // Best-effort JSON fetch — swallows its own errors so one failing
       // side-fetch can't reject the Promise.all and blank the whole list.
@@ -201,15 +189,11 @@ export function MedJobsTabPage({
 
       const ppParams = new URLSearchParams();
       if (campusSlug) ppParams.set("campus", campusSlug);
-      // v10 liberalized search: virtual catchment prospects filter alongside
-      // the materialized rows so the Prospects tab search feels complete.
-      if (debouncedSearch) ppParams.set("search", debouncedSearch);
 
       const partnerParams = new URLSearchParams();
       if (campusSlug) partnerParams.set("campus", campusSlug);
       if (typeFilter !== "all") partnerParams.set("type", typeFilter);
       partnerParams.set("tab", "partners");
-      if (debouncedSearch) partnerParams.set("search", debouncedSearch);
 
       try {
         const [queueRes, pp, partners, sites, clients, candidates] = await Promise.all([
@@ -289,7 +273,7 @@ export function MedJobsTabPage({
         if (seq === requestSeqRef.current) setViewLoading(false);
       }
     },
-    [campusSlug, typeFilter, tab, debouncedSearch],
+    [campusSlug, typeFilter, tab],
   );
 
   // Silent refresh — data updates in place with no skeleton. Used by row
@@ -562,54 +546,29 @@ export function MedJobsTabPage({
     [setEntityRead],
   );
 
-  // Always show the four core operational tabs (Prospects · Calls · Emails ·
-  // Meetings), even when empty. Each has its own empty state, so a quiet
-  // "No calls due" reads better than a tab that vanishes — the admin always
-  // knows where calls/meetings will land. (Smart-hide removed for these.)
-  const visibleTabs = TABS;
-
   const isInboxEmpty = useMemo(() => {
+    // Universities and Archive are their own pages with their own empty
+    // states, so the legacy queue counts — which know nothing about the
+    // board — must never be able to hide either behind "Everything caught
+    // up". That message described a cleared multi-tab inbox, and there is
+    // no longer a tab row for it to be describing.
+    if (tab === "tasks" || tab === "archive") return false;
     if (!tabCounts) return false;
     // Queued calls (even none due today) count as work, so the Calls tab —
     // with its "0/N" badge — stays visible.
     if ((callsTotal ?? 0) > 0) return false;
     return TABS.every((t) => (tabCounts[t.key] ?? 0) === 0);
-  }, [tabCounts, callsTotal]);
-
-  const setTabAndUrl = useCallback(
-    (next: TabKey) => {
-      setTab(next);
-      const sp = new URLSearchParams(searchParams?.toString() ?? "");
-      sp.set("tab", next);
-      router.replace(`?${sp.toString()}`, { scroll: false });
-    },
-    [router, searchParams],
-  );
+  }, [tabCounts, callsTotal, tab]);
 
   useEffect(() => {
     if (tabFromUrl && tabFromUrl !== tab) setTab(tabFromUrl);
   }, [tabFromUrl, tab]);
 
-  // Auto-pivot: when counts arrive and the active tab has 0 work,
-  // switch to the first tab that does have work. Without this, the
-  // initialTab="clients" default on the In Basket page would anchor
-  // Clients into the bar even when the only operational work is in
-  // Prospects (or any other tab). Lets smart-hide actually hide
-  // Clients on fresh load.
-  //
-  // Skipped when the URL has an explicit ?tab=... so a deep-link to an
-  // empty tab still works. Once auto-pivot fires, setTabAndUrl writes
-  // ?tab=<picked> to the URL — subsequent count changes won't pivot
-  // again because the URL is now explicit.
-  useEffect(() => {
-    if (!tabCounts) return;
-    if (tabFromUrl != null) return;
-    if ((tabCounts[tab] ?? 0) > 0) return;
-    const firstWithWork = TABS.find((t) => (tabCounts[t.key] ?? 0) > 0);
-    if (firstWithWork && firstWithWork.key !== tab) {
-      setTabAndUrl(firstWithWork.key);
-    }
-  }, [tabCounts, tab, tabFromUrl, setTabAndUrl]);
+  // Auto-pivot is gone with the tab bar. It existed so a fresh load would
+  // not land on an empty tab, and it could do that safely while the row was
+  // there to show where you had ended up. Now that Universities and Archive
+  // are pages you navigate to, moving somebody off the page they asked for
+  // would just look like the link was broken.
 
   return (
     <div>
@@ -622,18 +581,16 @@ export function MedJobsTabPage({
         <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
       </header>
 
-      <InBasketHero tabCounts={tabCounts} tabUnreadCounts={tabUnreadCounts} />
 
+      {/*
+        The board is not a list you filter — it is every university, and it
+        carries its own site column. The two selects still mean something on
+        the older queue views, so they render there and nowhere else. The
+        search box is gone entirely: it searched the queue, which the board
+        does not read from, so on this page it matched nothing.
+      */}
+      {tab !== "tasks" && (
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="min-w-[220px] flex-1">
-          <Input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, organization, or email…"
-            size="sm"
-          />
-        </div>
         <div className="shrink-0 min-w-[140px]">
           <Select
             value={campusSlug}
@@ -654,70 +611,15 @@ export function MedJobsTabPage({
           />
         </div>
       </div>
-
-      {/* v9.0 Phase 6.5: entity-keyed tab bar with smart-hide. Tab is
-          visible when (count > 0) OR it's the active tab. Bolded +
-          fraction `unread/total` when unread > 0; muted + plain count
-          otherwise. Completed rows leave the tab on status transition,
-          so counts only reflect active work.
-          Entirely hidden when isInboxEmpty — a fully-clean inbox has
-          no tabs, just the "Everything caught up" empty state. Tabs
-          surface only when actual operational work exists. */}
-      {!isInboxEmpty && (
-        <div className="mb-8 flex items-center border-b border-gray-100">
-          <div className="flex flex-1 items-center gap-1 overflow-x-auto">
-            {visibleTabs.map((t) => {
-              const count = tabCounts?.[t.key] ?? 0;
-              const unread = tabUnreadCounts?.[t.key] ?? 0;
-              const active = t.key === tab;
-              const isUnreadTab = unread > 0;
-              // Calls tab shows "due today / total queued" (always, even 0/N),
-              // bold when there are unread calls due today. Every other tab
-              // keeps the generic "unread/total" (or bare total) badge.
-              const isCallsTab = t.key === "calls";
-              const callsBadge =
-                isCallsTab && callsTotal != null && callsTotal > 0
-                  ? `${count}/${callsTotal}`
-                  : null;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setTabAndUrl(t.key)}
-                  title={t.tooltip}
-                  className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
-                    // v9.0 Phase 7 Commit E: bold the tab label AND the
-                    // fraction together when unread > 0. Inactive unread
-                    // tabs also darken so the bold actually pops against
-                    // the muted gray-400 default — bold alone on light
-                    // text barely renders. Read tabs stay font-medium +
-                    // gray-400 to keep the inactive zone calm.
-                    isUnreadTab
-                      ? active
-                        ? "border-gray-900 font-semibold text-gray-900"
-                        : "border-transparent font-semibold text-gray-900 hover:text-gray-700"
-                      : active
-                        ? "border-gray-900 font-medium text-gray-900"
-                        : "border-transparent font-medium text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  {t.label}
-                  {(callsBadge ?? (count > 0 ? String(count) : null)) && (
-                    <span
-                      className={`ml-1.5 text-xs tabular-nums ${
-                        isUnreadTab
-                          ? "font-semibold text-gray-900"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {callsBadge ?? (isUnreadTab ? `${unread}/${count}` : count)}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
       )}
+
+      {/*
+        No tab bar. Tasks, Meetings and Archive were three unrelated places
+        wearing one row: the board is the daily work, and Archive is
+        somewhere you go on purpose, once in a while. Archive has its own
+        page and its own sidebar entry now, which is where a destination
+        belongs. Every other tab key still resolves by URL.
+      */}
 
       {/* Per-tab list rendering. The skeleton shows ONLY on a view change
           (first mount / tab switch); silent refreshes (drawer close, row
@@ -743,24 +645,15 @@ export function MedJobsTabPage({
             {" "}to review what you and the team finished.
           </p>
         </div>
-      ) : tab === "activation" ? (
-        // University Activation (ST3-ST7). Clicking a next-check date hands
-        // off to the Tasks tab with that task open, which is why both tabs
-        // share the deep-link state below rather than owning it themselves.
-        <ActivationTab
-          onOpenTask={(taskId) => {
-            setOpenTaskId(taskId);
-            setTab("tasks");
-          }}
-        />
       ) : tab === "tasks" ? (
-        <TasksTab
-          openTaskId={openTaskId}
-          onOpenUniversity={() => {
-            setOpenTaskId(null);
-            setTab("activation");
-          }}
-        />
+        // The board: every university, what is waiting, and the five channel
+        // dots. Clicking a row does not open another list — it hands over one
+        // task at a time until the university is clear.
+        <TasksBoard />
+      ) : tab === "activation" ? (
+        // The old channel-checklist view. Kept reachable by ?tab=activation
+        // while the ladder beds in; it is no longer in the tab bar.
+        <ActivationTab onOpenTask={() => {}} />
       ) : tab === "providers" ? (
         // Provider audience queue: prospecting (catchment agency prospects)
         // folded with active clients. Provider-kind materialized rows + virtual

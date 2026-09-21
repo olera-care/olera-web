@@ -59,8 +59,83 @@ export async function GET() {
   const byCampus = new Map((campuses ?? []).map((c) => [c.id, c]));
   const byRecord = new Map((records ?? []).map((r) => [r.id, r]));
 
+  // ── Contact rounds ────────────────────────────────────────────────────
+  // Tasks live in three tables — site_tasks here, student_outreach_tasks for
+  // contact rounds, business_profile_tasks for candidates and clients. The
+  // Tasks tab is one queue, so they are unioned at read time and normalised
+  // into the shape above. Read-time rather than a migration on purpose: it
+  // shows what the unified shape needs before committing it to schema.
+  const { data: contactTasks, error: cErr2 } = await db
+    .from("student_outreach_tasks")
+    .select(
+      "id, outreach_id, task_type, due_at, status, payload, notes, completed_at, " +
+        "student_outreach!inner(campus_id, organization_name, kind)",
+    )
+    .in("status", ["pending", "completed"])
+    .in("task_type", ["outreach_contact", "manual_followup"])
+    .order("due_at")
+    .limit(500);
+  if (cErr2) {
+    console.error("[activation tasks] contact rounds:", cErr2);
+    return NextResponse.json(
+      { error: activationError(cErr2, "load the contact rounds") },
+      { status: 500 },
+    );
+  }
+
+  type ContactRow = {
+    id: string;
+    outreach_id: string;
+    task_type: string;
+    due_at: string;
+    status: string;
+    payload: Record<string, unknown> | null;
+    notes: string | null;
+    completed_at: string | null;
+    student_outreach: { campus_id: string; organization_name: string; kind: string | null };
+  };
+  const contacts = (contactTasks ?? []) as unknown as ContactRow[];
+
+  // Their campuses may not be in the site-task set, so resolve the gap.
+  const extraCampusIds = [
+    ...new Set(contacts.map((c) => c.student_outreach.campus_id).filter((id) => !byCampus.has(id))),
+  ];
+  if (extraCampusIds.length) {
+    const { data: more } = await db
+      .from("student_outreach_campuses")
+      .select("id, slug, name")
+      .in("id", extraCampusIds);
+    for (const c of more ?? []) byCampus.set(c.id, c);
+  }
+
+  const contactRows = contacts.map((t) => ({
+    id: t.id,
+    taskType: t.task_type,
+    dueAt: t.due_at,
+    status: t.status,
+    channel: null as string | null,
+    answersCriterion: null as string | null,
+    repeatMonths: null as number | null,
+    notes: t.notes,
+    checklist: [] as Array<{ text: string; done: boolean }>,
+    payload: t.payload ?? {},
+    completedAt: t.completed_at,
+    university: byCampus.get(t.student_outreach.campus_id) ?? null,
+    campusId: t.student_outreach.campus_id,
+    record: null,
+    recordId: null as string | null,
+    /** Who this round is with, and what it is attached to. */
+    subject: {
+      kind: t.student_outreach.kind ?? "stakeholder",
+      name: t.student_outreach.organization_name,
+      outreachId: t.outreach_id,
+    },
+  }));
+
   return NextResponse.json({
-    tasks: (tasks ?? []).map((t) => ({
+    tasks: [
+      ...contactRows,
+      ...(tasks ?? []).map((t) => ({
       id: t.id,
       taskType: t.task_type,
       dueAt: t.due_at,
@@ -76,7 +151,17 @@ export async function GET() {
       campusId: t.campus_id,
       record: t.record_id ? byRecord.get(t.record_id) ?? null : null,
       recordId: t.record_id,
+      // Site tasks belong to the campus itself (or to one of its records),
+      // which is the "contact task with no profile behind it" case.
+      subject: {
+        kind: "campus" as const,
+        name: t.record_id
+          ? byRecord.get(t.record_id)?.name ?? "Record"
+          : byCampus.get(t.campus_id)?.name ?? "University",
+        outreachId: null as string | null,
+      },
     })),
+    ].sort((a, b) => a.dueAt.localeCompare(b.dueAt)),
   });
 }
 

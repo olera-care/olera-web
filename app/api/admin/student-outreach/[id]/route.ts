@@ -27,6 +27,7 @@ import {
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
+import { buildDefaultEmailSnapshots } from "@/lib/student-outreach/email-snapshot";
 import { resolveProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs";
 import {
   buildSmartleadPreview,
@@ -280,6 +281,12 @@ export async function POST(
         break;
 
       // ── Tasks ───────────────────────────────────────────────────────
+      case "launch_next_set":
+        await handleLaunchNextSet(db, row, body, user.id);
+        break;
+      case "log_contact_half":
+        await handleLogContactHalf(db, row, body, user.id);
+        break;
       case "complete_task":
         await handleCompleteTask(db, row, body, user.id);
         break;
@@ -2286,6 +2293,213 @@ async function handleOfferCall(
   await touchOutreach(db, row.id, userId);
 }
 
+/**
+ * Start a fresh set of rounds.
+ *
+ * Two ways in: a reply that needs more chasing before a meeting ("Another set
+ * of rounds"), and reviving a row out of Archive. Both want the same thing —
+ * the row live again, a new set number, and the full cadence re-queued — so
+ * they share one action rather than drifting apart.
+ *
+ * Recipients and copy are rebuilt server-side from the row itself. The client
+ * has neither at this point, and asking it to supply them is how the earlier
+ * attempt at this silently queued an empty cadence.
+ */
+async function handleLaunchNextSet(
+  db: DB,
+  row: OutreachRow,
+  body: { context_notes?: string },
+  userId: string,
+) {
+  // Order matters here. An earlier version revived the row and cancelled its
+  // pending tasks BEFORE inserting the new ones, so when the insert failed the
+  // row was left live with nothing queued — its remaining rounds destroyed by
+  // a save that reported an error. Nothing is mutated until the insert lands.
+  //
+  // Capture what to supersede first, so cancelling later cannot catch the
+  // tasks this call is about to create.
+  const { data: supersede } = await db
+    .from("student_outreach_tasks")
+    .select("id")
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", ["outreach_contact", "outreach_email_send", "outreach_followup_call"]);
+  const supersedeIds = (supersede ?? []).map((t) => t.id);
+
+  const rd = (row.research_data ?? {}) as Record<string, unknown>;
+  const nextSet = (typeof rd.round_set === "number" ? rd.round_set : 1) + 1;
+
+  const { data: campus } = await db
+    .from("student_outreach_campuses")
+    .select("name")
+    .eq("id", row.campus_id)
+    .single();
+
+  const cadenceKey: CadenceKey =
+    row.kind === "provider" ? "provider" : row.stakeholder_type;
+
+  const { data: contactRows } = await db
+    .from("student_outreach_contacts")
+    .select("id, name, email, phone")
+    .eq("outreach_id", row.id)
+    .eq("status", "active");
+
+  const gc = (rd.general_contact ?? {}) as { email?: string; phone?: string };
+  const recipients: RecipientPlan[] = [];
+  if (gc.email || gc.phone) {
+    recipients.push({
+      contact_id: null,
+      recipient_kind: "general",
+      recipient_email: gc.email ?? null,
+      recipient_phone: gc.phone ?? null,
+      recipient_name: row.organization_name,
+      recipient_role: "General Contact",
+      variant: "general",
+      channels: { email: Boolean(gc.email), phone: Boolean(gc.phone) },
+    } as RecipientPlan);
+  }
+  for (const c of contactRows ?? []) {
+    recipients.push({
+      contact_id: c.id,
+      recipient_kind: "specific",
+      recipient_email: c.email,
+      recipient_phone: c.phone,
+      recipient_name: c.name,
+      recipient_role: null,
+      variant: "named",
+      channels: { email: Boolean(c.email), phone: Boolean(c.phone) },
+    } as RecipientPlan);
+  }
+  if (recipients.length === 0) {
+    throw new Error("No contact on this row to start another set with");
+  }
+
+  const snapshots = buildDefaultEmailSnapshots({
+    stakeholder_type: cadenceKey as never,
+    organization_name: row.organization_name,
+    campus_name: campus?.name ?? "the university",
+  });
+
+  const plan = planSequence({
+    outreach_id: row.id,
+    stakeholder_type: cadenceKey,
+    recipients,
+    email_snapshots_by_variant: { general: snapshots, named: snapshots },
+    call_scripts: [],
+    user_id: userId,
+    has_phone: recipients.some((r) => r.channels?.phone === true),
+  });
+
+  if (plan.length === 0) {
+    throw new Error("Nothing to queue — the cadence produced no rounds");
+  }
+
+  // The one step that can fail on bad data. Do it before anything destructive.
+  const { error: insertErr } = await db.from("student_outreach_tasks").insert(
+    plan.map((t) => ({
+      outreach_id: row.id,
+      task_type: t.task_type,
+      due_at: t.due_at.toISOString(),
+      payload: { ...t.payload, set: nextSet },
+      created_by: userId,
+    })),
+  );
+  if (insertErr) throw new Error(insertErr.message);
+
+  // Past here the new set exists, so superseding the old one and reviving the
+  // row are safe.
+  if (supersedeIds.length > 0) {
+    await db
+      .from("student_outreach_tasks")
+      .update({ status: "superseded" })
+      .in("id", supersedeIds);
+  }
+  await reviveClosedRow(db, row, userId);
+
+  await touchOutreach(db, row.id, userId, {
+    research_data: {
+      ...rd,
+      round_set: nextSet,
+      ...(body.context_notes ? { set_context: body.context_notes } : {}),
+    },
+  });
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    notes: `Set ${nextSet} started — ${plan.length} rounds queued.`,
+    payload: { reason: "next_set_launched", set: nextSet },
+  });
+}
+
+/**
+ * Stamp one half of a contact round — the call, or the email.
+ *
+ * A round is one task carrying both channels. Logging a half writes its
+ * timestamp onto the payload; once both are stamped the task completes, which
+ * is what moves the row on to the next round. Doing it this way rather than
+ * with two tasks is what keeps a half-worked round visible instead of looking
+ * finished.
+ *
+ * Idempotent: re-logging a half already stamped keeps the first timestamp, so
+ * a double-click cannot advance a round twice.
+ */
+async function handleLogContactHalf(
+  db: DB,
+  row: OutreachRow,
+  body: { task_id?: string; half?: "call" | "email" },
+  userId: string,
+) {
+  const taskId = body.task_id;
+  const half = body.half;
+  if (!taskId || (half !== "call" && half !== "email")) {
+    throw new Error("log_contact_half needs task_id and half");
+  }
+
+  const { data: task, error } = await db
+    .from("student_outreach_tasks")
+    .select("id, payload, status")
+    .eq("id", taskId)
+    .eq("outreach_id", row.id)
+    .single();
+  if (error || !task) throw new Error("Task not found on this row");
+  if (task.status !== "pending") return;
+
+  const payload = (task.payload ?? {}) as Record<string, unknown>;
+  const key = half === "call" ? "call_logged_at" : "email_logged_at";
+  if (typeof payload[key] === "string") return; // already stamped
+
+  const next = { ...payload, [key]: new Date().toISOString() };
+  const bothDone =
+    typeof next.call_logged_at === "string" && typeof next.email_logged_at === "string";
+
+  const { error: upErr } = await db
+    .from("student_outreach_tasks")
+    .update({
+      payload: next,
+      ...(bothDone
+        ? { status: "completed", completed_at: new Date().toISOString(), completed_by: userId }
+        : {}),
+    })
+    .eq("id", taskId);
+  if (upErr) throw new Error(upErr.message);
+
+  // Finishing the last round of a set with no reply exhausts it. The row stops
+  // being work and moves to Archive, where it can be revived into a fresh set
+  // if the provider ever comes back.
+  if (bothDone) {
+    const { count } = await db
+      .from("student_outreach_tasks")
+      .select("id", { count: "exact", head: true })
+      .eq("outreach_id", row.id)
+      .eq("task_type", "outreach_contact")
+      .eq("status", "pending");
+    if ((count ?? 0) === 0) {
+      await handleArchive(db, row, userId);
+      return;
+    }
+  }
+
+  await touchOutreach(db, row.id, userId);
+}
+
 async function handleScheduleSequence(
   db: DB,
   row: OutreachRow,
@@ -2350,25 +2564,11 @@ async function handleScheduleSequence(
     user_id: userId,
     has_phone: hasPhone,
   });
-  // Smartlead is the delivery engine for all MedJobs cold EMAIL outreach.
-  // Enroll FIRST so any skip / API failure aborts BEFORE any CRM mutation.
-  // Pass the launch-modal recipient selection so Smartlead fans out to exactly
-  // the individuals the admin kept checked, matching the per-recipient calls.
-  //
-  // Phone-only (calls-only) launch: when there is NO email recipient at all
-  // (no general email AND no email-bearing recipient) — e.g. a provider with a
-  // phone but only a decision maker who has no email, launched via Override —
-  // there's nothing for Smartlead to send, so we skip enrollment entirely
-  // instead of throwing `no_email`. The row still queues its call tasks below.
-  const gcEmail = (row.research_data?.general_contact?.email ?? "").trim();
-  const hasEmailRecipient =
-    Boolean(gcEmail) || (body.recipients ?? []).some((r) => r.channels?.email === true);
-  if (hasEmailRecipient) {
-    await enrollRowIntoSmartlead(db, row, userId, body.recipients);
-  }
-
-  // Smartlead owns the email drip — we only queue CRM-side call tasks.
-  const tasksToInsert = plan.filter((p) => p.task_type === "outreach_followup_call");
+  // Nothing sends outreach for us any more: no Smartlead enrollment, no cron.
+  // Every step of the cadence is a reminder for a person, so BOTH channels
+  // queue as tasks. Dropping the email tasks here is what used to make the
+  // email half of a round invisible — Smartlead was expected to cover it.
+  const tasksToInsert = plan;
   let insertedTasks: Array<{
     id: string;
     task_type: string;

@@ -37,7 +37,7 @@ whose providers are loaded but un-researched has not completed PR1.
 
 | | |
 |---|---|
-| **Trigger** | You add a site. The system pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand |
+| **Trigger** | You add a site. The system pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand, with one exception: the providers list on the Tasks board ends with **Add a provider**, for an agency the directory has never carried. It starts on the same first rung and is worked identically |
 | **Tools** | Sites tab `olera.care/admin/medjobs/sites` &#183; **+ Add Site** modal &#183; In Basket Providers tab `olera.care/admin/medjobs/in-basket` &#183; the provider drawer &#183; **Log Pre-Flight outcome** modal |
 | **Communications** | None outbound. The pre-flight call is the only contact, and it uses the script in the log modal |
 | **Completion criteria** | Contact details confirmed on the call, and the row launched into outreach. Or three unsuccessful call attempts, and the row archived |
@@ -51,7 +51,21 @@ For a given site, work every provider on it.
 
 1. **Do the desk research first.** Fill in whatever phone, email and address you can
    find yourself, from the provider's website, the source link on the row, or **Fill
-   from Website**. Do not call a row you have not looked at.
+   from Website**. Do not call a row you have not looked at. On the Tasks board this
+   desk pass is a rung of its own, named **Research**, and it is ticked on the record
+   rather than logged as a call. Four things have to be true before you tick it.
+
+   | Check | Against what |
+   |---|---|
+   | The name is the name the agency trades under | Their own website |
+   | The website opens and is theirs | Their own website |
+   | The phone number reaches them | Their own website |
+   | The address is within a **60-minute drive** of campus | Google Maps directions, not straight-line distance |
+
+   A provider outside the 60 minutes is archived here, before anybody calls it. The
+   catchment radius is a net, not a judgement: it is measured as the crow flies and
+   cannot see a mountain, a lake or a freeway.
+
 2. **Call every provider on the site.** The call confirms the research; research alone
    does not complete pre-flight.
 3. **Use the suggested script** shown in the log modal: *"Hi, this is \[your name\]
@@ -161,6 +175,106 @@ happens.
 A real reply stops the cadence automatically. The timeline records *"Reply received to
 \[address\], cadence stopped,"* so the next move is a manual one. The out-of-office
 option exists precisely because an auto-reply should not count as one.
+
+**On the Tasks board the first ask is interest, not a meeting**, and the whole of a
+follow-up round happens on one screen.
+
+Step one is check their email and your voicemail, both, because a provider who rang
+back and got the machine has got back to us and the board would never know. Under it
+sit the two acts a silent round is: **call them** and **email them, resending the
+programme**, each with the way to do it to hand and a tick. The log button cannot be
+pressed until both are done, and then it logs two acts. It used to say No reply, which
+named something the provider had not done and recorded nothing that you had.
+
+The other three outcomes sit beside it, on the same screen, with one free-text box for
+what happened.
+
+| Outcome | What it means | Where the record goes |
+|---|---|---|
+| **No answer** | Nobody picked up; email and call both done | The next round, two business days out |
+| **Left a voicemail** | Same, and they have heard us | The next round, two business days out |
+| **Interested, start onboarding** | Yes, tell me more | **Send the onboarding pack**, today |
+| **Not interested** | They declined | Archived |
+| **Something else** | Anything the first three do not cover | A task in the operator's own words, on the day they pick |
+
+**Something else is the honest fourth outcome.** Send it to our corporate office. Talk to our RN
+manager. Call me back in March when we budget. We need a W-9 first. There is no list of
+those and there never will be, so the board takes one at a time: what needs doing, in
+your words, and the day it comes back. The queued task carries that sentence as its own
+title, so a queue of them reads as work rather than four rows saying Something else. It
+ends the way the reply did: a yes goes to the pack, no answer either way restarts the
+follow-up block, another thing to do queues another one, and a no archives.
+
+There is no longer a warm but not now outcome. Once the ask is interest rather than a
+meeting, interested-later is interested: they get the pack, and the onboarding block
+does the chasing. The rung that used to hold that state is where Something else now sits.
+
+**Interest can be logged wherever it arrives**, including on the confirming call: a
+provider who says yes on the phone skips the programme email and the whole block
+rather than being followed up to arrive where they already are.
+
+**The pack is the email that means nobody has to explain it again.** Three things: how
+the programme works end to end; what they are looking for in a caregiver, which they
+can simply reply with and you will set up on your side; and the pilot terms, attached
+for review. It carries their portal link and the rung cannot be logged without it, but
+the portal is offered rather than required, because a provider who would rather reply
+in prose is the normal case for this audience and not the exception.
+
+**The email states no price.** The attached terms describe the pilot: nothing to sign,
+no obligation, students until a hire works out, and formal terms agreed afterwards
+rather than now.
+
+**Not yet is not offered on a rung that already runs on a cadence.** Putting a
+follow-up off by two days is what the next round is. It stays on the confirming call,
+the programme email, the pack, the set-up check and the meeting.
+
+**Then onboarding, which is chasing one sentence.** The pack ends by asking for
+it: reply and tell me you are ready to receive your first student and you are
+clear on what happens when one arrives. If anything is unclear they reply with
+the question instead, and you answer it by email.
+
+**Onboarding follow up 1 to 7** is the same screen as the cold block, because it
+is the same act: check their email and your voicemail, and if nothing has come
+back, call and email again. Three days apart rather than two, because they have
+already said yes. At the fourth round the rung tells you to ask straight out on
+the phone, or to offer to set their profile up with them there and then, rather
+than sending the same thing a fifth time.
+
+**It never archives.** After the seventh round it keeps going on the same
+cadence. Seven unanswered cold calls is a no; seven unanswered nudges at a
+provider who has already said yes is not, and losing them over scheduling would
+be the worst outcome in the funnel.
+
+| Ending | What it means | Where the record goes |
+|---|---|---|
+| **No answer** | Nobody picked up; email and call both done | The next round, three days out |
+| **Left a voicemail** | Same, and they have heard us | The next round, three days out |
+| **They are ready** | They have said so | **The goal**, nothing further |
+| **Not interested** | They have changed their mind | Archived |
+
+**Two things are available on every rung, so neither takes a button.** Under the
+menu: **Booked a call to help**, because a provider can ask to be walked through it
+at any point and it must never cost them their place. The call hands the record
+straight back, one round on from where it left. And and **Something else**, which takes
+whatever they actually asked for in your own words, with the day it comes back and a
+tick to flag it for manager review. A flagged record carries a flag in the list and
+says to take it to the team in Slack. Deferring and closing a record live there too.
+
+**Email first, then the call that refers to it.** A call that arrives before the
+email is a cold call; one that follows it has something to be about. Both blocks say
+so in their steps and both log the two acts together.
+
+**A call is a tool, not a stage.** Help them on a call is a branch, reached only
+when somebody books one, and most providers never see it. It is fifteen minutes
+doing whatever is stopping them, usually setting their requirements in the
+portal while you are on the phone, and it ends the same way every other screen
+does: they are ready, or they are not yet and it goes back to chasing.
+
+**The goal is an acknowledgement, not an event.** Ready for students is not
+a rung anybody ticks. It is where the ladder stops when a provider says
+they understand how students reach them and what to do when one arrives. A
+call, an email and a meeting are all ways of getting that sentence, and none of
+them is required.
 
 ### What must be recorded
 
@@ -413,7 +527,7 @@ sequence, handoffs and completion criteria are carried over unchanged.
 | This manual | Master document |
 |---|---|
 | PR1, all of it | PR1, objective, procedure steps 1 to 6, outcomes table, system and handoff row, communications |
-| PR-OUT, all of it | PR-OUT, objective, the cadence, procedure steps 1 to 8, both outcome tables, system and handoff row |
+| PR-OUT, all of it | PR-OUT, objective, the cadence, procedure steps 1 to 8, both outcome tables, the follow-up block and its four endings, system and handoff row |
 | ST1, all of it | ST1, objective, the office-is-the-prospect note, procedure steps 1 to 7, system and handoff row |
 | ST-OUT, all of it | ST-OUT, objective, the same-machinery note, recipients, procedure steps 1 to 8, system and handoff row |
 | Booking and the handoff | PR2 journey step 1 and the booking note; ST2 journey step 1; PR2 exhibit M for *Finding a time* |

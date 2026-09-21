@@ -6,6 +6,7 @@ import type { TaskType } from "@/lib/medjobs/activation";
 import { DueDot } from "./StatusDot";
 import { shortDate } from "./types";
 import TaskDetail from "./TaskDetail";
+import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import NewTaskModal from "./NewTaskModal";
 
 /**
@@ -32,11 +33,37 @@ export interface ActivationTask {
   campusId: string;
   record: { id: string; name: string } | null;
   recordId: string | null;
+  /** Who or what the task is about. Contact rounds carry the outreach row so
+   *  the queue can open it; campus tasks carry no profile, which is the
+   *  "task attached to the university itself" case. */
+  subject?: {
+    kind: string;
+    name: string;
+    outreachId: string | null;
+  };
 }
 
 function titleOf(t: ActivationTask) {
-  if (t.taskType === "manual_followup") return (t.payload?.title as string) ?? "Task";
+  // A contact round is named for who it is with, because that is what the
+  // operator is deciding about — the round number is the detail.
+  if (t.taskType === "outreach_contact") return t.subject?.name ?? "Contact";
+  if (t.taskType === "manual_followup") {
+    return (t.payload?.title as string) ?? t.subject?.name ?? "Task";
+  }
   return TASK_DEFS[t.taskType as keyof typeof TASK_DEFS]?.title ?? t.taskType;
+}
+
+/** Left-hand word: what kind of work this is. One glance, four values. */
+function kindOf(t: ActivationTask): string {
+  if (t.taskType === "outreach_contact") return "Contact";
+  if (t.taskType === "manual_followup") return "Custom";
+  return "Check";
+}
+
+/** "R3/7" for a contact round, blank otherwise. */
+function roundLabel(t: ActivationTask): string {
+  const r = t.payload?.round;
+  return typeof r === "number" ? `R${r}/7` : "";
 }
 
 export default function TasksTab({
@@ -132,7 +159,17 @@ export default function TasksTab({
         </div>
       )}
 
-      {open ? (
+      {/* A contact round opens its own drawer — the round body with the call
+          and the email — rather than the static activation task detail, which
+          has no notion of rounds or halves. */}
+      {open && open.taskType === "outreach_contact" && open.subject?.outreachId ? (
+        <Drawer
+          outreachId={open.subject.outreachId}
+          onClose={() => setOpenId(null)}
+          onAction={() => { void load(); }}
+          activeTab="tasks"
+        />
+      ) : open ? (
         <TaskDetail
           task={open}
           onClose={() => setOpenId(null)}
@@ -182,6 +219,9 @@ function Group({
               className="flex w-full items-start gap-2.5 py-2.5 text-left hover:bg-gray-50"
             >
               <span className="mt-1 w-2 shrink-0">{overdue ? <DueDot /> : null}</span>
+              <span className="w-16 shrink-0 pt-px text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                {kindOf(t)}
+              </span>
               <span className="min-w-0 flex-1">
                 <span
                   className={`block text-[13px] ${muted ? "text-gray-400 line-through" : "font-medium text-gray-900"}`}
@@ -190,10 +230,14 @@ function Group({
                 </span>
                 <span className="block text-[12px] text-gray-500">
                   {t.university?.name ?? "No university"}
-                  {t.channel ? ` · ${t.channel.toUpperCase()}` : ""}
                   {t.record ? ` · ${t.record.name}` : ""}
                 </span>
               </span>
+              {roundLabel(t) && (
+                <span className="shrink-0 pt-px text-[11px] tabular-nums text-gray-500">
+                  {roundLabel(t)}
+                </span>
+              )}
               <span className="shrink-0 text-[12px] tabular-nums text-gray-500">
                 {shortDate(t.dueAt)}
               </span>

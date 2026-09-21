@@ -23,10 +23,11 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const audience: PdfAudience =
     url.searchParams.get("audience") === "student" ? "student" : "provider";
-  // Default to a configured slug per audience so a bare URL always renders:
-  // the generic flyer for students, the Texas A&M brochure for providers.
-  const requestedSlug =
-    url.searchParams.get("university") ?? (audience === "student" ? "generic" : "texas-am");
+  // Default to the generic config so a bare URL always renders something
+  // campus-agnostic. Providers used to default to the Texas A&M brochure,
+  // from when that was the only provider config there was — which meant a
+  // link shared without a university told an agency in Utah about Texas A&M.
+  const requestedSlug = url.searchParams.get("university") ?? "generic";
 
   // Resolve to the requested config or the generic floor for this audience.
   const config = resolveProgramPdfConfig(requestedSlug, audience);

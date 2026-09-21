@@ -234,7 +234,15 @@ export async function loadFunnel30d(db: DB, siteSlug?: string | null): Promise<F
   // The site list drives both the filter and the navigator, so it is always
   // loaded even when no filter is applied.
   const [{ data: campusRows }, { data: uniRows }] = await Promise.all([
-    db.from("student_outreach_campuses").select("id, slug, name").eq("is_active", true).order("name"),
+    // The demo campus is a teaching surface. Its clicks are real rows, so
+    // without this the funnel would report a morning of instruction as
+    // outreach.
+    db
+      .from("student_outreach_campuses")
+      .select("id, slug, name")
+      .eq("is_active", true)
+      .eq("is_demo", false)
+      .order("name"),
     db.from("medjobs_universities").select("slug, name, logo_url"),
   ]);
   // The two registries drift on slug, so match on name first, as the

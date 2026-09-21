@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { getServiceClient } from "@/lib/admin";
 import { getPartnerUniversity, fetchNonMedicalProviders } from "@/lib/medjobs/catchment";
-import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { LIVE_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import {
   toCardFormat,
   businessProfileToCardFormat,
@@ -47,7 +47,7 @@ function getCatchmentCards(campus: string): Promise<FamilyCard[]> {
     async (): Promise<FamilyCard[]> => {
       // No campus → ALL: the union of every partner-university catchment.
       const single = campus ? getPartnerUniversity(campus) : null;
-      const unis = campus ? (single ? [single] : []) : PARTNER_UNIVERSITIES;
+      const unis = campus ? (single ? [single] : []) : LIVE_UNIVERSITIES;
       if (unis.length === 0) return [];
       const catchment = unis.flatMap((u) => u.catchment);
 

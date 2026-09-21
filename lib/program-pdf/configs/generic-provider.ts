@@ -22,42 +22,107 @@ export const GENERIC_PROVIDER: ProgramPdfConfig = {
   universityAccent: "#047857", // Olera emerald (no university accent for the generic brochure)
   ctaUrl: "https://olera.care/medjobs/providers",
   heroHeadline:
-    "Vetted pre-health student caregivers for the recurring shifts you can't fill.",
+    "Pre-health students, ready to help fill the shifts you need covered.",
   heroSubhead:
-    "Olera recruits and vets local pre-nursing and pre-medical students and matches them to your agency as caregivers. They want supervised hours, mentorship, and recommendation letters for health school, so they commit to a semester of recurring availability and take the work seriously. You get reliable coverage for the shifts that are hardest to staff. Browse and interview for free — you pay only when you hire.",
+    "Olera recruits and qualifies local pre-health students \u2014 future nurses, doctors and allied health professionals \u2014 and connects them with your agency. Students gain real healthcare experience, and you gain reliable caregiver candidates.",
   benefits: [
     {
-      title: "Cover your hardest shifts",
-      body: "Students commit to a semester of recurring availability: reliable coverage for nights, weekends, and standing schedules.",
+      title: "We recruit the students",
+      body: "We handle university outreach and initial qualification before a candidate reaches you.",
     },
     {
-      title: "Motivated by more than pay",
-      body: "They're after clinical hours, mentorship, and recommendation letters, so they show up and take the work seriously.",
+      title: "Recurring availability",
+      body: "We look for students who can commit to consistent shifts for at least one semester.",
     },
     {
-      title: "Local, and back every term",
-      body: "Pre-nursing and pre-medical students from your area, available semester after semester.",
+      title: "Strong motivation",
+      body: "Students are building healthcare experience and value mentorship, supervised hours, and future recommendations.",
     },
     {
-      title: "Caregivers your clients remember",
-      body: "Engaged, capable future nurses and physicians who care about the people they look after.",
+      title: "A renewable local pipeline",
+      body: "New student cohorts create an opportunity to recruit from nearby universities each semester.",
     },
   ],
   steps: [
-    "Create your free account and review candidates.",
-    "Tell us the recurring shifts you need to cover.",
-    "We match a vetted student whose availability fits.",
-    "Interview, hire, and the semester begins.",
+    {
+      title: "Tell us what you need.",
+      body: "Your ideal caregiver, preferred shifts, and how many students.",
+    },
+    {
+      title: "We send qualified matches.",
+      body: "We recruit and screen students, then send candidates to review.",
+    },
+    {
+      title: "You decide who to hire.",
+      body: "You remain the employer and run your normal hiring process.",
+    },
   ],
-  vetting: [
-    "Screened pre-nursing and pre-medical students.",
-    "Committed to a semester of recurring availability.",
-    "Professionalism and scheduling expectations set up front.",
-    "Background-check support coordinated with your onboarding.",
-  ],
-  pricing: {
-    headline: "Free to browse and interview. $200 once per hire — refunded if they work under 15 hours.",
-    body: "No subscription, no commitment. You pay a one-time $200 only when you hire a student, fully refunded if they work fewer than 15 hours. Olera handles recruiting, vetting, and matching; you run your standard hiring and onboarding as the employer.",
+  vetting: [],
+  offer: {
+    headline: "Try the program at no cost.",
+    ask: "Simply reply \u201cInterested\u201d to the email that included this flyer.",
+    body: "This is all we need to start. We will answer any questions, learn what you are looking for, and set you up with your first student.",
   },
+  afterReply: [
+    {
+      title: "We learn your needs.",
+      body: "Preferred shifts, candidate profile, and any non-negotiables.",
+    },
+    {
+      title: "We send a student.",
+      body: "When one is available near you, we send a short profile.",
+    },
+    {
+      title: "You interview and decide.",
+      body: "If there is a fit, you hire through your normal process.",
+    },
+  ],
+  story: {
+    heading: "Why this program exists",
+    body: "Pre-health students often need meaningful, hands-on experience before professional school. Home care agencies often need dependable caregivers. Olera built the Student Caregiver Program to connect those needs while helping families receive reliable support at home.",
+  },
+  team: [
+    {
+      name: "Logan DuBose, MD, MBA",
+      role: "Director, Olera Student Caregiver Program",
+      bio: "Texas A&M College of Medicine, 2022. Primary care physician and NIH-funded researcher.",
+      photo: "logan",
+    },
+    {
+      name: "Chantel Wright",
+      role: "Lead Program Coordinator",
+      email: "chantel@olera.care",
+      bio: "Coordinates provider and student onboarding, matching, and follow-up.",
+      photo: "chantel",
+    },
+    {
+      name: "Graize Belandres",
+      role: "Assistant to Dr. Logan DuBose",
+      email: "graize@olera.care",
+      bio: "Supports provider and student communication and administration.",
+      photo: "grazie",
+    },
+    {
+      name: "Sara Conkling",
+      role: "Assistant to Dr. Logan DuBose",
+      email: "sara@olera.care",
+      bio: "Pre-medical student at Clemson who supports provider coordination.",
+      photo: "sara",
+    },
+  ],
+  nextStep: {
+    heading: "The easiest next step",
+    kicker: "No form. No commitment. No pricing decision today.",
+    ask: "Reply to this email.",
+    body: "We will answer your questions and learn what kind of caregiver would help your agency. If you would like to try the program, we can set you up at no cost.",
+  },
+  replyBlock: {
+    label: "REPLY WITH ONE WORD",
+    word: "INTERESTED",
+    tail: "We\u2019ll take it from there.",
+  },
+  footerLine: "Olera Student Caregiver Program \u2022 For home care agencies",
   ctaLabel: "Learn more",
 };
+
+

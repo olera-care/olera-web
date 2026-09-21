@@ -49,7 +49,6 @@ const OUTCOMES: OutcomeChoice[] = [
 
 export function PreFlightCallModal({
   organizationName,
-  campusName,
   phone,
   action,
   onCancel,
@@ -58,7 +57,6 @@ export function PreFlightCallModal({
   onOverrideLaunch,
 }: {
   organizationName: string;
-  campusName?: string | null;
   phone: string | null;
   action: ActionFn;
   onCancel: () => void;
@@ -70,8 +68,6 @@ export function PreFlightCallModal({
    *  the escape hatch for when a contact can't be reached by phone. */
   onOverrideLaunch?: () => Promise<void> | void;
 }) {
-  const campus = campusName?.trim() || "campus";
-  const script = `"Hi, this is [your name] from Dr. DuBose's office, calling about his Student Caregiver Program for ${campus} students. I'd like to send your team an email with the details, and wanted to check first on the best address to send it to."`;
 
   const dispatch = async (outcomeKey: string | null, notes: string | null) => {
     setError(null);
@@ -108,8 +104,6 @@ export function PreFlightCallModal({
           {phone && ` · ${phone}`}
         </>
       }
-      scriptLabel="Suggested script"
-      script={script}
       outcomes={OUTCOMES}
       notesPlaceholder="What did they confirm? Anything useful for outreach copy?"
       onCancel={onCancel}

@@ -169,6 +169,20 @@ Each is short on purpose: a partner who has to edit is a partner who does not se
 | **ST6** | Campus events | You and the Sales Lead attend | We are registered for a named event on a named date | Confirm the event is still scheduled and still on our date; rebook when it moves, and get on the next one after it passes | Before each event, then re-book |
 | **ST7** | Professors and class visits | You and the Sales Lead, once permitted | A named professor has agreed to an introduction or a visit | Follow up per professor, with a record of who was contacted, who agreed, and which class was visited | Per professor, then per term |
 
+**ST3, rung by rung.** The job board is the one channel the board works as an explicit ladder, because its
+steps happen days apart and strictly in order.
+
+| Rung | Done when | What it records |
+|---|---|---|
+| **Research** | you have found where an employer submits a posting at this campus | the job board link, and whoever owns it if anyone does |
+| **Confirm it is submitted** | the listing is with the university | ticks *submitted* |
+| **Confirm it is approved** | the listing is on their board | the listing link; ticks *approved* |
+| **Confirm the first student has applied** | somebody came through it | ticks *visible*, which is what turns the channel live |
+| **Confirm the listing is still live** | seasonally, that a student could still apply | nothing; it is a look |
+
+Research comes first because the reason a job board stalls is almost never the posting. It is that nobody
+knew where the posting goes, and each campus hides that somewhere different. The two middle rungs carry a
+two-day reminder rather than waiting to be remembered, since approval sits in somebody else's queue.
 Each of these carries specifics the table cannot hold: which board, which officer,
 which fair and its registration deadline, which list and when it goes out, which
 professor and which course. That detail belongs on the row against the channel.
@@ -231,6 +245,26 @@ fixed ladder of nudges on days 1, 3, 5, 7, then 21, 35, 49, 63, and presses **Go
    a student whose circumstances do not fit the form.
 4. **Check both entry paths after any change to the assets.** The QR code and the email
    link must each carry a student all the way through.
+
+**How you see the same student.** A student on one of our campuses also appears on the Tasks board under
+that university, on a five-rung ladder ending in a hire. Three of the five are facts the system already
+holds, and the board reads them rather than asking you to confirm them.
+
+| Rung | Who answers it | From what |
+|---|---|---|
+| Meeting with the student | you | nothing records it, so somebody has to |
+| Complete their application | **the system** | going live |
+| Get them an interview | **the system** | an interview on the calendar |
+| Confirm hire | **the system** | a placement accepted |
+| Confirm hours worked | you | the student, monthly |
+
+**So the order stops mattering.** Most students finish their own application without being chased, and the
+ladder no longer assumes you met them first. A finished application answers its own rung and still leaves
+the meeting to do. An interview or a hire says the earlier rungs happened one way or another, so a student
+already hired is never handed to you for an introductory call.
+
+A rung the system answered sits in its own band on the record, marked as done by the system. The
+difference between *nobody needs to chase this* and *somebody chased it* is worth keeping.
 
 **Exhibit AB. The application portal.** The student's profile section by section, each with its empty state and edit control. On the right, **Not live yet** over the **Go Live** button, and **Profile completeness**. This is the screen behind **B15** and **B16**: nothing on it is required to go live.
 

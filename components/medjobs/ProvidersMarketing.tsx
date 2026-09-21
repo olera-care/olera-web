@@ -10,7 +10,6 @@ import ProviderHelpCard from "@/components/medjobs/ProviderHelpCard";
  * decision-maker · Common questions · Closer.
  */
 
-const PROVIDER_AGREEMENT_URL = "/docs/employer-agreement-sample.pdf";
 const NEEDS_QUIZ_HREF = "/medjobs/candidates?welcome=1";
 
 const HOW_IT_WORKS = [
@@ -76,9 +75,6 @@ export default function ProvidersMarketing() {
                 <Link href={NEEDS_QUIZ_HREF} className="inline-flex items-center px-7 py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors">
                   Get started →
                 </Link>
-                <a href={PROVIDER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary-700 hover:underline">
-                  Read provider agreement ↗
-                </a>
               </div>
             </div>
           </div>
@@ -215,12 +211,8 @@ export default function ProvidersMarketing() {
               </p>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Not the one who signs off on hiring?</h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                Share it with the owner or operator, and read exactly how the program works before
-                you commit.
+                Share it with the owner or operator. There is nothing to sign to get started.
               </p>
-              <a href={PROVIDER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center text-sm font-semibold text-primary-700 hover:underline">
-                Read provider agreement ↗
-              </a>
             </div>
             <ProviderHelpCard />
           </div>
@@ -279,9 +271,6 @@ export default function ProvidersMarketing() {
             <Link href={NEEDS_QUIZ_HREF} className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20">
               Get started →
             </Link>
-            <a href={PROVIDER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary-700 hover:underline">
-              Read provider agreement ↗
-            </a>
           </div>
         </div>
       </section>

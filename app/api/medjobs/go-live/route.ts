@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { candidateReadyEmail } from "@/lib/medjobs-email-templates";
-import { PARTNER_UNIVERSITIES, type PartnerUniversity } from "@/lib/staffing-outreach/partner-universities";
+import { LIVE_UNIVERSITIES, type PartnerUniversity } from "@/lib/staffing-outreach/partner-universities";
 import { recentlyNotifiedEmails } from "@/lib/medjobs/ready-notify";
 
 // The catchment fan-out runs in the background via after(); give it room beyond
@@ -30,8 +30,8 @@ const MAX_CATCHMENT_NOTIFY = 150;
 function resolvePartnerUniversity(campus: string): PartnerUniversity | null {
   const c = campus.trim().toLowerCase();
   return (
-    PARTNER_UNIVERSITIES.find((u) => u.name.toLowerCase() === c) ??
-    PARTNER_UNIVERSITIES.find((u) => u.slug.toLowerCase() === c) ??
+    LIVE_UNIVERSITIES.find((u) => u.name.toLowerCase() === c) ??
+    LIVE_UNIVERSITIES.find((u) => u.slug.toLowerCase() === c) ??
     null
   );
 }

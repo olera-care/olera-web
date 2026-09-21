@@ -55,6 +55,18 @@ export interface ActivationUniversity {
   state: string | null;
   due: boolean;
   channels: ActivationChannel[];
+  /** Only present when the API was asked for one campus (the drawer). */
+  providers?: {
+    /** Null until "what makes a client" is instrumented. Renders as a dash. */
+    clients: number | null;
+    catchment: number;
+    rows: Array<{ id: string; name: string; state: string; detail: string | null }>;
+  };
+  students?: {
+    applicants: number;
+    /** Null until qualification is instrumented. Renders as a dash. */
+    qualified: number | null;
+  };
 }
 
 /** Short date, the format every card and row uses. */

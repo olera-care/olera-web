@@ -136,6 +136,44 @@ export async function GET(req: NextRequest) {
   const channels = chanRes.data;
   const tasks = taskRes.data;
 
+  // Providers and students are profiles the campus holds, not channels. Only
+  // hydrated for a single campus (the drawer) — the list view shows a dash for
+  // both because "clients confirmed" and "students qualified" are not
+  // instrumented yet, so there is nothing to count.
+  type ProviderRow = {
+    id: string;
+    organization_name: string;
+    status: string;
+    research_data: Record<string, unknown> | null;
+  };
+  let providerRows: ProviderRow[] = [];
+  let studentCount = 0;
+  if (slug) {
+    const [provRes, studRes] = await Promise.all([
+      db
+        .from("student_outreach")
+        .select("id, organization_name, status, research_data")
+        .eq("campus_id", wanted[0].id)
+        .eq("kind", "provider")
+        .order("organization_name"),
+      db
+        .from("business_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("type", "student")
+        .eq("is_active", true)
+        .ilike("metadata->>university", `%${wanted[0].name}%`),
+    ]);
+    if (provRes.error) {
+      console.error("[activation] read providers:", provRes.error);
+      return NextResponse.json(
+        { error: activationError(provRes.error, "read the campus providers") },
+        { status: 500 },
+      );
+    }
+    providerRows = (provRes.data ?? []) as ProviderRow[];
+    studentCount = studRes.count ?? 0;
+  }
+
   const chans = (channels ?? []) as ChannelRow[];
   let records: RecordRow[] = [];
   if (slug && chans.length > 0) {
@@ -226,6 +264,25 @@ export async function GET(req: NextRequest) {
       state: c.state,
       due: built.some((b) => b.due),
       channels: built,
+      // Null counts mean "not instrumented", which the card renders as a dash.
+      // A zero here would read as a measurement, and it is not one.
+      providers: slug
+        ? {
+            clients: null as number | null,
+            catchment: providerRows.length,
+            rows: providerRows.map((r) => ({
+              id: r.id,
+              name: r.organization_name,
+              state: r.status,
+              detail:
+                (r.research_data as { general_contact?: { phone?: string } } | null)
+                  ?.general_contact?.phone ?? null,
+            })),
+          }
+        : undefined,
+      students: slug
+        ? { applicants: studentCount, qualified: null as number | null }
+        : undefined,
     };
   });
 

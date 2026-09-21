@@ -23,7 +23,6 @@ import {
 import { defaultCallScriptsFor, type CallScript } from "@/lib/student-outreach/sequencer";
 import { getTemplate, substituteVars, firstNameOf } from "@/lib/student-outreach/templates";
 import { CallScriptBlock } from "@/components/admin/medjobs/CallScriptBlock";
-import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 import type { StakeholderType } from "@/lib/student-outreach/types";
 
@@ -187,8 +186,6 @@ export function CadenceLaunchModal({
                   <span className="text-gray-500"> ({recipientEmail})</span>
                 ) : null}
               </span>
-              {/* Prefer manual? Step into the Smartlead inbox to reply by hand. */}
-              <SmartleadInboxLink linkage={smartleadLinkage} label="Reply manually in Smartlead" />
             </div>
           )}
 

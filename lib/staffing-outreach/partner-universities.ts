@@ -555,7 +555,7 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
     // Not a real university. See isDemo above.
     slug: "dubose-university-of-olera",
     name: "DuBose University of Olera",
-    city: "Demo",
+    city: "Austin",
     state: "TX",
     isDemo: true,
     catchment: [],

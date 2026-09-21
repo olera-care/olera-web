@@ -40,7 +40,10 @@ INSERT INTO student_outreach_campuses (slug, name, city, state, is_active, is_de
 VALUES (
   'dubose-university-of-olera',
   'DuBose University of Olera',
-  'Demo',
+  -- A real city, so the sweep's map link and the directions link open
+  -- somewhere. A campus in "Demo, TX" makes both look broken in front of an
+  -- audience, which is the one place they must not.
+  'Austin',
   'TX',
   TRUE,
   TRUE,
@@ -50,5 +53,5 @@ ON CONFLICT (slug) DO UPDATE
   SET is_demo = TRUE, name = EXCLUDED.name, notes = EXCLUDED.notes;
 
 INSERT INTO medjobs_universities (name, slug, city, state, is_active)
-VALUES ('DuBose University of Olera', 'dubose-university-of-olera', 'Demo', 'TX', TRUE)
+VALUES ('DuBose University of Olera', 'dubose-university-of-olera', 'Austin', 'TX', TRUE)
 ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name;

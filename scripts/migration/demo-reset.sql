@@ -59,11 +59,16 @@ DELETE FROM campus_channels c USING demo_campus d WHERE c.campus_id = d.id;
 -- student who typed the demo university into their application survives.
 DELETE FROM business_profile_tasks t
 USING business_profiles p
-WHERE t.business_profile_id = p.id
-  AND p.type = 'student' AND p.metadata->>'is_demo' = 'true';
+WHERE t.business_profile_id = p.id AND p.metadata->>'is_demo' = 'true';
 
-DELETE FROM business_profiles p
-WHERE p.type = 'student' AND p.metadata->>'is_demo' = 'true';
+-- Placements cascade off either profile, but deleting them first keeps the
+-- order readable rather than relying on it.
+DELETE FROM medjobs_placements pl
+USING business_profiles p
+WHERE (pl.student_profile_id = p.id OR pl.provider_profile_id = p.id)
+  AND p.metadata->>'is_demo' = 'true';
+
+DELETE FROM business_profiles p WHERE p.metadata->>'is_demo' = 'true';
 
 -- ── providers ───────────────────────────────────────────────────────────
 
@@ -78,6 +83,7 @@ FROM demo_campus d,
   ('Meridian Senior Care at Home',      'researched',         '{}'::jsonb),
   ('Crestwood Caregiving',              'researched',         '{}'::jsonb),
   ('Lakeside Family Home Care',         'researched',         '{}'::jsonb),
+  ('Willow Creek Home Care',            'researched',         '{}'::jsonb),
   ('Ridgeline Home Services',           'researched',         '{}'::jsonb),
   ('Pinecrest Home Care',               'researched',
      jsonb_build_object('flagged_on', (now() - interval '1 day')::text)),
@@ -97,6 +103,7 @@ JOIN (VALUES
   ('Meridian Senior Care at Home', 'Priya Raman',    'Director',         'priya@example.test', '555-0103'),
   ('Crestwood Caregiving',         'Tom Alvarez',    'Owner',            'tom@example.test',   '555-0104'),
   ('Lakeside Family Home Care',    'Rita Okafor',    'Staffing Lead',    'rita@example.test',  '555-0105'),
+  ('Willow Creek Home Care',       'Nora Feldman',   'Owner',            'nora@example.test',  '555-0109'),
   ('Ridgeline Home Services',      'Sam Beaumont',   'Operations',       'sam@example.test',   '555-0106'),
   ('Pinecrest Home Care',          'Joy Nakamura',   'Owner',            'joy@example.test',   '555-0107'),
   ('Summit Ridge Home Care',       'Ellis Grant',    'Administrator',    'ellis@example.test', '555-0108')
@@ -179,6 +186,18 @@ JOIN (VALUES
   ('Lakeside Family Home Care', 'outreach_contact', 'pending',     1,  0,
      '{"step":5,"round":2}'::jsonb, NULL),
 
+  -- 4 the pack itself, waiting to be sent. Every other provider has this
+  -- rung behind them, and the pack is the longest screen on the ladder.
+  ('Willow Creek Home Care', 'research_initial', 'completed', -7, 7,
+     '{"step":0,"round":0,"outcome":"Done"}'::jsonb, NULL),
+  ('Willow Creek Home Care', 'outreach_contact', 'completed', -5, 5,
+     '{"step":1,"round":0,"outcome":"Confirmed contact"}'::jsonb, NULL),
+  ('Willow Creek Home Care', 'outreach_contact', 'completed', -2, 2,
+     '{"step":3,"round":1,"outcome":"They replied"}'::jsonb,
+     'Interested. Asked for the details in writing.'),
+  ('Willow Creek Home Care', 'outreach_contact', 'pending',    0, 0,
+     '{"step":4,"round":0}'::jsonb, NULL),
+
   -- 8 a call booked for later this week.
   ('Ridgeline Home Services', 'research_initial', 'completed', -11, 11,
      '{"step":0,"round":0,"outcome":"Done"}'::jsonb, NULL),
@@ -222,6 +241,11 @@ JOIN (VALUES
   ('Summit Ridge Home Care', 'outreach_contact', 'completed', -21, 21,
      '{"step":5,"round":1,"outcome":"They are ready"}'::jsonb,
      'Ready for their first student, and clear on what happens when one arrives.'),
+  -- The seasonal check a finished provider earns. Due today rather than next
+  -- term so the rung can be opened and shown; in the wild the goal queues it
+  -- months out.
+  ('Summit Ridge Home Care', 'outreach_contact', 'pending', 0, 0,
+     '{"step":6,"round":0}'::jsonb, NULL),
 
   -- Archived. Keeps the outcome that archived it, which is the evidence.
   ('Fairview Home Care', 'research_initial', 'completed', -6, 6,
@@ -260,6 +284,23 @@ VALUES
                        'application_completed', true),
     now() - interval '48 days');
 
+-- A placement needs a provider with a portal profile, which a directory
+-- outreach row is not. One demo organization stands in for Summit Ridge, and
+-- is_active false keeps it off the public side like the students.
+INSERT INTO business_profiles
+  (slug, type, display_name, city, state, is_active, metadata)
+VALUES
+  ('demo-duo-summit-ridge', 'organization', 'Summit Ridge Home Care', 'Austin', 'TX', FALSE,
+    jsonb_build_object('is_demo', true));
+
+-- Dev is hired. Without this the board reads the facts, finds no placement,
+-- and shows a student with no state and nothing to do — which looks like a
+-- bug rather than like somebody who finished.
+INSERT INTO medjobs_placements (provider_profile_id, student_profile_id, status, created_at)
+SELECT prov.id, stu.id, 'accepted', now() - interval '18 days'
+FROM business_profiles prov, business_profiles stu
+WHERE prov.slug = 'demo-duo-summit-ridge' AND stu.slug = 'demo-duo-dev-patel';
+
 -- History outranks derivation on the students ladder, so a completed rung is
 -- the reliable way to place somebody. Ana is left with none: she has not
 -- finished her application, and the board gives her the rungs she is on.
@@ -281,6 +322,15 @@ JOIN (VALUES
   ('demo-duo-dev-patel',     18, '{"step":3,"round":0}'::jsonb, 'Hired by Summit Ridge.')
 ) AS v(slug, done_ago, payload, notes) ON v.slug = p.slug;
 
+-- The monthly hours check. Queued by the Hired outcome thirty days out, so a
+-- student hired eighteen days ago has one coming; brought forward to today
+-- so it can be opened during a demo.
+INSERT INTO business_profile_tasks
+  (business_profile_id, kind, task_type, status, due_at, payload)
+SELECT p.id, 'candidate', 'manual_followup', 'pending', current_date::timestamptz,
+       '{"step":4,"round":0}'::jsonb
+FROM business_profiles p WHERE p.slug = 'demo-duo-dev-patel';
+
 -- ── the job board ───────────────────────────────────────────────────────
 
 INSERT INTO campus_channels (campus_id, channel, status, criteria, detail)
@@ -291,9 +341,17 @@ SELECT d.id, 'st3', 'in_progress', '{}'::jsonb,
          'services_email', 'careers@example.test')
 FROM demo_campus d;
 
-INSERT INTO site_tasks (campus_id, channel, task_type, due_at, status, payload)
-SELECT d.id, 'st3', 'activation_job_board_check', current_date::timestamptz, 'pending',
-       '{"step":2,"round":0}'::jsonb
-FROM demo_campus d;
+-- The job board is one record per campus, so it can only ever be in one
+-- state. It starts on rung 1 with the research behind it: far enough in to
+-- show a channel in progress, early enough that submitted, approved and
+-- first applicant can all be walked forward during the demo.
+INSERT INTO site_tasks (campus_id, channel, task_type, due_at, status, payload, notes, completed_at)
+SELECT d.id, 'st3', 'activation_job_board_check', v.due, v.status, v.payload, v.notes, v.done_at
+FROM demo_campus d,
+(VALUES
+  ((current_date - 6)::timestamptz, 'completed', '{"step":0,"round":0}'::jsonb,
+     'Career services portal found, submission is by email.', now() - interval '6 days'),
+  (current_date::timestamptz,       'pending',   '{"step":1,"round":0}'::jsonb, NULL, NULL)
+) AS v(due, status, payload, notes, done_at);
 
 COMMIT;

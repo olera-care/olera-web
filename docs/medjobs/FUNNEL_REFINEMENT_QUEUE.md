@@ -672,12 +672,22 @@ reach a real campus. And the rollups leave it out, so a morning of teaching
 does not move a number anybody reports on. A name match would have done the
 first two and silently failed the third the first time somebody renamed it.
 
-**What is seeded.** Ten providers, one on each rung, plus one at the goal, one
-archived, one flagged for manager review, and one four rounds into the
-follow-up block and overdue so the warning shows. Four students at four
-stages. A job board part way through. Advisors, orgs, events and professors
-stay empty — those ladders are not being taught yet, and an empty section
-reads as not started rather than as broken.
+**What is seeded**, checked rung by rung against the ladders rather than by
+eye. Eleven providers, one sitting on every rung from Research to Help them
+on a call, plus one at the goal with its seasonal check, one archived, one
+flagged for manager review, and one four rounds into the follow-up block and
+overdue so the warning shows. Four students, landing on the meeting, the
+application, the interview and the monthly hours check — the last of them
+hired, which needs a placement row and a stand-in provider profile, because
+without one the board reads the facts, finds nothing, and shows a student
+with no state and no work. The job board starts on rung 1 with the research
+behind it: it is one record per campus and can only be in one state, so it
+starts early enough that submitted, approved and first applicant can all be
+walked forward live.
+
+Advisors, orgs, events and professors stay empty — those ladders are not
+being taught yet, and an empty section reads as not started rather than as
+broken.
 
 The map sweep is not seeded and does not need to be. The board shows it for
 any campus without a completed one, so it is there on a fresh reset and gone

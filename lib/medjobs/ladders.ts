@@ -706,7 +706,7 @@ export const FOLLOW_UP_ROUNDS = 7;
 export const LADDERS: Record<SectionKey, Ladder> = {
   providers: {
     label: "Providers",
-    goal: "ready for their first student",
+    goal: "ready for students",
     auto: true,
     // Two, not three. Look them up and ring them in one sitting — but the
     // programme email waits on the call, because you cannot send it to an

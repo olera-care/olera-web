@@ -365,7 +365,7 @@ one, and most providers never see it. It is fifteen minutes doing whatever is st
 setting their requirements in the portal while you are on the phone — and it ends the same way every
 other screen does: they are ready, or they are not yet and it goes back to chasing.
 
-**The goal is an acknowledgement, not an event.** *Ready for their first student* is not a rung anybody
+**The goal is an acknowledgement, not an event.** *Ready for students* is not a rung anybody
 ticks; it is where the ladder stops when a provider says they understand how students reach them and
 what to do when one arrives. A call, an email and a meeting are all ways of getting that sentence, and
 none of them is required.

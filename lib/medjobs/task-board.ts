@@ -326,6 +326,30 @@ export const sectionReady = (u: BoardUniversity, s: SectionKey): number =>
 export const readyCount = (u: BoardUniversity): number =>
   allRecords(u).reduce((n, r) => n + recordReady(r), 0);
 
+/**
+ * Providers who have said they are ready to receive a student.
+ *
+ * The one number the provider funnel exists to produce, so it is what the
+ * board's Providers column shows. It counts records at the goal rather than
+ * tasks waiting: a campus with nine providers ready and nothing to do today
+ * is a success, and a task count would have called it empty.
+ *
+ * The state comes from the record's own status, which the server sets when
+ * the goal outcome is logged. Before that it lived only in the browser.
+ */
+export const readyForStudents = (u: BoardUniversity): number =>
+  (u.records.providers ?? []).filter((r) => r.state === LADDERS.providers.goal).length;
+
+/**
+ * Student applications at this university — one per student record.
+ *
+ * Every student on the board arrived by applying, so the record is the
+ * application. This column used to count their open tasks, which answered a
+ * question nobody was asking of it: how many students are here is the thing
+ * you want from a list of universities.
+ */
+export const applications = (u: BoardUniversity): number => (u.records.students ?? []).length;
+
 export const doneToday = (u: BoardUniversity): number => {
   const today = iso(startOfToday());
   return allRecords(u).reduce(

@@ -60,8 +60,16 @@ const RECORD_KIND_SECTION: Record<string, SectionKey> = {
 };
 
 /** A record that has reached its goal, or stopped, stops climbing. */
+/**
+ * A record with nothing left to climb. Most of these are dead ends, but
+ * `ready_for_students` is the opposite — it is the providers goal, and it
+ * belongs here because a provider who has reached it is finished with the
+ * ladder, not because anything went wrong. Underscores become spaces, so it
+ * reads back as the goal string itself.
+ */
 const CLOSED_STATUSES = new Set([
   "active_partner",
+  "ready_for_students",
   "not_interested",
   "no_response_closed",
   "do_not_contact",

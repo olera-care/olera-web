@@ -83,6 +83,8 @@ type Body =
     };
 
 const ARCHIVED_STATUS = "archived";
+/** A provider who has said they are ready to receive a student. The goal. */
+const READY_STATUS = "ready_for_students";
 
 /**
  * The work type a rung is queued under.
@@ -636,6 +638,21 @@ export async function POST(req: Request) {
           .eq("outreach_id", outreach.id)
           .eq("status", "pending");
         return NextResponse.json({ ok: true, archived: outreach.organization_name });
+      }
+
+      // Reaching the providers goal is a fact worth keeping. Nothing else
+      // recorded it: the goal queues no task and left the status alone, so a
+      // provider who had said they were ready looked exactly like one nobody
+      // had started — no open task, no state — and the board could not count
+      // them. Only providers: every other ladder either recurs from its goal
+      // or means something different by it.
+      if (section === "providers" && action?.outcome === "goal") {
+        const { error } = await db
+          .from("student_outreach")
+          .update({ ...stamp(user.id), status: READY_STATUS })
+          .eq("id", outreach.id);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ ok: true, ready: outreach.organization_name });
       }
 
       await db.from("student_outreach").update(stamp(user.id)).eq("id", outreach.id);

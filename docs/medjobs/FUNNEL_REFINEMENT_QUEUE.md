@@ -38,6 +38,29 @@ the seven follow-ups, the call scripts, and the same for advisors once 11 is
 settled. Needs the positioning decided first — see 6 and 11, both of which
 turn on what the email is actually asking for.
 
+## 13 · The university board counts outcomes, not tasks — SHIPPED
+
+The Providers and Students columns both called `sectionReady`, which counts
+tasks waiting. So Students showed a task tally rather than how many students
+were there, and Providers went blank the moment a campus had nothing due —
+however many providers were ready.
+
+Both now count the thing the section exists to produce: providers at the
+goal, and student applications. One per student record, because a student
+arrives by applying.
+
+**This needed the goal to become real.** Logging *They are ready* queued no
+task and changed no status, so a provider at the goal was indistinguishable
+from one nobody had started: no open task, no state, status still
+`researched`. The goal lived in the browser and a refresh lost it. Migration
+236 adds a `ready_for_students` status, the server writes it when the goal
+outcome is logged, and the backfill gives it to the providers who already
+earned it by matching the outcome label rather than a step number.
+
+The goal also reads plainly now — **ready for students**, not *ready for
+their first student* — since it is a standing state rather than a countdown
+to one event.
+
 ## 4 · A final sweep against the Google map pack — ALIGN
 
 The directory is where the provider list comes from and it will have missed
@@ -497,7 +520,7 @@ every interested provider settles C1's amount whatever the log says.
    ```
     0 Research              5 Chase the meeting
     1 Confirming call       6 Hold the meeting
-    2 Programme email       7 Ready for their first student   (goal)
+    2 Programme email       7 Ready for students              (goal)
     3 Follow up x7          8 Seasonal check
     4 Onboarding pack       9 Something else                  (branch)
    ```
@@ -513,7 +536,7 @@ every interested provider settles C1's amount whatever the log says.
     1 Confirming call       6 Seasonal check
     2 Programme email       7 Something else            (branch)
     3 Follow up x7          8 Help them on a call       (branch)
-    4 Onboarding pack       goal: ready for their first student
+    4 Onboarding pack       goal: ready for students
    ```
 
    The pack ends by asking for the sentence. The block is the same screen as
@@ -523,7 +546,7 @@ every interested provider settles C1's amount whatever the log says.
    rounds it keeps going, because seven unanswered cold calls is a no and
    seven unanswered nudges at a provider who said yes is not.
 
-   *Ready for their first student* stopped being a rung. It is the goal,
+   *Ready for students* stopped being a rung. It is the goal,
    reached from the block or from the call, because the acknowledgement is
    the thing and there is nothing to tick afterwards.
 
@@ -547,7 +570,7 @@ every interested provider settles C1's amount whatever the log says.
    has.
 
    The goal is no longer *signed up*, which described a signature nobody
-   gives. It is **ready for their first student**.
+   gives. It is **ready for students**.
 
    **No migration was needed, and the one written for it was deleted.** The
    plan was to renumber old rows onto the new rungs, the way migration 22

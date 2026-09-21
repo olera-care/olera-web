@@ -34,6 +34,8 @@ import {
   makeRecord,
   resolveNext,
   SKIPPED,
+  applications,
+  readyForStudents,
   startOfToday,
   stillToCome,
   strikesAt,
@@ -109,7 +111,7 @@ ok("and that is the whole ladder", steps.length === 9, String(steps.length));
 ok("two branches, both reached by name", steps.filter((r) => r.branch).length === 2);
 ok(
   "the goal is what we are actually waiting for",
-  LADDERS.providers.goal === "ready for their first student",
+  LADDERS.providers.goal === "ready for students",
   LADDERS.providers.goal,
 );
 ok("and no rung claims it", steps.every((r) => r.name !== "ready"));
@@ -196,7 +198,7 @@ console.log("\nThe onboarding phase");
   ] as Array<[number, number, string, string]>) {
     const [u2, r2] = at(step, round);
     act(u2, r2, label);
-    ok(where, r2.state === "ready for their first student" && r2.step === null, String(r2.state));
+    ok(where, r2.state === "ready for students" && r2.step === null, String(r2.state));
   }
 }
 
@@ -546,6 +548,63 @@ console.log("\nThe pack, and what it does not say");
   ok("it says there is no obligation", pack.toLowerCase().includes("no obligation"));
   ok("a reply is an acceptable way to say what they want", pack.includes("reply to this email"));
   ok("and the portal is offered rather than required", pack.includes("If you would rather do it yourself"));
+}
+
+console.log("\nWhat the university board counts");
+{
+  /**
+   * The two columns that are outcomes rather than workloads. Both used to
+   * call sectionReady, which counts ready tasks — so Students showed a task
+   * tally and Providers went blank the moment a campus had nothing due,
+   * however many providers were ready.
+   */
+  const uni = {
+    id: "u1",
+    slug: "u1",
+    name: "Test",
+    mapsDestination: null,
+    channels: {},
+    records: Object.fromEntries(SECTION_ORDER.map((s) => [s, []])) as Record<
+      (typeof SECTION_ORDER)[number],
+      ReturnType<typeof makeRecord>[]
+    >,
+  };
+
+  const atGoal = (name: string) => {
+    const r = makeRecord("providers", name, null);
+    r.state = LADDERS.providers.goal;
+    return r;
+  };
+
+  uni.records.providers = [
+    atGoal("Ready one"),
+    atGoal("Ready two"),
+    // Climbing, with a task due: work, not an outcome.
+    makeRecord("providers", "Still climbing", 3, 2, 0),
+    // Archived. Closed, but not at the goal.
+    (() => {
+      const r = makeRecord("providers", "Archived", null);
+      r.state = "archived";
+      return r;
+    })(),
+  ];
+  uni.records.students = [
+    makeRecord("students", "Applicant one", 1),
+    makeRecord("students", "Applicant two", 1),
+    makeRecord("students", "Applicant three", 2),
+  ];
+
+  ok("providers counts records at the goal", readyForStudents(uni) === 2, String(readyForStudents(uni)));
+  ok("and does not count one still climbing, or an archived one", readyForStudents(uni) === 2);
+  ok("students counts applications, not tasks", applications(uni) === 3, String(applications(uni)));
+
+  // A campus with everything done and nothing due still reports its wins.
+  const quiet = { ...uni, records: { ...uni.records, providers: [atGoal("Only one")] } };
+  ok("a campus with no work due still shows its ready providers", readyForStudents(quiet) === 1);
+
+  // The goal string the column matches on is the one the ladder publishes,
+  // so renaming it in one place cannot leave the column counting nothing.
+  ok("the goal reads as the plain phrase", LADDERS.providers.goal === "ready for students");
 }
 
 console.log(failed === 0 ? "\nAll checks passed.\n" : `\n${failed} failed.\n`);

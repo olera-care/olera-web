@@ -270,8 +270,8 @@ doing whatever is stopping them, usually setting their requirements in the
 portal while you are on the phone, and it ends the same way every other screen
 does: they are ready, or they are not yet and it goes back to chasing.
 
-**The goal is an acknowledgement, not an event.** Ready for their first student
-is not a rung anybody ticks. It is where the ladder stops when a provider says
+**The goal is an acknowledgement, not an event.** Ready for students is not
+a rung anybody ticks. It is where the ladder stops when a provider says
 they understand how students reach them and what to do when one arrives. A
 call, an email and a meeting are all ways of getting that sentence, and none of
 them is required.

@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import StatusDot, { DueDot, statusLabel } from "@/components/admin/medjobs/activation/StatusDot";
 import { LADDERS, SECTION_ORDER, type SectionKey } from "@/lib/medjobs/ladders";
-import { readyCount, sectionReady, type BoardUniversity } from "@/lib/medjobs/task-board";
+import {
+  applications,
+  readyCount,
+  readyForStudents,
+  type BoardUniversity,
+} from "@/lib/medjobs/task-board";
 import UniversityFlow from "./UniversityFlow";
 
 /**
@@ -102,14 +107,23 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
                   </td>
                   {SECTION_ORDER.map((s) => {
                     const channel = CHANNEL_OF[s];
-                    // Providers and Students have no channel dot — their
-                    // counts are not instrumented, so they stay a dash
-                    // rather than a plausible-looking zero.
+                    // Providers and Students have no channel dot, because
+                    // neither is a channel that goes live. They carry a
+                    // number instead, and the number is an outcome rather
+                    // than a workload: providers ready for students, and
+                    // student applications. The Tasks column already says
+                    // how much is waiting, and saying it again per section
+                    // told you nothing the first column had not.
                     if (!channel) {
-                      const waiting = sectionReady(u, s);
+                      const n = s === "providers" ? readyForStudents(u) : applications(u);
                       return (
-                        <td key={s} className="py-2.5 pr-3 text-center text-[12px] tabular-nums text-gray-400">
-                          {waiting || "—"}
+                        <td
+                          key={s}
+                          className={`py-2.5 pr-3 text-center text-[12px] tabular-nums ${
+                            n ? "font-medium text-gray-700" : "text-gray-400"
+                          }`}
+                        >
+                          {n || "—"}
                         </td>
                       );
                     }

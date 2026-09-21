@@ -10,6 +10,7 @@ import {
   warRoomProbeMenu,
   type WarRoomProbeId,
 } from "@/lib/war-room/probes.server";
+import { loadFounderEvidence } from "@/lib/war-room/founder-loop.server";
 import { buildWarRoomSnapshot } from "@/lib/war-room/snapshot.server";
 import {
   loadExternalEvidence,
@@ -1570,10 +1571,14 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
     syncArchiveEvidence(db),
   ]);
   await updateDiscoveryStage(db, runId, "building_operating_pack", { slack, notion, archive, stage_attempt: attempt });
-  const [snapshot, sourceEvidence, probeEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
+  const [snapshot, sourceEvidence, probeEvidence, founderEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
     buildWarRoomSnapshot(db, 30),
     loadExternalEvidence(db),
     loadProbeEvidence(db),
+    // The founder's own answers, carried the same way probe answers are. This
+    // is what lets cause confidence rise on a condition whose open question was
+    // never a database query.
+    loadFounderEvidence(db),
     loadCompanyModel(db),
     db.from("war_room_proposals").select("*").order("last_seen_at", { ascending: false }).limit(30),
     db.from("war_room_investigations").select("*").order("last_seen_at", { ascending: false }).limit(30),
@@ -1587,9 +1592,9 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
       .select("fingerprint, status")
       .in("status", ["rejected", "completed", "failed", "superseded"]),
   ]);
-  // Answered probes are evidence like any other source, so the next scan
-  // reasons with the answer instead of re-planning the same probe.
-  const externalEvidence = [...sourceEvidence, ...probeEvidence];
+  // Answered probes and founder answers are evidence like any other source, so
+  // the next scan reasons with the answer instead of re-asking the question.
+  const externalEvidence = [...sourceEvidence, ...probeEvidence, ...founderEvidence];
   if (memoryResult.error) throw memoryResult.error;
   if (investigationMemoryResult.error) throw investigationMemoryResult.error;
   if (dueOutcomeResult.error) throw dueOutcomeResult.error;

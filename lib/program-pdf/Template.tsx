@@ -348,6 +348,32 @@ export function ProgramPdfTemplate({
           ))}
 
           <View style={{ height: 10 }} />
+          {/* The founder and his photograph, high on the page. It was on the
+              team page, which left page one as five blocks of type and
+              nothing to rest on. */}
+          {config.story ? (
+            <>
+              <SectionHead>{config.story.heading.toUpperCase()}</SectionHead>
+              <View style={styles.storyRow}>
+                {lead && photos[lead.photo ?? ""] ? (
+                  <View style={styles.storyPhotoWrap}>
+                    <Image src={photos[lead.photo!]!} style={styles.storyPhoto} />
+                  </View>
+                ) : null}
+                <View style={styles.storyText}>
+                  <Text style={styles.storyQuote}>{config.story.body}</Text>
+                  {lead ? (
+                    <>
+                      <Text style={styles.storyName}>{lead.name}</Text>
+                      <Text style={styles.storyRole}>{lead.role}</Text>
+                      <Text style={styles.storyRole}>{lead.bio}</Text>
+                    </>
+                  ) : null}
+                </View>
+              </View>
+            </>
+          ) : null}
+
           <SectionHead>HOW IT WORKS</SectionHead>
           <Steps items={config.steps.map(stepOf)} />
 
@@ -359,12 +385,6 @@ export function ProgramPdfTemplate({
             </View>
           ) : null}
 
-          {config.afterReply?.length ? (
-            <>
-              <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
-              <Steps items={config.afterReply} />
-            </>
-          ) : null}
         </View>
       </Page>
 
@@ -374,29 +394,6 @@ export function ProgramPdfTemplate({
           <Band right="the team" />
 
           <View style={styles.body}>
-            {config.story ? (
-              <>
-                <SectionHead>{config.story.heading.toUpperCase()}</SectionHead>
-                <View style={styles.storyRow}>
-                  {lead && photos[lead.photo ?? ""] ? (
-                    <View style={styles.storyPhotoWrap}>
-                      <Image src={photos[lead.photo!]!} style={styles.storyPhoto} />
-                    </View>
-                  ) : null}
-                  <View style={styles.storyText}>
-                    <Text style={styles.storyQuote}>{config.story.body}</Text>
-                    {lead ? (
-                      <>
-                        <Text style={styles.storyName}>{lead.name}</Text>
-                        <Text style={styles.storyRole}>{lead.role}</Text>
-                        <Text style={styles.storyRole}>{lead.bio}</Text>
-                      </>
-                    ) : null}
-                  </View>
-                </View>
-              </>
-            ) : null}
-
             <SectionHead>WHO YOU WILL BE WORKING WITH</SectionHead>
             <View style={styles.teamRow}>
               {rest.map((m, i) => (
@@ -418,31 +415,35 @@ export function ProgramPdfTemplate({
                 </React.Fragment>
               ))}
             </View>
-          </View>
 
-          <View style={styles.footerPinned}>
-            <View style={{ flex: 1 }}>
-              {config.nextStep ? (
-                <View style={styles.offerBox}>
-                  <Text style={styles.offerHead}>{config.nextStep.heading}</Text>
-                  <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
-                  <Text style={[styles.offerAsk, { color: GRAY_900 }]}>
-                    {config.nextStep.ask}
-                  </Text>
-                  <Text style={styles.offerBody}>{config.nextStep.body}</Text>
-                </View>
-              ) : null}
-              {config.replyBlock ? (
-                <View style={styles.replyBox}>
-                  <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
-                  <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
-                  <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
-                </View>
-              ) : null}
-              {config.footerLine ? (
-                <Text style={styles.footerLine}>{config.footerLine}</Text>
-              ) : null}
-            </View>
+            {config.nextStep ? (
+              <View style={styles.offerBox}>
+                <Text style={styles.offerHead}>{config.nextStep.heading}</Text>
+                <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
+                <Text style={[styles.offerAsk, { color: GRAY_900 }]}>
+                  {config.nextStep.ask}
+                </Text>
+                <Text style={styles.offerBody}>{config.nextStep.body}</Text>
+              </View>
+            ) : null}
+
+            {config.afterReply?.length ? (
+              <>
+                <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
+                <Steps items={config.afterReply} />
+              </>
+            ) : null}
+
+            {config.replyBlock ? (
+              <View style={styles.replyBox}>
+                <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
+                <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
+                <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
+              </View>
+            ) : null}
+            {config.footerLine ? (
+              <Text style={styles.footerLine}>{config.footerLine}</Text>
+            ) : null}
           </View>
         </Page>
       ) : null}

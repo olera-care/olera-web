@@ -356,7 +356,10 @@ export default function UniversityFlow({
           // opens the meeting branch never reached the server at all.
           fields: task.fields ?? {},
         },
-        "",
+        // Say so. Finishing a task was the one write that confirmed
+        // nothing, which is a strange thing for the action somebody
+        // performs sixty times in a sitting and has to trust every time.
+        "Saved",
         { keepBoard: true },
       ).then(({ ok, data }) => {
         if (!ok || !data?.live) return;

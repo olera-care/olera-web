@@ -49,7 +49,8 @@ keep as (
         'Danville Support Services',
         'Arosa Salt Lake',
         'Compassionate Home Care',
-        'Cornerstone Caregiving - Madison Home Care'
+        'Cornerstone Caregiving - Madison Home Care',
+        'Comfort Keepers of Tallahassee, FL'
       )
       or exists (
         select 1

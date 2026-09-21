@@ -6796,3 +6796,65 @@ Each was real, each verified gone, and **each time I was certain it was the last
 1. **Approve or reject the proposal.** Approving is the first execution of `deliverAssignedWork`, which has never run — if nothing arrives in Slack that's a bug, not silence.
 2. Outcome measurement has still never fired. Nothing has been approved to measure. Ownership without it is idea-dumping with execution attached.
 3. Cost: ~$1/scan, rising as the fact pack grows ($1.85 → $2.08 in one day). Event triggers over polling. **Deliberately deferred to next session at TJ's instruction.**
+
+---
+
+## 2026-09-21 (later still) — The care seeker board: a queue that was a bug, the question "yes" never answered, and a promise we were not keeping
+
+Shipped to production as **#2024** → promotion **#2027** (`ca4e3f830`). Seven commits, 14 files, **no migration**.
+
+### What started it
+
+TJ asked whether Facebook leads reach providers only after confirming a care need. They did not: the gate tested whether a reply **existed**, never what it **said**. Drema Mitchell Lowe answered *"I want to be a caretaker"* on the 19th and three Dallas agencies were each told a family needed care. That produced the classifier and the exchange payload (earlier session). This session is the four things that fell out of auditing the rest of the same surface.
+
+### 1. A queue that was a defect wearing a verb
+
+`outcome_reported` fired when a family answered the outcome email **and** `connections.status` still read `pending`. `status` is the in-app accept state and **has never moved off pending for a single one of 1,431 inquiries**, so the condition was permanently true of every answer ever given — including the 24 who said *yes* — and could never clear. It produced a 42-row queue, *"Write down what they told us"*, asking a person to transcribe a value that arrived as structured data from a one-click link.
+
+Replaced with `provider_no_show`: the families who said **no**, capped at **14 days from the answer**. Eleven rows. Uncapped it is a monument, not a queue — the average "no" is 38 days old, and there is nothing useful to say to a family about a referral from last quarter. Verified in prod: 37 "no" answers total, 11 within 14 days.
+
+`connections.status` deliberately untouched. It drives `getProviderDisplayStatus` and `isSuccessfulConnection`.
+
+**Latent hole fixed alongside it.** Every feed in `candidateIds` was keyed on when a family *arrived*; an outcome answer is keyed on when they *replied*. A family who enquired in June and told us in September that nobody came back was not a candidate at all. All 11 current rows happen to fall inside the window, so this was a trap rather than a live loss.
+
+### 2. "Yes" is the one answer that closes the file and tells us the least
+
+`familySelfReportedYes` is a **permanent global stop** on the family-comms coordinator (`route.ts:431`) and counts as `connected` in `computeFamilyOutcome`. Both read it as a placement. It means a phone rang. So the one cohort we declare a win is the one cohort we guarantee never to contact again — 24 families, none of whom has ever been asked whether care started.
+
+New **rung 0.5**, the only message ever allowed through that stop, once, 14 days after the answer. Three doors, a real partition: *working with them / went with someone else / still looking*. Satisfaction is a **second** question, asked on the landing page after the tap, of the first group only, because it has no answer until care is actually happening. One question per message.
+
+No migration: all three questions write sibling keys on `connections.metadata` and share the one allowed `seeker_activity.event_type`, separating on `metadata.question`.
+
+**`/pre-test` caught three real defects**, all shipped-fixed: a cron counter incremented at the fork so it counted candidates as sends and sat in the `stops` bucket; `family_placement_check` missing from `FAMILY_NUDGE_EMAIL_TYPES` so it bypassed the per-family caps every sibling rung obeys; and a satisfaction tap that thanked people for an answer that had not saved (`.catch(() => {})` plus a non-ok response resolving rather than throwing).
+
+**A fourth defect the dry-run numbers caught, not the review.** The email opened *"A couple of weeks ago you told us…"*. True in steady state, false on the first run: 20 families are eligible now and their answers span **26 June to 7 September**. Line is now age-neutral. *Lesson: check the copy against the data it will actually be sent to, not against the mechanism.*
+
+### 3. We were promising a gate we do not have
+
+Every surface said a concierge lead could not reach a provider *"without a spoken yes"*. **Never true.** The concierge hold in `offers.server.ts:218` applies only while a lead is **unanswered**; a text reply releases it and no human speaks to anyone. Proof: **Bessie Brooks** replied by text on Saturday, `reached_at` still null, and went to Assisting Hands (14:05), Cambridge Caregivers (14:35) and Granny NANNIES (15:10) — all three expired unanswered, which is why she is back in *Call them*.
+
+TJ's call: **the behaviour is right, do not gate routing on a call.** The words were wrong, in three files, and they made the *Call them* queue look like a gate that releases routing when it is a courtesy running alongside it. That difference changes what the person working the queue thinks their call is *for*.
+
+### 4. The plan was invisible
+
+The relay picks one agency at a time, 30 minutes apart, and wrote nothing down in advance — so a lead read *"Open, day 1"* while being two hours from going to three agencies. **`lib/city-ads/plan.server.ts`** derives the whole plan at read time from exactly what the relay reads: same `city_pool` query, same care-type match, same window, same staffed-hours roll-forward. Writes nothing, changes no behaviour, so it cannot disagree with what will happen. Detail page renders state + one plain sentence + ordered providers with times; sent times exact, upcoming marked `~`.
+
+### Also in this session
+
+- **Filter state moved into the URL.** Was `useState`, so browser-back from a family landed on the unfiltered default. `router.replace` (not push, or every chip becomes a history entry). In-page back link carries the view via `?back=`.
+- **Tabs → the `/admin/connections` underline strip.** Six filled black capsules were the loudest thing on the page and competed with the coloured rails, which are the part that says something. Strip scrolls sideways instead of wrapping, so chrome is a fixed height at every width. The window select left the wrapping flow (it had `ml-auto` and was being pushed onto a line of its own).
+- **Origin row de-pilled.** It was a second row styled identically to the tabs, so a queue and a filter looked like the same kind of thing. Now quiet text toggles, and origins with **zero rows in the current queue are not rendered** — a greyed *"Ad Boost 0"* read as "we have no Ad Boost families" when it meant "none in this queue", and half the row was that.
+
+### Facts worth keeping
+
+- **0 of 19 city leads have ever been recorded as reached by phone.** 5 replied to the text, 3 routed, 1 accepted. Every outcome the system has produced came through the text. Caveat: `reached_at` is only set by hand-logging and nobody logs, so it may under-count calls — but it cannot hide a *result*.
+- **Exactly 1 touch exists in `family_touches`**, from 15 Sep, `author: "claude (for TJ)"`, `admin_user_id: null` — i.e. written by script. **The Log-it form has never been submitted by a human in a browser.**
+- **19 of 428 families** on the board can be traced to an ad. Origin chips are live and filterable, but most read *provider page* or *unknown*. The ad count is a floor; never read *unknown* as *organic*.
+- Two archives, two different things: `/admin/city-ads` Archive sets `city_leads.archived_at` and the relay filters on it. The board's Archive writes `seeker_archives`, which **the relay has never heard of** — so it hides the row and the lead keeps routing.
+
+### Next up
+
+1. **TJ to submit the Log-it form once by hand** (Helen Garner, one word, *No didn't reach them*). The artifact's priority-one instruction to Ces — *call them, and log every call* — rests on a button no human has pressed.
+2. **Decide whether the board's Archive should also archive a live city lead.** Right now it hides without stopping.
+3. **Drop the call promise on Dallas/Charlotte** if TJ wants text-first end to end — Olera's own copy, ours to change. Pascagoula's is published on Hilda's Meta form and can only change going forward.
+4. Watch the first real placement-check send: 20 families eligible, all in one run, no per-run throttle (the per-family cap is 3/7d and these have had nothing in weeks).

@@ -6704,3 +6704,49 @@ Everything else from the four investigations routes to a build or a date. These 
 2. Whether a family who says "paying for care" should be led with a **budget-relief program**. Raised repeatedly, most recently 6 Sep, never settled. It is a pick-rule change, not a data problem.
 3. What to do about the **filed Year 2 RPPR**, which reports 25,000–30,000 monthly visits and 1,000+ provider users against the CRP's 15,500 and 700. Already submitted, uneditable, no owner, no decision recorded anywhere in `docs/crp/`.
 4. Whether to run the **synergy falsification test** — 3 nearest providers in-path at the end of a completed screening, 50/50, ~4 weeks. Specified in August, never built. Benefits→inquiry is 0.6%.
+
+---
+
+## 2026-09-21 — Cortex: the founder loop closes, and the frame chooses the hole
+
+War Room gets renamed **Cortex** (TJ's word, and the better one: a war room convenes and disbands, a cortex runs continuously and decides what deserves attention).
+
+### What shipped
+
+- **#1994 founder reply loop** — the daily brief asks one question, the reply lands as `founder_answered` and becomes evidence on the next scan. First working ask→answer→evidence cycle in the system's history.
+- **#1997 + pre-test** — the picker no longer asks the same question every morning (all seven investigating rows scored identically, so the tiebreak made repetition deterministic), and a second reply no longer vanishes. `captureFounderAnswer` required the newest event to be an *unanswered* ask, so once any answer existed every later reply was discarded — silently, because the Slack route returns 200 and Slack has nowhere to surface a capture failure.
+- **#2004** — operating doctrine into `war_room_company_models`, plus cause confidence computed rather than self-reported.
+- **#2010/#2011** — migration renumber off a 240 collision; Cortex can now see time and the call log.
+- **#2012 (open)** — the north-star target. **Migration `242` needs running.**
+
+### Three things that were true and are no longer
+
+**The gate was born shut.** `applyAgendaGate` has never passed anything, ever. Migrations 179/180 landed 2026-08-15 20:20; the only three proposals in history were created that same day, *before* it; the first investigation appeared 2026-08-16. Not a regression — it has never once fired, and the repository executor (`war-room-agent.yml`, a real Claude Code runner that opens PRs) has therefore never run.
+
+**Confidence could not rise by any mechanism.** `retainStrategicLensInvestigations` hardcoded `low`, retention runs *after* validation, so nothing recomputed it. The operating doc claimed probes would fix this ("cause confidence only rises when a probe resolves a hypothesis"). Probes shipped in September. Nothing rose. That sentence described an intention the code never implemented.
+
+**But computing it does not open the gate.** A first cut scored on evidence volume and promoted all nine investigations `low → high` in one step. All nine carry four competing hypotheses, an empty `resolution_evidence`, and a `likely_cause` beginning with "Unresolved". The model reporting `low` was *accurate*. Evidence volume measures the condition, not the cause.
+
+### The Slack path, and what it cost to find
+
+Delivery was blocked by **Vercel Bot Protection challenging Slack at the edge** — `{"ok":false,"error":"http_failed"}` from Slack's own API, zero function logs, because a challenged request never reaches the function. Fixed with a narrow `slack-events-bypass` rule on that one path; safe because the handler verifies Slack's HMAC itself.
+
+Also: a bot DM is **read-only** until `features.app_home.messages_tab_enabled`. Scopes let the app *hear* a reply; the Messages tab is what lets a human *send* one. And `SLACK_SIGNING_SECRET` was simply wrong — a wrong secret and a missing one both return the same 401, and Vercel Secret vars are write-only, so there is nothing to diagnose: re-set it and let Slack's Retry judge.
+
+### The lesson that outranks the code
+
+**The frame chooses the hole.** A runway constraint written into the doctrine produced, on the very next scan, an investigation about consolidating runway economics — which TJ correctly killed. Olera's funding is NIH reimbursement, ~$1M/year, approved two months ago for twelve months, extension planned. Nothing to compute. The same scan *contained* the real finding, buried and mislabelled: "MedJobs subscription operations exist in the repository but are not consolidated into War Room revenue." Same signal, wrong frame, wrong hole.
+
+**Absence in the database is not absence in the world.** Four providers sat stalled behind a photo request with nothing submitted, and the confident reading was a 0-for-4 broken gate that "nobody ever called." Ces had called all of them on 2026-09-17; the outcomes were already in `provider_touches`. Three dead lines, one broken email address. Cortex never read that table. The stall count is now split by what was actually *done* — against live data it returns 2 unreachable, 1 attended, **0 unattended**.
+
+**Posture by ownership.** TJ runs Managed Ads, Logan runs MedJobs. Where Olera controls the surface, propose granularly. Where a teammate owns it, surface the state and the question, never the prescription — being wrong about someone else's domain from a distance is worse than staying quiet.
+
+### Where the twelve actually stands
+
+**One provider has paid**: Hoop Cares, subscribed 2026-09-15, $75/mo, flight ends 2026-10-20 (not 10-15 as the investigation title says). Seven live campaigns run unpaid; five to 12-31. MedJobs cannot produce a paying provider until the price conflict (C1) is decided — it exists in four incompatible versions and the shipped code charges the *student*.
+
+### Next up
+
+1. **Run migration `242`**, then merge #2012.
+2. Fire a scan and see whether Cortex forms different conditions now that it can see time, touches, and a target.
+3. The instrumentation proposal class — when the cause is unknown, propose the instrument that resolves it. Gated on a material condition + a named unknown + a bounded reversible action + a measurable readout, **not** on cause confidence. All three proposals that ever existed were exactly that shape.

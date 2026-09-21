@@ -1122,6 +1122,7 @@ function StudentPortalContent({
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingCelebration, setPendingCelebration] = useState(false);
   const [showGoLiveReview, setShowGoLiveReview] = useState(false);
+  const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
@@ -1448,8 +1449,12 @@ function StudentPortalContent({
             {/* ── Mobile-only: Compact progress + Go Live (lg:hidden) ── */}
             {/* On mobile these appear near top; on desktop they're in the sidebar */}
             <div className="lg:hidden space-y-3">
-              {/* Mobile Progress Banner — informational display */}
-              <div className="bg-vanilla-50/70 rounded-2xl px-4 py-3.5">
+              {/* Mobile Progress Banner — tappable to open detail sheet */}
+              <button
+                type="button"
+                onClick={() => setShowCompletenessSheet(true)}
+                className="w-full bg-vanilla-50/70 rounded-2xl px-4 py-3.5 text-left active:bg-vanilla-100 transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   {/* Progress ring */}
                   <div className="relative w-10 h-10 shrink-0">
@@ -1473,8 +1478,12 @@ function StudentPortalContent({
                       {completeSections.filter((s) => s.done).length} of {completeSections.length} sections complete
                     </p>
                   </div>
+                  {/* Chevron */}
+                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
-              </div>
+              </button>
 
               {/* Mobile Go Live / Status Card */}
               {hasCompletedApplication ? (
@@ -2042,6 +2051,123 @@ function StudentPortalContent({
           refresh();
         }}
       />
+
+      {/* Mobile Completeness Bottom Sheet */}
+      {showCompletenessSheet && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+            onClick={() => setShowCompletenessSheet(false)}
+            style={{ animation: "fade-in 0.2s ease-out both" }}
+          />
+          {/* Sheet */}
+          <div
+            className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto"
+            style={{ animation: "slide-up 0.3s ease-out both" }}
+          >
+            {/* Handle + Header */}
+            <div className="sticky top-0 bg-white pt-3 pb-2 px-6 border-b border-gray-100">
+              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-display font-bold text-gray-900">
+                  Profile completeness
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowCompletenessSheet(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                  aria-label="Close"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Circular progress */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="relative w-28 h-28 mb-3">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10" />
+                    <circle
+                      cx="50" cy="50" r="42" fill="none"
+                      stroke="#199087"
+                      strokeWidth="10" strokeLinecap="round"
+                      strokeDasharray={`${completenessPercent * 2.64} 264`}
+                      className="transition-all duration-500"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-gray-900">{completenessPercent}%</span>
+                  </div>
+                </div>
+                <p className="text-sm font-semibold tracking-wide uppercase text-gray-900 font-display">
+                  {completenessPercent >= 100 ? "ALL DONE!" :
+                   completenessPercent >= 76 ? "NEARLY COMPLETE!" :
+                   completenessPercent >= 51 ? "LOOKING GOOD!" :
+                   completenessPercent >= 26 ? "ALMOST THERE!" :
+                   "JUST GETTING STARTED"}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Complete your profile to get matched
+                </p>
+              </div>
+
+              {/* Section checklist */}
+              <div className="space-y-1">
+                {completeSections.map((section) => (
+                  <a
+                    key={section.id}
+                    href={`#${section.id}`}
+                    onClick={() => setShowCompletenessSheet(false)}
+                    className="flex items-center justify-between py-3 px-3 -mx-3 rounded-xl hover:bg-vanilla-50 active:bg-vanilla-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {section.done ? (
+                        <div className="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      ) : section.percent > 0 ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-primary-300 bg-primary-50 shrink-0 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-primary-400" />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-200 shrink-0" />
+                      )}
+                      <span className={`text-[15px] ${section.done ? "text-primary-600 font-medium" : "text-gray-700"}`}>
+                        {section.label}
+                      </span>
+                    </div>
+                    {!section.done && (
+                      <span className={`text-sm font-medium ${section.percent > 0 ? "text-primary-600" : "text-gray-400"}`}>
+                        {section.percent}%
+                      </span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Safe area padding for iPhone */}
+            <div className="h-[env(safe-area-inset-bottom)]" />
+          </div>
+          <style jsx>{`
+            @keyframes fade-in {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes slide-up {
+              from { transform: translateY(100%); }
+              to { transform: translateY(0); }
+            }
+          `}</style>
+        </>
+      )}
 
       {/* Celebration Modal - shown when profile goes live */}
       <GoLiveCelebrationModal

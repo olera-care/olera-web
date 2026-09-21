@@ -1,9 +1,12 @@
 -- Which days hold provider task activity. Reads only. Run this first.
 --
 -- The reset scripts used to key off current_date, which only worked on the
--- day of the testing. Timestamps are stored in UTC, so an evening click can
--- land on the following day. This shows the actual days so the reset window
--- can be set from evidence rather than assumed.
+-- day of the testing. This shows the actual days instead, so the reset
+-- window can be set from evidence rather than assumed.
+--
+-- Days are Eastern Time, matching the clock you were working by, not the
+-- UTC the database stores. An evening click therefore stays on the evening
+-- you made it.
 --
 -- Read the two right-hand columns: created is the day a task row was made,
 -- completed is the day one was closed. The days your testing touched are the
@@ -12,7 +15,7 @@
 -- One statement.
 
 with created as (
-  select date(t.created_at) as day, count(*) as n
+  select date(t.created_at at time zone 'America/New_York') as day, count(*) as n
   from student_outreach_tasks t
   join student_outreach o on o.id = t.outreach_id
   where o.kind = 'provider'
@@ -20,7 +23,7 @@ with created as (
   group by 1
 ),
 completed as (
-  select date(t.completed_at) as day, count(*) as n
+  select date(t.completed_at at time zone 'America/New_York') as day, count(*) as n
   from student_outreach_tasks t
   join student_outreach o on o.id = t.outreach_id
   where o.kind = 'provider'

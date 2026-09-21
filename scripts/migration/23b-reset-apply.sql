@@ -4,8 +4,8 @@
 -- records the keep rule is sparing and why.
 --
 -- SET THE WINDOW. The two dates in the window CTE below must match the ones
--- in 23a, or this undoes something other than what you reviewed. from_day is
--- inclusive, to_day is exclusive.
+-- in 23a, or this undoes something other than what you reviewed. They are
+-- read in Eastern Time; from_at is inclusive, to_at is exclusive.
 --
 -- The rule is about when a row was created, not what state it is in.
 --
@@ -31,7 +31,8 @@
 -- One statement.
 
 with window_days as (
-  select date '2026-09-20' as from_day, date '2026-09-22' as to_day
+  select timestamp '2026-09-20 00:00' at time zone 'America/New_York' as from_at,
+         timestamp '2026-09-21 00:00' at time zone 'America/New_York' as to_at
 ),
 
 -- Records to spare, in three ways: archived, named below, or carrying #keep
@@ -54,8 +55,8 @@ keep as (
         select 1
         from student_outreach_tasks t, window_days w
         where t.outreach_id = o.id
-          and t.completed_at >= w.from_day
-          and t.completed_at < w.to_day
+          and t.completed_at >= w.from_at
+          and t.completed_at < w.to_at
           and t.notes ilike '%#keep%'
       )
     )
@@ -66,8 +67,8 @@ deleted as (
   where o.id = t.outreach_id
     and o.kind = 'provider'
     and not exists (select 1 from keep k where k.id = o.id)
-    and t.created_at >= w.from_day
-    and t.created_at < w.to_day
+    and t.created_at >= w.from_at
+    and t.created_at < w.to_at
   returning t.id
 ),
 reopened as (
@@ -82,9 +83,9 @@ reopened as (
     and o.kind = 'provider'
     and not exists (select 1 from keep k where k.id = o.id)
     and t.status = 'completed'
-    and t.completed_at >= w.from_day
-    and t.completed_at < w.to_day
-    and t.created_at < w.from_day
+    and t.completed_at >= w.from_at
+    and t.completed_at < w.to_at
+    and t.created_at < w.from_at
   returning t.id
 )
 select

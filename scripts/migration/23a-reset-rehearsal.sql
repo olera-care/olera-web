@@ -1,10 +1,15 @@
 -- What the reset would undo. Reads only. Run 23-which-days first, then this.
 --
 -- SET THE WINDOW. The two dates in the window CTE below are the only thing
--- to edit. from_day is inclusive, to_day is exclusive, so the defaults below
--- cover the 20th and the 21st and stop before the 22nd. Timestamps are UTC,
--- so an evening session can land on the next day; 23-which-days shows which
--- days actually carry activity.
+-- to edit. They are read in Eastern Time, so the default is the whole of
+-- Sunday 20 September as you lived it: midnight to midnight, Eastern.
+-- from_at is inclusive, to_at is exclusive.
+--
+-- Eastern matters. The database stores times in UTC, and Eastern is four
+-- hours behind it in September. A window written as a plain UTC date would
+-- start at 8pm Eastern the evening before and end at 8pm Eastern on the day,
+-- so it would reach back into the previous evening and stop short of the
+-- evening in question. Writing the window in Eastern puts it where you were.
 --
 -- An earlier version of this keyed off current_date, which quietly stopped
 -- matching anything once the date rolled over. An explicit window says what
@@ -30,7 +35,8 @@
 -- One statement.
 
 with window_days as (
-  select date '2026-09-20' as from_day, date '2026-09-22' as to_day
+  select timestamp '2026-09-20 00:00' at time zone 'America/New_York' as from_at,
+         timestamp '2026-09-21 00:00' at time zone 'America/New_York' as to_at
 ),
 
 -- Records to spare, in three ways.
@@ -73,8 +79,8 @@ keep as (
         select 1
         from student_outreach_tasks t, window_days w
         where t.outreach_id = o.id
-          and t.completed_at >= w.from_day
-          and t.completed_at < w.to_day
+          and t.completed_at >= w.from_at
+          and t.completed_at < w.to_at
           and t.notes ilike '%#keep%'
       )
     )
@@ -86,12 +92,12 @@ select
   coalesce(k.reason, 'not kept') as reason,
   count(*) filter (where k.id is null
                      and t.status = 'completed'
-                     and t.completed_at >= w.from_day
-                     and t.completed_at < w.to_day
-                     and t.created_at < w.from_day) as would_reopen,
+                     and t.completed_at >= w.from_at
+                     and t.completed_at < w.to_at
+                     and t.created_at < w.from_at) as would_reopen,
   count(*) filter (where k.id is null
-                     and t.created_at >= w.from_day
-                     and t.created_at < w.to_day) as would_delete,
+                     and t.created_at >= w.from_at
+                     and t.created_at < w.to_at) as would_delete,
   string_agg(
     distinct (t.payload->>'step') || ' ' || coalesce(t.payload->>'outcome', 'pending'),
     ', ' order by (t.payload->>'step') || ' ' || coalesce(t.payload->>'outcome', 'pending')
@@ -102,8 +108,8 @@ cross join window_days w
 left join keep k on k.id = o.id
 where o.kind = 'provider'
   and (
-    (t.completed_at >= w.from_day and t.completed_at < w.to_day)
-    or (t.created_at >= w.from_day and t.created_at < w.to_day)
+    (t.completed_at >= w.from_at and t.completed_at < w.to_at)
+    or (t.created_at >= w.from_at and t.created_at < w.to_at)
   )
 group by o.id, o.organization_name, o.status, k.id, k.reason
 order by o.organization_name;

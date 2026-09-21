@@ -417,10 +417,14 @@ export function retainStrategicLensInvestigations(
       situation: cleanExecutiveText(review.finding),
       whyItMatters: cleanExecutiveText(review.whyItMatters),
       likelyCause: "The current evidence establishes the condition, but not yet its cause.",
-      // Was hardcoded `low`. Retention runs after validateInvestigations, so a
-      // hardcoded value here was never recomputed by anything, and every
-      // lens-derived condition was born permanently ineligible for the gate.
-      causeConfidence: computeCauseConfidence(evidenceIds, evidenceCatalog, cleanExecutiveText(review.unresolvedQuestion) ? 1 : 0),
+      // Stays `low`, deliberately, and this is not the hardcode it looks like.
+      // A retained lens condition is constructed two lines above with a
+      // likelyCause that says in plain words that the cause is not established.
+      // Scoring it from evidence promoted two of nine live investigations to
+      // `medium` on 2026-09-21 -- the exact inflation computeCauseConfidence
+      // exists to refuse. An investigation that admits it has no cause has low
+      // cause confidence by definition, whatever has piled up beside it.
+      causeConfidence: "low",
       existingCapabilities: [],
       capabilityEvidenceIds: [],
       unknowns: [cleanExecutiveText(review.unresolvedQuestion)].filter(Boolean),

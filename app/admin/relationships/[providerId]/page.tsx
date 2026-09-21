@@ -100,7 +100,7 @@ export default function AdminRelationshipPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
       <div className="mb-3 font-mono text-[11px] text-gray-500">
         <Link href="/admin/relationships" className="hover:underline">
-          Relationships
+          Provider Relationships
         </Link>{" "}
         / {p.display_name}
       </div>

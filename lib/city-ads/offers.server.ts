@@ -1,5 +1,6 @@
 import { cityLeadBlocked } from "./messages.server";
 import { getLeadExchange } from "./exchange.server";
+import { classifyQualification, BLOCKING_CATEGORIES, type ClassifyLead } from "./classify.server";
 /**
  * City lead offer chain — server only.
  *
@@ -72,6 +73,8 @@ export interface CityLeadRow {
   qualification_reply: string | null;
   qualification_reply_at: string | null;
   qualification_escalated_at: string | null;
+  qualification_verdict: string | null;
+  qualification_verdict_category: string | null;
 }
 
 export interface CityOfferRow {
@@ -107,7 +110,7 @@ interface ProviderLite {
 }
 
 const LEAD_COLS =
-  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at, created_at, qualification_reply, qualification_reply_at, qualification_escalated_at";
+  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at, created_at, qualification_reply, qualification_reply_at, qualification_escalated_at, qualification_verdict, qualification_verdict_category";
 
 /**
  * How long a native lead waits for its qualifying reply before a person is
@@ -226,6 +229,22 @@ export async function startOrAdvance(
     // relay saying it twelve times an hour.
     return { action: "held" };
   }
+  // ANSWERED IS NOT THE SAME AS QUALIFIED, and until 21 September the relay
+  // could not tell the difference. `qualification_reply_at` is a timestamp set
+  // by ANY inbound text, so "she replied" unlocked this cascade and nothing
+  // read the words. Drema Mitchell Lowe answered "I want to be a caretaker" on
+  // the 19th and three Dallas agencies were each told a family needed care.
+  //
+  // A verdict that is missing holds, exactly like a verdict that is unsure.
+  // That is deliberate: the classify pass runs in the same five-minute sweep
+  // immediately before this, so a null here means it has not run yet or it
+  // failed, and neither is a reason to send someone to a business. An admin
+  // who routes by hand (providerId, or force) still overrides everything,
+  // which remains the only way an unjudged request reaches a provider.
+  if (!opts.providerId && !opts.force && lead.qualification_reply_at && lead.qualification_verdict !== "care_seeker") {
+    return { action: "held" };
+  }
+
   if (lead.status === "unfilled" && !opts.force && !opts.providerId) return { action: "noop" };
 
   // An open (unanswered, unexpired) offer means the clock is still running.
@@ -678,6 +697,86 @@ export async function handleProviderReply(
  * their window and advance, and pick up any 'new' lead the request path failed
  * to start (safety net, 2 minutes old or more).
  */
+/**
+ * Judge every answered lead that has not been judged, before anything routes.
+ *
+ * Runs at the top of the sweep so a verdict exists by the time startOrAdvance
+ * looks for one. Bounded per tick: these are model calls, and the set is
+ * normally empty because a lead is judged once and the verdict persists.
+ *
+ * WHAT HAPPENS TO A BLOCK DEPENDS ON WHETHER WE COULD HAVE HELPED THEM.
+ * Someone asking for a caregiving job, or selling us something, gets filed:
+ * there is nothing to do for them and leaving it open only makes a person
+ * click. Someone asking how to PAY for care, or asking a care question, is not
+ * junk — Olera runs a benefits finder and an answering engine — so they wait
+ * for a person who can send the right thing. Filing those two groups the same
+ * way is how a family who asked the wrong question gets binned.
+ */
+async function runQualificationPass(db: SupabaseClient): Promise<{ judged: number; filed: number; holding: number }> {
+  const out = { judged: 0, filed: 0, holding: 0 };
+  const { data: waiting, error } = await db
+    .from("city_leads")
+    .select(LEAD_COLS)
+    .eq("is_test", false)
+    .is("archived_at", null)
+    .is("accepted_offer_id", null)
+    .is("qualification_verdict", null)
+    .not("qualification_reply_at", "is", null)
+    .in("status", ["new", "offered", "unfilled"])
+    .order("qualification_reply_at", { ascending: true })
+    .limit(10);
+  if (error) {
+    console.error("[city-ads] qualification pass read failed", error);
+    return out;
+  }
+
+  for (const row of (waiting ?? []) as CityLeadRow[]) {
+    const lead = row as unknown as ClassifyLead;
+    const result = await classifyQualification(db, lead);
+    const now = new Date().toISOString();
+    const blocking = (BLOCKING_CATEGORIES as readonly string[]).includes(result.category);
+    const file = result.verdict === "not_care_seeker" && blocking;
+
+    // Conditional on the verdict still being null so two overlapping sweeps
+    // cannot judge the same lead twice and double-post to Slack.
+    const { data: stamped, error: writeError } = await db
+      .from("city_leads")
+      .update({
+        qualification_verdict: result.verdict,
+        qualification_verdict_category: result.category,
+        qualification_verdict_reason: result.reason,
+        qualification_verdict_at: now,
+        ...(file ? { archived_at: now, archive_reason: result.category, archived_by: "classifier" } : {}),
+        updated_at: now,
+      })
+      .eq("id", row.id)
+      .is("qualification_verdict", null)
+      .select("id");
+    if (writeError) {
+      console.error("[city-ads] qualification verdict write failed", writeError);
+      continue;
+    }
+    if (!stamped?.length) continue;
+    out.judged++;
+
+    const city = getCityConfig(row.slug)?.city ?? row.slug;
+    const who = String(row.first_name ?? "").trim().split(/\s+/)[0] || "there";
+    const said = (row.qualification_reply ?? "").slice(0, 200);
+    if (file) {
+      out.filed++;
+      await sendSlackAlert(
+        `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and will NOT go to a provider. They said: "${said}" ${result.reason} Undo at /admin/city-ads.`,
+      );
+    } else if (result.verdict !== "care_seeker") {
+      out.holding++;
+      await sendSlackAlert(
+        `🕵️ City lead ${row.id.slice(0, 8)} (${city}): ${who} is held as ${result.category.replace(/_/g, " ")}, nothing has gone to a provider. They said: "${said}" ${result.reason} Read it and decide at /admin/city-ads.`,
+      );
+    }
+  }
+  return out;
+}
+
 export async function runOfferMaintenance(db: SupabaseClient): Promise<{
   started: number;
   expired: number;
@@ -686,9 +785,16 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
   parked: number;
   escalated: number;
   held: number;
+  judged: number;
+  filed: number;
+  holding: number;
 }> {
   const now = new Date().toISOString();
-  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0, escalated: 0, held: 0 };
+  const out = { started: 0, expired: 0, advanced: 0, unfilled: 0, parked: 0, escalated: 0, held: 0, judged: 0, filed: 0, holding: 0 };
+
+  // Judge first. Everything below reads the verdict, and a lead with none
+  // holds, so classifying after routing would hold every lead for a full tick.
+  Object.assign(out, await runQualificationPass(db));
 
   // 1. Offers past their window.
   const { data: due } = await db

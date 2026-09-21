@@ -46,6 +46,35 @@ function firstUnknown(value: unknown): string | null {
 }
 
 /**
+ * Investigations already put to the founder recently.
+ *
+ * Without this the picker re-asks the same thing every morning. The ranking is
+ * deterministic — on 2026-09-21 all seven investigating rows scored identically
+ * on impact and strategic fit, so the tiebreak fell to `updated_at` and the same
+ * unknown would have come up day after day whether or not he had answered it.
+ * `brief-delivery.server.ts` already guards against delivering one brief twice
+ * for the same reason; an ask repeated daily is the same defect one layer up,
+ * and it is the thing that teaches someone to stop reading a channel.
+ *
+ * Silence is the correct output when every open investigation has been asked
+ * about. The brief simply ends without a question, which it already handles.
+ */
+const FOUNDER_ASK_COOLDOWN_DAYS = 14;
+
+async function loadRecentlyAskedInvestigations(db: SupabaseClient): Promise<Set<string>> {
+  const since = new Date(Date.now() - FOUNDER_ASK_COOLDOWN_DAYS * 86_400_000).toISOString();
+  const { data, error } = await db.from("war_room_investigation_events")
+    .select("investigation_id")
+    .eq("event_type", "founder_asked")
+    .gte("created_at", since)
+    .limit(200);
+  // A read failure must not silence the brief. Asking a question he has already
+  // seen is a smaller harm than asking nothing at all.
+  if (error) return new Set<string>();
+  return new Set((data ?? []).map((row) => (row as { investigation_id: string }).investigation_id));
+}
+
+/**
  * The single question most worth a founder's attention right now.
  *
  * Deliberately one, not a list. The whole design of this system is that it
@@ -64,7 +93,9 @@ export async function pickQuestionForFounder(db: SupabaseClient): Promise<Founde
     .limit(20);
   if (error || !data?.length) return null;
 
-  const rows = data as InvestigationRow[];
+  const recentlyAsked = await loadRecentlyAskedInvestigations(db);
+  const rows = (data as InvestigationRow[]).filter((row) => !recentlyAsked.has(row.id));
+  if (!rows.length) return null;
   const ranked = [...rows].sort((a, b) => {
     const score = (r: InvestigationRow) =>
       (r.impact === "high" ? 2 : r.impact === "medium" ? 1 : 0)

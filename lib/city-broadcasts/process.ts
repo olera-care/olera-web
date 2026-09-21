@@ -248,8 +248,7 @@ export async function processEvent(
   return { sent, skipped };
 }
 
-/** How far back to look for existing family activity to send to new pool members (30 days) */
-const EXISTING_ACTIVITY_LOOKBACK_DAYS = 30;
+/** Welcome broadcasts can use any family activity - no time restriction */
 
 /**
  * Find providers in the broadcast_ready pool who haven't received any
@@ -342,17 +341,12 @@ async function findExistingActivityForCity(
   category: string | null
 ): Promise<DetectedEvent | null> {
   const db = getServiceClient();
-  const cutoff = new Date(
-    Date.now() - EXISTING_ACTIVITY_LOOKBACK_DAYS * 24 * 60 * 60 * 1000
-  ).toISOString();
 
-  // First, try to find a recent published profile in the city
-  // Profile broadcasts don't require category matching, so they're more likely to exist
+  // First, try to find a published profile in the city (any time - no cutoff for welcome broadcasts)
   let profileQuery = db
     .from("business_profiles")
     .select("id, city, state")
     .ilike("city", city)
-    .gte("created_at", cutoff)
     .not("account_id", "is", null) // Has an actual seeker
     .order("created_at", { ascending: false })
     .limit(1);
@@ -401,7 +395,6 @@ async function findExistingActivityForCity(
       .from("provider_questions")
       .select("id, question, provider_id")
       .in("provider_id", providerIds)
-      .gte("created_at", cutoff)
       .order("created_at", { ascending: false })
       .limit(1);
 

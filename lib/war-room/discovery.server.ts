@@ -50,7 +50,7 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
 // Bump whenever prompt text changes. Every run row and every failure
 // diagnostic is stamped with this, so leaving it alone after editing a prompt
 // makes runs before and after the change indistinguishable in the data.
-export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v6-bounded-dossiers";
+export const WAR_ROOM_PROMPT_VERSION = "cortex-v7-instruments-clear-the-gate";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;
@@ -708,7 +708,19 @@ function buildOperatingPack(
     availableProbes: warRoomProbeMenu(),
     operatingContract: {
       objective: "Improve Olera's probability of durable success, not the volume of completed tasks.",
-      founderInterruptionBudget: "At most one decision per scan; zero is preferred to a merely useful task.",
+      // Was: "zero is preferred to a merely useful task." True of decisions that
+      // spend the founder's judgement, and it produced exactly zero proposals in
+      // 37 days while nine conditions recurred up to 42 times each. Stated
+      // without the other half, it reads as an instruction never to nominate.
+      founderInterruptionBudget: "At most one decision per scan. Zero is right when the alternative is a merely useful task that spends the founder's judgement on something reversible and small.",
+      // The other half, and the one that was missing. Instruments are cheap
+      // because the executor cannot merge or deploy: its worst output is a pull
+      // request a human closes. A condition that keeps recurring without
+      // resolving is the system failing to learn, and proposing the instrument
+      // that would resolve it is the correct move, not an interruption. Do not
+      // wait for a settled cause to propose an instrument; that is backwards,
+      // because the instrument is how the cause gets settled.
+      instrumentationIsCheap: "When a material condition has a named unknown and no resolved cause, nominate the repository instrument that would resolve it. Blast radius is one pull request nobody has to merge. Say how it will be read and how it could be shown wrong cheaply. Recurrence without resolution is a reason to instrument, not a reason to keep watching.",
       automatic: "Read, compare, investigate, form private dossiers, monitor, and measure.",
       approvalRequired: "Any branch, outreach, content publication, operational mutation, spend, send, or external coordination.",
       prohibited: "No automatic merge, deployment, production mutation, customer send, spend, deletion, permissions, or secrets changes.",
@@ -1113,6 +1125,27 @@ async function saveInvestigations(
     const evidenceChanged = Boolean(prior?.evidence_hash && prior.evidence_hash !== evidenceHash);
     const probeChanged = stableHash(prior?.next_probe ?? null) !== stableHash(draft.nextProbe ?? null);
     const terminal = status === "resolved" || status === "invalidated";
+
+    // Progress is categorical, not numerical drift.
+    //
+    // `last_progress_at` used to be set whenever the evidence hash moved. The
+    // evidence carries daily-moving counts -- a question total ticking 1,658 to
+    // 1,662, page views wobbling -- so the hash changed every morning and every
+    // condition reported progress every day. On 2026-09-21 all ten live
+    // investigations read "0 days since progress" while `resolution_evidence`
+    // was empty on all ten and nine had been re-observed between 25 and 42
+    // times since 2026-08-16 without a single proposal. The field meant "we
+    // looked again", not "something changed", and because it looked healthy
+    // nothing could ever notice a condition was stuck.
+    //
+    // These four are the things that actually advance a case: it ended, an
+    // unknown closed, the cause got better supported, or its disposition moved.
+    // A number wobbling is none of them.
+    const unknownsClosed = (prior?.unknowns?.length ?? 0) > draft.unknowns.length;
+    const confidenceRose = CAUSE_CONFIDENCE_RANK[draft.causeConfidence]
+      > CAUSE_CONFIDENCE_RANK[(prior?.cause_confidence ?? "low") as keyof typeof CAUSE_CONFIDENCE_RANK];
+    const statusMoved = Boolean(prior && prior.status !== status);
+    const realProgress = terminal || unknownsClosed || confidenceRose || statusMoved;
     const progressSummary = terminal
       ? `${status === "resolved" ? "Resolved" : "Invalidated"}: ${cleanExecutiveText(assessment?.reason || draft.readinessReason)}`
       : draft.nextProbe
@@ -1153,7 +1186,10 @@ async function saveInvestigations(
       founder_attention_minutes: draft.founderAttentionMinutes,
       progress_summary: progressSummary,
       evidence_hash: evidenceHash,
-      last_progress_at: terminal || evidenceChanged || probeChanged ? now : prior?.last_progress_at ?? null,
+      // Deliberately NOT evidenceChanged. See realProgress above: the evidence
+      // hash moves every day on count drift, which is what made every condition
+      // look healthy while nothing advanced for 36 days.
+      last_progress_at: realProgress ? now : prior?.last_progress_at ?? null,
       last_seen_at: now,
       updated_at: now,
     };
@@ -1459,6 +1495,8 @@ async function linkInvestigationsToProposals(
     }
   }
 }
+
+const CAUSE_CONFIDENCE_RANK = { low: 0, medium: 1, high: 2 } as const;
 
 async function loadCompanyModel(db: SupabaseClient): Promise<WarRoomCompanyModel> {
   const { data, error } = await db.from("war_room_company_models")

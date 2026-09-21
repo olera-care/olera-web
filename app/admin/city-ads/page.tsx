@@ -234,12 +234,23 @@ function needsReason(l: Lead): string | null {
   // Ahead of every timing rule below. A clock running against a provider who
   // was never told is not a provider taking their time, and the fix is a
   // different one: correct their details, or offer it to somebody reachable.
+  // A silent offer earlier in the chain is history once a LIVE offer has
+  // actually reached somebody: that provider has it, their clock is running,
+  // and there is nothing for a person to do yet. Flagging it anyway would put
+  // a false job on the very list this page exists to keep true.
   const silent = silentOffers(l);
-  if (silent.length > 0 && !l.accepted_offer_id) {
+  const live = openOffer(l);
+  const liveAndReached = Boolean(live) && !reachedNobody(live!);
+  if (silent.length > 0 && !l.accepted_offer_id && !liveAndReached) {
     const who = silent.map((o) => o.provider?.display_name ?? "a provider").join(", ");
-    return silent.length === l.offers.length
-      ? `NOBODY WAS REACHED — ${who} never received this request`
-      : `${who} never received this request`;
+    // Every other line in this list ends in something to do. Naming the
+    // providers and stopping leaves the reader to work out whether the family
+    // is still covered, and the answer differs: if someone reachable has it,
+    // the job is to re-route; if nobody does, the family is waiting on a call
+    // that no provider is coming to make.
+    return l.offers.length > silent.length
+      ? `${who} never received this request — offer it to someone reachable`
+      : `NOBODY WAS REACHED — call them, and fix ${who}`;
   }
   // Two different facts wore the same label. With an empty pool nobody was
   // ever asked, and telling the caller "no one took it" sends them looking for
@@ -792,7 +803,7 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
               {/* What actually went out, on which channel. The whole point of
                   the row: offered and reached are different facts. */}
               {!silent && (o.reached_channels?.length ?? 0) > 0 && (
-                <span className="text-xs text-gray-500">sent by {o.reached_channels!.join(" and ")}</span>
+                <span className="text-xs text-gray-500">sent by {o.reached_channels!.map((c) => (c === "sms" ? "text" : c)).join(" and ")}</span>
               )}
               {silent && o.delivery_note && (
                 <span className="w-full text-xs text-error-700">{o.delivery_note}</span>

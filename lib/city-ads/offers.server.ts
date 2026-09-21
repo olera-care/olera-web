@@ -394,7 +394,11 @@ export async function startOrAdvance(
       requireMobile: !candidate.phone_override, // a number typed as the override was given for texts
       metadata: { lead_id: lead.id, offer_id: inserted.id, slug: lead.slug, position: nextPosition },
     });
-    if (r.success && !r.skipped) channels.push("text");
+    // "sms", not "text". This array is persisted to reached_channels, and the
+    // backfill derived its values from email_log.channel, which is 'sms'. Two
+    // spellings in one column would read fine in a sentence and quietly break
+    // the first query that filtered on either. Display maps it back to "text".
+    if (r.success && !r.skipped) channels.push("sms");
   }
   // OFFERED IS NOT REACHED, and for two days they were the same row.
   //
@@ -406,6 +410,7 @@ export async function startOrAdvance(
   //
   // This line is what makes the difference legible to the case tracker rather
   // than to whoever happened to be reading Slack that minute.
+  const spoken = (cs: string[]) => cs.map((c) => (c === "sms" ? "text" : c)).join(" and ");
   const note = channels.length
     ? null
     : [
@@ -419,7 +424,7 @@ export async function startOrAdvance(
 
   await sendSlackAlert(
     channels.length
-      ? `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} by ${channels.join(" and ")}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel ?? "urgency not stated"}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`
+      ? `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} by ${spoken(channels)}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel ?? "urgency not stated"}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`
       : `🚨 City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} REACHED NOBODY (${note}). The 30 min clock is running against a provider who was never told. Fix their contact details or offer it to someone else: /admin/city-ads`,
   );
   return { action: "offered", providerName: name };

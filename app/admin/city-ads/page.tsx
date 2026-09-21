@@ -565,7 +565,16 @@ function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (
           {m.status === "pending" && <button className={btn} disabled={busy} onClick={() => void act("Cancel",{action:"cancel_message",leadId:l.id,messageId:m.id})}>Cancel scheduled message</button>}
         </li>)}
       </ul>
-      {l.archived_at || l.status === "stopped" ? <p className="mt-3 text-sm text-gray-600">Archived. Sending and follow-ups are stopped.</p> : <div className="mt-2 flex flex-col gap-1.5">
+      {l.archived_at || l.status === "stopped" ? <div className="mt-3 text-sm text-gray-600">
+        <p>Archived. Sending and follow-ups are stopped.</p>
+        {/* The classifier files wrong-audience leads by itself, and that is only
+            defensible while a mistake takes one click to undo. Archived leads
+            render with every other action stripped, so without this button an
+            automatic filing was permanent. */}
+        {l.archived_at && <button className={`${btn} mt-2`} disabled={busy} onClick={() => void act("Put back",{action:"unarchive_lead",leadId:l.id})}>
+          Not right, put them back
+        </button>}
+      </div> : <div className="mt-2 flex flex-col gap-1.5">
         <label className="text-xs">Send by <select className={input} value={channel} onChange={e => setChannel(e.target.value)}><option value="sms">Text</option><option value="email" disabled={!l.email}>Email{!l.email ? " (no email address)" : ""}</option></select></label>
         {channel === "email" && <input aria-label="Email subject" className={input} value={subject} onChange={e => setSubject(e.target.value)} maxLength={200} />}
         <p className="text-xs text-gray-500">{new Date().toLocaleTimeString("en-US",{timeZone:sendWindow.timeZone,hour:"numeric",minute:"2-digit"})} for them · {sendWindow.timeZone}</p>

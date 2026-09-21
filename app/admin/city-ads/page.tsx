@@ -91,7 +91,7 @@ type ChannelRow = {
 
 type Provider = { id: string; display_name: string | null; city: string | null; phone: string | null; email: string | null } | null;
 type PoolRow = { id: string; slug: string; provider_id: string; position: number; care_types: string[]; enabled: boolean; is_test: boolean; phone_override: string | null; provider: Provider };
-type Offer = { id: string; provider_id: string; position: number; offered_at: string; expires_at: string; accepted_at: string | null; declined_at: string | null; decline_reason: string | null; expired_at: string | null; provider: Provider };
+type Offer = { id: string; provider_id: string; position: number; offered_at: string; expires_at: string; accepted_at: string | null; declined_at: string | null; decline_reason: string | null; expired_at: string | null; reached_channels: string[] | null; delivery_note: string | null; provider: Provider };
 type FamilyText = { id: string; created_at: string; email_type: string; status: string; html_body: string | null };
 type Lead = {
   is_test?: boolean;
@@ -178,6 +178,51 @@ const acceptedOffer = (l: Lead) => l.offers.find((o) => o.accepted_at);
 const awaitingQualification = (l: Lead) =>
   l.capture_method === "meta_instant_form" && !l.qualification_reply_at && !l.accepted_offer_id;
 
+/**
+ * Providers whose offers have never once arrived.
+ *
+ * This is the check that would have caught it on day one instead of day three.
+ * A provider can sit "on call", take their place in the rotation and have the
+ * clock run against them while every message we send is silently dropped,
+ * because a landline cannot receive a text and a suppressed email address
+ * writes no failure anywhere. Nothing on this page distinguished that from a
+ * provider who was simply slow.
+ */
+function unreachableProviders(leads: Lead[]): Map<string, string> {
+  const tried = new Map<string, { reached: boolean; note: string | null }>();
+  for (const l of leads) {
+    for (const o of l.offers) {
+      const prev = tried.get(o.provider_id);
+      const reached = (o.reached_channels?.length ?? 0) > 0;
+      tried.set(o.provider_id, { reached: (prev?.reached ?? false) || reached, note: prev?.note ?? o.delivery_note });
+    }
+  }
+  const out = new Map<string, string>();
+  for (const [id, v] of tried) {
+    if (!v.reached) out.set(id, v.note ?? "no offer has ever reached them");
+  }
+  return out;
+}
+
+/**
+ * An offer nobody actually received.
+ *
+ * `offered_at` says we tried. It does not say it arrived, and for two days
+ * those were read as the same thing: every Dallas provider number is a
+ * landline so every offer text was skipped, and two of the three have info@
+ * addresses cached invalid, whose suppression writes no record at all. Four of
+ * the first seven offers reached nobody, while the panel showed a 30 minute
+ * clock and then "no one on call took it".
+ */
+function reachedNobody(o: Offer): boolean {
+  return (o.reached_channels?.length ?? 0) === 0;
+}
+
+/** Offers on this lead that were never delivered to anyone. */
+function silentOffers(l: Lead): Offer[] {
+  return l.offers.filter(reachedNobody);
+}
+
 /** Why a lead is in "Needs you", or null. */
 function needsReason(l: Lead): string | null {
   if(l.archived_at || ["stopped","client","no_fit","redirected"].includes(l.status)) return null;
@@ -186,10 +231,38 @@ function needsReason(l: Lead): string | null {
   // minutes is how a queue stops meaning anything.
   if (awaitingQualification(l)) return l.qualification_escalated_at ? "no answer to the qualifying text — call them" : null;
   if (l.status === "new" && !l.accepted_offer_id && l.offers.length === 0) return "call them — concierge city, no chain runs";
+  // Ahead of every timing rule below. A clock running against a provider who
+  // was never told is not a provider taking their time, and the fix is a
+  // different one: correct their details, or offer it to somebody reachable.
+  // A silent offer earlier in the chain is history once a LIVE offer has
+  // actually reached somebody: that provider has it, their clock is running,
+  // and there is nothing for a person to do yet. Flagging it anyway would put
+  // a false job on the very list this page exists to keep true.
+  const silent = silentOffers(l);
+  const live = openOffer(l);
+  const liveAndReached = Boolean(live) && !reachedNobody(live!);
+  if (silent.length > 0 && !l.accepted_offer_id && !liveAndReached) {
+    const who = silent.map((o) => o.provider?.display_name ?? "a provider").join(", ");
+    // Every other line in this list ends in something to do. Naming the
+    // providers and stopping leaves the reader to work out whether the family
+    // is still covered, and the answer differs: if someone reachable has it,
+    // the job is to re-route; if nobody does, the family is waiting on a call
+    // that no provider is coming to make.
+    return l.offers.length > silent.length
+      ? `${who} never received this request — offer it to someone reachable`
+      : `NOBODY WAS REACHED — call them, and fix ${who}`;
+  }
   // Two different facts wore the same label. With an empty pool nobody was
   // ever asked, and telling the caller "no one took it" sends them looking for
   // a provider who declined.
-  if (l.status === "unfilled") return l.offers.length === 0 ? "nobody is switched on in this city yet — call them" : "no one on call took it";
+  if (l.status === "unfilled") {
+    if (l.offers.length === 0) return "nobody is switched on in this city yet — call them";
+    const reached = l.offers.filter((o) => !reachedNobody(o)).length;
+    // "No one took it" is only true of providers who were actually asked.
+    return reached === 0
+      ? "no provider was ever reached — call them, and fix the pool"
+      : `no one on call took it (${reached} of ${l.offers.length} actually received it)`;
+  }
   if (l.family_check_reply === "not_yet" && !l.reached_at) return "family says the provider has not called";
   const o = openOffer(l);
   if (o && minsLeft(o.expires_at) < 0) return `offer to ${o.provider?.display_name ?? "a provider"} is past its 30 minutes`;
@@ -212,6 +285,7 @@ function stateLine(l: Lead): { text: string; tone: "ok" | "wait" | "warn" | "qui
   if (a && l.family_check_sent_at && !l.family_check_reply) return { text: "asked if they were called", tone: "wait" };
   if (a) return { text: `${a.provider?.display_name ?? "a provider"} has it`, tone: "ok" };
   const o = openOffer(l);
+  if (o && reachedNobody(o)) return { text: `${o.provider?.display_name ?? "a provider"} never received it`, tone: "warn" };
   if (o) return { text: `offered to ${o.provider?.display_name ?? "a provider"} · ${minsLeft(o.expires_at)} min left`, tone: "wait" };
   if (l.status === "new" && l.next_offer_at) return { text: `waiting for 8am · ${fmtTime(l.next_offer_at)}`, tone: "wait" };
   if (l.status === "new") return { text: "waiting for you to call", tone: "warn" };
@@ -239,6 +313,10 @@ export default function CityAdsAdminPage() {
   const [openLead, setOpenLead] = useState<string | null>(null);
   const [openCity, setOpenCity] = useState<string | null>(null);
   const [, setTick] = useState(0);
+
+  // Computed from the offers already on the page, so it costs no extra query
+  // and can never disagree with the rows underneath it.
+  const unreachable = useMemo(() => unreachableProviders(leads), [leads]);
 
   const load = useCallback(async () => {
     try {
@@ -447,7 +525,7 @@ export default function CityAdsAdminPage() {
                   {open ? "close" : "edit"}
                 </button>
               </div>
-              {open && <CityEditor slug={slug} campaigns={cs} rollup={rollup.filter((r) => r.slug === slug)} pool={ps} busy={busy} act={act} />}
+              {open && <CityEditor slug={slug} campaigns={cs} rollup={rollup.filter((r) => r.slug === slug)} pool={ps} unreachable={unreachable} busy={busy} act={act} />}
             </div>
           );
         })}
@@ -699,22 +777,37 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
       <ol className="mt-3 space-y-1 text-xs">
         {l.offers.length === 0 && <li className="text-gray-500">No offers yet.</li>}
         {l.offers.map((o) => {
+          // "No reply in 30 min" is a statement about a provider who was ASKED.
+          // Say something else entirely when nothing ever arrived, because the
+          // two look identical from here and call for opposite responses: one
+          // is a provider who passed, the other is contact details to fix.
+          const silent = reachedNobody(o);
           const state = o.accepted_at
             ? `accepted ${fmtTime(o.accepted_at)}`
             : o.declined_at
               ? `passed${o.decline_reason ? ` (${o.decline_reason})` : ""}`
-              : o.expired_at
-                ? (l.archived_at ? "closed when archived" : "no reply in 30 min")
-                : minsLeft(o.expires_at) >= 0
-                  ? `waiting · ${minsLeft(o.expires_at)} min left`
-                  : "past due";
+              : silent
+                ? "never received it"
+                : o.expired_at
+                  ? (l.archived_at ? "closed when archived" : "no reply in 30 min")
+                  : minsLeft(o.expires_at) >= 0
+                    ? `waiting · ${minsLeft(o.expires_at)} min left`
+                    : "past due";
           const isOpen = !closed && !o.expired_at && !o.accepted_at && !o.declined_at && !l.accepted_offer_id;
           return (
             <li key={o.id} className="flex flex-wrap items-center gap-2">
               <span className="text-gray-400">#{o.position}</span>
               <span className="font-medium text-gray-800">{o.provider?.display_name ?? o.provider_id.slice(0, 8)}</span>
-              <span className={o.accepted_at ? "text-success-700" : "text-gray-600"}>{state}</span>
+              <span className={o.accepted_at ? "text-success-700" : silent ? "font-medium text-error-700" : "text-gray-600"}>{state}</span>
               <span className="text-gray-400">{fmtTime(o.offered_at)}</span>
+              {/* What actually went out, on which channel. The whole point of
+                  the row: offered and reached are different facts. */}
+              {!silent && (o.reached_channels?.length ?? 0) > 0 && (
+                <span className="text-xs text-gray-500">sent by {o.reached_channels!.map((c) => (c === "sms" ? "text" : c)).join(" and ")}</span>
+              )}
+              {silent && o.delivery_note && (
+                <span className="w-full text-xs text-error-700">{o.delivery_note}</span>
+              )}
               {isOpen && (
                 <>
                   <button className="text-primary-700 underline-offset-2 hover:underline" disabled={busy} onClick={() => void act("Accept", { action: "accept", offerId: o.id })}>
@@ -814,7 +907,7 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
   );
 }
 
-function CityEditor({ slug, campaigns, rollup, pool, busy, act }: { slug: string; campaigns: Campaign[]; rollup: ChannelRow[]; pool: PoolRow[]; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
+function CityEditor({ slug, campaigns, rollup, pool, unreachable, busy, act }: { slug: string; campaigns: Campaign[]; rollup: ChannelRow[]; pool: PoolRow[]; unreachable: Map<string, string>; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
   const tag = campaigns[0]?.campaign_tag;
   return (
     <div className="mb-3 rounded-lg bg-gray-50 px-4 py-3 text-sm">
@@ -850,7 +943,7 @@ function CityEditor({ slug, campaigns, rollup, pool, busy, act }: { slug: string
       <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500">On call, in order · tick only after a written YES</p>
       <div className="divide-y divide-gray-200">
         {pool.map((p) => (
-          <PoolLine key={p.id} p={p} busy={busy} act={act} />
+          <PoolLine key={p.id} p={p} unreachable={unreachable.get(p.provider_id)} busy={busy} act={act} />
         ))}
       </div>
     </div>
@@ -1133,7 +1226,7 @@ function CampaignRow({ c, busy, act }: { c: Campaign; busy: boolean; act: (label
   );
 }
 
-function PoolLine({ p, busy, act }: { p: PoolRow; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
+function PoolLine({ p, unreachable, busy, act }: { p: PoolRow; unreachable?: string; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
   const [ovr, setOvr] = useState<string | null>(null); // null = not editing
   const [rank, setRank] = useState(String(p.position));
   const current = p.phone_override ?? "";
@@ -1157,6 +1250,7 @@ function PoolLine({ p, busy, act }: { p: PoolRow; busy: boolean; act: (label: st
           <span className={`font-medium ${p.enabled ? "text-gray-900" : "text-gray-500"}`}>{p.provider?.display_name ?? p.provider_id.slice(0, 8)}</span>
         </label>
         {p.is_test && <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500">test</span>}
+        {unreachable && <span className="rounded bg-error-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-error-700">cannot be reached</span>}
         <span className="text-xs text-gray-500">
           {p.provider?.city} · {p.care_types.map((t) => CARE[t] ?? t).join(", ")}
         </span>

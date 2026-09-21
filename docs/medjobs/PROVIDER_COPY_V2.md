@@ -418,68 +418,34 @@ tone stays collegial throughout. Nobody here gets closed.
 
 ---
 
-## 6 · The provider flyer
+## 6 · The provider flyer — rebuilt
 
-Attached to the programme email and every cold follow-up. One page.
+**Built, not proposed.** `lib/program-pdf/Template.tsx` is rewritten and the
+copy lives in `lib/program-pdf/configs/`. Two pages now.
 
-**Headline**
+**Page one, the offer.** A deep emerald band across the top, then the
+headline *Pre-health students, ready for your hardest shifts*, four reasons
+agencies participate as cards, three numbered steps, what vetted means, and a
+price panel that puts **Free** and **$250 per confirmed hire** side by side
+under their own labels. It closes on the ask and a QR.
 
-> Pre-health students, ready to cover your hardest shifts.
+**Page two, the people.** *Why this program exists* in Logan's words with his
+photo, then *what happens after you reply* as three steps, then Chantel,
+Graize and Sara with photos, roles, emails and two lines each. The old flyer
+put two small headshots in a footer; this makes the team the reason to trust
+the offer.
 
-**Subhead**
+### The price, now stated
 
-> We recruit and screen pre-nursing and pre-medical students at {university}
-> who want paid caregiving hours before they apply to professional school.
-> They commit to recurring availability for a semester. You interview and hire
-> on your own terms, as the employer. Your first student is free.
+The flyer says **your first hire is free, $250 per confirmed hire after
+that**, with the reason: the fee pays the staff who run the university
+funnels. That is what you wrote, and it settles the flyer's half of `C1`.
 
-**Four reasons agencies use it**
-
-| | |
-|---|---|
-| **Cover the shifts that are hardest to fill** | Students hold the same hours each week for a semester: nights, weekends, and standing schedules. |
-| **Motivated by more than pay** | They need supervised hours, mentorship and a recommendation for health school, so they take the work seriously. |
-| **Local, and back each term** | Students from {university}, available semester after semester. |
-| **You stay the employer** | You interview, you decide, you onboard them your way. We do the recruiting and the screening. |
-
-**How it works**
-
-1. Tell us the shifts you need covered.
-2. We send you a student who fits — one page: availability, experience, and a
-   short video.
-3. You interview and hire on your own terms.
-4. Your first student is free.
-
-**What screened means**
-
-- Pre-nursing and pre-medical students at {university}
-- Committed to recurring availability for a semester
-- Professionalism and scheduling expectations set before they reach you
-- Background-check support coordinated with your onboarding
-
-**What it costs**
-
-> Your first student is free. Nothing to sign, and no subscription. If they
-> work out and you want more, we agree terms then, based on what the students
-> are worth to you.
-
-**Call to action**
-
-> Reply to the email this came with and we'll set up your first student.
-> olera.care/medjobs/providers
-
-### What changed, and the one thing that has to be decided
-
-The flyer currently says **"Free to browse and interview. $200 once per hire —
-refunded if they work under 15 hours."** That number is gone in the draft
-above, replaced by *your first student is free, terms agreed after*.
-
-That matches what you described, and it removes the contradiction in `F2` — a
-flyer quoting $200 while `C1` lists the price as undecided and `D-011` keeps
-it out of the pack. **But it is a commercial decision, not a copy decision,
-and you should make it explicitly rather than let this draft make it for you.**
-
----
+**It does not match the emails in this document**, which say *we agree terms
+then, based on what the students are worth to you* and name no number. Both
+can be true — the flyer carries the number, the email does not — but the
+email's *we agree terms then* implies the number is open when the attachment
+says it is $250. Worth deciding which reading you want before this goes out.
 
 ## What shipping this will touch
 

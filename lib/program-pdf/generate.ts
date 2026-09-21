@@ -43,11 +43,15 @@ async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
   const [
     loganPhotoDataUri,
     graziePhotoDataUri,
+    chantelPhotoDataUri,
+    saraPhotoDataUri,
     oleraLogoDataUri,
     qrDataUri,
   ] = await Promise.all([
     publicAssetDataUri("images/for-providers/team/logan.jpg", "image/jpeg"),
     publicAssetDataUri("images/for-providers/team/grazie.png", "image/png"),
+    publicAssetDataUri("images/for-providers/team/chantel.png", "image/png"),
+    publicAssetDataUri("images/for-providers/team/sara.png", "image/png"),
     publicAssetDataUri("images/olera-logo.png", "image/png"),
     QRCode.toDataURL(config.ctaUrl, {
       margin: 1,
@@ -55,7 +59,14 @@ async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
       color: { dark: "#111827", light: "#FFFFFF" },
     }),
   ]);
-  return { loganPhotoDataUri, graziePhotoDataUri, oleraLogoDataUri, qrDataUri };
+  return {
+    loganPhotoDataUri,
+    graziePhotoDataUri,
+    chantelPhotoDataUri,
+    saraPhotoDataUri,
+    oleraLogoDataUri,
+    qrDataUri,
+  };
 }
 
 /**

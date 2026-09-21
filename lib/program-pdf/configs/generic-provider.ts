@@ -22,42 +22,80 @@ export const GENERIC_PROVIDER: ProgramPdfConfig = {
   universityAccent: "#047857", // Olera emerald (no university accent for the generic brochure)
   ctaUrl: "https://olera.care/medjobs/providers",
   heroHeadline:
-    "Vetted pre-health student caregivers for the recurring shifts you can't fill.",
+    "Pre-health students, ready for your hardest shifts.",
   heroSubhead:
-    "Olera recruits and vets local pre-nursing and pre-medical students and matches them to your agency as caregivers. They want supervised hours, mentorship, and recommendation letters for health school, so they commit to a semester of recurring availability and take the work seriously. You get reliable coverage for the shifts that are hardest to staff. Browse and interview for free — you pay only when you hire.",
+    "We recruit and qualify college students on a pre-health track and match them to your agency. You interview and hire them as caregivers, on your own terms. They want supervised hours, mentorship and a recommendation for health school, so they commit to a semester of recurring availability and take the work seriously. Clients notice the difference.",
   benefits: [
     {
-      title: "Cover your hardest shifts",
-      body: "Students commit to a semester of recurring availability: reliable coverage for nights, weekends, and standing schedules.",
+      title: "We run the university funnel",
+      body: "Recruitment and qualification happen on campus, before anybody reaches you. You get candidates, not a hiring project.",
+    },
+    {
+      title: "Coverage you can schedule around",
+      body: "Students commit to a semester of recurring availability: nights, weekends, and standing schedules.",
     },
     {
       title: "Motivated by more than pay",
-      body: "They're after clinical hours, mentorship, and recommendation letters, so they show up and take the work seriously.",
+      body: "They need supervised hours, mentorship and a recommendation for health school, so they show up and take it seriously.",
     },
     {
-      title: "Local, and back every term",
-      body: "Pre-nursing and pre-medical students from your area, available semester after semester.",
-    },
-    {
-      title: "Caregivers your clients remember",
-      body: "Engaged, capable future nurses and physicians who care about the people they look after.",
+      title: "A new cohort every semester",
+      body: "Local students, available term after term, from the same university.",
     },
   ],
   steps: [
-    "Create your free account and review candidates.",
-    "Tell us the recurring shifts you need to cover.",
-    "We match a vetted student whose availability fits.",
-    "Interview, hire, and the semester begins.",
+    "Tell us your ideal caregiver and how many you want each semester.",
+    "We recruit and qualify students, then send you matches to interview.",
+    "Interview, hire, and they start.",
   ],
   vetting: [
     "Screened pre-nursing and pre-medical students.",
-    "Committed to a semester of recurring availability.",
-    "Professionalism and scheduling expectations set up front.",
-    "Background-check support coordinated with your onboarding.",
+    "Committed to at least a semester of recurring availability.",
+    "Professionalism and scheduling expectations set before they reach you.",
+    "We only send students we are confident in.",
   ],
   pricing: {
-    headline: "Free to browse and interview. $200 once per hire — refunded if they work under 15 hours.",
-    body: "No subscription, no commitment. You pay a one-time $200 only when you hire a student, fully refunded if they work fewer than 15 hours. Olera handles recruiting, vetting, and matching; you run your standard hiring and onboarding as the employer.",
+    headline: "Your first hire is free. $250 per confirmed hire after that.",
+    body: "No subscription, and nothing to sign to start. The fee pays the staff who run the university recruitment funnels and keep students coming to you. You remain the employer and run your own hiring and onboarding.",
   },
+  story: {
+    heading: "Why this program exists",
+    body: "Dr. DuBose was a pre-med student who found hands-on clinical experience hard to come by. Later, doing research funded by the National Institute on Aging, he found that 63% of home care agencies face staffing shortages. Students need hours. Agencies need caregivers. Families need someone reliable at home. The program was built to serve all three.",
+  },
+  afterReply: [
+    "We set up what you want in a caregiver: hours, shift types, anything you will not move on.",
+    "When a student near you is ready, we send you their one-page profile and a short video.",
+    "You interview, you decide, and you hire on your own terms. We confirm it with both of you.",
+  ],
+  team: [
+    {
+      name: "Logan DuBose, MD, MBA",
+      role: "Director, Olera Student Caregiver Program",
+      bio: "Texas A&M College of Medicine, 2022. Primary care physician and NIH-funded researcher.",
+      photo: "logan",
+    },
+    {
+      name: "Chantel Wright",
+      role: "Lead Program Coordinator",
+      email: "chantel@olera.care",
+      bio: "Two years with the team. Coordinates providers and students end to end: onboarding, qualifying, matching, and following up after a hire.",
+      photo: "chantel",
+    },
+    {
+      name: "Graize Belandres",
+      role: "Assistant to Dr. Logan DuBose",
+      email: "graize@olera.care",
+      bio: "Four years with the team and ten in healthcare documentation and administrative support. Handles provider and student relations.",
+      photo: "grazie",
+    },
+    {
+      name: "Sara Conkling",
+      role: "Assistant to Dr. Logan DuBose",
+      email: "sara@olera.care",
+      bio: "Pre-medical student at Clemson University. Helps coordinate providers and students, alongside research and healthcare work on campus.",
+      photo: "sara",
+    },
+  ],
   ctaLabel: "Learn more",
 };
+

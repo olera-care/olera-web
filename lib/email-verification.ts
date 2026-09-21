@@ -276,5 +276,21 @@ export async function verifyAndCache(
  */
 export async function isUndeliverable(email: string): Promise<boolean> {
   const cached = await getCachedVerification(email);
-  return cached?.status === "invalid";
+  if (!cached) return false;
+  // effectiveStatus, not the raw verdict. The cold lane already reclassifies
+  // ZeroBounce's over-aggressive role flag at send time; this path did not, so
+  // the SAME address was sendable as cold outreach and suppressed as
+  // transactional mail — backwards, because transactional mail goes to someone
+  // expecting it.
+  //
+  // It cost two providers two days. Cambridge Caregivers and Granny NANNIES
+  // are both info@ addresses cached invalid/role_based. Every city lead offer
+  // to them returned success-with-skipped and wrote nothing, so they sat "on
+  // call", took their turn in the rotation, and were never told a single lead
+  // existed. Their phones are landlines, so email was the only channel left.
+  //
+  // Narrow by construction: effectiveStatus only moves the two role
+  // sub-statuses. mailbox_not_found, spamtrap, abuse and do-not-mail pass
+  // through and stay suppressed exactly as before.
+  return effectiveStatus(cached.status, cached.subStatus ?? null) === "invalid";
 }

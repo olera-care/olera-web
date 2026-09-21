@@ -1448,12 +1448,8 @@ function StudentPortalContent({
             {/* ── Mobile-only: Compact progress + Go Live (lg:hidden) ── */}
             {/* On mobile these appear near top; on desktop they're in the sidebar */}
             <div className="lg:hidden space-y-3">
-              {/* Mobile Progress Banner */}
-              <button
-                type="button"
-                onClick={toggleCompleteness}
-                className="w-full bg-vanilla-50/70 rounded-2xl px-4 py-3.5 text-left active:bg-vanilla-100 transition-colors"
-              >
+              {/* Mobile Progress Banner — informational display */}
+              <div className="bg-vanilla-50/70 rounded-2xl px-4 py-3.5">
                 <div className="flex items-center gap-3">
                   {/* Progress ring */}
                   <div className="relative w-10 h-10 shrink-0">
@@ -1474,18 +1470,11 @@ function StudentPortalContent({
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900">Profile completeness</p>
                     <p className="text-xs text-gray-500">
-                      {completeSections.filter((s) => s.done).length} of {completeSections.length} sections
+                      {completeSections.filter((s) => s.done).length} of {completeSections.length} sections complete
                     </p>
                   </div>
-                  {/* Chevron */}
-                  <svg
-                    className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isCompletenessExpanded ? "rotate-90" : ""}`}
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
                 </div>
-              </button>
+              </div>
 
               {/* Mobile Go Live / Status Card */}
               {hasCompletedApplication ? (

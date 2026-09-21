@@ -76,6 +76,7 @@ export default function AdminSeekerTimelinePage() {
   const [data, setData] = useState<SeekerRelationship | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [unarchiving, setUnarchiving] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -87,6 +88,28 @@ export default function AdminSeekerTimelinePage() {
       setError("Failed to load this family. Reload to try again.");
     }
   }, [seekerId]);
+
+  const putBack = useCallback(async () => {
+    setUnarchiving(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/seeker-archive", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seekerId }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setActionError(json.error ?? "Could not put them back");
+        return;
+      }
+      await load();
+    } catch {
+      setActionError("Could not put them back");
+    } finally {
+      setUnarchiving(false);
+    }
+  }, [seekerId, load]);
 
   useEffect(() => {
     load();
@@ -149,12 +172,30 @@ export default function AdminSeekerTimelinePage() {
         <span className="font-mono text-[13px] text-gray-600">
           {[profile.phone, profile.email].filter(Boolean).join(" · ") || "no contact details"}
         </span>
-        <div className="ml-auto flex flex-wrap gap-1">
+        <div className="ml-auto flex flex-wrap items-center gap-1">
           {flags.map((f) => (
             <span key={f} className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${FLAG_STYLE[f]}`}>
               {SEEKER_FLAG_LABEL[f]}
             </span>
           ))}
+          {/* You reach this page FROM the Archived tab, so the way back has to
+              be here. Without it the only control was on a list this row no
+              longer appears in. */}
+          {data.archived && (
+            <>
+              <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600">
+                archived · {data.archived.reason.replace(/_/g, " ")}
+              </span>
+              <button
+                type="button"
+                disabled={unarchiving}
+                onClick={() => void putBack()}
+                className="rounded border border-gray-300 bg-white px-2 py-0.5 text-[11px] text-gray-700 hover:border-gray-500 disabled:opacity-50"
+              >
+                {unarchiving ? "Putting back…" : "Put back"}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -174,8 +215,16 @@ export default function AdminSeekerTimelinePage() {
         <Fact label="Consent" value={consentLine.v} note={consentLine.n} tone={consentLine.tone} />
         <Fact
           label="Where it stands"
-          value={episode.state === "waiting" ? `${episode.blocked_on} has it` : EPISODE_WORD[episode.state]}
-          note={episode.closed_reason ?? (episode.age_days !== null ? `day ${episode.age_days + 1}` : null)}
+          // An archived family fell through to the episode word and read
+          // "Open · day 1098" — the same false claim the list used to make,
+          // on the page you land on from the Archived tab.
+          value={data.archived ? "Archived" : episode.state === "waiting" ? `${episode.blocked_on} has it` : EPISODE_WORD[episode.state]}
+          note={
+            data.archived
+              ? data.archived.reason.replace(/_/g, " ")
+              : episode.closed_reason ?? (episode.age_days !== null ? `day ${episode.age_days + 1}` : null)
+          }
+          tone={data.archived ? "text-gray-500" : undefined}
         />
         <Fact
           label="Timeline they gave"

@@ -48,7 +48,7 @@ import { consentWarning, detailLine, nextLine, problemLine, stateOf, type Tone }
  * told us the provider never got back to them, and those are already in
  * "Write down what they told us" with their answer attached.
  */
-type Tab = "reply" | "call" | "record" | "reach" | "all";
+type Tab = "reply" | "call" | "record" | "reach" | "all" | "archived";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "reply", label: "Reply to them" },
@@ -56,6 +56,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "record", label: "Write down what they told us" },
   { key: "reach", label: "Fix how we reach them" },
   { key: "all", label: "All" },
+  { key: "archived", label: "Archived" },
 ];
 
 const TAB_BLURB: Record<Tab, string> = {
@@ -64,9 +65,15 @@ const TAB_BLURB: Record<Tab, string> = {
   record: "They already told us how it went. The record still says pending.",
   reach: "No working phone or email, so nothing we send can land.",
   all: "Everyone with a live episode in the window.",
+  archived: "Rows a person decided are not cases. Nothing here is in any queue.",
 };
 
 function matches(r: SeekerRelationshipRow, tab: Tab): boolean {
+  // An archived row appears in exactly one place. It carries no work flags
+  // either, so the queues below would skip it anyway; this is what keeps it out
+  // of "All", where it would otherwise sit forever looking like a live case.
+  if (r.archived) return tab === "archived";
+  if (tab === "archived") return false;
   // Opted out never appears in a work queue: there is no channel left to act
   // on, so it only pads the lists meant to be finished.
   if (tab !== "all" && r.flags.includes("opted_out")) return false;
@@ -86,7 +93,7 @@ function matches(r: SeekerRelationshipRow, tab: Tab): boolean {
 
 /** Everything with an action attached, for the "nothing is waiting" case. */
 function openWorkCount(rows: SeekerRelationshipRow[]): number {
-  return rows.filter((r) => TABS.some((t) => t.key !== "all" && matches(r, t.key))).length;
+  return rows.filter((r) => TABS.some((t) => t.key !== "all" && t.key !== "archived" && matches(r, t.key))).length;
 }
 
 const RAIL: Record<Tone, string> = {
@@ -106,6 +113,108 @@ const PROBLEM_TONE: Record<Tone, string> = {
   warn: "text-amber-700",
   none: "text-gray-600",
 };
+
+/**
+ * Take a row off the board, or put it back.
+ *
+ * Two steps on purpose. A single click that archives is a click somebody makes
+ * by accident on a page they are scrolling, and this is the only control here
+ * that removes a family from view. Naming the reason is also the point: the
+ * difference between "we made this row ourselves" and "the ad reached the wrong
+ * audience" is what tells us whether targeting is leaking, and nothing else
+ * records it.
+ */
+const ARCHIVE_REASONS: { key: string; label: string }[] = [
+  { key: "test_record", label: "Ours, a test" },
+  { key: "not_a_care_seeker", label: "Not looking for care" },
+  { key: "duplicate", label: "Duplicate" },
+  { key: "resolved_elsewhere", label: "Sorted elsewhere" },
+  { key: "other", label: "Something else" },
+];
+
+function ArchiveControl({ row, onDone }: { row: SeekerRelationshipRow; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function send(method: "POST" | "DELETE", reason?: string) {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch("/api/admin/seeker-archive", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seekerId: row.seeker_id, reason }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(json.error ?? "Did not save");
+        return;
+      }
+      setOpen(false);
+      onDone();
+    } catch {
+      setErr("Did not save");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (row.archived) {
+    return (
+      <div className="shrink-0 py-3.5 pr-4 text-right">
+        <div className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-gray-400">
+          {row.archived.reason.replace(/_/g, " ")}
+        </div>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void send("DELETE")}
+          className="mt-1 text-[12px] text-teal-700 underline-offset-2 hover:underline disabled:opacity-50"
+        >
+          Put back
+        </button>
+        {err && <div className="mt-1 text-[11px] text-red-600">{err}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="shrink-0 py-3.5 pr-4 text-right">
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-[12px] text-gray-400 underline-offset-2 hover:text-gray-700 hover:underline"
+        >
+          Archive
+        </button>
+      ) : (
+        <div className="flex max-w-[15rem] flex-wrap justify-end gap-1">
+          {ARCHIVE_REASONS.map((a) => (
+            <button
+              key={a.key}
+              type="button"
+              disabled={busy}
+              onClick={() => void send("POST", a.key)}
+              className="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-[11px] text-gray-700 hover:border-gray-500 disabled:opacity-50"
+            >
+              {a.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => { setOpen(false); setErr(null); }}
+            className="px-1 text-[11px] text-gray-400 hover:text-gray-700"
+          >
+            Cancel
+          </button>
+          {err && <div className="w-full text-[11px] text-red-600">{err}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminSeekerRelationshipsPage() {
   const [rows, setRows] = useState<SeekerRelationshipRow[] | null>(null);
@@ -131,7 +240,7 @@ export default function AdminSeekerRelationshipsPage() {
   }, [load]);
 
   const counts = useMemo(() => {
-    const c: Record<Tab, number> = { reply: 0, call: 0, record: 0, reach: 0, all: 0 };
+    const c: Record<Tab, number> = { reply: 0, call: 0, record: 0, reach: 0, all: 0, archived: 0 };
     for (const r of rows ?? []) for (const t of TABS) if (matches(r, t.key)) c[t.key] += 1;
     return c;
   }, [rows]);
@@ -262,10 +371,13 @@ export default function AdminSeekerRelationshipsPage() {
           const consent = consentWarning(r);
           const next = nextLine(r);
           return (
-            <Link
+            <div
               key={r.seeker_id}
+              className={`flex items-start border-b border-l-[3px] border-b-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 ${RAIL[st.tone]}`}
+            >
+            <Link
               href={`/admin/relationships/families/${r.seeker_id}`}
-              className={`flex items-start gap-4 border-b border-l-[3px] border-b-gray-100 py-3.5 pl-4 pr-4 transition-colors last:border-b-0 hover:bg-gray-50 ${RAIL[st.tone]}`}
+              className="flex min-w-0 flex-1 items-start gap-4 py-3.5 pl-4 pr-2"
             >
               <div className="min-w-0 flex-1">
                 <div
@@ -289,6 +401,10 @@ export default function AdminSeekerRelationshipsPage() {
                 {st.age && <div className="mt-0.5 font-mono text-[11px] text-gray-400">{st.age}</div>}
               </div>
             </Link>
+            {/* Outside the Link on purpose: a button nested in an anchor is
+                invalid, and every click on it would navigate instead. */}
+            <ArchiveControl row={r} onDone={load} />
+            </div>
           );
         })}
       </div>

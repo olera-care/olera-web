@@ -251,6 +251,31 @@ export async function processEvent(
 /** How far back to look for existing family activity to send to new pool members (30 days) */
 const EXISTING_ACTIVITY_LOOKBACK_DAYS = 30;
 
+/** Map full state names to abbreviations for flexible matching */
+const STATE_NAME_TO_ABBREV: Record<string, string> = {
+  "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR", "california": "CA",
+  "colorado": "CO", "connecticut": "CT", "delaware": "DE", "florida": "FL", "georgia": "GA",
+  "hawaii": "HI", "idaho": "ID", "illinois": "IL", "indiana": "IN", "iowa": "IA",
+  "kansas": "KS", "kentucky": "KY", "louisiana": "LA", "maine": "ME", "maryland": "MD",
+  "massachusetts": "MA", "michigan": "MI", "minnesota": "MN", "mississippi": "MS", "missouri": "MO",
+  "montana": "MT", "nebraska": "NE", "nevada": "NV", "new hampshire": "NH", "new jersey": "NJ",
+  "new mexico": "NM", "new york": "NY", "north carolina": "NC", "north dakota": "ND", "ohio": "OH",
+  "oklahoma": "OK", "oregon": "OR", "pennsylvania": "PA", "rhode island": "RI", "south carolina": "SC",
+  "south dakota": "SD", "tennessee": "TN", "texas": "TX", "utah": "UT", "vermont": "VT",
+  "virginia": "VA", "washington": "WA", "west virginia": "WV", "wisconsin": "WI", "wyoming": "WY",
+};
+
+/** Normalize state to abbreviation for consistent matching */
+function normalizeState(state: string | null): string | null {
+  if (!state) return null;
+  const trimmed = state.trim();
+  // Already an abbreviation (2 chars)
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  // Try to map full name to abbreviation
+  const abbrev = STATE_NAME_TO_ABBREV[trimmed.toLowerCase()];
+  return abbrev || trimmed;
+}
+
 /**
  * Find providers in the broadcast_ready pool who haven't received any
  * broadcasts yet. These providers should receive a "welcome" broadcast
@@ -348,6 +373,9 @@ async function findExistingActivityForCity(
 
   // First, try to find a recent published profile in the city
   // Profile broadcasts don't require category matching, so they're more likely to exist
+  // Note: We normalize state to handle "TX" vs "Texas" mismatches
+  const normalizedState = normalizeState(state);
+
   let profileQuery = db
     .from("business_profiles")
     .select("id, city, state")
@@ -355,17 +383,17 @@ async function findExistingActivityForCity(
     .gte("created_at", cutoff)
     .not("account_id", "is", null) // Has an actual seeker
     .order("created_at", { ascending: false })
-    .limit(1);
-
-  // Filter by state if provided (important for city disambiguation)
-  if (state) {
-    profileQuery = profileQuery.ilike("state", state);
-  }
+    .limit(10); // Fetch more so we can filter by normalized state
 
   const { data: profiles } = await profileQuery;
 
-  if (profiles && profiles.length > 0) {
-    const profile = profiles[0];
+  // Filter by normalized state if provided (handles TX vs Texas mismatch)
+  const matchingProfiles = normalizedState
+    ? (profiles || []).filter((p) => normalizeState(p.state) === normalizedState)
+    : profiles || [];
+
+  if (matchingProfiles.length > 0) {
+    const profile = matchingProfiles[0];
     // Use the profile ID directly as the event ID
     // Previously we required a seeker_activity record with event_type='profile_published',
     // but those records were never being created, causing broadcasts to never send.

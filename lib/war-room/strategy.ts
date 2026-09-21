@@ -200,6 +200,10 @@ export type AgendaProposalDraft = {
   confidence: "high" | "medium" | "low";
   impact: "high" | "medium" | "low";
   effort: "small" | "medium" | "large";
+  // Who does it. Required for every non-code proposal: see the assigned-work
+  // gate below. Null is legitimate only for `code`, where the executor is the
+  // owner.
+  assignedOwner: string | null;
   urgency: "now" | "soon" | "monitor";
   strategicFit: "central" | "adjacent" | "peripheral";
   reversibility: "high" | "medium" | "low";

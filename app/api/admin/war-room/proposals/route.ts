@@ -252,6 +252,16 @@ export async function POST(request: NextRequest) {
         },
       });
       if (eventError) throw eventError;
+      // Non-repository work used to end here: status set to "approved", event
+      // logged, and nobody told. Five of six action kinds had no destination at
+      // all, so an approved operations or content proposal reached no one.
+      // Delivery is awaited rather than fired and forgotten -- a Next route can
+      // be frozen the moment it responds -- and it never fails the approval.
+      if (proposal.action_kind !== "code") {
+        const { deliverAssignedWork } = await import("@/lib/war-room/assigned-work.server");
+        await deliverAssignedWork(db, approvedData as WarRoomProposal)
+          .catch(() => ({ delivered: false }));
+      }
       let dispatch: { dispatched: boolean; detail: string };
       if (proposal.action_kind === "code") {
         try {

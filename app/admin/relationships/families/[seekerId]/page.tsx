@@ -97,7 +97,7 @@ export default function AdminSeekerTimelinePage() {
       <div className="mx-auto max-w-4xl px-4 py-10">
         <p className="text-sm text-red-600">{error}</p>
         <Link href="/admin/relationships/families" className="mt-3 inline-block text-sm text-teal-700 hover:underline">
-          ← Back to care seekers
+          ← Back to Care Seeker Relationships
         </Link>
       </div>
     );
@@ -137,7 +137,7 @@ export default function AdminSeekerTimelinePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <Link href="/admin/relationships/families" className="text-xs text-teal-700 hover:underline">
-        ← Care seekers
+        ← Care Seeker Relationships
       </Link>
 
       <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 border-b border-gray-200 pb-4">

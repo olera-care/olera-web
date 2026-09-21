@@ -154,18 +154,22 @@ export default function AdminSeekerRelationshipsPage() {
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500">Care seekers</p>
-          <h1 className="text-2xl font-semibold text-gray-950">Relationships</h1>
+          <h1 className="text-2xl font-semibold text-gray-950">Care Seeker Relationships</h1>
+          {/* Says what to DO, matching tabs that are now jobs rather than
+              states. The old line described the page's contents; a queue
+              should describe the work. */}
           <p className="mt-1 max-w-xl text-sm text-gray-500">
-            Who is waiting on us, who we cannot reach, and who has gone quiet. Open a family for the whole story.
+            Every family who needs something from us, grouped by what to do about it. Open one for the whole story.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* "Providers" alone also describes the directory at
+              /admin/directory. Name the page it actually opens. */}
           <Link
             href="/admin/relationships"
             className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
           >
-            Providers
+            Provider relationships
           </Link>
           <a
             href={`/api/admin/seeker-touches?days=${days}&format=md`}

@@ -90,15 +90,26 @@ export default function AdminRelationshipsPage() {
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500">Providers</p>
-          <h1 className="text-2xl font-semibold text-gray-950">Relationships</h1>
+          {/* The name matches the nav. Two pages called "Relationships",
+              told apart by an eyebrow, meant search returned two identical
+              rows and clicking one landed you somewhere titled neither. The
+              eyebrow went with it: "Providers · Provider Relationships" is
+              the same word twice. */}
+          <h1 className="text-2xl font-semibold text-gray-950">Provider Relationships</h1>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
             Who is due, and who has gone quiet. Every touch on every channel, from anyone. Open the provider for the whole story.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* flex-wrap because these labels grew. Three buttons at the old
+            short names fitted a phone; "Care seeker relationships" beside
+            them does not, and an un-wrapped row pushes the last one off
+            screen rather than dropping it to a second line. */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Named for where it goes. "Care seekers" is also a DIFFERENT page
+              in the nav — the records list at /admin/care-seekers — so the
+              same two words pointed at two destinations. */}
           <Link href="/admin/relationships/families" className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">
-            Care seekers
+            Care seeker relationships
           </Link>
           <a href="/api/admin/touches?format=md" target="_blank" rel="noreferrer" className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">
             Read as text

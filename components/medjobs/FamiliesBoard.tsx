@@ -313,11 +313,11 @@ function Board() {
                   priority
                 />
               </div>
-              <div className="absolute -bottom-4 -left-4 sm:-left-6 max-w-[88%] rounded-xl border border-primary-100 bg-white px-4 py-3 shadow-lg shadow-gray-900/10">
+              <div className="absolute -bottom-4 left-0 sm:-left-6 max-w-full sm:max-w-[88%] rounded-xl border border-primary-100 bg-white px-4 py-3 shadow-lg shadow-gray-900/10">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                   Students from
                 </p>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {[
                     { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
                     { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
@@ -331,10 +331,10 @@ function Board() {
                       alt={uni.name}
                       width={120}
                       height={60}
-                      className="h-6 w-auto object-contain opacity-80"
+                      className="h-5 sm:h-6 w-auto shrink-0 object-contain opacity-80"
                     />
                   ))}
-                  <span className="text-lg leading-none text-gray-300" aria-hidden="true">
+                  <span className="text-lg leading-none text-gray-300 shrink-0" aria-hidden="true">
                     …
                   </span>
                 </div>

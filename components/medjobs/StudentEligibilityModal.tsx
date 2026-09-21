@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -83,6 +83,15 @@ export default function StudentEligibilityModal({
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [existing, setExisting] = useState(false);
+
+  // Lock body scroll when modal is open to prevent background "shaking" on mobile
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   const reassurance = Q1.find((q) => q.value === track)?.reassure;
 
@@ -176,16 +185,19 @@ export default function StudentEligibilityModal({
 
   return (
     <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
-      <div className="relative w-full max-w-md rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl">
+      <div className="relative w-full max-w-md max-h-[90vh] rounded-t-2xl bg-white shadow-xl sm:max-h-[85vh] sm:rounded-2xl">
+        {/* Close button - fixed position relative to modal, not scrollable content */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+          className="absolute right-4 top-4 z-10 text-gray-400 hover:text-gray-600"
         >
           ✕
         </button>
 
+        {/* Scrollable content area */}
+        <div className="overflow-y-auto overscroll-contain max-h-[90vh] p-6 pt-12 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:max-h-[85vh] sm:pb-6">
         {context.campusName ? (
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary-600">
             {context.campusName} · Student Caregiver Program
@@ -351,6 +363,7 @@ export default function StudentEligibilityModal({
         ) : (
           <div className="py-8 text-center text-sm text-gray-500">Setting up your account…</div>
         )}
+        </div>
       </div>
     </div>
   );

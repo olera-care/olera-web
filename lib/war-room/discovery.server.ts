@@ -221,6 +221,16 @@ const PROPOSAL_PROPERTIES = {
   decisionRequired: { type: "string", maxLength: 350 },
   whyBetterThanAlternatives: { type: "string", maxLength: 650 },
   cheapestFalsification: { type: "string", maxLength: 450 },
+  // Who does the work. The only genuinely new fact needed to turn a proposal
+  // into an assignment: evaluationWindowDays already gives the due date,
+  // executionPlan the steps, proposedSolution the draft. A non-code proposal
+  // without an owner is an idea, not work.
+  //
+  // Deliberately a flat string rather than an assignment object. The two key
+  // groups below are budgeted at ten properties each because the strict-tool
+  // grammar has a compile-time ceiling, and exceeding it returns a 400 that
+  // kills the whole scan rather than degrading it.
+  assignedOwner: { type: ["string", "null"], maxLength: 60 },
   evidenceIds: { type: "array", items: { type: "string" } },
   executionPlan: {
     type: "array",
@@ -254,6 +264,7 @@ const PROPOSAL_PROPERTIES = {
 const AGENDA_BRIEF_KEYS = [
   "actionKind", "title", "finding", "whyNow", "proposedSolution",
   "decisionRequired", "whyBetterThanAlternatives", "cheapestFalsification", "evidenceIds",
+  "assignedOwner",
 ] as const;
 const AGENDA_EXECUTION_KEYS = [
   "executionPlan", "successMeasure", "risk", "rollbackPlan", "confidence", "effort",
@@ -1391,6 +1402,7 @@ async function saveProposals(
       decision_required: draft.decisionRequired,
       why_better_than_alternatives: draft.whyBetterThanAlternatives,
       cheapest_falsification: draft.cheapestFalsification,
+      assigned_owner: draft.assignedOwner ?? null,
       existing_capabilities: draft.existingCapabilities,
       strategic_case: {
         diagnosisConfidence: draft.confidence,

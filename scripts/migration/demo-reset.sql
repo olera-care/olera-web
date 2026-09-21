@@ -10,6 +10,17 @@
 -- similar name is still out of reach. Run migration 238 first: it adds the
 -- column and creates the campus.
 --
+-- Every statement resolves the campus for itself. That looks repetitive and
+-- it is deliberate: the Supabase editor commits each statement separately,
+-- so a temporary table holding the campus id is gone before the next
+-- statement runs. The first version did exactly that and stopped halfway
+-- with "relation demo_campus does not exist".
+--
+-- There is no transaction around this, for the same reason -- the editor
+-- would not honour one. It does not need one. Every run clears the campus
+-- before refilling it, so a run that stops halfway is repaired by running it
+-- again.
+--
 -- Dates are relative to when you run it, so the board always has something
 -- overdue, something due today and something due next week. Fixed dates read
 -- as plausible for a fortnight and then as a campus nobody has touched.
@@ -30,27 +41,41 @@
 -- for any campus without a completed one, so it is there on a fresh reset
 -- and gone again once you demonstrate it.
 
-BEGIN;
-
--- The campus, resolved once. If this is empty every delete below matches
--- nothing and every insert fails on a missing campus, which is the right way
--- to fail: it means 238 has not been run.
-CREATE TEMP TABLE demo_campus ON COMMIT DROP AS
-SELECT id FROM student_outreach_campuses
-WHERE slug = 'dubose-university-of-olera' AND is_demo;
 
 -- ── clear ───────────────────────────────────────────────────────────────
 
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 DELETE FROM student_outreach_tasks t
 USING student_outreach o, demo_campus d
 WHERE t.outreach_id = o.id AND o.campus_id = d.id;
 
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 DELETE FROM student_outreach_contacts c
 USING student_outreach o, demo_campus d
 WHERE c.outreach_id = o.id AND o.campus_id = d.id;
 
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 DELETE FROM student_outreach o USING demo_campus d WHERE o.campus_id = d.id;
+
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 DELETE FROM site_tasks s      USING demo_campus d WHERE s.campus_id = d.id;
+
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 DELETE FROM campus_channels c USING demo_campus d WHERE c.campus_id = d.id;
 
 -- Demo students carry the marker in their own metadata, because a student
@@ -72,6 +97,10 @@ DELETE FROM business_profiles p WHERE p.metadata->>'is_demo' = 'true';
 
 -- ── providers ───────────────────────────────────────────────────────────
 
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 INSERT INTO student_outreach
   (campus_id, kind, stakeholder_type, organization_name, status, research_data)
 SELECT d.id, 'provider', NULL, v.name, v.status, v.research
@@ -93,6 +122,10 @@ FROM demo_campus d,
                         'archived_at', (now() - interval '4 days')::text))
 ) AS v(name, status, research);
 
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 INSERT INTO student_outreach_contacts (outreach_id, name, role, email, phone, is_primary)
 SELECT o.id, v.contact, v.role, v.email, v.phone, TRUE
 FROM student_outreach o
@@ -111,6 +144,10 @@ JOIN (VALUES
 
 -- One row per task. `outcome` on a completed row is what the board prints
 -- back, so it has to be a label the rung actually offers.
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 INSERT INTO student_outreach_tasks
   (outreach_id, task_type, status, due_at, completed_at, payload, notes)
 SELECT o.id, v.task_type, v.status,
@@ -333,6 +370,10 @@ FROM business_profiles p WHERE p.slug = 'demo-duo-dev-patel';
 
 -- ── the job board ───────────────────────────────────────────────────────
 
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 INSERT INTO campus_channels (campus_id, channel, status, criteria, detail)
 SELECT d.id, 'st3', 'in_progress', '{}'::jsonb,
        jsonb_build_object(
@@ -345,6 +386,10 @@ FROM demo_campus d;
 -- state. It starts on rung 1 with the research behind it: far enough in to
 -- show a channel in progress, early enough that submitted, approved and
 -- first applicant can all be walked forward during the demo.
+WITH demo_campus AS (
+  SELECT id FROM student_outreach_campuses
+  WHERE slug = 'dubose-university-of-olera' AND is_demo
+)
 INSERT INTO site_tasks (campus_id, channel, task_type, due_at, status, payload, notes, completed_at)
 SELECT d.id, 'st3', 'activation_job_board_check', v.due, v.status, v.payload, v.notes, v.done_at
 FROM demo_campus d,
@@ -354,4 +399,3 @@ FROM demo_campus d,
   (current_date::timestamptz,       'pending',   '{"step":1,"round":0}'::jsonb, NULL, NULL)
 ) AS v(due, status, payload, notes, done_at);
 
-COMMIT;

@@ -9,10 +9,19 @@ import InternshipAgreementModal from "@/components/medjobs/InternshipAgreementMo
 import type { Interview } from "@/lib/types";
 import type { AccessTier } from "@/lib/medjobs-access";
 import type { Placement } from "@/lib/medjobs/placements";
+import type { JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
+import {
+  COVERAGE_OPTIONS,
+  DEMAND_SHAPE_OPTIONS,
+  PRN_OPTIONS,
+  REQUIREMENT_OPTIONS,
+} from "@/lib/medjobs/hiring-needs-questions";
 
 /* ── Types ── */
 
 type InterviewWithProfiles = Interview & {
+  /** Job details snapshot stored when interview was scheduled */
+  metadata?: Record<string, unknown>;
   provider?: {
     id: string;
     display_name: string;
@@ -951,6 +960,77 @@ function InterviewDetailModal({
             </div>
           )}
         </div>
+
+        {/* Job Details section - for students viewing interview from provider */}
+        {perspective === "student" && (() => {
+          const jobDetails = (interview.metadata as { job_details?: JobDetails } | undefined)?.job_details;
+          if (!jobDetails) return null;
+          const { hourly_rate, job_description, coverage_buckets, demand_shape, prn_open, requirements } = jobDetails;
+          const hasAnyDetail = hourly_rate != null || job_description || (coverage_buckets && coverage_buckets.length > 0) || demand_shape || prn_open || (requirements && Object.values(requirements).some(Boolean));
+          if (!hasAnyDetail) return null;
+
+          const shiftsLabels = (coverage_buckets ?? []).map(
+            (b) => COVERAGE_OPTIONS.find((o) => o.value === b)?.label ?? b
+          );
+          const shapeLabel = demand_shape
+            ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand_shape)?.label
+            : null;
+          const prnLabel = prn_open
+            ? PRN_OPTIONS.find((o) => o.value === prn_open)?.label
+            : null;
+          const reqLabels = requirements
+            ? REQUIREMENT_OPTIONS.filter((o) => requirements[o.key]).map((o) => o.label)
+            : [];
+
+          return (
+            <div className="pt-2">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Job Details</p>
+              <div className="space-y-3 text-sm">
+                {hourly_rate != null && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-semibold text-primary-600">${hourly_rate}/hr</span>
+                  </div>
+                )}
+                {job_description && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Description</p>
+                    <p className="text-gray-700 whitespace-pre-wrap">{job_description}</p>
+                  </div>
+                )}
+                {shiftsLabels.length > 0 && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Shifts needed</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {shiftsLabels.map((s) => (
+                        <span key={s} className="rounded-full border border-gray-200 px-2.5 py-0.5 text-xs text-gray-700">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {shapeLabel && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Staffing pattern</p>
+                    <p className="text-gray-700">{shapeLabel}</p>
+                  </div>
+                )}
+                {prnLabel && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Open to PRN</p>
+                    <p className="text-gray-700">{prnLabel}</p>
+                  </div>
+                )}
+                {reqLabels.length > 0 && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Requirements</p>
+                    <ul className="space-y-0.5 text-gray-700">
+                      {reqLabels.map((r) => (<li key={r}>• {r}</li>))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Connect section - for providers with confirmed interviews */}
         {showConnectSection && hasContactInfo && (

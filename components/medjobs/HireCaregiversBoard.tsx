@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -10,8 +10,10 @@ import Modal from "@/components/ui/Modal";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import CandidateDetailPanel from "@/components/medjobs/CandidateDetailPanel";
-import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import ScheduleInterviewModal, { type JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { DEMAND_PROFILE_KEY, type DemandProfile } from "@/lib/medjobs/eligibility";
+import { REQUIREMENTS_KEY, type MedjobsRequirements } from "@/lib/medjobs/hiring-needs-questions";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 
 /**
@@ -60,11 +62,28 @@ function matchesAvailability(c: CandidateData, val: string): boolean {
 export default function HireCaregiversBoard() {
   const { profiles } = useAuth();
   const providerProfile = profiles?.find((p) => p.type === "organization" || p.type === "caregiver");
+  const providerMeta = useMemo(
+    () => (providerProfile?.metadata ?? {}) as Record<string, unknown>,
+    [providerProfile?.metadata]
+  );
   const matchBuckets = (
-    (providerProfile?.metadata as Record<string, unknown> | undefined)?.[
-      "medjobs_demand_profile"
-    ] as { coverage_buckets?: string[] } | undefined
+    providerMeta[DEMAND_PROFILE_KEY] as { coverage_buckets?: string[] } | undefined
   )?.coverage_buckets;
+
+  // Extract hiring defaults to pass to schedule modal
+  const jobDetails = useMemo((): JobDetails | undefined => {
+    const demand = providerMeta[DEMAND_PROFILE_KEY] as Partial<DemandProfile> | undefined;
+    const requirements = providerMeta[REQUIREMENTS_KEY] as MedjobsRequirements | undefined;
+    if (!demand && !requirements) return undefined;
+    return {
+      hourly_rate: demand?.hourly_rate,
+      job_description: demand?.job_description,
+      coverage_buckets: demand?.coverage_buckets,
+      demand_shape: demand?.demand_shape,
+      prn_open: demand?.prn_open,
+      requirements,
+    };
+  }, [providerMeta]);
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [universityId, setUniversityId] = useState("");
@@ -351,6 +370,7 @@ export default function HireCaregiversBoard() {
           otherName={scheduleTarget.display_name}
           onClose={() => setScheduleTarget(null)}
           onScheduled={() => setScheduleTarget(null)}
+          jobDetails={jobDetails}
         />
       )}
 

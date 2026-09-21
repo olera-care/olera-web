@@ -39,6 +39,10 @@ export interface DemandProfile {
   prn_open: "yes" | "maybe" | "no";
   /** Q3 — hardest shifts to cover. */
   coverage_buckets: Array<"day" | "evening" | "overnight" | "weekend">;
+  /** Hiring default: hourly rate offered (e.g., 22 for $22/hr). */
+  hourly_rate?: number;
+  /** Hiring default: job description text pre-filled in interview notes. */
+  job_description?: string;
 }
 
 /**

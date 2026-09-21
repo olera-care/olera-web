@@ -50,15 +50,17 @@ export default function EditHireCaregiversModal({
   const [shape, setShape] = useState<Shape | undefined>(initialDemand.demand_shape);
   const [prn, setPrn] = useState<Prn | undefined>(initialDemand.prn_open);
   const [buckets, setBuckets] = useState<Bucket[]>(initialDemand.coverage_buckets ?? []);
+  const [hourlyRate, setHourlyRate] = useState<number | undefined>(initialDemand.hourly_rate);
+  const [jobDescription, setJobDescription] = useState(initialDemand.job_description ?? "");
   const [req, setReq] = useState<MedjobsRequirements>(initialReq);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const snapshot = (s?: Shape, p?: Prn, b?: Bucket[], r?: MedjobsRequirements) =>
-    JSON.stringify({ s: s ?? null, p: p ?? null, b: [...(b ?? [])].sort(), r: r ?? {} });
+  const snapshot = (s?: Shape, p?: Prn, b?: Bucket[], r?: MedjobsRequirements, hr?: number, jd?: string) =>
+    JSON.stringify({ s: s ?? null, p: p ?? null, b: [...(b ?? [])].sort(), r: r ?? {}, hr: hr ?? null, jd: jd ?? "" });
   const hasChanges =
-    snapshot(shape, prn, buckets, req) !==
-    snapshot(initialDemand.demand_shape, initialDemand.prn_open, initialDemand.coverage_buckets, initialReq);
+    snapshot(shape, prn, buckets, req, hourlyRate, jobDescription) !==
+    snapshot(initialDemand.demand_shape, initialDemand.prn_open, initialDemand.coverage_buckets, initialReq, initialDemand.hourly_rate, initialDemand.job_description ?? "");
 
   const toggleBucket = (v: Bucket) =>
     setBuckets((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
@@ -73,7 +75,13 @@ export default function EditHireCaregiversModal({
     setSaving(true);
     setError(null);
     try {
-      const demand: Record<string, unknown> = { demand_shape: shape, prn_open: prn, coverage_buckets: buckets };
+      const demand: Record<string, unknown> = {
+        demand_shape: shape,
+        prn_open: prn,
+        coverage_buckets: buckets,
+        hourly_rate: hourlyRate, // Don't use || - 0 is a valid rate
+        job_description: jobDescription.trim() || undefined,
+      };
       const metadataFields: Record<string, unknown> = {
         [DEMAND_PROFILE_KEY]: demand,
         [REQUIREMENTS_KEY]: req,
@@ -150,6 +158,34 @@ export default function EditHireCaregiversModal({
               </button>
             ))}
           </div>
+        </Field>
+
+        <Field label="Hourly rate">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500">$</span>
+            <input
+              type="number"
+              min={0}
+              step={0.5}
+              value={hourlyRate ?? ""}
+              onChange={(e) => setHourlyRate(e.target.value ? Number(e.target.value) : undefined)}
+              placeholder="e.g. 22"
+              className="w-24 px-3 py-2 border border-warm-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+            <span className="text-gray-500 text-sm">/hr</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Shown to students when you schedule interviews</p>
+        </Field>
+
+        <Field label="Job description">
+          <textarea
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Describe the role, responsibilities, and what you're looking for..."
+            rows={4}
+            className="w-full px-3.5 py-2.5 border border-warm-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">Pre-filled in interview invitations — students see the full description in their portal</p>
         </Field>
 
         <Field label="Requirements (optional)">

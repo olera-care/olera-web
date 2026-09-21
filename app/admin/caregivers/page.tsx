@@ -420,13 +420,13 @@ export default function AdminStudentsPage() {
                     )}
                   </div>
 
-                  {/* Status */}
+                  {/* Status - must check application_completed first (approval flag) */}
                   <div className="text-center">
-                    {student.is_active ? (
+                    {student.application_completed && student.is_active ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                        Active
+                        Live
                       </span>
-                    ) : student.application_completed ? (
+                    ) : student.application_completed && !student.is_active ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                         Paused
                       </span>

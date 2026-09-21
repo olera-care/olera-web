@@ -1755,9 +1755,14 @@ export function connectionOutcomeCheckEmail(opts: {
  * answered "yes", not one has told us whether they ended up with that provider,
  * with somebody else, or with nobody — because nothing has ever asked.
  *
- * Sent about two weeks after the "yes", which is long enough for an intake visit
- * and short enough to still be remembered. Three doors, and they are a genuine
- * partition: working with them, went elsewhere, still looking.
+ * Sent at least two weeks after the "yes", which is long enough for an intake
+ * visit. Three doors, and they are a genuine partition: working with them, went
+ * elsewhere, still looking.
+ *
+ * The opening line does NOT say "a couple of weeks ago". There is a standing
+ * backlog of families whose "yes" is months old and who have never been asked,
+ * and they get this message too. Dating the email would make it false for most
+ * of the people it first goes out to.
  *
  * ONE QUESTION. Satisfaction is not in here. It has no answer until care is
  * actually happening, so it is asked on the landing page of the families who
@@ -1789,7 +1794,7 @@ export function placementCheckEmail(opts: {
       Hi ${escapeHtml(familyFirstName)},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      A couple of weeks ago you told us <strong>${provider}</strong> got back to you.
+      You told us <strong>${provider}</strong> got back to you.
       <strong>Where did things land?</strong>
     </p>
     <div style="margin:0 0 12px;">${btn("We're working with them", opts.workingUrl)}</div>

@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Get email metrics from email_log
+    // Get email metrics from email_log (Resend emails)
     const { data: emailLogs, error: logError } = await db
       .from("email_log")
       .select("status, delivered_at, bounced_at, complained_at, created_at")
@@ -87,16 +87,60 @@ export async function GET(req: NextRequest) {
     }
 
     const logs = emailLogs || [];
-    // Count delivered: emails that were sent/delivered AND did not bounce
-    const delivered = logs.filter((l) => (l.delivered_at || l.status === "sent") && !l.bounced_at).length;
+    // Count Resend delivered: emails that were sent/delivered AND did not bounce
+    const resendDelivered = logs.filter((l) => (l.delivered_at || l.status === "sent") && !l.bounced_at).length;
     const bounced = logs.filter((l) => l.bounced_at).length;
     const complained = logs.filter((l) => l.complained_at).length;
 
-    // Find last delivered timestamp (excluding bounced emails)
-    const deliveredLogs = logs.filter((l) => (l.delivered_at || l.status === "sent") && !l.bounced_at);
-    const lastDeliveredAt = deliveredLogs.length > 0
-      ? deliveredLogs[0].delivered_at || deliveredLogs[0].created_at
+    // Get SmartLead email touchpoints (these are tracked separately from email_log)
+    // SmartLead emails are recorded in provider_outreach_touchpoints with source: "smartlead"
+    const { data: smartleadTouchpoints } = await db
+      .from("provider_outreach_touchpoints")
+      .select("created_at, details")
+      .eq("provider_id", providerId)
+      .eq("touchpoint_type", "email_sent")
+      .order("created_at", { ascending: false });
+
+    // Count SmartLead delivered: touchpoints that are SmartLead emails and not bounced
+    // SmartLead emails are identified by:
+    //   1. source === "smartlead" (set by sync and newer webhook code)
+    //   2. OR sequence_step is present (1-4, SmartLead's sequence indicator)
+    // Resend emails use cadence_day/template_key instead, so sequence_step is a reliable SmartLead marker
+    const smartleadEmails = (smartleadTouchpoints || []).filter((tp) => {
+      const details = tp.details as { source?: string; sequence_step?: number; is_bounced?: boolean } | null;
+      const isSmartlead = details?.source === "smartlead" ||
+        (typeof details?.sequence_step === "number" && details.sequence_step >= 1 && details.sequence_step <= 4);
+      return isSmartlead;
+    });
+    const smartleadDelivered = smartleadEmails.filter((tp) => {
+      const details = tp.details as { is_bounced?: boolean } | null;
+      return !details?.is_bounced;
+    }).length;
+    const smartleadBounced = smartleadEmails.filter((tp) => {
+      const details = tp.details as { is_bounced?: boolean } | null;
+      return details?.is_bounced === true;
+    }).length;
+
+    // Total delivered = Resend + SmartLead (non-bounced)
+    const delivered = resendDelivered + smartleadDelivered;
+    const totalBounced = bounced + smartleadBounced;
+
+    // Find last delivered timestamp (from either source)
+    const resendDeliveredLogs = logs.filter((l) => (l.delivered_at || l.status === "sent") && !l.bounced_at);
+    const lastResendDeliveredAt = resendDeliveredLogs.length > 0
+      ? resendDeliveredLogs[0].delivered_at || resendDeliveredLogs[0].created_at
       : null;
+    const smartleadDeliveredTps = smartleadEmails.filter((tp) => {
+      const details = tp.details as { is_bounced?: boolean } | null;
+      return !details?.is_bounced;
+    });
+    const lastSmartleadDeliveredAt = smartleadDeliveredTps.length > 0
+      ? smartleadDeliveredTps[0].created_at
+      : null;
+    // Pick the most recent delivered timestamp from either source
+    const lastDeliveredAt = [lastResendDeliveredAt, lastSmartleadDeliveredAt]
+      .filter(Boolean)
+      .sort((a, b) => new Date(b!).getTime() - new Date(a!).getTime())[0] || null;
 
     // Get last call timestamp from touchpoints
     // Note: touchpoint_type is "call_attempted" not "call"
@@ -119,9 +163,9 @@ export async function GET(req: NextRequest) {
     if (delivered === 0) {
       eligible = false;
       reason = "No emails delivered yet";
-    } else if (bounced > 0) {
+    } else if (totalBounced > 0) {
       eligible = false;
-      reason = `Has ${bounced} bounce${bounced > 1 ? "s" : ""}`;
+      reason = `Has ${totalBounced} bounce${totalBounced > 1 ? "s" : ""}`;
     } else if (complained > 0) {
       eligible = false;
       reason = `Has ${complained} complaint${complained > 1 ? "s" : ""}`;
@@ -133,7 +177,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       email,
       delivered,
-      bounced,
+      bounced: totalBounced,
       complained,
       lastDeliveredAt,
       lastCalledAt,

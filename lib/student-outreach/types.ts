@@ -133,6 +133,9 @@ export type TaskType =
   | "outreach_email_send"
   | "outreach_followup_email"
   | "outreach_followup_call"
+  /** One round of follow-up: a call and an email together. Payload records
+   *  call_logged_at / email_logged_at; both present completes the task. */
+  | "outreach_contact"
   | "meeting_held_logging"
   | "agreement_followup"
   | "distribution_confirmation"
@@ -228,6 +231,12 @@ export interface ResearchData {
    *  Audit trail: each override emits a note_added touchpoint with
    *  payload.reason = "pre_flight_override". */
   pre_flight_overridden?: boolean;
+  /** What the provider said in the reply that started the current set of
+   *  rounds. Shown at the top of the Follow-ups drawer so whoever works the
+   *  row next has the context without reading the whole timeline. */
+  set_context?: string;
+  /** Which set of rounds the row is on. Absent means the first. */
+  round_set?: number;
   /** v9.x Smartlead bridge linkage (cold-email engine). Set when the row's
    *  General Contact (and any Named Contacts) are enrolled into its campus
    *  Smartlead campaign. JSONB on research_data — no schema migration. The

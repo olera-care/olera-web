@@ -41,7 +41,6 @@ import { useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
-import { deriveTimelineSummary } from "@/lib/student-outreach/timeline-summary";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 
 type ActionFn = (
@@ -229,7 +228,6 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
     // cadence's schedule + enrollment anchor so "Upcoming" reflects the WHOLE
     // cadence (emails + calls), not just calls. Past/overdue steps are omitted
     // (they're already in Past Activity once Smartlead's webhook lands).
-    future.push(...syntheticUpcomingEmailRows(ctx));
 
     // Future ASC (soonest first), past DESC (newest first).
     future.sort((a, b) => a.whenIso.localeCompare(b.whenIso));
@@ -262,23 +260,12 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
 
   // Chunk 3: the one-glance "read" — temperature + whose move. Null before
   // outreach has started (the empty/upcoming state covers that case).
-  const summary = useMemo(() => deriveTimelineSummary(ctx), [ctx]);
 
   return (
     <section className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
         Timeline
       </h3>
-
-      {summary && (
-        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
-          <span aria-hidden className="text-base leading-none">
-            {summary.emoji}
-          </span>
-          <span className="font-semibold text-gray-900">{summary.label}</span>
-          <span className="text-gray-500">— {summary.detail}</span>
-        </div>
-      )}
 
       {!hasAnyActivity && (
         <div className="rounded-lg border border-gray-200 bg-white">
@@ -418,13 +405,6 @@ function TimelineRowView({
               {row.subline}
             </p>
           )}
-          {row.kind === "past" && (
-            <EngagementChips
-              payload={row.emailSentPayload}
-              legacy={engagement}
-              isEmailSent={row.isEmailSent}
-            />
-          )}
         </div>
         <div className="shrink-0 whitespace-nowrap text-xs text-gray-400">
           {row.kind === "past" && row.admin && (
@@ -456,88 +436,6 @@ function TimelineRowView({
 // (delivered_at, first_opened_at, etc.) for older rows that never went
 // through the new webhook path.
 
-function EngagementChips({
-  payload,
-  legacy,
-  isEmailSent,
-}: {
-  /** Primary source: email_sent touchpoint payload (Bullet 3 wires the
-   *  fields). Carries counts + last_*_at timestamps + clicked_ctas. */
-  payload: Record<string, unknown> | null;
-  /** Legacy source: kept for backward compat with email_engagement[]
-   *  rows that haven't been touched by the new webhook path. */
-  legacy: NonNullable<DrawerContext["email_engagement"]>[string] | null;
-  /** True when the row is an email_sent. Gates the "not opened yet" status so
-   *  it only ever shows on emails, never on calls / notes / other history. */
-  isEmailSent: boolean;
-}) {
-  // Pass C3 spec: derive counts from payload, fall through to legacy bools.
-  const openCount = Number(payload?.open_count ?? 0);
-  const clickCount = Number(payload?.click_count ?? 0);
-  const clickedCtas = (payload?.clicked_ctas as string[] | undefined) ?? [];
-  const lastOpenedAt = payload?.last_opened_at as string | undefined;
-
-  const opened = openCount > 0 || Boolean(legacy?.first_opened_at);
-  const clicked = clickCount > 0 || Boolean(legacy?.first_clicked_at);
-  const bounced = Boolean(legacy?.bounced_at);
-  const complained = Boolean(legacy?.complained_at);
-
-  const chips: Array<{ label: string; tone: ChipTone }> = [];
-
-  if (openCount > 0) {
-    const labelBase = openCount === 1 ? "Opened once" : `Opened ${openCount}×`;
-    const suffix =
-      openCount > 1 && lastOpenedAt ? ` · last ${formatPast(lastOpenedAt)}` : "";
-    chips.push({ label: `👁 ${labelBase}${suffix}`, tone: "blue" });
-  } else if (legacy?.first_opened_at) {
-    chips.push({ label: "👁 Opened", tone: "blue" });
-  }
-
-  if (clickCount > 0) {
-    const labelBase = clickCount === 1 ? "Clicked" : `Clicked ${clickCount}×`;
-    // Show the first CTA label inline; "+ N others" if multiple distinct CTAs.
-    const distinct = Array.from(new Set(clickedCtas)).filter(Boolean);
-    let suffix = "";
-    if (distinct.length > 0) {
-      const first = formatCtaLabel(distinct[0]);
-      suffix =
-        distinct.length === 1
-          ? ` · ${first}`
-          : ` · ${first} (+ ${distinct.length - 1} other${distinct.length - 1 === 1 ? "" : "s"})`;
-    }
-    chips.push({ label: `🖱 ${labelBase}${suffix}`, tone: "blue" });
-  } else if (legacy?.first_clicked_at) {
-    chips.push({ label: "🖱 Clicked", tone: "blue" });
-  }
-
-  if (bounced) chips.push({ label: "⚠ Bounced", tone: "red" });
-  if (complained) chips.push({ label: "⚠ Marked spam", tone: "red" });
-
-  // Chunk 2: a sent email with no engagement signal yet reads "not opened yet"
-  // explicitly, so the admin can tell "landed but ignored" from "no data".
-  // Gated to email rows so calls / notes never show it. "Delivered" when the
-  // legacy record confirms delivery; otherwise the neutral "Sent".
-  if (isEmailSent && !opened && !clicked && !bounced && !complained) {
-    const label = legacy?.delivered_at
-      ? "✓ Delivered · not opened yet"
-      : "✉ Sent · not opened yet";
-    chips.push({ label, tone: "gray" });
-  }
-
-  if (chips.length === 0) return null;
-  return (
-    <div className="mt-1 flex flex-wrap gap-1">
-      {chips.map((c) => (
-        <span
-          key={c.label}
-          className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${TONE_CLASSES[c.tone]}`}
-        >
-          {c.label}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 type ChipTone = "emerald" | "blue" | "red" | "gray";
 
@@ -582,48 +480,6 @@ function formatCtaLabel(url: string): string {
 // within business hours, so real sends can lag a little); steps whose nominal
 // time has passed are omitted — they're sent (in Past Activity) or about to be.
 
-function syntheticUpcomingEmailRows(ctx: DrawerContext): FutureRow[] {
-  const rd = ctx.outreach.research_data;
-  if (!rd) return [];
-  const status = ctx.outreach.status;
-
-  // One cadence is active at a time. Pick it by stage so we never show stale
-  // cold emails after activation/welcome takes over.
-  let cadenceKey: CadenceKey | null = null;
-  let anchorIso: string | null = null;
-  if (status === "active_partner" && rd.smartlead_welcome?.enrolled_at) {
-    cadenceKey = "partner_welcome";
-    anchorIso = rd.smartlead_welcome.enrolled_at;
-  } else if (status === "engaged" && rd.smartlead_activation?.enrolled_at) {
-    cadenceKey = "activation";
-    anchorIso = rd.smartlead_activation.enrolled_at;
-  } else if (status === "outreach_sent" && rd.smartlead?.enrolled_at) {
-    cadenceKey = ctx.outreach.kind === "provider" ? "provider" : ctx.outreach.stakeholder_type;
-    anchorIso = rd.smartlead.enrolled_at;
-  }
-  if (!cadenceKey || !anchorIso) return [];
-
-  const anchor = new Date(anchorIso).getTime();
-  if (Number.isNaN(anchor)) return [];
-  const now = Date.now();
-
-  const rows: FutureRow[] = [];
-  for (const day of OUTREACH_DAYS_BY_TYPE[cadenceKey]) {
-    if (!day.steps.some((s) => s.channel === "email")) continue;
-    const dueMs = anchor + day.day * 86_400_000;
-    if (dueMs <= now) continue; // already sent / sending → lives in Past Activity
-    rows.push({
-      kind: "future",
-      key: `sl-${cadenceKey}-${day.day}`,
-      whenIso: new Date(dueMs).toISOString(),
-      icon: "✉",
-      title: "Email queued",
-      subline: "via Smartlead",
-      callTask: null,
-    });
-  }
-  return rows;
-}
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 

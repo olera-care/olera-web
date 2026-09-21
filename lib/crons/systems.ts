@@ -79,7 +79,7 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
     key: "medjobs",
     label: "MedJobs & campus",
     description: "Activate student candidates and advance campus-partner outreach.",
-    jobIds: ["medjobs-nudge", "student-outreach-send"],
+    jobIds: ["medjobs-nudge"],
   },
   {
     key: "platform-operations",

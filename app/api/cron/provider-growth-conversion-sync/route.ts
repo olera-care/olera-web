@@ -59,6 +59,8 @@ export async function GET(request: NextRequest) {
       checked: 0,
       ads_updated: 0,
       medjobs_updated: 0,
+      ads_churned: 0,
+      medjobs_churned: 0,
       tracking_created: 0,
       errors: [] as string[],
     };
@@ -326,6 +328,145 @@ export async function GET(request: NextRequest) {
 
         console.log(`[cron/provider-growth-conversion-sync] Updated ${record.id}:`, updates);
       }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 3: Detect churn - check currently subscribed providers against source-of-truth
+    // If they were subscribed but source-of-truth says cancelled, mark as churned
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      // Get providers currently marked as subscribed (either product)
+      const { data: subscribedRecords, error: subscribedError } = await db
+        .from("provider_growth_tracking")
+        .select("id, business_profile_id, ads_status, medjobs_status, ads_churned_at, medjobs_churned_at")
+        .or("ads_status.eq.subscribed,medjobs_status.eq.subscribed")
+        .limit(BATCH_SIZE);
+
+      if (subscribedError) {
+        console.error("[cron/provider-growth-conversion-sync] Subscribed records query error:", subscribedError);
+      } else if (subscribedRecords && subscribedRecords.length > 0) {
+        const subscribedProfileIds = subscribedRecords.map(r => r.business_profile_id);
+
+        // Fetch ad campaigns for ads subscribers
+        const adsSubscribers = subscribedRecords.filter(r => r.ads_status === "subscribed");
+        const adsProfileIds = adsSubscribers.map(r => r.business_profile_id);
+
+        let adCampaignMap = new Map<string, AdCampaign[]>();
+        if (adsProfileIds.length > 0) {
+          const { data: adCampaigns } = await db
+            .from("ad_campaign_requests")
+            .select("provider_id, status, plan_status, created_at")
+            .in("provider_id", adsProfileIds)
+            .is("deleted_at", null);
+
+          for (const campaign of (adCampaigns || []) as AdCampaign[]) {
+            const existing = adCampaignMap.get(campaign.provider_id) || [];
+            existing.push(campaign);
+            adCampaignMap.set(campaign.provider_id, existing);
+          }
+        }
+
+        // Fetch business profiles for medjobs subscribers
+        const medjobsSubscribers = subscribedRecords.filter(r => r.medjobs_status === "subscribed");
+        const medjobsProfileIds = medjobsSubscribers.map(r => r.business_profile_id);
+
+        let medjobsMetadataMap = new Map<string, BusinessProfile["metadata"]>();
+        if (medjobsProfileIds.length > 0) {
+          const { data: profiles } = await db
+            .from("business_profiles")
+            .select("id, metadata")
+            .in("id", medjobsProfileIds);
+
+          for (const profile of (profiles || []) as BusinessProfile[]) {
+            medjobsMetadataMap.set(profile.id, profile.metadata);
+          }
+        }
+
+        // Check each subscribed record
+        for (const record of subscribedRecords) {
+          const churnUpdates: Record<string, unknown> = {};
+          const now = new Date().toISOString();
+
+          // Check ads churn: was subscribed but source-of-truth says no active subscription
+          if (record.ads_status === "subscribed" && !record.ads_churned_at) {
+            const campaigns = adCampaignMap.get(record.business_profile_id) || [];
+            const currentStatus = detectAdsStatus(campaigns);
+
+            // If source-of-truth says not subscribed anymore, mark as churned
+            if (currentStatus.status !== "subscribed") {
+              churnUpdates.ads_status = currentStatus.status;
+              churnUpdates.ads_churned_at = now;
+
+              // Create touchpoint
+              const { error: tpError } = await db.from("provider_growth_touchpoints").insert({
+                tracking_id: record.id,
+                business_profile_id: record.business_profile_id,
+                touchpoint_type: "ads_churned",
+                details: {
+                  previous_status: "subscribed",
+                  new_status: currentStatus.status,
+                  detected_by: "cron_sync",
+                  auto_synced: true,
+                },
+              });
+              if (tpError) {
+                console.error(`[cron/provider-growth-conversion-sync] Churn touchpoint insert failed for ${record.id}:`, tpError);
+              }
+              results.ads_churned++;
+            }
+          }
+
+          // Check medjobs churn: was subscribed but source-of-truth says no active subscription
+          if (record.medjobs_status === "subscribed" && !record.medjobs_churned_at) {
+            const metadata = medjobsMetadataMap.get(record.business_profile_id) ?? null;
+            const currentStatus = detectMedjobsStatus(metadata);
+
+            // If source-of-truth says not subscribed anymore, mark as churned
+            if (currentStatus.status !== "subscribed") {
+              churnUpdates.medjobs_status = currentStatus.status;
+              churnUpdates.medjobs_churned_at = now;
+
+              // Create touchpoint
+              const { error: tpError } = await db.from("provider_growth_touchpoints").insert({
+                tracking_id: record.id,
+                business_profile_id: record.business_profile_id,
+                touchpoint_type: "medjobs_churned",
+                details: {
+                  previous_status: "subscribed",
+                  new_status: currentStatus.status,
+                  detected_by: "cron_sync",
+                  auto_synced: true,
+                },
+              });
+              if (tpError) {
+                console.error(`[cron/provider-growth-conversion-sync] Churn touchpoint insert failed for ${record.id}:`, tpError);
+              }
+              results.medjobs_churned++;
+            }
+          }
+
+          // Apply churn updates if any
+          if (Object.keys(churnUpdates).length > 0) {
+            const { error: updateError } = await db
+              .from("provider_growth_tracking")
+              .update({
+                ...churnUpdates,
+                updated_at: now,
+              })
+              .eq("id", record.id);
+
+            if (updateError) {
+              console.error(`[cron/provider-growth-conversion-sync] Churn update failed for ${record.id}:`, updateError);
+              results.errors.push(`Failed to update churn for ${record.id}`);
+            } else {
+              console.log(`[cron/provider-growth-conversion-sync] Marked ${record.id} as churned:`, churnUpdates);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[cron/provider-growth-conversion-sync] Step 3 (churn detection) error:", err);
+      // Continue - don't fail the entire cron if churn detection fails
     }
 
     console.log("[cron/provider-growth-conversion-sync] Completed:", results);

@@ -41,6 +41,8 @@ export interface ProviderGrowthTracking {
   medjobs_status: MedjobsStatus;
   medjobs_pilot_started_at: string | null;
   medjobs_subscribed_at: string | null;
+  ads_churned_at: string | null;
+  medjobs_churned_at: string | null;
   not_interested_at: string | null;
   not_interested_reason: string | null;
   no_show_count: number | null;
@@ -102,6 +104,10 @@ export interface GrowthStats {
   // Providers with BOTH products active
   both_converted: number;  // ads_free_intro AND (medjobs_in_pilot OR medjobs_pilot_expired)
   both_paying: number;     // ads_subscribed AND medjobs_subscribed
+  // Mutually exclusive Paying subtab counts
+  ads_only: number;        // ads_subscribed AND medjobs_status !== 'subscribed'
+  medjobs_only: number;    // medjobs_subscribed AND ads_status !== 'subscribed'
+  churned: number;         // has churn timestamp AND not currently subscribed to either
   // Daily actionable metrics
   pending_outcomes: number;       // Meetings needing outcome logged (past + today, excludes future)
   pending_outcomes_today: number; // Subset: today's meetings not yet logged
@@ -1517,7 +1523,7 @@ export async function getGrowthStats(): Promise<GrowthStats> {
   // This is more reliable than chaining .then() on Supabase queries
   const { data: allRecords, error } = await db
     .from("provider_growth_tracking")
-    .select("pipeline_stage, ads_status, medjobs_status, meeting_scheduled_at");
+    .select("pipeline_stage, ads_status, medjobs_status, meeting_scheduled_at, ads_churned_at, medjobs_churned_at");
 
   if (error) {
     console.error("[provider-growth] Stats query error:", error);
@@ -1530,6 +1536,10 @@ export async function getGrowthStats(): Promise<GrowthStats> {
   const medjobsCounts: Record<string, number> = {};
   let bothConverted = 0;
   let bothPaying = 0;
+  // Mutually exclusive Paying subtab counts
+  let adsOnly = 0;       // ads_subscribed AND medjobs NOT subscribed
+  let medjobsOnly = 0;   // medjobs_subscribed AND ads NOT subscribed
+  let churned = 0;       // has churn timestamp AND not currently subscribed to either
   let pendingOutcomes = 0;
   let pendingOutcomesToday = 0;
   let pendingOutcomesPast = 0;
@@ -1556,6 +1566,26 @@ export async function getGrowthStats(): Promise<GrowthStats> {
     }
     if (row.ads_status === "subscribed" && row.medjobs_status === "subscribed") {
       bothPaying++;
+    }
+
+    // Mutually exclusive Paying subtab counts
+    const isAdsSubscribed = row.ads_status === "subscribed";
+    const isMedjobsSubscribed = row.medjobs_status === "subscribed";
+    const hasChurned = row.ads_churned_at || row.medjobs_churned_at;
+
+    if (isAdsSubscribed && !isMedjobsSubscribed) {
+      adsOnly++;
+    } else if (isMedjobsSubscribed && !isAdsSubscribed) {
+      medjobsOnly++;
+    }
+
+    // Churned: has churn timestamp AND not currently active (subscribed or on trial)
+    // Excludes providers who re-engaged with a free trial
+    const isOnAdsTrial = row.ads_status === "free_intro";
+    const isOnMedjobsTrial = row.medjobs_status === "in_pilot" || row.medjobs_status === "pilot_expired";
+    const isActive = isAdsSubscribed || isMedjobsSubscribed || isOnAdsTrial || isOnMedjobsTrial;
+    if (hasChurned && !isActive) {
+      churned++;
     }
 
     // Meeting metrics - only count meetings that can have outcomes logged (past + today, not future)
@@ -1597,6 +1627,9 @@ export async function getGrowthStats(): Promise<GrowthStats> {
     medjobs_subscribed: medjobsCounts.subscribed || 0,
     both_converted: bothConverted,
     both_paying: bothPaying,
+    ads_only: adsOnly,
+    medjobs_only: medjobsOnly,
+    churned,
     pending_outcomes: pendingOutcomes,
     pending_outcomes_today: pendingOutcomesToday,
     pending_outcomes_past: pendingOutcomesPast,
@@ -1835,6 +1868,9 @@ export interface GetAdminCountsOptions {
   notConverted?: boolean;
   adsStatus?: AdsStatus;
   medjobsStatus?: MedjobsStatus | MedjobsStatus[];
+  adsOnly?: boolean;
+  medjobsOnly?: boolean;
+  churned?: boolean;
 }
 
 /**
@@ -1881,6 +1917,22 @@ export async function getAdminCountsForTab(options: GetAdminCountsOptions): Prom
     query = query.eq("ads_status", "none");
     query = query.neq("medjobs_status", "in_pilot");
     query = query.neq("medjobs_status", "pilot_expired");
+  }
+
+  // Apply mutually exclusive Paying subtab filters
+  if (options.adsOnly) {
+    query = query.eq("ads_status", "subscribed");
+    query = query.neq("medjobs_status", "subscribed");
+  }
+  if (options.medjobsOnly) {
+    query = query.eq("medjobs_status", "subscribed");
+    query = query.neq("ads_status", "subscribed");
+  }
+  if (options.churned) {
+    // Has churn timestamp AND not currently active (not subscribed, not on trial)
+    query = query.or("ads_churned_at.not.is.null,medjobs_churned_at.not.is.null");
+    query = query.eq("ads_status", "none");
+    query = query.eq("medjobs_status", "none");
   }
 
   // Only include providers with assigned_to set
@@ -1971,6 +2023,10 @@ export interface ListProvidersOptions {
   meetingFocus?: MeetingFocus;
   // Filter by assigned admin
   assignedTo?: string;
+  // Mutually exclusive Paying subtab filters
+  adsOnly?: boolean;     // ads_subscribed AND medjobs NOT subscribed
+  medjobsOnly?: boolean; // medjobs_subscribed AND ads NOT subscribed
+  churned?: boolean;     // has churn timestamp AND not currently subscribed to either
 }
 
 export async function listProviders(options: ListProvidersOptions = {}): Promise<{
@@ -1997,6 +2053,9 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     notConverted,
     meetingFocus,
     assignedTo,
+    adsOnly,
+    medjobsOnly,
+    churned,
   } = options;
 
   // Build the query
@@ -2081,6 +2140,25 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
   // Assigned admin filter
   if (assignedTo) {
     query = query.eq("assigned_to", assignedTo);
+  }
+
+  // Mutually exclusive Paying subtab filters
+  if (adsOnly) {
+    // Ads subscribed AND medjobs NOT subscribed
+    query = query.eq("ads_status", "subscribed");
+    query = query.neq("medjobs_status", "subscribed");
+  }
+  if (medjobsOnly) {
+    // MedJobs subscribed AND ads NOT subscribed
+    query = query.eq("medjobs_status", "subscribed");
+    query = query.neq("ads_status", "subscribed");
+  }
+  if (churned) {
+    // Has churn timestamp AND not currently active (not subscribed, not on trial)
+    // Excludes providers who re-engaged with a free trial
+    query = query.or("ads_churned_at.not.is.null,medjobs_churned_at.not.is.null");
+    query = query.eq("ads_status", "none");
+    query = query.eq("medjobs_status", "none");
   }
 
   // Apply ordering

@@ -1,0 +1,243 @@
+/**
+ * The Research rung, checked against the board model.
+ *
+ * It is the first rung that is not an outreach event: it is worked on the
+ * record, ticked rather than logged, and it is the one the server writes as
+ * it happens. All of that hangs off `check` on the rung and the step numbers
+ * around it, so this asserts both rather than trusting a reading of the file.
+ *
+ *   npx tsx scripts/check-research-rung.ts
+ */
+
+import { LADDERS, SECTION_ORDER, rungAt } from "../lib/medjobs/ladders";
+import {
+  complete,
+  forwardStep,
+  isCheck,
+  makeRecord,
+  reopen,
+  stillToCome,
+  strikesAt,
+  type BoardUniversity,
+} from "../lib/medjobs/task-board";
+
+let failed = 0;
+const ok = (label: string, cond: boolean, detail = "") => {
+  if (cond) {
+    console.log(`  ok    ${label}`);
+  } else {
+    failed += 1;
+    console.log(`  FAIL  ${label}${detail ? ` — ${detail}` : ""}`);
+  }
+};
+
+const board = (): BoardUniversity => ({
+  id: "u",
+  slug: "arizona-state",
+  name: "Arizona State University",
+  mapsDestination: "33.4242,-111.9281",
+  channels: {},
+  records: {
+    providers: [],
+    students: [],
+    jobboard: [],
+    advisors: [],
+    orgs: [],
+    events: [],
+    professors: [],
+  },
+});
+
+console.log("\nThe ladder");
+const steps = LADDERS.providers.steps;
+ok("step 0 is Research", steps[0]?.title === "Research", steps[0]?.title);
+ok("step 0 is worked on the record", steps[0]?.check === true);
+ok("step 0 offers one action, Done", steps[0]?.actions.length === 1 && steps[0]?.actions[0].label === "Done");
+ok("step 0 carries the three checks", (steps[0]?.steps.length ?? 0) === 3);
+ok(
+  "step 1 is the call, renamed",
+  steps[1]?.title === "Call to confirm the right contact",
+  steps[1]?.title,
+);
+ok("nothing still says get the right email", !JSON.stringify(LADDERS).includes("get the right email"));
+// The job board earned one too: a channel has nobody to call either, and
+// its first rung is finding the way in. Anywhere else would be a checkbox
+// the server refuses, so the list is asserted rather than assumed.
+ok(
+  "only providers and the job board are worked on the record",
+  SECTION_ORDER.every((s) =>
+    LADDERS[s].steps.every((r, i) =>
+      r.check ? (s === "providers" || s === "jobboard") && i === 0 : true,
+    ),
+  ),
+);
+
+console.log("\nWhere a rung leads");
+ok("Research leads to the call", forwardStep("providers", 1) === 1);
+ok("the call leads to the program info", forwardStep("providers", 2) === 2);
+ok(
+  "the seasonal rung is never reached by climbing",
+  forwardStep("providers", steps.length - 1) === null,
+);
+
+console.log("\nThe outcomes of a confirming call");
+{
+  const call = LADDERS.providers.steps[1];
+  const labels = call.actions.map((a) => a.label);
+  // Eight. The four PR1 names, plus the four things a confirming call can
+  // produce that the ladder had nowhere to put: a provider who says yes on
+  // the phone, one who asks to be walked through it, one who asks for
+  // something nobody could have anticipated, and the commonest of the lot —
+  // a gatekeeper who takes it inside and promises somebody will ring back.
+  ok("eight of them", labels.length === 8, labels.join(" · "));
+  ok(
+    "the four PR1 names are all still there",
+    ["Confirmed contact", "Voicemail", "No answer", "Not interested"].every((n) =>
+      labels.includes(n),
+    ),
+    labels.join("|"),
+  );
+  ok("and interest can be logged on the call", labels.includes("Interested, start onboarding"));
+  ok("and so can an errand", labels.includes("Something else"));
+  ok("and a call can be booked here too", labels.includes("Booked a call to help"));
+  ok("every one says what it means on hover", call.actions.every((a) => Boolean(a.hint)));
+  ok(
+    "voicemail, no answer and a promised call back all keep the rung open",
+    call.actions.filter((a) => a.outcome === "repeat").length === 3,
+  );
+  ok(
+    "the two that reached nobody come back in two business days",
+    call.actions
+      .filter((a) => a.outcome === "repeat" && a.strike)
+      .every((a) => a.delay === 2),
+  );
+  // A promised call back waits longer, because chasing on the second day
+  // somebody said they would ring is how you become the caller they avoid.
+  ok(
+    "and a promised call back waits a day longer",
+    call.actions.find((a) => a.label === "They will call back")?.delay === 3,
+  );
+  ok("only the two that reached nobody are strikes", call.actions.filter((a) => a.strike).length === 2);
+  ok(
+    "reaching somebody is never a strike",
+    !call.actions.find((a) => a.label === "Confirmed contact")?.strike,
+  );
+  ok(
+    "a refusal closes the record",
+    call.actions.find((a) => a.label === "Not interested")?.outcome === "archive",
+  );
+
+  // Three unanswered calls, counted from what was pressed.
+  const u3 = board();
+  const rec3 = makeRecord("providers", "Unique In Home Personal Care", 1);
+  u3.records.providers.push(rec3);
+  for (const label of ["No answer", "Voicemail", "No answer"]) {
+    const open = rec3.tasks.find((t) => !t.done)!;
+    complete(u3, rec3, open, call.actions.find((a) => a.label === label)!);
+  }
+  ok("three attempts counted", strikesAt(rec3, 1, 0) === 3, String(strikesAt(rec3, 1, 0)));
+  ok("the rung is still open", rec3.tasks.some((t) => !t.done && t.step === 1));
+  ok("and the record has not moved on", rec3.step === 1, String(rec3.step));
+  ok(
+    "each attempt kept the outcome that was pressed",
+    rec3.tasks.filter((t) => t.done).map((t) => t.outcome).join("|") === "No answer|Voicemail|No answer",
+  );
+
+  // Reaching somebody who will not talk is a stall, not a strike.
+  const u4 = board();
+  const rec4 = makeRecord("providers", "Amada Senior Care", 1);
+  u4.records.providers.push(rec4);
+  complete(u4, rec4, rec4.tasks[0], call.actions.find((a) => a.label === "Confirmed contact")!);
+  ok("a confirmed contact moves to the programme", rec4.step === 2, String(rec4.step));
+  ok("and leaves no strike behind", strikesAt(rec4, 1, 0) === 0);
+}
+
+console.log("\nThe opening block");
+// Two, not three. The programme email waits on the call, because it cannot
+// be sent to an address nobody has confirmed — with three open, a call
+// nobody answered still left "Send the program info" sitting there due today.
+ok("providers open two rungs at once", LADDERS.providers.openTogether === 2);
+{
+  // The block is all pending from the start, so finishing the first must not
+  // add a second copy of the second.
+  const u2 = board();
+  const rec2 = makeRecord("providers", "Acacia Home Care", 0);
+  for (const k of [1]) {
+    rec2.tasks.push({
+      id: `open-${k}`, section: "providers", step: k, round: 0,
+      dueAt: new Date(new Date().setHours(0, 0, 0, 0)).toISOString().slice(0, 10),
+      done: false, outcome: null, note: "", loggedOn: null, spawned: [], spawnedRecords: [],
+    });
+  }
+  u2.records.providers.push(rec2);
+  complete(u2, rec2, rec2.tasks[0], LADDERS.providers.steps[0].actions[0]);
+  const openNow = rec2.tasks.filter((t) => !t.done);
+  ok("finishing Research leaves the call open, and only it", openNow.length === 1, String(openNow.length));
+  ok(
+    "and does not duplicate the call rung",
+    openNow.filter((t) => t.step === 1).length === 1,
+  );
+  ok(
+    "what is still to come skips the rung already open",
+    !stillToCome(rec2).some((x) => x.title === "Call to confirm the right contact"),
+  );
+  ok(
+    "and the programme email is still ahead, because the call has to happen first",
+    stillToCome(rec2).some((x) => x.title === "Send the program info"),
+  );
+  // The call has to confirm somebody before the programme can be sent.
+  complete(
+    u2,
+    rec2,
+    openNow[0],
+    LADDERS.providers.steps[1].actions.find((a) => a.label === "Confirmed contact")!,
+  );
+  const send = rec2.tasks.find((t) => !t.done && t.step === 2)!;
+  ok("a confirmed contact opens the programme email", Boolean(send));
+  complete(u2, rec2, send, LADDERS.providers.steps[2].actions[0]);
+  const queued = rec2.tasks.find((t) => !t.done && t.step === 3);
+  ok("sending the programme queues the first follow-up", Boolean(queued));
+  ok(
+    "two business days out, not today",
+    queued ? queued.dueAt > new Date(new Date().setHours(0, 0, 0, 0)).toISOString().slice(0, 10) : false,
+    queued?.dueAt,
+  );
+}
+
+console.log("\nA provider, from the top");
+const u = board();
+const rec = makeRecord("providers", "A Place At Home Southwest Valley", 0);
+u.records.providers.push(rec);
+const research = rec.tasks[0];
+ok("the first task is the checkbox", isCheck(research));
+ok(
+  "what is still to come starts with the call",
+  stillToCome(rec)[0]?.title === "Call to confirm the right contact",
+  stillToCome(rec)[0]?.title,
+);
+
+const effect = complete(u, rec, research, steps[0].actions[0]);
+const call = rec.tasks.find((t) => !t.done) ?? null;
+ok("ticking it closes the rung", research.done);
+ok("ticking it queues the call", call?.step === 1, String(call?.step));
+ok("the call is not a checkbox", call ? !isCheck(call) : false);
+ok("the call is due today", call?.dueAt === new Date(new Date().setHours(0, 0, 0, 0)).toISOString().slice(0, 10));
+ok("the run-through lands on the same record", effect.landOn?.record.id === rec.id);
+ok("the run-through lands on the call", effect.landOn?.task.id === call?.id);
+ok("the record is not cleared — the call is waiting", !effect.recordCleared);
+
+reopen(rec, research);
+ok("unticking reopens the rung", !research.done);
+ok("unticking takes the call back off", rec.tasks.filter((t) => !t.done).length === 1);
+ok("unticking leaves the record on Research", rec.step === 0);
+ok("the reopened rung is the checkbox again", isCheck(rec.tasks[0]));
+
+console.log("\nTitles a person sees");
+ok('rungAt(0) reads "Research"', rungAt("providers", 0, 0)?.title === "Research");
+ok(
+  "the help panel has a what, a why and steps",
+  Boolean(steps[0]?.what && steps[0]?.why && steps[0]?.steps.length),
+);
+
+console.log(failed === 0 ? "\nAll checks passed.\n" : `\n${failed} check(s) failed.\n`);
+process.exit(failed === 0 ? 0 : 1);

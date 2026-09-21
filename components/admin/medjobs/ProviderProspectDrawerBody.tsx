@@ -30,6 +30,7 @@ import { decisionMakerEmailRecipients } from "@/lib/student-outreach/decision-ma
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
+import { ProviderBriefCard } from "@/components/admin/medjobs/ProviderBriefCard";
 
 interface Props {
   ctx: DrawerContext;
@@ -110,21 +111,21 @@ export function ProviderProspectDrawerBody({ ctx, action, setError, activeTab }:
     gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
   const hasMainPhone = Boolean(mainPhone && String(mainPhone).trim());
 
-  // R5: partners (stakeholder rows) often have no phone, so they can't do a
-  // confirm call — email alone is enough to launch. Providers gate on the
-  // confirm-call (or override) ONLY when a main phone exists; phoneless
-  // providers launch directly on a valid email.
+  // The confirm call is the point of the pre-flight, so a provider never
+  // launches without one — including when no main phone is on file, which
+  // used to skip the gate entirely. The documented exception is the explicit
+  // override by the Launch button, which records why verification was skipped.
+  // Stakeholder rows keep the old email-only gate: most have no phone to call.
   const isPartner = outreach.kind != null && outreach.kind !== "provider";
-  const launchEnabled =
-    isPartner || !hasMainPhone
-      ? hasEmail
-      : hasEmail && verificationState.can_launch;
+  const launchEnabled = isPartner
+    ? hasEmail
+    : hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
-    ? hasMainPhone
-      ? "No email on file. Add an email, or use Call to Confirm → Override & launch to run a calls-only cadence."
-      : "Add an email — General Contact or Decision Maker."
-    : !isPartner && hasMainPhone && !verificationState.can_launch
-      ? "Confirm contacts on a Pre-Flight call, or override Pre-Flight."
+    ? "Add an email — General Contact or Decision Maker."
+    : !isPartner && !verificationState.can_launch
+      ? hasMainPhone
+        ? "Log the confirmation call first — use Log call at the top of the drawer."
+        : "No main number on file. Use the override below the Launch button."
       : undefined;
 
   return (
@@ -135,10 +136,16 @@ export function ProviderProspectDrawerBody({ ctx, action, setError, activeTab }:
           live in the General Contact section below, and the campus is
           already in the panel header. */}
 
-      {/* Zone 2 · Next Step. Pre-launch (prospect/researched) the drawer now
-          starts directly with the Research Card — the old thin "Pre-Flight"
-          indicator box was redundant (the Research Card's own orienting line
-          says what to do). NextStepCard stays for post-launch stage CTAs. */}
+      {/* Zone 1 · Brief. Pre-launch the drawer opens with what this is, why
+          it matters, the steps, the call script, and Log call — the Tasks
+          drawer's orienting shape, applied to a provider. It replaces the
+          old Research-Card-first flow, where the script was buried inside
+          the outcome modal. */}
+      {isPreLaunch && (
+        <ProviderBriefCard ctx={ctx} action={action} setError={setError} />
+      )}
+
+      {/* Zone 2 · Next Step — post-launch stage CTAs only. */}
       {!isPreLaunch && (
         <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
       )}

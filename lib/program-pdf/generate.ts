@@ -39,15 +39,27 @@ async function publicAssetDataUri(
   }
 }
 
+/**
+ * Headshots are square crops, not the originals.
+ *
+ * A round frame drawn over a portrait rectangle left flat edges where the
+ * image ran out and a visible seam where the frame's border met it. Cropping
+ * to a square first means the circle is cut from image, not from the gap
+ * around it.
+ */
 async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
   const [
     loganPhotoDataUri,
     graziePhotoDataUri,
+    chantelPhotoDataUri,
+    saraPhotoDataUri,
     oleraLogoDataUri,
     qrDataUri,
   ] = await Promise.all([
-    publicAssetDataUri("images/for-providers/team/logan.jpg", "image/jpeg"),
-    publicAssetDataUri("images/for-providers/team/grazie.png", "image/png"),
+    publicAssetDataUri("images/for-providers/team/logan-sq.png", "image/png"),
+    publicAssetDataUri("images/for-providers/team/grazie-sq.png", "image/png"),
+    publicAssetDataUri("images/for-providers/team/chantel.png", "image/png"),
+    publicAssetDataUri("images/for-providers/team/sara.png", "image/png"),
     publicAssetDataUri("images/olera-logo.png", "image/png"),
     QRCode.toDataURL(config.ctaUrl, {
       margin: 1,
@@ -55,7 +67,14 @@ async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
       color: { dark: "#111827", light: "#FFFFFF" },
     }),
   ]);
-  return { loganPhotoDataUri, graziePhotoDataUri, oleraLogoDataUri, qrDataUri };
+  return {
+    loganPhotoDataUri,
+    graziePhotoDataUri,
+    chantelPhotoDataUri,
+    saraPhotoDataUri,
+    oleraLogoDataUri,
+    qrDataUri,
+  };
 }
 
 /**

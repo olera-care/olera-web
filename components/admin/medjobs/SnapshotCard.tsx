@@ -49,12 +49,10 @@ import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
-import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
-import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { SendEmailModal } from "@/components/admin/medjobs/SendEmailModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
-import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 
 type ActionFn = (
   actionName: string,
@@ -144,21 +142,6 @@ export function ProviderSnapshotCard({
       setSavingNotes(false);
     }
   };
-
-  // v9 final: contact-form banner. Whenever a contact_form_url is
-  // on file AND no contact_form_submitted touchpoint exists yet,
-  // surface a one-line banner asking admin to decide on the form.
-  // Shows pre-launch (admin must resolve before Launch is enabled —
-  // the pre-flight gate keys off this same touchpoint) and post-
-  // launch (URL added later, or never resolved). Hides the moment
-  // any outcome lands.
-  const hasContactFormUrl = Boolean(
-    (outreach.research_data?.general_contact?.contact_form_url ?? "").trim(),
-  );
-  const lastContactFormTp = ctx.touchpoints.find(
-    (t) => t.touchpoint_type === "contact_form_submitted",
-  );
-  const showContactFormBanner = hasContactFormUrl && !lastContactFormTp;
 
   // v9.x Research progress — passive indicator. 7 fields counted: each
   // is resolved if filled OR marked unavailable OR (for Decision Maker)
@@ -258,38 +241,7 @@ export function ProviderSnapshotCard({
         action={action}
         setError={setError}
         editable={editable}
-        lastContactFormOutcome={
-          (lastContactFormTp?.payload as Record<string, unknown> | null)
-            ?.outcome as string | undefined
-        }
       />
-
-      {/* v9.x Phase 2d: contact-form banner lives directly under
-          the General Contact section (whose final row is the
-          Contact Form URL field) so the decision sits next to the
-          field that triggered it. Renders pre-launch AND post-
-          launch — whenever a URL is on file and no
-          contact_form_submitted touchpoint exists yet. Hides the
-          moment any outcome lands. */}
-      {showContactFormBanner && (
-        <ContactFormBanner
-          url={
-            outreach.research_data?.general_contact?.contact_form_url ?? ""
-          }
-          action={action}
-          setError={setError}
-          campusName={ctx.campus?.name ?? null}
-          specificContactName={(() => {
-            const first = activeContacts[0];
-            if (!first) return null;
-            const named = [first.first_name, first.last_name]
-              .filter(Boolean)
-              .join(" ")
-              .trim();
-            return named || first.name || null;
-          })()}
-        />
-      )}
 
       {/* ── 2. Decision Maker ───────────────────────────────────────
           v9.x single-slot named recipient. Replaces the multi-contact
@@ -1038,58 +990,6 @@ function GeneralContactSection({
             </span>
           )}
         </CoverageRow>
-        <CoverageRow
-          checked={Boolean(contactFormUrl) || contactFormUnavailable}
-          label="Contact form"
-        >
-          {editable ? (
-            <div className="space-y-1.5">
-              <div
-                className={`rounded-lg transition-shadow duration-700 ${
-                  pulseForm ? "ring-2 ring-primary-400" : "ring-0"
-                }`}
-              >
-                <Input
-                  type="url"
-                  value={contactFormUrl}
-                  onChange={(e) => setContactFormUrl(e.target.value)}
-                  onBlur={() => saveField("contact_form_url", contactFormUrl)}
-                  placeholder="https://agency.com/contact"
-                  size="sm"
-                />
-              </div>
-            </div>
-          ) : contactFormUnavailable ? (
-            <span className="text-gray-500">Marked not available</span>
-          ) : contactFormUrl ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <a
-                href={contactFormUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block truncate text-primary-700 hover:underline"
-              >
-                {contactFormUrl}
-              </a>
-              {lastContactFormOutcome && (
-                <span
-                  className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                    lastContactFormOutcome === "submitted"
-                      ? "bg-primary-50 text-primary-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {lastContactFormOutcome === "not_available"
-                    ? "Not available"
-                    : lastContactFormOutcome.charAt(0).toUpperCase() +
-                      lastContactFormOutcome.slice(1)}
-                </span>
-              )}
-            </div>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
       </dl>
     </div>
   );
@@ -1472,9 +1372,13 @@ export function VerificationSection({ state }: { state: VerificationState }) {
  * v9.x Phase 2c: Pre-Flight action footer rendered inside the Research
  * Card. Owns the three operational affordances:
  *
- *   - Visit Website        → opens provider site (research entry point)
- *   - Call to Confirm      → opens PreFlightCallModal (pre-flight outcome)
- *   - Launch Outreach      → opens ProviderPreFlightModal (cadence)
+ *   - Launch Outreach      → opens SendEmailModal (copy, attach, send,
+ *                            log) — no cadence is scheduled
+ *   - Override             → skip the confirm call when the provider
+ *                            cannot be reached by phone
+ *
+ * The confirm call itself moved to ProviderBriefCard at the top of the
+ * drawer, where it sits beside the script the caller needs.
  *
  * Modals live inside this component so the Research Card is self-
  * contained for Pre-Flight actions. Once Phase 2e removes the
@@ -1499,14 +1403,11 @@ function ResearchActionFooter({
   beforeLaunch?: () => Promise<void>;
 }) {
   const [showPreFlight, setShowPreFlight] = useState(false);
-  const [showCallForEmail, setShowCallForEmail] = useState(false);
 
   const generalContactSlot = ctx.outreach.research_data?.general_contact ?? {};
   // Effective values: per-outreach override OR directory fallback. Mirrors
   // the same precedence used in GeneralContactSection so the footer
   // reflects whatever the admin sees in the General Contact rows above.
-  const generalContactPhone =
-    generalContactSlot.phone ?? ctx.provider_business_profile?.phone ?? null;
   const generalContactWebsite =
     generalContactSlot.website ??
     ctx.provider_business_profile?.website ??
@@ -1518,8 +1419,7 @@ function ResearchActionFooter({
       : (ctx.outreach.stakeholder_type ?? "student_org");
 
   const showVisitWebsite = Boolean(generalContactWebsite);
-  const showCallToConfirm =
-    ctx.outreach.kind === "provider" && Boolean(generalContactPhone);
+  const isProviderRow = ctx.outreach.kind === "provider";
 
   const launchLabel =
     verificationState.status === "overridden"
@@ -1551,15 +1451,6 @@ function ResearchActionFooter({
       {/* Two clean actions only — the website lives in the green source link by
           the Business Name now, so the old "Visit Website" button is gone. */}
       <div className="flex flex-wrap items-center gap-2">
-        {showCallToConfirm && (
-          <button
-            onClick={() => setShowCallForEmail(true)}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            title="Phone the provider to verify email, phone, address, and decision maker."
-          >
-            📞 Call to Confirm
-          </button>
-        )}
         <button
           onClick={async () => {
             if (!launchEnabled) {
@@ -1600,67 +1491,46 @@ function ResearchActionFooter({
         />
       </div>
 
-      {showPreFlight && cadenceKey === "provider" && (
-        <ProviderPreFlightModal
+      {/* Unreachable by phone? The confirm call is the normal way to satisfy
+          the launch gate (logged from the brief card at the top of the
+          drawer); this is the documented exception, written as an explicit
+          override so the row records why it skipped verification. */}
+      {isProviderRow && verificationState.status !== "overridden" && !verificationState.can_launch && (
+        <button
+          onClick={async () => {
+            setError(null);
+            try {
+              await action("override_pre_flight");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to override");
+            }
+          }}
+          className="mt-2 text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
+        >
+          No confirm call possible — launch without one
+        </button>
+      )}
+
+      {/* Outreach is no longer scheduled or sent by us. Both cadences open
+          the same send-it-yourself module: copy, attach the flyer, send from
+          your own client, log it. */}
+      {showPreFlight && (
+        <SendEmailModal
           organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
           campusSlug={ctx.campus.slug}
           campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
-          contacts={ctx.contacts}
-          generalContact={{
-            email:
-              ctx.outreach.research_data?.general_contact?.email ??
-              ctx.provider_business_profile?.email ??
-              null,
-            phone:
-              ctx.outreach.research_data?.general_contact?.phone ??
-              ctx.provider_business_profile?.phone ??
-              null,
-          }}
-          smartleadPreview={ctx.smartlead_preview}
-          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
+          preview={ctx.smartlead_preview}
+          pdfAudience={cadenceKey === "provider" ? "provider" : "student"}
           onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (payload) => {
+          onSubmit={async () => {
             try {
-              await action("schedule_sequence", payload);
+              await action("log_email_sent");
               setShowPreFlight(false);
             } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
+              setError(e instanceof Error ? e.message : "Failed to log the send");
               throw e;
             }
           }}
-        />
-      )}
-      {showPreFlight && cadenceKey !== "provider" && (
-        <PreFlightReviewModal
-          stakeholderType={cadenceKey}
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
-          contacts={ctx.contacts}
-          onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (snapshots) => {
-            try {
-              await action("schedule_sequence", { email_snapshots: snapshots });
-              setShowPreFlight(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-      {showCallForEmail && (
-        <PreFlightCallModal
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus?.name ?? null}
-          phone={generalContactPhone}
-          action={action}
-          onCancel={() => setShowCallForEmail(false)}
-          onDone={() => setShowCallForEmail(false)}
-          setError={setError}
-          // Escape hatch when the provider can't be reached by phone: override
-          // the confirm-call gate and open the cadence review directly.
-          onOverrideLaunch={prepareAndOpenReview}
         />
       )}
     </div>
@@ -2207,114 +2077,6 @@ function EnrollmentBanner({
  * outcome click writes one log_contact_form_outcome touchpoint;
  * the banner hides on the next refresh.
  */
-export function ContactFormBanner({
-  url,
-  action,
-  setError,
-  campusName,
-  specificContactName,
-}: {
-  url: string;
-  action: ActionFn;
-  setError: (m: string | null) => void;
-  /** Campus / Site name for the message body. Falls back to "your
-   *  university" if unknown. */
-  campusName?: string | null;
-  /** First active Specific Contact's display name, if any. When
-   *  present, message asks for them by name; otherwise it asks for
-   *  someone on the leadership / hiring team. */
-  specificContactName?: string | null;
-}) {
-  const [saving, setSaving] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const site = campusName?.trim() || "your university";
-  const message = specificContactName?.trim()
-    ? `Hi, this is Graize, assistant to Dr. Logan DuBose. We were hoping to connect with ${specificContactName.trim()} regarding a student caregiver initiative connected to ${site}. Would you be able to point us in the right direction?`
-    : `Hi, this is Graize, assistant to Dr. Logan DuBose. We're hoping to connect with someone on your leadership or hiring team regarding a student caregiver initiative connected to ${site}. Could someone point us in the right direction?`;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(message);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setError("Couldn't copy to clipboard");
-    }
-  };
-
-  const dispatch = async (outcome: string) => {
-    setSaving(outcome);
-    setError(null);
-    try {
-      await action("log_contact_form_outcome", { outcome, url });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to log outcome");
-    } finally {
-      setSaving(null);
-    }
-  };
-  return (
-    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-xs text-gray-700">
-          Contact form on file — has it been submitted yet?
-        </p>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 text-[11px] font-medium text-primary-700 hover:underline"
-        >
-          Open form ↗
-        </a>
-      </div>
-      <div className="mt-2 rounded-md border border-gray-200 bg-white px-2.5 py-2">
-        <p className="whitespace-pre-line text-[11px] leading-relaxed text-gray-700">
-          {message}
-        </p>
-        <button
-          onClick={handleCopy}
-          className="mt-1.5 rounded-md border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          {copied ? "✓ Copied" : "Copy message"}
-        </button>
-      </div>
-      {/* v9.1 Graize 05.13 audit (Item 3): short, practical guidance
-          so admins know how to handle the variety of contact forms
-          they'll encounter on agency websites. */}
-      <div className="mt-2 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-[11px] leading-relaxed text-gray-600">
-        <p className="font-semibold text-gray-700">How to submit:</p>
-        <ul className="mt-1 list-disc space-y-0.5 pl-4">
-          <li>Contact forms come in different shapes — use the best available fields and your judgment.</li>
-          <li>Email field → use <span className="font-mono">support@olera.care</span>.</li>
-          <li>Phone field → use Olera&apos;s outreach phone number.</li>
-          <li>Family / client-lead forms → still submit the message if it&apos;s the only contact path; the goal is reaching the agency through every available channel.</li>
-          <li>Paste the message above, submit the form, then log the outcome below.</li>
-        </ul>
-      </div>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {(
-          [
-            { value: "submitted", label: "Submitted" },
-            { value: "skipped", label: "Skipped" },
-            { value: "not_available", label: "Not available" },
-          ] as const
-        ).map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => dispatch(opt.value)}
-            disabled={saving != null}
-            className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            {saving === opt.value ? "Logging…" : opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function LabeledInput({
   label,
   value,

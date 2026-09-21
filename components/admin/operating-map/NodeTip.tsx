@@ -72,7 +72,7 @@ const PLAYBOOK: Record<string, { href: string; label: string; advice: string }> 
   },
   cp3: {
     href: "/admin/directory",
-    label: "Unclaimed providers",
+    label: "Inactive Providers (unclaimed)",
     advice:
       "A claim that never completes or verifies is a provider we cannot show. Work the gap before chasing more claims.",
   },

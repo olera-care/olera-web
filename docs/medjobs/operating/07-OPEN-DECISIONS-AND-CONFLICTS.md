@@ -42,6 +42,21 @@ not a detail.
 parks "student-fee amount/affordability — **the one seam where the student could balk**." Charging the
 student is not implied by anything Logan said in the meeting; it appears only in code.
 
+> **Update, 20 September — a fifth reading, and a decision that buys time rather than settling it.**
+> Logan has since described the model as **the first hire free, then $250 per hire invoiced on the
+> confirmed hire**. That differs from the meeting's own record on two axes: the free hire, and a
+> per-hire trigger rather than month-end. It is a fifth trigger for the list above, not a resolution.
+> **D-011** keeps the price out of the provider onboarding pack for exactly this reason — a number in an
+> email that goes to every interested provider would settle C1 by accident. C1 is still blocking, and its
+> new deadline is the first-hire terms gate in **D-010**, which cannot be built without a number.
+>
+> **And then, later the same day, the number moved into writing anyway.** **D-012** attaches pilot terms
+> to the pack, and those terms name $250 per hire. The email still states no price, which is what D-011
+> asked for, but a document sent to every interested provider is publication. Treat C1's **amount** as
+> settled at $250 unless somebody says otherwise before the terms PDF is approved; what is still genuinely
+> open is the **trigger** — on the confirmed hire, monthly in arrears, or after six shifts — and whether
+> the first hire is free.
+
 **Owner:** Logan (with TJ). **Needed by:** before the first conversion meeting of the operational sprint.
 **Recommendation:** ship the provider-paid, post-hire model Logan described ($250/hire, invoiced monthly),
 set the student fee to $0 for 2.0, and treat "does a student ever pay" as an experiment (`E-7`), not a default.
@@ -50,6 +65,12 @@ Post-hire provider-only billing is also the easiest thing to say out loud on a c
 ---
 
 ### C2 — "Client" means three different things 🔴
+
+> **Narrowed, 20 September, by D-010.** Terms are accepted **twice**: lightly at the first interview —
+> `interview_terms_accepted_at`, which keeps its current jobs as the Client definition and the pilot start
+> — and fully at the first hire, which is where the price is agreed. The second gate does not exist yet and
+> cannot be built before C1 settles. The third reading below, `medjobs_eligibility_completed_at`, is
+> untouched: it stays the product's feature gate and is not a commercial state.
 
 | Definition | Where | Set by |
 |---|---|---|

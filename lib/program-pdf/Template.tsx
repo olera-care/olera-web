@@ -1,310 +1,261 @@
 /* eslint-disable react/no-unknown-property */
 /**
- * One-page React-PDF document for the provider outreach attachment.
+ * The provider brochure, as a two-page PDF.
  *
- * Renders from a ProgramPdfConfig — no university-specific code
- * here. The renderer is letter-paper (8.5"×11"), six vertical
- * sections, Olera-emerald primary accent + per-config secondary
- * accent. Tight whitespace; healthcare-clinical visual language
- * (no gradients, no flashy chrome).
+ * Page one is the offer: what it is, why agencies take it, how it runs, and
+ * what it costs. Page two is the people, because an agency deciding whether
+ * to let a stranger send them a caregiver is deciding whether to trust the
+ * people behind it, and a founder's paragraph does more for that than
+ * another benefit card.
  *
- * Photos + QR are passed in as base64 data URIs because
- * @react-pdf/renderer's <Image> needs in-memory bytes when running
- * in a serverless context (no implicit network fetch).
+ * Nothing university-specific lives here. Everything the page says comes
+ * from a ProgramPdfConfig, so a new campus is a data add.
+ *
+ * Photos and the QR arrive as base64 data URIs: @react-pdf/renderer's
+ * <Image> needs in-memory bytes when it runs somewhere with no network.
  */
 
 import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ProgramPdfConfig } from "./configs";
+import { StudentFlyer } from "./StudentFlyer";
 
-// Olera primary accent. Per-config university accent is layered
-// on top for the top-rule + university wordmark.
 const EMERALD = "#059669";
 const EMERALD_DARK = "#047857";
+const EMERALD_DEEP = "#064e3b";
+const EMERALD_TINT = "#ecfdf5";
 const GRAY_900 = "#111827";
 const GRAY_700 = "#374151";
+const GRAY_600 = "#4b5563";
 const GRAY_500 = "#6b7280";
-const GRAY_300 = "#d1d5db";
-const GRAY_100 = "#f3f4f6";
+const GRAY_200 = "#e5e7eb";
+const GRAY_50 = "#f9fafb";
+const WHITE = "#ffffff";
 
-// Font: @react-pdf/renderer's built-in Helvetica family. Looks
-// clean + healthcare-adjacent without an external font fetch
-// (Google Fonts URLs aren't reliable inside serverless / sandbox
-// runtimes). If we ever need Inter specifically, register the
-// font from a self-hosted /public/fonts/ path.
-
+// Helvetica is built in. An external font fetch is the one thing that can
+// fail in a serverless render, and a brochure that sometimes does not
+// generate is worse than a brochure set in Helvetica.
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 30,
-    paddingBottom: 24,
-    paddingHorizontal: 36,
+    paddingTop: 0,
+    paddingBottom: 30,
+    paddingHorizontal: 0,
     fontFamily: "Helvetica",
-    fontSize: 10,
-    color: GRAY_700,
-    lineHeight: 1.4,
-  },
-  // ── Header
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    paddingBottom: 10,
-    borderBottomWidth: 0.75,
-    borderBottomColor: GRAY_300,
-    marginBottom: 12,
-  },
-  brandWord: {
-    fontSize: 16,
-    fontWeight: 700,
-    color: EMERALD_DARK,
-    letterSpacing: 0.5,
-  },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  brandLogo: {
-    width: 18,
-    height: 18,
-    marginRight: 6,
-  },
-  brandTag: {
-    fontSize: 8,
-    color: GRAY_500,
-    marginTop: 2,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  universityWord: {
-    fontSize: 9,
-    fontWeight: 600,
-    letterSpacing: 0.5,
-    textAlign: "right",
-    textTransform: "uppercase",
-  },
-  universityTag: {
-    fontSize: 8,
-    color: GRAY_500,
-    textAlign: "right",
-    marginTop: 2,
-  },
-  // ── Title + hero
-  titleBlock: {
-    marginBottom: 10,
-  },
-  programTitle: {
-    fontSize: 22,
-    color: GRAY_900,
-    lineHeight: 1.15,
-  },
-  programSubtitle: {
-    fontSize: 10.5,
-    color: EMERALD_DARK,
-    marginTop: 3,
-  },
-  hero: {
-    backgroundColor: GRAY_100,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: EMERALD,
-    marginBottom: 12,
-    borderRadius: 3,
-  },
-  heroHeadline: {
-    fontSize: 12,
-    color: GRAY_900,
-    marginBottom: 5,
-    lineHeight: 1.3,
-  },
-  heroBody: {
     fontSize: 9.5,
     color: GRAY_700,
-    lineHeight: 1.5,
+    lineHeight: 1.45,
   },
-  // ── Section
-  sectionHeader: {
-    fontSize: 8.5,
-    color: EMERALD_DARK,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 6,
-  },
-  // ── Benefits grid
-  benefitGrid: {
+  body: { paddingHorizontal: 42 },
+
+  // ── the band across the top ───────────────────────────────────────────
+  band: {
+    backgroundColor: EMERALD_DEEP,
+    paddingHorizontal: 42,
+    paddingTop: 16,
+    paddingBottom: 14,
     flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 10,
-    marginHorizontal: -5,
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 22,
   },
-  benefitCell: {
-    width: "50%",
-    paddingHorizontal: 5,
-    paddingVertical: 4,
-  },
-  benefitInner: {
-    paddingVertical: 3,
-    paddingLeft: 9,
-    borderLeftWidth: 2,
-    borderLeftColor: EMERALD,
-  },
-  benefitTitle: {
-    fontSize: 10,
-    color: GRAY_900,
-    marginBottom: 2,
-  },
-  benefitBody: {
-    fontSize: 9,
-    color: GRAY_700,
-    lineHeight: 1.4,
-  },
-  // ── Steps row
-  stepsRow: {
-    flexDirection: "row",
-    marginBottom: 10,
-    marginHorizontal: -3,
-  },
-  stepCell: {
+  bandLeft: { flexDirection: "row", alignItems: "center" },
+  bandLogo: { width: 20, height: 20, marginRight: 8 },
+  bandWord: { fontSize: 17, fontFamily: "Helvetica-Bold", color: WHITE, letterSpacing: 0.3 },
+  bandRule: { width: 1, height: 20, backgroundColor: "#10b981", marginHorizontal: 12 },
+  bandProgram: { fontSize: 10, color: "#a7f3d0", letterSpacing: 1.1 },
+  bandRight: { fontSize: 8.5, color: "#6ee7b7", letterSpacing: 1.1, textAlign: "right" },
+
+  // ── hero ──────────────────────────────────────────────────────────────
+  eyebrow: { fontSize: 8.5, color: EMERALD, letterSpacing: 1.3, fontFamily: "Helvetica-Bold", marginBottom: 8 },
+  h1: { fontSize: 21, fontFamily: "Helvetica-Bold", color: GRAY_900, lineHeight: 1.18, marginBottom: 8 },
+  heroSub: { fontSize: 10, color: GRAY_600, lineHeight: 1.55, marginBottom: 16 },
+
+  // ── section furniture ─────────────────────────────────────────────────
+  sectionHead: { flexDirection: "row", alignItems: "center", marginBottom: 9 },
+  sectionTitle: { fontSize: 9, fontFamily: "Helvetica-Bold", color: EMERALD_DARK, letterSpacing: 1.3 },
+  sectionLine: { flex: 1, height: 0.75, backgroundColor: GRAY_200, marginLeft: 10 },
+
+  // ── why agencies participate: four cards ──────────────────────────────
+  cardRow: { flexDirection: "row", marginBottom: 7 },
+  card: {
     flex: 1,
-    paddingHorizontal: 3,
+    backgroundColor: GRAY_50,
+    borderLeftWidth: 2.5,
+    borderLeftColor: EMERALD,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
   },
-  stepInner: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 0.75,
-    borderColor: GRAY_300,
-    borderRadius: 3,
-    padding: 7,
-    // Fixed minHeight so all four boxes match regardless of how
-    // each step text wraps. Sized for one step-number line + a
-    // two-line subtext line at the current font/lineHeight, with
-    // a touch of breathing room.
-    minHeight: 56,
+  cardGap: { width: 9 },
+  cardTitle: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 3 },
+  cardBody: { fontSize: 8.5, color: GRAY_600, lineHeight: 1.45 },
+
+  // ── how it works: numbered circles in a row ───────────────────────────
+  stepRow: { flexDirection: "row", marginBottom: 16, marginTop: 2 },
+  step: { flex: 1, flexDirection: "row", alignItems: "flex-start" },
+  stepNum: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: EMERALD,
+    color: WHITE,
+    fontSize: 9.5,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    paddingTop: 5,
+    marginRight: 8,
   },
-  stepNumber: {
-    fontSize: 11,
-    color: EMERALD_DARK,
-    marginBottom: 3,
+  // No flex here. It used to sit directly in the row, where flex:1 gave it
+  // the remaining width; it now sits inside a column beside the number, and
+  // flex:1 in a column made it claim a height it did not have and clipped
+  // the third line of every step.
+  stepText: { fontSize: 8.5, color: GRAY_700, lineHeight: 1.45 },
+
+  // ── vetting ───────────────────────────────────────────────────────────
+  vetRow: { flexDirection: "row", marginBottom: 14 },
+  vetCol: { flex: 1 },
+  vetItem: { flexDirection: "row", marginBottom: 4, paddingRight: 12 },
+  vetTick: { fontSize: 9, color: EMERALD, fontFamily: "Helvetica-Bold", marginRight: 6 },
+  vetText: { flex: 1, fontSize: 8.5, color: GRAY_700, lineHeight: 1.4 },
+
+  // ── price ─────────────────────────────────────────────────────────────
+  priceBox: {
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    backgroundColor: EMERALD_TINT,
+    padding: 12,
+    marginBottom: 10,
   },
-  stepText: {
+  priceRow: { flexDirection: "row", marginBottom: 12, alignItems: "flex-start" },
+  // The offer panel that replaced pricing. One ask, stated once, with room
+  // around it — the page has no other call to action competing with it.
+  offerBox: {
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    backgroundColor: EMERALD_TINT,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  offerHead: { fontSize: 14, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 6 },
+  offerAsk: { fontSize: 10.5, color: EMERALD_DARK, fontFamily: "Helvetica-Bold", marginBottom: 7 },
+  offerBody: { fontSize: 8.5, color: GRAY_600, lineHeight: 1.5 },
+  stepTitle: { fontSize: 8.8, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 1.5 },
+  // The one-word reply, given the weight of the thing we actually want.
+  replyBox: {
+    backgroundColor: EMERALD_DEEP,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  replyLabel: { fontSize: 8, color: "#6ee7b7", letterSpacing: 1.6, fontFamily: "Helvetica-Bold", marginBottom: 6 },
+  replyWord: {
+    fontSize: 30,
+    fontFamily: "Helvetica-Bold",
+    color: WHITE,
+    letterSpacing: 2,
+    lineHeight: 1.2,
+  },
+  replyTail: { fontSize: 9, color: "#a7f3d0", marginTop: 8 },
+  footerLine: { fontSize: 8, color: GRAY_500, textAlign: "center" },
+  priceCell: { flex: 1 },
+  priceLabel: { fontSize: 8, color: EMERALD_DARK, letterSpacing: 1.1, fontFamily: "Helvetica-Bold", marginBottom: 3 },
+  priceBig: { fontSize: 16, fontFamily: "Helvetica-Bold", color: GRAY_900, lineHeight: 1.2 },
+  priceDivider: { width: 1, backgroundColor: "#a7f3d0", marginHorizontal: 14 },
+  priceBody: {
     fontSize: 8.5,
-    color: GRAY_700,
-    lineHeight: 1.4,
+    color: GRAY_600,
+    lineHeight: 1.45,
+    borderTopWidth: 0.75,
+    borderTopColor: "#a7f3d0",
+    paddingTop: 10,
   },
-  // ── Vetting bullets
-  vettingBlock: {
+
+  // ── footers ───────────────────────────────────────────────────────────
+  footer: {
+    marginTop: 4,
+    paddingTop: 11,
+    borderTopWidth: 0.75,
+    borderTopColor: GRAY_200,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  footerAsk: { flex: 1, paddingRight: 18 },
+  footerAskTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 3 },
+  footerAskBody: { fontSize: 8.5, color: GRAY_600, lineHeight: 1.45 },
+  qrWrap: { alignItems: "center" },
+  qr: { width: 58, height: 58 },
+  qrLabel: { fontSize: 7, color: GRAY_500, marginTop: 3 },
+  // Page two is short, so its footer is pinned rather than left to float in
+  // the middle of a half-empty page.
+  footerPinned: {
+    position: "absolute",
+    bottom: 28,
+    left: 42,
+    right: 42,
+  },
+
+  // ── page two ──────────────────────────────────────────────────────────
+  storyRow: { flexDirection: "row", marginBottom: 34 },
+  // The radius goes on the image. A wrapper with its own border and
+  // overflow:hidden drew a ring the image did not quite reach, which is what
+  // the flat edges and the hairline on each circle were.
+  storyPhotoWrap: { marginRight: 18 },
+  storyPhoto: { width: 108, height: 108, borderRadius: 54, objectFit: "cover" },
+  storyText: { flex: 1 },
+  storyQuote: { fontSize: 11.5, color: GRAY_700, lineHeight: 1.65 },
+  storyName: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: GRAY_900, marginTop: 11 },
+  storyRole: { fontSize: 9, color: GRAY_500 },
+
+  teamRow: { flexDirection: "row", marginBottom: 14, marginTop: 4 },
+  member: { flex: 1 },
+  memberGap: { width: 14 },
+  avatarWrap: { marginBottom: 8 },
+  avatar: { width: 80, height: 80, borderRadius: 40, objectFit: "cover" },
+  avatarFallback: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: EMERALD_TINT,
+    color: EMERALD_DARK,
+    fontSize: 22,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    paddingTop: 25,
     marginBottom: 8,
   },
-  vettingRow: {
-    flexDirection: "row",
-    marginBottom: 2,
-  },
-  bullet: {
-    width: 8,
-    color: EMERALD,
-  },
-  vettingText: {
-    flex: 1,
-    fontSize: 9,
-    color: GRAY_700,
-    lineHeight: 1.4,
-  },
-  // ── Participation & pricing
-  pricingBlock: {
-    backgroundColor: GRAY_100,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: EMERALD,
-    marginBottom: 10,
-    borderRadius: 3,
-  },
-  pricingHeadline: {
-    fontSize: 10,
-    color: GRAY_900,
-    marginBottom: 3,
-    lineHeight: 1.3,
-  },
-  pricingBody: {
-    fontSize: 9,
-    color: GRAY_700,
-    lineHeight: 1.4,
-  },
-  // ── Footer / signatures
-  footer: {
-    flexDirection: "row",
-    paddingTop: 10,
-    borderTopWidth: 0.75,
-    borderTopColor: GRAY_300,
-  },
-  sigsCol: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  sigBlock: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    flex: 1,
-    // v9.1 Graize 05.13 audit (Item 2C): wider gap between the two
-    // signature blocks so Logan's longer credential ("Director,
-    // Olera's Texas A&M Student Caregiver Program") can't bleed into
-    // Graize's photo. Was 8.
-    paddingRight: 14,
-  },
-  // v9.1 Graize 05.13 audit (Item 2C): inner text column needs an
-  // explicit flex + minWidth:0 so React-PDF wraps the credential
-  // lines inside its own sigBlock rather than overflowing into the
-  // neighboring block. Without this the text can spill rightward.
-  sigText: {
-    flex: 1,
-    minWidth: 0,
-  },
-  sigPhoto: {
-    width: 38,
-    height: 38,
-    borderRadius: 3,
-    marginRight: 7,
-  },
-  sigName: {
-    fontSize: 9,
-    color: GRAY_900,
-  },
-  sigCred: {
-    fontSize: 8,
-    color: GRAY_500,
-    marginTop: 1,
-    lineHeight: 1.3,
-  },
-  ctaCol: {
-    width: 130,
-    alignItems: "flex-end",
-    paddingLeft: 12,
-  },
-  qrImage: {
-    width: 64,
-    height: 64,
-    marginBottom: 3,
-  },
-  ctaLabel: {
-    fontSize: 8.5,
-    color: GRAY_900,
-    textAlign: "right",
-    marginBottom: 1,
-  },
-  ctaUrl: {
-    fontSize: 7.5,
-    color: EMERALD_DARK,
-    textAlign: "right",
-  },
+  memberName: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: GRAY_900 },
+  memberRole: { fontSize: 8.5, color: EMERALD_DARK, marginBottom: 2 },
+  memberEmail: { fontSize: 8.5, color: GRAY_500, marginBottom: 6 },
+  memberBio: { fontSize: 8.5, color: GRAY_600, lineHeight: 1.5, paddingRight: 10 },
 });
 
 export interface ProgramPdfAssets {
   loganPhotoDataUri?: string;
   graziePhotoDataUri?: string;
-  /** Olera logo (square PNG, ~275×286). Rendered next to the
-   *  "olera" wordmark in the header. Optional so a missing asset
-   *  still produces a renderable PDF (text-only wordmark). */
+  chantelPhotoDataUri?: string;
+  saraPhotoDataUri?: string;
+  /** Olera logo, reversed out of the header band. */
   oleraLogoDataUri?: string;
   qrDataUri: string;
+}
+
+const initials = (name: string) =>
+  name
+    .replace(/,.*$/, "")
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+
+function SectionHead({ children }: { children: string }) {
+  return (
+    <View style={styles.sectionHead}>
+      <Text style={styles.sectionTitle}>{children}</Text>
+      <View style={styles.sectionLine} />
+    </View>
+  );
 }
 
 export function ProgramPdfTemplate({
@@ -314,157 +265,188 @@ export function ProgramPdfTemplate({
   config: ProgramPdfConfig;
   assets: ProgramPdfAssets;
 }) {
-  // Provider defaults — the student config overrides each of these.
-  const subtitle =
-    config.subtitle ??
-    "A Student Caregiver Program that matches vetted student caregivers to your recurring shifts";
-  // Descriptive, non-possessive default. The header pairs this with the
-  // university name; "<University> · Student Caregiver Program" would imply
-  // the university runs the program, so the tagline describes the audience
-  // instead.
-  const universityTagLine = config.universityTagLine ?? "Paid caregiving program";
-  const headers = config.sectionHeaders ?? {
-    benefits: "Why agencies participate",
-    steps: "How it works",
-    vetting: "Student vetting",
-    pricing: "Participation & pricing",
+  // Two audiences, two documents. They shared one layout until the provider
+  // brochure grew a price, a team and a one-word reply, at which point the
+  // student flyer inherited all three.
+  if (config.audience === "student") {
+    return <StudentFlyer config={config} assets={assets} />;
+  }
+
+  const photos: Record<string, string | undefined> = {
+    logan: assets.loganPhotoDataUri,
+    grazie: assets.graziePhotoDataUri,
+    chantel: assets.chantelPhotoDataUri,
+    sara: assets.saraPhotoDataUri,
   };
+  const team = config.team ?? [];
+  const lead = team[0];
+  const rest = team.slice(1);
+  const uni = config.universityShort;
+  const stepOf = (s: string | { title: string; body: string }) =>
+    typeof s === "string" ? { title: "", body: s } : s;
+
+  const Band = ({ right }: { right: string }) => (
+    <View style={styles.band}>
+      <View style={styles.bandLeft}>
+        {assets.oleraLogoDataUri ? (
+          <Image src={assets.oleraLogoDataUri} style={styles.bandLogo} />
+        ) : null}
+        <Text style={styles.bandWord}>Olera</Text>
+        <View style={styles.bandRule} />
+        <Text style={styles.bandProgram}>STUDENT CAREGIVER PROGRAM</Text>
+      </View>
+      {right ? <Text style={styles.bandRight}>{right.toUpperCase()}</Text> : null}
+    </View>
+  );
+
+  const Steps = ({ items }: { items: Array<{ title: string; body: string }> }) => (
+    <View style={styles.stepRow}>
+      {items.map((step, i) => (
+        <View style={styles.step} key={step.body}>
+          <Text style={styles.stepNum}>{i + 1}</Text>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            {step.title ? <Text style={styles.stepTitle}>{step.title}</Text> : null}
+            <Text style={styles.stepText}>{step.body}</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
   return (
     <Document
-      title="Olera's Student Caregiver Program"
+      title={`Olera Student Caregiver Program — ${config.universityName}`}
       author="Olera"
       subject={config.documentSubject ?? "Provider outreach packet"}
     >
+      {/* ── page one: the offer ─────────────────────────────────────── */}
       <Page size="LETTER" style={styles.page}>
-        {/* ── Header row */}
-        {/* v9.1 Graize 05.13 audit (Item 11): logo rendered next to
-            the "olera" wordmark when the asset is available. */}
-        <View style={styles.headerRow}>
-          <View>
-            <View style={styles.brandRow}>
-              {assets.oleraLogoDataUri ? (
-                <Image src={assets.oleraLogoDataUri} style={styles.brandLogo} />
-              ) : null}
-              <Text style={styles.brandWord}>Olera</Text>
-            </View>
-            <Text style={styles.brandTag}>Student Caregiver Program</Text>
-          </View>
-          <View>
-            <Text
-              style={[
-                styles.universityWord,
-                { color: config.universityAccent },
-              ]}
-            >
-              {config.universityName}
-            </Text>
-            <Text style={styles.universityTag}>{universityTagLine}</Text>
-          </View>
-        </View>
+        <Band right={uni} />
 
-        {/* ── Title */}
-        {/* Title is "Olera's Student Caregiver Program" — the university is
-            NOT baked into the program name (a possessive "Olera's <University>
-            …" implies the school runs/endorses it). The campus still appears
-            descriptively in the header lockup and, for real campuses, the
-            eyebrow line below. Matches the outreach emails' framing. */}
-        <View style={styles.titleBlock}>
-          {config.universityShort ? (
-            <Text style={styles.programSubtitle}>
-              For pre-health students near {config.universityName}
-            </Text>
+        <View style={styles.body}>
+          <Text style={styles.eyebrow}>FOR HOME CARE AGENCIES</Text>
+          <Text style={styles.h1}>{config.heroHeadline}</Text>
+          <Text style={styles.heroSub}>{config.heroSubhead}</Text>
+
+          <SectionHead>WHY AGENCIES PARTICIPATE</SectionHead>
+          {[0, 2].map((i) => (
+            <View style={styles.cardRow} key={i}>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>{config.benefits[i]?.title}</Text>
+                <Text style={styles.cardBody}>{config.benefits[i]?.body}</Text>
+              </View>
+              <View style={styles.cardGap} />
+              {config.benefits[i + 1] ? (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>{config.benefits[i + 1].title}</Text>
+                  <Text style={styles.cardBody}>{config.benefits[i + 1].body}</Text>
+                </View>
+              ) : (
+                <View style={styles.card} />
+              )}
+            </View>
+          ))}
+
+          <View style={{ height: 10 }} />
+          {/* The founder and his photograph, high on the page. It was on the
+              team page, which left page one as five blocks of type and
+              nothing to rest on. */}
+          {config.story ? (
+            <>
+              <SectionHead>{config.story.heading.toUpperCase()}</SectionHead>
+              <View style={styles.storyRow}>
+                {lead && photos[lead.photo ?? ""] ? (
+                  <View style={styles.storyPhotoWrap}>
+                    <Image src={photos[lead.photo!]!} style={styles.storyPhoto} />
+                  </View>
+                ) : null}
+                <View style={styles.storyText}>
+                  <Text style={styles.storyQuote}>{config.story.body}</Text>
+                  {lead ? (
+                    <>
+                      <Text style={styles.storyName}>{lead.name}</Text>
+                      <Text style={styles.storyRole}>{lead.role}</Text>
+                      <Text style={styles.storyRole}>{lead.bio}</Text>
+                    </>
+                  ) : null}
+                </View>
+              </View>
+            </>
           ) : null}
-          <Text style={styles.programTitle}>Olera’s Student Caregiver Program</Text>
-          <Text style={styles.programSubtitle}>{subtitle}</Text>
-        </View>
 
-        {/* ── Hero */}
-        <View style={styles.hero}>
-          <Text style={styles.heroHeadline}>{config.heroHeadline}</Text>
-          <Text style={styles.heroBody}>{config.heroSubhead}</Text>
-        </View>
+          <SectionHead>HOW IT WORKS</SectionHead>
+          <Steps items={config.steps.map(stepOf)} />
 
-        {/* ── Benefits */}
-        <Text style={styles.sectionHeader}>{headers.benefits}</Text>
-        <View style={styles.benefitGrid}>
-          {config.benefits.map((b, i) => (
-            <View key={i} style={styles.benefitCell}>
-              <View style={styles.benefitInner}>
-                <Text style={styles.benefitTitle}>{b.title}</Text>
-                <Text style={styles.benefitBody}>{b.body}</Text>
-              </View>
+          {config.offer ? (
+            <View style={styles.offerBox}>
+              <Text style={styles.offerHead}>{config.offer.headline}</Text>
+              <Text style={styles.offerAsk}>{config.offer.ask}</Text>
+              <Text style={styles.offerBody}>{config.offer.body}</Text>
             </View>
-          ))}
-        </View>
+          ) : null}
 
-        {/* ── How it works */}
-        <Text style={styles.sectionHeader}>{headers.steps}</Text>
-        <View style={styles.stepsRow}>
-          {config.steps.map((s, i) => (
-            <View key={i} style={styles.stepCell}>
-              <View style={styles.stepInner}>
-                <Text style={styles.stepNumber}>0{i + 1}</Text>
-                <Text style={styles.stepText}>{s}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* ── Eligibility / vetting */}
-        <Text style={styles.sectionHeader}>{headers.vetting}</Text>
-        <View style={styles.vettingBlock}>
-          {config.vetting.map((v, i) => (
-            <View key={i} style={styles.vettingRow}>
-              <Text style={styles.bullet}>•</Text>
-              <Text style={styles.vettingText}>{v}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* ── Participation / what to expect */}
-        <Text style={styles.sectionHeader}>{headers.pricing}</Text>
-        <View style={styles.pricingBlock}>
-          <Text style={styles.pricingHeadline}>{config.pricing.headline}</Text>
-          <Text style={styles.pricingBody}>{config.pricing.body}</Text>
-        </View>
-
-        {/* ── Footer / signatures + QR */}
-        <View style={styles.footer}>
-          <View style={styles.sigsCol}>
-            <View style={styles.sigBlock}>
-              {assets.loganPhotoDataUri ? (
-                <Image src={assets.loganPhotoDataUri} style={styles.sigPhoto} />
-              ) : null}
-              <View style={styles.sigText}>
-                <Text style={styles.sigName}>Dr. Logan DuBose, MD, MBA</Text>
-                <Text style={styles.sigCred}>Texas A&M College of Medicine &apos;22</Text>
-                <Text style={styles.sigCred}>NIH-funded researcher</Text>
-                <Text style={styles.sigCred}>Director, Olera Student Caregiver Program</Text>
-              </View>
-            </View>
-            <View style={styles.sigBlock}>
-              {assets.graziePhotoDataUri ? (
-                <Image src={assets.graziePhotoDataUri} style={styles.sigPhoto} />
-              ) : null}
-              <View style={styles.sigText}>
-                <Text style={styles.sigName}>Graize Belandres</Text>
-                <Text style={styles.sigCred}>Assistant to</Text>
-                <Text style={styles.sigCred}>Dr. Logan DuBose</Text>
-                <Text style={styles.sigCred}>graize@olera.care</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.ctaCol}>
-            <Image src={assets.qrDataUri} style={styles.qrImage} />
-            <Text style={styles.ctaLabel}>{config.ctaLabel}</Text>
-            <Text style={styles.ctaUrl}>
-              {/* QR encodes the full (attributed) URL; the printed text shows a
-                  clean, memorable URL without the query string. */}
-              {config.ctaUrl.replace(/^https?:\/\//, "").replace(/\?.*$/, "")}
-            </Text>
-          </View>
         </View>
       </Page>
+
+      {/* ── page two: the people, and the one-word reply ────────────── */}
+      {team.length > 0 ? (
+        <Page size="LETTER" style={styles.page}>
+          <Band right="the team" />
+
+          <View style={styles.body}>
+            <SectionHead>WHO YOU WILL BE WORKING WITH</SectionHead>
+            <View style={styles.teamRow}>
+              {rest.map((m, i) => (
+                <React.Fragment key={m.name}>
+                  {i > 0 ? <View style={styles.memberGap} /> : null}
+                  <View style={styles.member}>
+                    {photos[m.photo ?? ""] ? (
+                      <View style={styles.avatarWrap}>
+                        <Image src={photos[m.photo!]!} style={styles.avatar} />
+                      </View>
+                    ) : (
+                      <Text style={styles.avatarFallback}>{initials(m.name)}</Text>
+                    )}
+                    <Text style={styles.memberName}>{m.name}</Text>
+                    <Text style={styles.memberRole}>{m.role}</Text>
+                    {m.email ? <Text style={styles.memberEmail}>{m.email}</Text> : null}
+                    <Text style={styles.memberBio}>{m.bio}</Text>
+                  </View>
+                </React.Fragment>
+              ))}
+            </View>
+
+            {config.nextStep ? (
+              <View style={styles.offerBox}>
+                <Text style={styles.offerHead}>{config.nextStep.heading}</Text>
+                <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
+                <Text style={[styles.offerAsk, { color: GRAY_900 }]}>
+                  {config.nextStep.ask}
+                </Text>
+                <Text style={styles.offerBody}>{config.nextStep.body}</Text>
+              </View>
+            ) : null}
+
+            {config.afterReply?.length ? (
+              <>
+                <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
+                <Steps items={config.afterReply} />
+              </>
+            ) : null}
+
+            {config.replyBlock ? (
+              <View style={styles.replyBox}>
+                <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
+                <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
+                <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
+              </View>
+            ) : null}
+            {config.footerLine ? (
+              <Text style={styles.footerLine}>{config.footerLine}</Text>
+            ) : null}
+          </View>
+        </Page>
+      ) : null}
     </Document>
   );
 }

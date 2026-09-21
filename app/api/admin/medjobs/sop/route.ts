@@ -56,6 +56,22 @@ const DOCS: Record<string, Doc> = {
     download: "MedJobs-University-Activation-Guide.pdf",
     type: "application/pdf",
   },
+  // Linked from two rungs of the job board ladder as the template to copy
+  // when submitting a listing. Drop the file at the path below and it is
+  // live; until then the route answers 404 rather than a broken viewer.
+  posting: {
+    file: "docs/medjobs/MedJobs_Example_Job_Posting.pdf",
+    download: "MedJobs-Example-Job-Posting.pdf",
+    type: "application/pdf",
+  },
+  // Attached to the onboarding pack. Nothing to sign — the provider reads
+  // it and keeps it. Drop the approved file at the path below and the link
+  // is live; until then the route answers 404 rather than sending a draft.
+  "pilot-terms": {
+    file: "docs/medjobs/MedJobs_Pilot_Terms.pdf",
+    download: "Olera-Student-Caregiver-Pilot-Terms.pdf",
+    type: "application/pdf",
+  },
   walkthrough: {
     file: "docs/medjobs/MedJobs_Operating_System_Walkthrough_Summary.pdf",
     download: "MedJobs-Operating-System-Walkthrough-Summary.pdf",
@@ -133,7 +149,10 @@ export async function GET(request: NextRequest) {
     return new NextResponse(new Uint8Array(file), { headers });
   } catch {
     return NextResponse.json(
-      { error: "Document not found in this deployment" },
+      {
+        error: "That document has not been added yet",
+        document: doc.download,
+      },
       { status: 404 },
     );
   }

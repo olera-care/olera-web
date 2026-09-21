@@ -243,13 +243,43 @@ providers are loaded but un-researched has not completed PR1.</p>
 </tbody>
 </table>
 <p><strong>What the system does on its own:</strong> adding a site pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand.</p>
+<p><strong>The one row that is built by hand.</strong> The directory cannot supply a provider it has never carried, so an agency heard about on a call would otherwise have nowhere to go. The providers list on the Tasks board ends with <strong>Add a provider</strong>, which starts a record from a name alone. It joins the site on the same first rung as every other provider and is worked identically; it simply carries no directory row behind it.</p>
 <h3 id="2-procedure">② Procedure</h3>
 <figure class="fw"><svg viewBox="0 0 250 158" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="55" y="6" width="140" height="20" rx="3" fill="#e8f1ec" stroke="#14453f" stroke-width="1.1"/><text x="125" y="20" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">Call the provider</text><line x1="125" y1="27" x2="125" y2="39" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="41" width="112" height="18" rx="3" fill="#fff" stroke="#1a7f4e" stroke-width="1.0"/><text x="60" y="53.6" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">Confirmed</text><line x1="118" y1="50" x2="130" y2="50" stroke="#1a7f4e" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="53.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Launch outreach</text><rect x="4" y="63" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="75.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">No answer</text><line x1="118" y1="72" x2="130" y2="72" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="75.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="85" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="97.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Voicemail</text><line x1="118" y1="94" x2="130" y2="94" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="97.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="107" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="119.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Not interested</text><line x1="118" y1="116" x2="130" y2="116" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="119.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Close the row</text><rect x="4" y="131" width="242" height="21" rx="3" fill="#f4f7f6" stroke="#b9c4bd" stroke-width="1"/><text x="125" y="145" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Three failed calls, then archive</text></svg><figcaption><strong>Pre-flight.</strong> One call, four outcomes, and the three-strike rule that closes a row nobody answers.</figcaption></figure>
 
 <p><strong>For a given site, work every provider on it.</strong></p>
 <ol>
 <li><strong>Do the desk research first.</strong> Fill in whatever phone, email and address you can find yourself, from
-   the provider's website, the source link on the row, or <strong>Fill from Website</strong>. Do not call a row you have not looked at.</li>
+   the provider's website, the source link on the row, or <strong>Fill from Website</strong>. Do not call a row you have not looked at. On the Tasks board this desk pass is a rung of its own, named <strong>Research</strong>, and it is ticked on the record rather than logged as a call. Four things have to be true before it is ticked:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Against what</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The name is the name the agency trades under</td>
+<td>Their own website</td>
+</tr>
+<tr>
+<td>The website opens and is theirs</td>
+<td>Their own website</td>
+</tr>
+<tr>
+<td>The phone number reaches them</td>
+<td>Their own website</td>
+</tr>
+<tr>
+<td>The address is within a <strong>60-minute drive</strong> of campus</td>
+<td>Google Maps directions, not straight-line distance</td>
+</tr>
+</tbody>
+</table>
+<p>A provider outside the 60 minutes is archived here, before anybody calls it. The catchment radius is a net, not a judgement: it is measured as the crow flies and cannot see a mountain, a lake or a freeway.</p>
+<ol start="2">
 <li><strong>Call every provider on the site.</strong> The call confirms the research; research alone does not complete
    pre-flight.</li>
 <li><strong>Use the suggested script</strong> shown in the log modal: <em>"Hi, this is [your name] from Dr. DuBose's
@@ -492,6 +522,116 @@ Either the protocol or the cadence should change; flagged rather than reconciled
 cadence stopped,"</em> so the next move is a manual one. The out-of-office option exists precisely because
 an auto-reply should not count as one.</p>
 </blockquote>
+<p><strong>On the Tasks board the first ask is interest, not a meeting</strong>, and the whole of a follow-up round happens on one screen.</p>
+<p>Step one is <em>check their email and your voicemail</em>: both, because a provider who rang back and got the machine
+has got back to us and the board would never know. Under it sit the two acts a silent round is: <strong>call them</strong>
+and <strong>email them, resending the programme</strong>, each with the way to do it to hand and a tick. The log button
+cannot be pressed until both are done, and then it logs two acts. It used to say <em>No reply</em>, which named
+something the provider had not done and recorded nothing that we had.</p>
+<p>The other three outcomes sit beside it, on the same screen, with one free-text box for what happened.</p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What it means</th>
+<th>Where the record goes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>No answer</strong></td>
+<td>Nobody picked up; email and call both done</td>
+<td>The next round, two business days out</td>
+</tr>
+<tr>
+<td><strong>Left a voicemail</strong></td>
+<td>Same, and they have heard us</td>
+<td>The next round, two business days out</td>
+</tr>
+<tr>
+<td><strong>Interested, start onboarding</strong></td>
+<td>Yes, tell me more</td>
+<td><strong>Send the onboarding pack</strong>, today</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>They declined</td>
+<td>Archived</td>
+</tr>
+<tr>
+<td><strong>Something else</strong></td>
+<td>Anything the first three do not cover</td>
+<td>A task in the operator's own words, on the day they pick</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Something else is the honest fourth outcome.</strong> <em>Send it to our corporate office. Talk to our RN manager.
+Call me back in March when we budget. We need a W-9 first.</em> There is no list of those and there never will be,
+so the board takes one at a time: what needs doing, in the operator's words, and the day it comes back. The
+queued task carries that sentence as its own title, so a queue of them reads as work rather than as four rows
+saying <em>Something else</em>. It ends the way the reply did: a yes goes to the pack, no answer either way restarts
+the follow-up block, another thing to do queues another one, and a no archives.</p>
+<p>There is no longer a <em>warm but not now</em> outcome. Once the ask is interest rather than a meeting, interested-later is interested: they get the pack, and the onboarding block does the chasing. The rung that used to hold that state is where <em>Something else</em> now sits.</p>
+<p><strong>Interest can be logged wherever it arrives</strong>, including on the confirming call: a provider who says yes on the phone skips the programme email and the whole block rather than being followed up to arrive where they already are.</p>
+<p><strong>The pack is the email that means nobody has to explain it again.</strong> Three things: how the programme works end
+to end; what they are looking for in a caregiver, which they can simply reply with and we will set up on our
+side; and the pilot terms, attached for review. It carries their portal link, and the rung cannot be logged
+without it: but the portal is offered, not required, because a provider who would rather reply in prose is the
+normal case for this audience, not the exception.</p>
+<p><strong>The email states no price.</strong> The attached terms describe the pilot: nothing to sign, no obligation, students
+until a hire works out, and formal terms agreed afterwards rather than now. See <strong>C1</strong>, and <strong>D-011</strong> and
+<strong>D-012</strong>, which between them say why the number lives in the attachment and not in the email: and why putting
+it in the attachment is itself a decision about C1.</p>
+<p><strong>"Not yet" is not offered on a rung that already runs on a cadence.</strong> Putting a follow-up off by two days is what the next round is. It stays on the confirming call, the programme email, the pack, the set-up check and the meeting.</p>
+<p><strong>Then onboarding, which is chasing one sentence.</strong> The pack ends by asking for it: <em>reply and tell me you are ready to receive your first student and you are clear on what happens when one arrives.</em> If anything is unclear they reply with the question instead, and we answer it by email.</p>
+<p><strong>Onboarding follow up 1–7</strong> is the same screen as the cold block, because it is the same act: check their
+email and your voicemail, and if nothing has come back, call and email again. Three days apart rather than
+two, because they have already said yes. At the fourth round the rung says to ask straight out on the phone,
+or to offer to set their profile up with them there and then, rather than sending the same thing a fifth time.</p>
+<p><strong>It never archives.</strong> After the seventh round it keeps going on the same cadence. Seven unanswered cold calls is a no; seven unanswered nudges at a provider who has already said yes is not, and losing them over scheduling would be the worst outcome in the funnel.</p>
+<table>
+<thead>
+<tr>
+<th>Ending</th>
+<th>What it means</th>
+<th>Where the record goes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>No answer</strong></td>
+<td>Nobody picked up; email and call both done</td>
+<td>The next round, three days out</td>
+</tr>
+<tr>
+<td><strong>Left a voicemail</strong></td>
+<td>Same, and they have heard us</td>
+<td>The next round, three days out</td>
+</tr>
+<tr>
+<td><strong>They are ready</strong></td>
+<td>They have said so</td>
+<td><strong>The goal</strong>: nothing further</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>They have changed their mind</td>
+<td>Archived</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Two things are available on every rung, so neither takes a button.</strong> Under the menu: <strong>Booked a call to
+help</strong>, because a provider can ask to be walked through it at any point and it must never cost them their
+place: the call hands the record straight back, one round on from where it left; and <strong>Something else</strong>, which
+takes whatever they actually asked for in the operator's own words, with the day it comes back and a tick to
+flag it for manager review. A flagged record carries a flag in the list and says to take it to the team in
+Slack. Deferring and closing a record live there too.</p>
+<p><strong>Email first, then the call that refers to it.</strong> A call that arrives before the email is a cold call; one that follows it has something to be about. Both blocks say so in their steps and both log the two acts together.</p>
+<p><strong>A call is a tool, not a stage.</strong> <em>Help them on a call</em> is a branch, reached only when somebody books one,
+and most providers never see it. It is fifteen minutes doing whatever is stopping them, usually setting their
+requirements in the portal while you are on the phone, and it ends the same way every other screen does: they
+are ready, or they are not yet and it goes back to chasing.</p>
+<p><strong>The goal is an acknowledgement, not an event.</strong> <em>Ready for students</em> is not a rung anybody ticks; it is where the ladder stops when a provider says they understand how students reach them and what to do when one arrives. A call, an email and a meeting are all ways of getting that sentence, and none of them is required.</p>
 <h3 id="3-system-handoff_1">③ System / handoff</h3>
 <table>
 <thead>
@@ -1315,6 +1455,44 @@ class. The Consumer Relations Manager works the plan per row, not per channel.</
 </tr>
 </tbody>
 </table>
+<p><strong>ST3, rung by rung.</strong> The job board is the one channel the board works as an explicit ladder, because its steps happen days apart and strictly in order.</p>
+<table>
+<thead>
+<tr>
+<th>Rung</th>
+<th>Done when</th>
+<th>What it records</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Research</strong></td>
+<td>you have found where an employer submits a posting at this campus</td>
+<td>the job board link, and whoever owns it if anyone does</td>
+</tr>
+<tr>
+<td><strong>Confirm it is submitted</strong></td>
+<td>the listing is with the university</td>
+<td>ticks <em>submitted</em></td>
+</tr>
+<tr>
+<td><strong>Confirm it is approved</strong></td>
+<td>the listing is on their board</td>
+<td>the listing link; ticks <em>approved</em></td>
+</tr>
+<tr>
+<td><strong>Confirm the first student has applied</strong></td>
+<td>somebody came through it</td>
+<td>ticks <em>visible</em>, which is what turns the channel live</td>
+</tr>
+<tr>
+<td><strong>Confirm the listing is still live</strong></td>
+<td>seasonally, that a student could still apply</td>
+<td>nothing; it is a look</td>
+</tr>
+</tbody>
+</table>
+<p>Research comes first because the reason a job board stalls is almost never the posting. It is that nobody knew where the posting goes, and each campus hides that somewhere different. The two middle rungs carry a two-day reminder rather than waiting to be remembered, since approval sits in somebody else's queue.</p>
 <p><strong>Decision rules.</strong> These are the judgement calls that come up every week. They are settled here so they are not settled differently at each campus.</p>
 <table>
 <thead>
@@ -1518,6 +1696,48 @@ own.</p>
 video, the licence and the insurance sit. A student can go live at 5%. The baseline above is the intent;
 enforcing it is on the deferred list.</p>
 </blockquote>
+<p><strong>How the operator sees the same student.</strong> Once a student is on a partner campus, they also appear on the
+Tasks board under that university, on a five-rung ladder ending in a hire. Three of the five are not work at
+all: they are facts this stage and the two after it already record, and the board reads them rather than
+asking anybody to confirm them.</p>
+<table>
+<thead>
+<tr>
+<th>Rung</th>
+<th>Who answers it</th>
+<th>From what</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Meeting with the student</td>
+<td>the operator</td>
+<td>nothing records it, so somebody has to</td>
+</tr>
+<tr>
+<td>Complete their application</td>
+<td><strong>the system</strong></td>
+<td>going live</td>
+</tr>
+<tr>
+<td>Get them an interview</td>
+<td><strong>the system</strong></td>
+<td>an interview on the calendar</td>
+</tr>
+<tr>
+<td>Confirm hire</td>
+<td><strong>the system</strong></td>
+<td>a placement accepted</td>
+</tr>
+<tr>
+<td>Confirm hours worked</td>
+<td>the operator</td>
+<td>the student, monthly</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Order stops mattering as a result.</strong> Most students finish their own application without anybody chasing them, and the ladder no longer assumes the meeting came first. A finished application answers its own rung and leaves the meeting to do; an interview or a hire says the earlier rungs happened one way or another, so a student already hired is never queued for an introductory call.</p>
+<p><strong>A rung the system answers is shown as done, never as work.</strong> It sits in its own band on the record, saying who answered it, so the difference between <em>nobody needs to chase this</em> and <em>somebody chased it</em> is never lost.</p>
 <p><strong>What going live does.</strong> Two things, and the second one is already built:</p>
 <ol>
 <li><strong>The student becomes visible</strong>: active on the board, matchable by providers in their area.</li>

@@ -101,10 +101,6 @@
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/cron/student-outreach-send",
-      "schedule": "*/15 * * * *"
-    },
-    {
       "path": "/api/cron/lead-followup-sequence",
       "schedule": "0 14 * * *"
     },

@@ -19,6 +19,7 @@
  */
 
 import {
+  BUSINESS_DAY_CADENCES,
   OUTREACH_DAYS_BY_TYPE,
   type CadenceKey,
   type OutreachDay,
@@ -26,7 +27,7 @@ import {
 } from "./cadence";
 import { onStageEnter } from "./state-machine";
 import { getTemplate } from "./templates";
-import { nextBusinessDayET } from "@/lib/business-day";
+import { addBusinessDaysET, nextBusinessDayET } from "@/lib/business-day";
 import type { Contact, StakeholderType } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -145,7 +146,7 @@ export interface SequencerInput {
 }
 
 export interface QueuedTask {
-  task_type: "outreach_email_send" | "outreach_followup_call";
+  task_type: "outreach_email_send" | "outreach_followup_call" | "outreach_contact";
   due_at: Date;
   payload: Record<string, unknown>;
 }
@@ -169,6 +170,17 @@ export interface QueuedTask {
  * provider rows (per-recipient) can both call this function
  * without forking.
  */
+/**
+ * When a cadence day is due. Business-day cadences (the provider follow-up
+ * loop) count working days from launch, so round 4 is eight business days out
+ * and never lands on a weekend. Everything else keeps calendar spacing.
+ */
+function dueDateFor(type: CadenceKey, day: number, now: Date): Date {
+  return BUSINESS_DAY_CADENCES.has(type)
+    ? addBusinessDaysET(now, day)
+    : new Date(now.getTime() + day * DAY_MS);
+}
+
 export function planSequence(input: SequencerInput, now: Date = new Date()): QueuedTask[] {
   const days = OUTREACH_DAYS_BY_TYPE[input.stakeholder_type];
   const tasks: QueuedTask[] = [];
@@ -194,7 +206,50 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
 
     for (const day of days) {
       for (const step of day.steps) {
-        const dueAt = new Date(now.getTime() + day.day * DAY_MS);
+        const dueAt = dueDateFor(input.stakeholder_type, day.day, now);
+        // A contact step is one round: the call and the email travel together
+        // on a single task so the queue lists the provider once and a
+        // half-worked round is visible rather than looking finished.
+        if (step.id === "contact") {
+          for (const r of input.recipients) {
+            const kind = r.recipient_kind ?? "specific";
+            if (kind === "general" && !r.recipient_email) continue;
+            const snap =
+              r.variant === "general"
+                ? generalByDay.get(day.day)
+                : namedByDay.get(day.day);
+            const rawScript = scriptsByDay.get(day.day) ?? "";
+            const script = rawScript.replace(
+              /\{recipient_name\}/g,
+              r.recipient_name || "the right person",
+            );
+            tasks.push({
+              task_type: "outreach_contact",
+              due_at: dueAt,
+              payload: {
+                day: day.day,
+                round: day.day / 2 + 1,
+                label: step.label ?? "Check for a reply, then call and email",
+                // Both halves ride on one payload; each is stamped as logged.
+                script,
+                subject: snap?.subject ?? null,
+                body: snap?.body ?? null,
+                template: snap?.template ?? step.template ?? null,
+                call_logged_at: null,
+                email_logged_at: null,
+                variant: r.variant,
+                recipient_kind: kind,
+                recipient_contact_id: r.contact_id,
+                recipient_name: r.recipient_name,
+                recipient_email: r.recipient_email,
+                recipient_phone: r.recipient_phone,
+                recipient_role: r.recipient_role,
+              },
+            });
+          }
+          continue;
+        }
+
         if (step.channel === "email") {
           for (const r of input.recipients) {
             if (!r.channels.email) continue;
@@ -297,7 +352,25 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
   );
   for (const day of days) {
     for (const step of day.steps) {
-      const dueAt = new Date(now.getTime() + day.day * DAY_MS);
+      const dueAt = dueDateFor(input.stakeholder_type, day.day, now);
+      if (step.id === "contact") {
+        const snap = snapshotByDay.get(day.day);
+        tasks.push({
+          task_type: "outreach_contact",
+          due_at: dueAt,
+          payload: {
+            day: day.day,
+            round: day.day / 2 + 1,
+            label: step.label ?? "Check for a reply, then call and email",
+            subject: snap?.subject ?? null,
+            body: snap?.body ?? null,
+            template: snap?.template ?? step.template ?? null,
+            call_logged_at: null,
+            email_logged_at: null,
+          },
+        });
+        continue;
+      }
       if (step.channel === "email") {
         const snap = snapshotByDay.get(day.day);
         if (!snap) continue;

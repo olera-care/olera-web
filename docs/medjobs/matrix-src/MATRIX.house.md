@@ -105,6 +105,8 @@ by a pre-flight call.
 
 **What the system does on its own:** adding a site pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand.
 
+**The one row that is built by hand.** The directory cannot supply a provider it has never carried, so an agency heard about on a call would otherwise have nowhere to go. The providers list on the Tasks board ends with **Add a provider**, which starts a record from a name alone. It joins the site on the same first rung as every other provider and is worked identically; it simply carries no directory row behind it.
+
 ### ② Procedure
 
 <!--FIG preflight-->
@@ -112,7 +114,17 @@ by a pre-flight call.
 **For a given site, work every provider on it.**
 
 1. **Do the desk research first.** Fill in whatever phone, email and address you can find yourself, from
-   the provider's website, the source link on the row, or **Fill from Website**. Do not call a row you have not looked at.
+   the provider's website, the source link on the row, or **Fill from Website**. Do not call a row you have not looked at. On the Tasks board this desk pass is a rung of its own, named **Research**, and it is ticked on the record rather than logged as a call. Four things have to be true before it is ticked:
+
+   | Check | Against what |
+   |---|---|
+   | The name is the name the agency trades under | Their own website |
+   | The website opens and is theirs | Their own website |
+   | The phone number reaches them | Their own website |
+   | The address is within a **60-minute drive** of campus | Google Maps directions, not straight-line distance |
+
+   A provider outside the 60 minutes is archived here, before anybody calls it. The catchment radius is a net, not a judgement: it is measured as the crow flies and cannot see a mountain, a lake or a freeway.
+
 2. **Call every provider on the site.** The call confirms the research; research alone does not complete
    pre-flight.
 3. **Use the suggested script** shown in the log modal: *"Hi, this is \[your name\] from Dr. DuBose's
@@ -250,6 +262,80 @@ read from**: one entry per attempt, with the operator's name and how long ago. I
 > **A real reply stops the cadence automatically.** The timeline records *"Reply received to \[address\] 
 > cadence stopped,"* so the next move is a manual one. The out-of-office option exists precisely because
 > an auto-reply should not count as one.
+
+**On the Tasks board the first ask is interest, not a meeting**, and the whole of a follow-up round happens on one screen.
+
+Step one is *check their email and your voicemail*: both, because a provider who rang back and got the machine
+has got back to us and the board would never know. Under it sit the two acts a silent round is: **call them**
+and **email them, resending the programme**, each with the way to do it to hand and a tick. The log button
+cannot be pressed until both are done, and then it logs two acts. It used to say *No reply*, which named
+something the provider had not done and recorded nothing that we had.
+
+The other three outcomes sit beside it, on the same screen, with one free-text box for what happened.
+
+| Outcome | What it means | Where the record goes |
+|---|---|---|
+| **No answer** | Nobody picked up; email and call both done | The next round, two business days out |
+| **Left a voicemail** | Same, and they have heard us | The next round, two business days out |
+| **Interested, start onboarding** | Yes, tell me more | **Send the onboarding pack**, today |
+| **Not interested** | They declined | Archived |
+| **Something else** | Anything the first three do not cover | A task in the operator's own words, on the day they pick |
+
+**Something else is the honest fourth outcome.** *Send it to our corporate office. Talk to our RN manager.
+Call me back in March when we budget. We need a W-9 first.* There is no list of those and there never will be,
+so the board takes one at a time: what needs doing, in the operator's words, and the day it comes back. The
+queued task carries that sentence as its own title, so a queue of them reads as work rather than as four rows
+saying *Something else*. It ends the way the reply did: a yes goes to the pack, no answer either way restarts
+the follow-up block, another thing to do queues another one, and a no archives.
+
+There is no longer a *warm but not now* outcome. Once the ask is interest rather than a meeting, interested-later is interested: they get the pack, and the onboarding block does the chasing. The rung that used to hold that state is where *Something else* now sits.
+
+**Interest can be logged wherever it arrives**, including on the confirming call: a provider who says yes on the phone skips the programme email and the whole block rather than being followed up to arrive where they already are.
+
+**The pack is the email that means nobody has to explain it again.** Three things: how the programme works end
+to end; what they are looking for in a caregiver, which they can simply reply with and we will set up on our
+side; and the pilot terms, attached for review. It carries their portal link, and the rung cannot be logged
+without it: but the portal is offered, not required, because a provider who would rather reply in prose is the
+normal case for this audience, not the exception.
+
+**The email states no price.** The attached terms describe the pilot: nothing to sign, no obligation, students
+until a hire works out, and formal terms agreed afterwards rather than now. See **C1**, and **D-011** and
+**D-012**, which between them say why the number lives in the attachment and not in the email: and why putting
+it in the attachment is itself a decision about C1.
+
+**"Not yet" is not offered on a rung that already runs on a cadence.** Putting a follow-up off by two days is what the next round is. It stays on the confirming call, the programme email, the pack, the set-up check and the meeting.
+
+**Then onboarding, which is chasing one sentence.** The pack ends by asking for it: *reply and tell me you are ready to receive your first student and you are clear on what happens when one arrives.* If anything is unclear they reply with the question instead, and we answer it by email.
+
+**Onboarding follow up 1–7** is the same screen as the cold block, because it is the same act: check their
+email and your voicemail, and if nothing has come back, call and email again. Three days apart rather than
+two, because they have already said yes. At the fourth round the rung says to ask straight out on the phone,
+or to offer to set their profile up with them there and then, rather than sending the same thing a fifth time.
+
+**It never archives.** After the seventh round it keeps going on the same cadence. Seven unanswered cold calls is a no; seven unanswered nudges at a provider who has already said yes is not, and losing them over scheduling would be the worst outcome in the funnel.
+
+| Ending | What it means | Where the record goes |
+|---|---|---|
+| **No answer** | Nobody picked up; email and call both done | The next round, three days out |
+| **Left a voicemail** | Same, and they have heard us | The next round, three days out |
+| **They are ready** | They have said so | **The goal**: nothing further |
+| **Not interested** | They have changed their mind | Archived |
+
+**Two things are available on every rung, so neither takes a button.** Under the menu: **Booked a call to
+help**, because a provider can ask to be walked through it at any point and it must never cost them their
+place: the call hands the record straight back, one round on from where it left; and **Something else**, which
+takes whatever they actually asked for in the operator's own words, with the day it comes back and a tick to
+flag it for manager review. A flagged record carries a flag in the list and says to take it to the team in
+Slack. Deferring and closing a record live there too.
+
+**Email first, then the call that refers to it.** A call that arrives before the email is a cold call; one that follows it has something to be about. Both blocks say so in their steps and both log the two acts together.
+
+**A call is a tool, not a stage.** *Help them on a call* is a branch, reached only when somebody books one,
+and most providers never see it. It is fifteen minutes doing whatever is stopping them, usually setting their
+requirements in the portal while you are on the phone, and it ends the same way every other screen does: they
+are ready, or they are not yet and it goes back to chasing.
+
+**The goal is an acknowledgement, not an event.** *Ready for students* is not a rung anybody ticks; it is where the ladder stops when a provider says they understand how students reach them and what to do when one arrives. A call, an email and a meeting are all ways of getting that sentence, and none of them is required.
 
 ### ③ System / handoff
 
@@ -759,6 +845,18 @@ possible.
 | **ST6** | Campus events | We are registered for a named event on a named date | Confirm it is still scheduled and still our date; rebook when it moves | Before each event, then re-book |
 | **ST7** | Professors and class visits | A named professor has agreed to an introduction or a visit | Follow up per professor, with a record of who was contacted, who agreed, and which class was visited | Per professor, then per term |
 
+**ST3, rung by rung.** The job board is the one channel the board works as an explicit ladder, because its steps happen days apart and strictly in order.
+
+| Rung | Done when | What it records |
+|---|---|---|
+| **Research** | you have found where an employer submits a posting at this campus | the job board link, and whoever owns it if anyone does |
+| **Confirm it is submitted** | the listing is with the university | ticks *submitted* |
+| **Confirm it is approved** | the listing is on their board | the listing link; ticks *approved* |
+| **Confirm the first student has applied** | somebody came through it | ticks *visible*, which is what turns the channel live |
+| **Confirm the listing is still live** | seasonally, that a student could still apply | nothing; it is a look |
+
+Research comes first because the reason a job board stalls is almost never the posting. It is that nobody knew where the posting goes, and each campus hides that somewhere different. The two middle rungs carry a two-day reminder rather than waiting to be remembered, since approval sits in somebody else's queue.
+
 **Decision rules.** These are the judgement calls that come up every week. They are settled here so they are not settled differently at each campus.
 
 | Situation | Do this |
@@ -851,6 +949,23 @@ Everything else on the profile makes a student more attractive to a provider. Th
 > *"Recommended but not required,"* and excludes the verification section entirely, which is where the
 > video, the licence and the insurance sit. A student can go live at 5%. The baseline above is the intent;
 > enforcing it is on the deferred list.
+
+**How the operator sees the same student.** Once a student is on a partner campus, they also appear on the
+Tasks board under that university, on a five-rung ladder ending in a hire. Three of the five are not work at
+all: they are facts this stage and the two after it already record, and the board reads them rather than
+asking anybody to confirm them.
+
+| Rung | Who answers it | From what |
+|---|---|---|
+| Meeting with the student | the operator | nothing records it, so somebody has to |
+| Complete their application | **the system** | going live |
+| Get them an interview | **the system** | an interview on the calendar |
+| Confirm hire | **the system** | a placement accepted |
+| Confirm hours worked | the operator | the student, monthly |
+
+**Order stops mattering as a result.** Most students finish their own application without anybody chasing them, and the ladder no longer assumes the meeting came first. A finished application answers its own rung and leaves the meeting to do; an interview or a hire says the earlier rungs happened one way or another, so a student already hired is never queued for an introductory call.
+
+**A rung the system answers is shown as done, never as work.** It sits in its own band on the record, saying who answered it, so the difference between *nobody needs to chase this* and *somebody chased it* is never lost.
 
 **What going live does.** Two things, and the second one is already built:
 

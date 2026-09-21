@@ -90,8 +90,12 @@ export default function AdminRelationshipsPage() {
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500">Providers</p>
-          <h1 className="text-2xl font-semibold text-gray-950">Relationships</h1>
+          {/* The name matches the nav. Two pages called "Relationships",
+              told apart by an eyebrow, meant search returned two identical
+              rows and clicking one landed you somewhere titled neither. The
+              eyebrow went with it: "Providers · Provider Relationships" is
+              the same word twice. */}
+          <h1 className="text-2xl font-semibold text-gray-950">Provider Relationships</h1>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
             Who is due, and who has gone quiet. Every touch on every channel, from anyone. Open the provider for the whole story.
           </p>

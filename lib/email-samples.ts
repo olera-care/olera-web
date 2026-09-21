@@ -15,6 +15,7 @@ import { journeysForCron } from "@/lib/family-comms/journey";
 import {
   // family · compare cascade (coordinator)
   connectionOutcomeCheckEmail,
+  placementCheckEmail,
   archetypeEmail,
   archetypeSubject,
   payingForCareEmail,
@@ -260,6 +261,21 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       yesUrl: "https://olera.care/connection-outcome?v=yes",
       notYetUrl: "https://olera.care/connection-outcome?v=not_yet",
       noUrl: "https://olera.care/connection-outcome?v=no",
+    }),
+  },
+  {
+    id: "family_placement_check", audience: "family", group: "Family · Compare cascade",
+    label: "R1.5 · Placement check", subject: `Did things work out with ${F.providerName}?`,
+    emailType: "family_placement_check", cron: "family-comms-coordinator",
+    timing: "14 days after the family answered \"yes\" to the outcome check",
+    who: "Families who told us the provider got back to them, and nothing since.",
+    why: "\"Yes\" only ever meant the provider called back. It is treated as a terminal success everywhere downstream and permanently stops all other family comms, so this is the one message allowed through that stop — and the only thing that has ever asked whether care actually started. Satisfaction is asked after the tap, on the page, and only of the families who said they are working with the provider.",
+    render: () => placementCheckEmail({
+      unsubscribeUrl: "https://olera.care/unsubscribe/care?id=sample-id",
+      familyName: F.familyName, providerName: F.providerName,
+      workingUrl: "https://olera.care/connection-outcome?p=working",
+      switchedUrl: "https://olera.care/connection-outcome?p=switched",
+      lookingUrl: "https://olera.care/connection-outcome?p=looking",
     }),
   },
   {

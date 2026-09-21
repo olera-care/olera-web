@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
+import { getRoutingPlan } from "@/lib/city-ads/plan.server";
 import { FAMILY_TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type FamilyTouchInput } from "@/lib/seeker-touches/types";
 import {
   loadSeekerRelationships,
@@ -77,7 +78,18 @@ export async function GET(request: NextRequest) {
       }
       const timeline = await loadSeekerTimeline(seeker);
       if (!timeline) return NextResponse.json({ error: "Care seeker not found" }, { status: 404 });
-      return asMarkdown ? md(seekerTimelineToMarkdown(timeline)) : NextResponse.json(timeline);
+      // Where this lead goes next, derived from the same pool the relay reads.
+      // Best effort: a failure here must not take the whole timeline down with
+      // it, since the timeline is the part that is always worth showing.
+      let plan = null;
+      if (timeline.city_lead_id) {
+        try {
+          plan = await getRoutingPlan(getServiceClient(), timeline.city_lead_id);
+        } catch (err) {
+          console.error("[seeker-touches] routing plan failed:", err);
+        }
+      }
+      return asMarkdown ? md(seekerTimelineToMarkdown(timeline)) : NextResponse.json({ ...timeline, plan });
     }
 
     const rows = await loadSeekerRelationships({ days });

@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ORIGIN_LABEL, EPISODE_WORD } from "@/lib/seeker-touches/present";
+import type { PlanStep, RoutingPlan } from "@/lib/city-ads/plan.server";
 import LogFamilyTouch from "@/components/admin/LogFamilyTouch";
 import {
   SEEKER_FLAG_LABEL,
@@ -20,12 +21,59 @@ import {
  * says how it knows — the same rule as the provider timeline.
  */
 
+const PLAN_WORD: Record<RoutingPlan["state"], string> = {
+  accepted: "taken",
+  live: "with a provider now",
+  scheduled: "scheduled",
+  held: "held",
+  exhausted: "nobody left",
+  closed: "closed",
+};
+const PLAN_TONE: Record<RoutingPlan["state"], string> = {
+  accepted: "text-emerald-700",
+  live: "text-blue-700",
+  scheduled: "text-gray-500",
+  held: "text-amber-800",
+  exhausted: "text-red-700",
+  closed: "text-gray-400",
+};
+const STEP_WORD: Record<PlanStep["state"], string> = {
+  accepted: "took it",
+  declined: "declined",
+  expired: "no answer",
+  sent: "waiting on them",
+  upcoming: "not sent yet",
+};
+const STEP_TONE: Record<PlanStep["state"], string> = {
+  accepted: "text-emerald-700",
+  declined: "text-gray-500",
+  expired: "text-gray-500",
+  sent: "text-blue-700",
+  upcoming: "text-gray-400",
+};
+
+/** The relay runs on the city's clock, so the team should read the city's clock. */
+const CITY_TZ: Record<string, string> = {
+  "dallas-tx": "America/Chicago",
+  "charlotte-nc": "America/New_York",
+  "pascagoula-ms": "America/Chicago",
+};
+function cityTime(iso: string, slug: string | null): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: (slug && CITY_TZ[slug]) || "America/New_York",
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(iso));
+}
+
 const FLAG_STYLE: Record<SeekerFlag, string> = {
   awaiting_reply: "bg-rose-50 text-rose-800",
   unreachable: "bg-red-50 text-red-700",
   opted_out: "bg-gray-100 text-gray-600",
   provider_silent: "bg-amber-50 text-amber-800",
-  outcome_reported: "bg-emerald-50 text-emerald-800",
+  provider_no_show: "bg-amber-50 text-amber-800",
   never_human: "bg-gray-100 text-gray-600",
   no_name: "bg-gray-100 text-gray-500",
   promise_owed: "bg-orange-50 text-orange-800",
@@ -71,9 +119,16 @@ function Fact({ label, value, note, tone }: { label: string; value: string; note
   );
 }
 
-export default function AdminSeekerTimelinePage() {
+function AdminSeekerTimelineInner() {
   const { seekerId } = useParams<{ seekerId: string }>();
-  const [data, setData] = useState<SeekerRelationship | null>(null);
+  // The list carries the view it was showing in ?back=, so both ways out of
+  // this page land where you left. The browser button works on its own now
+  // that the list keeps its filters in the URL; this is the same trip for the
+  // link, which would otherwise always dump you on the unfiltered default.
+  const backQuery = useSearchParams().get("back");
+  const backHref = `/admin/relationships/families${backQuery ? `?${backQuery}` : ""}`;
+  // The route returns the timeline plus the routing plan alongside it.
+  const [data, setData] = useState<(SeekerRelationship & { plan?: RoutingPlan | null }) | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [unarchiving, setUnarchiving] = useState(false);
@@ -119,7 +174,7 @@ export default function AdminSeekerTimelinePage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10">
         <p className="text-sm text-red-600">{error}</p>
-        <Link href="/admin/relationships/families" className="mt-3 inline-block text-sm text-teal-700 hover:underline">
+        <Link href={backHref} className="mt-3 inline-block text-sm text-teal-700 hover:underline">
           ← Back to Care Seeker Relationships
         </Link>
       </div>
@@ -131,6 +186,7 @@ export default function AdminSeekerTimelinePage() {
   }
 
   const { profile, reach, consent, episode, flags, providers, items, open_action: openAction } = data;
+  const plan = data.plan ?? null;
 
   async function markActionDone(id: string) {
     setActionError(null);
@@ -152,14 +208,14 @@ export default function AdminSeekerTimelinePage() {
     consent === "opted_out"
       ? { v: "Opted out", n: "no channel is open", tone: "text-red-700" }
       : consent === "olera_only"
-        ? { v: "Olera only", n: "concierge city — no handoff without a spoken yes", tone: "text-amber-800" }
+        ? { v: "Olera only", n: "concierge city — we call them; providers hear from us, not them", tone: "text-amber-800" }
         : consent === "provider_ok"
           ? { v: "Providers OK", n: "they asked to be contacted", tone: "text-gray-900" }
           : { v: "No record", n: "treat as Olera only", tone: "text-gray-500" };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      <Link href="/admin/relationships/families" className="text-xs text-teal-700 hover:underline">
+      <Link href={backHref} className="text-xs text-teal-700 hover:underline">
         ← Care Seeker Relationships
       </Link>
 
@@ -235,6 +291,37 @@ export default function AdminSeekerTimelinePage() {
           note={profile.payment.length ? profile.payment.join(", ") : null}
         />
       </div>
+
+      {/* WHERE IT GOES NEXT. The relay decides one provider at a time, thirty
+          minutes apart, so until now a lead read "Open, day 1" while being two
+          hours from going to three agencies. This is derived from the same pool
+          the relay reads, so it cannot promise something different. */}
+      {plan && (plan.steps.length > 0 || plan.state === "held") && (
+        <div className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-3">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">Where this goes</p>
+            <span className={`font-mono text-[10px] ${PLAN_TONE[plan.state]}`}>{PLAN_WORD[plan.state]}</span>
+          </div>
+          <p className="mt-1.5 text-sm text-gray-800">{plan.reason}</p>
+          {plan.steps.length > 0 && (
+            <ol className="mt-2.5 space-y-1">
+              {plan.steps.map((st) => (
+                <li key={`${st.position}-${st.providerId}`} className="flex flex-wrap items-baseline gap-x-2 text-sm">
+                  <span className="font-mono text-[11px] text-gray-400">{st.position}</span>
+                  <span className={st.state === "upcoming" ? "text-gray-500" : "text-gray-800"}>{st.providerName}</span>
+                  <span className="font-mono text-[11px] text-gray-400">
+                    {/* A projected time is marked, because an early accept or
+                        decline moves everything after it earlier. */}
+                    {st.projected ? "~" : ""}
+                    {cityTime(st.at, data.city_slug)}
+                  </span>
+                  <span className={`font-mono text-[10px] ${STEP_TONE[st.state]}`}>{STEP_WORD[st.state]}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
 
       {providers.length > 0 && (
         <div className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-3">
@@ -332,5 +419,13 @@ export default function AdminSeekerTimelinePage() {
         derived from what already happened.
       </p>
     </div>
+  );
+}
+
+export default function AdminSeekerTimelinePage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-4xl px-4 py-10 text-sm text-gray-400">Loading…</div>}>
+      <AdminSeekerTimelineInner />
+    </Suspense>
   );
 }

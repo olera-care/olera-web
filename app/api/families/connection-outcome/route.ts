@@ -41,8 +41,6 @@ import { findAlternativeProviders } from "@/lib/family-comms/alternatives";
  */
 
 const VALID_VALUES = ["yes", "no", "not_yet"] as const;
-type OutcomeValue = (typeof VALID_VALUES)[number];
-
 const PLACEMENT_VALUES = ["working", "switched", "looking"] as const;
 const SATISFACTION_VALUES = ["good", "mixed", "bad"] as const;
 type Question = "outcome" | "placement" | "satisfaction";
@@ -173,7 +171,8 @@ export async function POST(request: NextRequest) {
 
     // ── CASCADE TRIGGER SEAM ────────────────────────────────────────────────
     // Still looking: either the provider went quiet ("no"/"not_yet") or they got
-    // back and it did not work out ("looking"). Same need, so the same cascade. v1 = matched alternative providers + the benefits finder, returned
+    // back and it did not work out ("looking"). Same need, so the same cascade.
+    // v1 = matched alternative providers + the benefits finder, returned
     // for inline rendering. Future: enqueue auto-outreach to the alternatives,
     // SMS/WhatsApp, concierge handoff, etc.
     const providerCity = toProfile?.city as string | undefined;

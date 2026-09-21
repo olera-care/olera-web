@@ -73,6 +73,7 @@ function ConnectionOutcomeInner() {
   const [status, setStatus] = useState<"loading" | "done" | "error">(valid ? "loading" : "error");
   const [result, setResult] = useState<OutcomeResult | null>(null);
   const [rating, setRating] = useState<string | null>(null);
+  const [rateFailed, setRateFailed] = useState(false);
 
   const record = useCallback(async () => {
     if (!valid) {
@@ -98,16 +99,28 @@ function ConnectionOutcomeInner() {
     }
   }, [valid, cid, value, question]);
 
-  // The second question, fire-and-forget. A failed save must not turn a page
-  // that already thanked them into an error screen, so it never touches status.
+  // The second question. A failure here must not turn a page that already
+  // thanked them into an error screen, so it never touches `status` — but it
+  // must not thank them for an answer that did not save either. On failure the
+  // buttons come back with a quiet line, and tapping again retries.
+  //
+  // A non-ok response resolves rather than throws, so it is checked explicitly.
+  // Catching only network errors would show "thank you" on a 400.
   const rate = useCallback(
-    (v: string) => {
+    async (v: string) => {
       setRating(v);
-      void fetch("/api/families/connection-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cid, value: v, question: "satisfaction" }),
-      }).catch(() => {});
+      setRateFailed(false);
+      try {
+        const res = await fetch("/api/families/connection-outcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cid, value: v, question: "satisfaction" }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+      } catch {
+        setRating(null);
+        setRateFailed(true);
+      }
     },
     [cid],
   );
@@ -166,13 +179,22 @@ function ConnectionOutcomeInner() {
                       {SATISFACTION.map((s) => (
                         <button
                           key={s.value}
-                          onClick={() => rate(s.value)}
+                          onClick={() => void rate(s.value)}
                           className="block w-full px-6 py-3 bg-white text-gray-700 font-medium rounded-xl border border-gray-300 hover:bg-gray-50 transition-colors"
                         >
                           {s.label}
                         </button>
                       ))}
                     </div>
+                    {rateFailed && (
+                      <p className="text-sm text-gray-500 text-center mt-3">
+                        That didn&apos;t save. Tap again, or tell us at{" "}
+                        <a href="mailto:support@olera.care" className="text-primary-600 hover:underline">
+                          support@olera.care
+                        </a>
+                        .
+                      </p>
+                    )}
                   </>
                 )}
               </div>

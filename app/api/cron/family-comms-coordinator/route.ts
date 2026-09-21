@@ -256,7 +256,7 @@ export async function GET(request: NextRequest) {
       skipped: 0,
       dry_run: dryRun,
       byRung: {} as Record<string, number>,
-      stops: { unsubscribed: 0, self_reported_yes: 0, placement_asked: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, send_skipped: 0, send_suppressed: 0, completion_ghost: 0 },
+      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, send_skipped: 0, send_suppressed: 0, completion_ghost: 0 },
     };
     const bump = (rung: string) => {
       counts.byRung[rung] = (counts.byRung[rung] || 0) + 1;
@@ -435,7 +435,11 @@ export async function GET(request: NextRequest) {
           counts.stops.self_reported_yes++;
           continue;
         }
-        counts.stops.placement_asked++;
+        // Nothing is counted here. Every other key in `stops` means "we stopped
+        // and did nothing", and a family counted at this point can still be
+        // dropped by the active-thread guard, by having no address, or by a
+        // failed or capped send. byRung.placement_check is incremented on the
+        // send itself and is the honest number.
       }
       // Active live conversation: provider replied AND family replied, latest activity < 7d.
       const inActiveThread = fam.inquiries.some((c) => {

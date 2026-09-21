@@ -123,6 +123,19 @@ export function stateOf(r: SeekerRelationshipRow): RowState {
  * The one muted line under the name. Everything a glance needs and nothing a
  * glance doesn't: where, how urgent, how they'd pay, where they came from.
  */
+/**
+ * How they arrived, in words. "Provider page" rather than "Organic": a
+ * connection records nothing about acquisition, so we know they enquired from
+ * a provider page and nothing about how they reached it.
+ */
+export const ORIGIN_LABEL: Record<SeekerRelationshipRow["origin"], string> = {
+  city_ad: "City ad",
+  ad_boost: "Ad Boost",
+  benefits: "Benefits",
+  provider_page: "Provider page",
+  unknown: "Unknown",
+};
+
 export function detailLine(r: SeekerRelationshipRow): string {
   const bits: string[] = [];
 
@@ -134,7 +147,6 @@ export function detailLine(r: SeekerRelationshipRow): string {
 
   if (r.payment.length) bits.push(r.payment.join(", "));
 
-  if (r.city_lead_id) bits.push("came from a city ad");
 
   if (r.label_is_fallback) bits.push("no name on file");
 

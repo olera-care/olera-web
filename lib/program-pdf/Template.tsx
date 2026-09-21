@@ -198,16 +198,11 @@ const styles = StyleSheet.create({
 
   // ── page two ──────────────────────────────────────────────────────────
   storyRow: { flexDirection: "row", marginBottom: 34 },
-  storyPhotoWrap: {
-    width: 108,
-    height: 108,
-    borderRadius: 54,
-    overflow: "hidden",
-    marginRight: 18,
-    borderWidth: 2,
-    borderColor: EMERALD_TINT,
-  },
-  storyPhoto: { width: 108, height: 108, objectFit: "cover" },
+  // The radius goes on the image. A wrapper with its own border and
+  // overflow:hidden drew a ring the image did not quite reach, which is what
+  // the flat edges and the hairline on each circle were.
+  storyPhotoWrap: { marginRight: 18 },
+  storyPhoto: { width: 108, height: 108, borderRadius: 54, objectFit: "cover" },
   storyText: { flex: 1 },
   storyQuote: { fontSize: 11.5, color: GRAY_700, lineHeight: 1.65 },
   storyName: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: GRAY_900, marginTop: 11 },
@@ -216,16 +211,8 @@ const styles = StyleSheet.create({
   teamRow: { flexDirection: "row", marginBottom: 14, marginTop: 4 },
   member: { flex: 1 },
   memberGap: { width: 14 },
-  avatarWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    overflow: "hidden",
-    marginBottom: 8,
-    borderWidth: 2,
-    borderColor: EMERALD_TINT,
-  },
-  avatar: { width: 80, height: 80, objectFit: "cover" },
+  avatarWrap: { marginBottom: 8 },
+  avatar: { width: 80, height: 80, borderRadius: 40, objectFit: "cover" },
   avatarFallback: {
     width: 80,
     height: 80,

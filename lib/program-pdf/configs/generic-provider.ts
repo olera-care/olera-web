@@ -24,7 +24,7 @@ export const GENERIC_PROVIDER: ProgramPdfConfig = {
   heroHeadline:
     "Pre-health students, ready to help fill the shifts you need covered.",
   heroSubhead:
-    "Olera recruits and qualifies local pre-health college students and connects them with your agency. You interview and hire the students who fit your needs. Students gain meaningful healthcare experience, and your agency gains another source of reliable caregiver candidates.",
+    "Olera recruits and qualifies local pre-health students \u2014 future nurses, doctors and allied health professionals \u2014 and connects them with your agency. Students gain real healthcare experience, and you gain reliable caregiver candidates.",
   benefits: [
     {
       title: "We recruit the students",
@@ -46,35 +46,35 @@ export const GENERIC_PROVIDER: ProgramPdfConfig = {
   steps: [
     {
       title: "Tell us what you need.",
-      body: "Share your ideal caregiver, preferred shifts, and how many students you may want.",
+      body: "Your ideal caregiver, preferred shifts, and how many students.",
     },
     {
       title: "We send qualified matches.",
-      body: "We recruit and screen students, then send candidates for you to review and interview.",
+      body: "We recruit and screen students, then send candidates to review.",
     },
     {
       title: "You decide who to hire.",
-      body: "You remain the employer and handle your normal hiring, onboarding, and supervision.",
+      body: "You remain the employer and run your normal hiring process.",
     },
   ],
   vetting: [],
   offer: {
-    headline: "Try your first student at no cost.",
+    headline: "Try the program at no cost.",
     ask: "Simply reply \u201cInterested\u201d to the email that included this flyer.",
-    body: "That is all we need to start. We will answer any questions, learn what you are looking for, and set you up to try the program with one student at no cost.",
+    body: "This is all we need to start. We will answer any questions, learn what you are looking for, and set you up with your first student.",
   },
   afterReply: [
     {
       title: "We learn your needs.",
-      body: "We confirm preferred shifts, candidate profile, and any non-negotiables.",
+      body: "Preferred shifts, candidate profile, and any non-negotiables.",
     },
     {
       title: "We send a student.",
-      body: "When a qualified student is available near you, we send a short profile for review.",
+      body: "When one is available near you, we send a short profile.",
     },
     {
       title: "You interview and decide.",
-      body: "If there is a fit, you hire the student through your normal process.",
+      body: "If there is a fit, you hire through your normal process.",
     },
   ],
   story: {
@@ -92,29 +92,29 @@ export const GENERIC_PROVIDER: ProgramPdfConfig = {
       name: "Chantel Wright",
       role: "Lead Program Coordinator",
       email: "chantel@olera.care",
-      bio: "Coordinates provider and student onboarding, qualification, matching, and follow-up.",
+      bio: "Coordinates provider and student onboarding, matching, and follow-up.",
       photo: "chantel",
     },
     {
       name: "Graize Belandres",
       role: "Assistant to Dr. Logan DuBose",
       email: "graize@olera.care",
-      bio: "Supports provider and student communication and program administration.",
+      bio: "Supports provider and student communication and administration.",
       photo: "grazie",
     },
     {
       name: "Sara Conkling",
       role: "Assistant to Dr. Logan DuBose",
       email: "sara@olera.care",
-      bio: "Pre-medical student at Clemson University who supports provider and student coordination.",
+      bio: "Pre-medical student at Clemson who supports provider coordination.",
       photo: "sara",
     },
   ],
   nextStep: {
     heading: "The easiest next step",
     kicker: "No form. No commitment. No pricing decision today.",
-    ask: "Reply \u201cInterested\u201d to the email that included this flyer.",
-    body: "We will answer your questions, learn what kind of caregiver would be useful to your agency, and explain the program. If you would like to try it, we will set you up with your first student at no cost.",
+    ask: "Reply to this email.",
+    body: "We will answer your questions and learn what kind of caregiver would help your agency. If you would like to try the program, we can set you up at no cost.",
   },
   replyBlock: {
     label: "REPLY WITH ONE WORD",

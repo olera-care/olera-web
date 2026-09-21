@@ -114,6 +114,13 @@ export default function UniversityFlow({
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [cheer, setCheer] = useState<string | null>(null);
+  /**
+   * A write the server refused, held until it is dealt with.
+   *
+   * Not a toast. A toast for this is how somebody works twenty providers
+   * believing every one of them saved.
+   */
+  const [failed, setFailed] = useState<string | null>(null);
   const timers = useRef<number[]>([]);
   /** Set when a write that refetches should hand over the next task after. */
   const resume = useRef(false);
@@ -165,15 +172,25 @@ export default function UniversityFlow({
       });
       const json = (await res.json()) as { error?: string } & Record<string, unknown>;
       if (!res.ok) {
-        say(json.error ?? "That did not save");
+        // Sticky, because the screen has usually already moved on. The
+        // board is reloaded too: the server is the truth, and leaving the
+        // optimistic change on screen is what made a rejected write look
+        // like a saved one.
+        setFailed(
+          res.status === 401
+            ? "Your session has expired, so nothing is saving. Reload the page and sign in again — then redo the last step."
+            : `Not saved: ${json.error ?? "the server refused it"}`,
+        );
         opts?.undo?.();
+        void onReload();
         return { ok: false };
       }
+      setFailed(null);
       if (done) say(done);
       if (!opts?.keepBoard) await onReload();
       return { ok: true, data: json };
     } catch {
-      say("Could not reach the server — nothing was saved");
+      setFailed("Could not reach the server, so nothing was saved. Check your connection and redo the last step.");
       opts?.undo?.();
       return { ok: false };
     } finally {
@@ -663,6 +680,29 @@ export default function UniversityFlow({
             setView({ kind: "new", section });
           }}
         />
+      )}
+
+      {failed && (
+        <div className="fixed inset-x-0 top-0 z-[70] flex items-start gap-3 border-b border-error-200 bg-error-50 px-5 py-3 text-[13px] text-error-800 shadow-sm">
+          <span className="flex-1 leading-snug">
+            <b className="font-semibold">Not saved.</b> {failed}
+          </span>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="shrink-0 rounded-md border border-error-300 bg-white px-2.5 py-1 text-[12px] font-medium text-error-800 hover:bg-error-100"
+          >
+            Reload
+          </button>
+          <button
+            type="button"
+            onClick={() => setFailed(null)}
+            aria-label="Dismiss"
+            className="shrink-0 px-1 text-error-500 hover:text-error-800"
+          >
+            ×
+          </button>
+        </div>
       )}
 
       {toast && (

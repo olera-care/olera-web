@@ -907,13 +907,46 @@ export function isCheck(task: BoardTask): boolean {
   return rungAt(task.section, task.step, task.round)?.check === true;
 }
 
+/**
+ * Where this rung's copy lives in the master scripts document.
+ *
+ * Read off the raw rung, never the one `rungAt` resolved. A rounds block is
+ * one section of the document however many rounds it has, and its resolved
+ * title carries the round number — so resolving first would send Follow up 3
+ * to an anchor that does not exist.
+ *
+ * It must agree with the slugs seeded by migration 239. Changing it orphans
+ * every link into the document.
+ */
+export function scriptSlug(section: SectionKey, step: number): string | null {
+  const rung = LADDERS[section].steps[step] as
+    | { name?: string; branch?: string; title?: string }
+    | undefined;
+  if (!rung) return null;
+  const key =
+    rung.name ??
+    rung.branch ??
+    (rung.title ?? `step-${step}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  return `${section}-${key}`;
+}
+
 /** The title shown for a task, follow-up numbering and all. */
 export function taskTitle(task: BoardTask): string {
   if (task.resched) return `Reschedule round ${task.resched}`;
+  const rung = rungAt(task.section, task.step, task.round);
   // An errand names itself. "Something else" on a queue of them tells an
   // operator nothing, and the whole point of the rung is that we could not
   // have known what it would be.
+  //
+  // Only on the errand rung, though. The outcome that queues an errand
+  // stores what was typed on the task it closes as well, so any finished
+  // rung that had produced one took the errand's name: the history showed
+  // the typed text struck through with "Something else" in bold under it,
+  // the errand twice over, and no sign of the rung it actually came from.
   const todo = (task.fields?.todo ?? "").trim();
-  if (todo) return todo;
-  return rungAt(task.section, task.step, task.round)?.title ?? "Task";
+  if (todo && rung?.branch === "errand") return todo;
+  return rung?.title ?? "Task";
 }

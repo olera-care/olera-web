@@ -505,20 +505,24 @@ export function noAnswerOutcomes(
       hint: "Message left, so they have heard us. Both logged, and the next round is queued.",
     },
     {
-      // You reached a person and they undertook to ring back. That is not a
-      // round spent: "repeat" returns this same round rather than advancing
-      // it, so somebody who is being passed up the chain internally does not
-      // burn through the seven while we wait for them.
+      // You reached a person and they undertook to ring back. The round
+      // advances like any other follow-up. It repeated itself at first, on
+      // the reasoning that a promise is not a round spent — but a rung that
+      // returns to itself writes two identical "Follow up 2" lines into the
+      // history with nothing to tell them apart, and a provider who keeps
+      // promising can never reach the end of the block.
       //
-      // It is not a strike either. A strike is a dead line; this is a live
-      // one with somebody on the other end who has agreed to use it.
+      // It is not a strike, though. A strike is a dead line; this is a live
+      // one with somebody on the other end who has agreed to use it. So it
+      // costs a round and not a strike, and waits a day longer than a
+      // voicemail before the next one to give them the room they asked for.
       label: "They will call back",
-      outcome: "repeat",
+      outcome: "next",
       delay: delay + 1,
       acts,
       ...(actLabels ? { actLabels } : {}),
       ...(carry ? { carry } : {}),
-      hint: "Somebody took it on and said they would ring. This round comes back in a few days if they have not.",
+      hint: "Somebody took it on and said they would ring. The next follow-up is queued a day later than usual to leave them room.",
     },
   ];
 }
@@ -824,28 +828,26 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         what: "The first email to this provider, sent by you from your own inbox.",
         why: "It comes from a real person, so replies land in your inbox.",
         steps: ["Copy the email below.", "Check the flyer link opens.", "Send it, then log it."],
-        // Short, and asking for one thing. It used to close by asking for
-        // fifteen minutes, which is the largest thing we want from a
-        // provider requested before they have agreed to the smallest. The
-        // detail lives in the onboarding pack, which goes out once they
-        // have said yes — so this email only has to earn a reply.
+        // The email that is actually being sent, as of 21 September, rather
+        // than the one that was written for the rung. It earned replies from
+        // the Bloomington agencies in a morning. The opening line names who
+        // gave you the address, which is what gets it read past line one —
+        // so the confirming call has to come back with a name, not just an
+        // address.
         email: {
-          subject: "Pre-health students looking for caregiving shifts — {university}",
-          body: `Hi {first},
+          subject: "Student Caregiver Program — {university} pre-health students",
+          body: `Good afternoon {first},
 
-I am writing from Dr. Logan DuBose's office about the Student Caregiver Program at {university}.
+I hope you are well. [Name] provided me with your contact information to share information about our Student Caregiver Program for {university} pre-health students. I am the Director of the program and would like to invite {org} to participate.
 
-We work with pre-health students — pre-med, pre-nursing, pre-PA — who want paid, hands-on caregiving experience before they apply to professional school. They are motivated, they are local, and they are looking for shifts that fit around their classes.
+The program may be of service to {org} by establishing a pipeline of talented pre-healthcare professions students from {university} who are seeking eldercare experience as they prepare for careers as doctors, nurses, and healthcare professionals.
 
-They come to you screened. You interview and hire the ones you want, on your own terms, and there is nothing to sign to start.
+Please see the attached 2-page document for some program details. If you are interested in learning more about participating or have any initial questions, please let me know, and I can send over more answers and provide additional information on how we could get started working together.
 
-One-page overview: {flyer}
-
-Would you like to hear more? A reply is enough and I will send you everything.
+Thank you for your service to the community. Have a great day!
 
 Best,
-[your name]
-Dr. Logan DuBose's office · Olera`,
+[your name]`,
         },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2 }, BOOK_CALL],
       },

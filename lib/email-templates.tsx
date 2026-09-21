@@ -6817,6 +6817,13 @@ export function cityOfferEmail(opts: {
   paymentLabel?: string | null;
   minutes: number;
   offerUrl: string;
+  /**
+   * What the family wrote, already redacted of any contact details she typed
+   * herself. Carries no name: this email goes out before anyone has claimed
+   * the request, and names and numbers move only on a YES.
+   */
+  askedQuestion?: string | null;
+  familySaid?: string[];
 }): string {
   const bits = [
     `${cap(opts.careLabel)} for ${opts.recipientLabel}`,
@@ -6827,6 +6834,7 @@ export function cityOfferEmail(opts: {
     .filter(Boolean)
     .map((b) => escapeHtml(String(b)))
     .join(" &middot; ");
+  const said = (opts.familySaid ?? []).filter((line) => line.trim().length > 0);
   return layout(
     `
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${escapeHtml(opts.city)}</p>
@@ -6834,6 +6842,12 @@ export function cityOfferEmail(opts: {
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 16px;">
       <p style="font-size:15px;color:#111827;margin:0;line-height:1.6;">${bits}</p>
     </div>
+    ${said.length ? `
+    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">In their words</p>
+      ${opts.askedQuestion ? `<p style="font-size:13px;color:#6b7280;margin:0 0 8px;line-height:1.5;">We asked: ${escapeHtml(opts.askedQuestion)}</p>` : ""}
+      ${said.map((line) => `<p style="font-size:15px;color:#111827;background:#f9fafb;border-radius:8px;padding:10px 12px;margin:0 0 8px;line-height:1.6;">&ldquo;${escapeHtml(line)}&rdquo;</p>`).join("")}
+    </div>` : ""}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">You have <b>${opts.minutes} minutes</b>. After that we ask the next provider too.</p>
     <div>${button("Take this family", opts.offerUrl)}</div>
     <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.6;">Can&rsquo;t take it? <a href="${opts.offerUrl}" style="color:#6b7280;text-decoration:underline;">Pass</a></p>`,

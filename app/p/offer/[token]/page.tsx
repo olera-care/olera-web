@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getServiceClient } from "@/lib/admin";
 import { validateCityOfferToken } from "@/lib/claim-tokens";
+import { getLeadExchange, type ExchangeTurn } from "@/lib/city-ads/exchange.server";
 import { CARE_LABEL, PAYMENT_LABEL, RECIPIENT_LABEL, URGENCY_LABEL, formatUSPhone, getCityConfig, hourIn } from "@/lib/city-ads/config";
 
 /**
@@ -32,6 +33,11 @@ export default async function OfferPage({ params }: { params: Promise<Params> })
   ]);
   if (!lead) return <Shell title="This request is no longer available">Nothing to do.</Shell>;
 
+  // The family's own words. Read before the branches below because every
+  // state wants them: deciding, already taken, and passed all read better with
+  // the thing she actually said than with a generated summary line.
+  const exchange = await getLeadExchange(db, lead);
+
   const cfg = getCityConfig(lead.slug);
   const city = cfg?.city ?? lead.slug;
   const careLabel = CARE_LABEL[lead.care_type as keyof typeof CARE_LABEL] ?? "care";
@@ -50,6 +56,8 @@ export default async function OfferPage({ params }: { params: Promise<Params> })
     </div>
   );
 
+  const words = <Exchange turns={exchange} />;
+
   // 1. Taken by this provider: the details.
   if (offer.accepted_at && lead.accepted_offer_id === offer.id) {
     return (
@@ -66,8 +74,8 @@ export default async function OfferPage({ params }: { params: Promise<Params> })
             {pay ? ` · ${pay}` : ""}
             {lead.zip ? ` · ZIP ${lead.zip}` : ""}
           </div>
-          {lead.note && <p className="mt-3 rounded-lg bg-white px-3 py-2 text-sm text-gray-700">“{lead.note}”</p>}
         </div>
+        {words}
         <p className="mt-4 text-sm text-gray-600">
           We told {lead.first_name} to expect your call {callBy}. We will check with them tomorrow, and pass the request to another provider if they have not heard from you.
         </p>
@@ -121,6 +129,7 @@ export default async function OfferPage({ params }: { params: Promise<Params> })
   return (
     <Shell title={`A family in ${city} needs ${careLabel}`} eyebrow={`Olera · offered to ${providerName}`}>
       {summary}
+      {words}
       <p className="mt-3 text-sm text-gray-600">
         {late
           ? "The next provider has been asked too, but if nobody has taken it yet, you still can."
@@ -137,6 +146,32 @@ export default async function OfferPage({ params }: { params: Promise<Params> })
       </form>
       <p className="mt-4 text-xs text-gray-500">Free during the pilot. Olera does not sell this request. Questions: support@olera.care.</p>
     </Shell>
+  );
+}
+
+/**
+ * What the family actually wrote.
+ *
+ * No name and no contact details: this renders before a provider has claimed
+ * the request, and the relay's whole premise is that those move only on a YES.
+ * getLeadExchange redacts anything the family typed into the body herself.
+ */
+function Exchange({ turns }: { turns: ExchangeTurn[] }) {
+  const said = turns.filter((t) => t.who === "family");
+  if (said.length === 0) return null;
+  const asked = turns.find((t) => t.who === "olera");
+  return (
+    <div className="mt-3 rounded-xl border border-gray-200 bg-white p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">In their words</p>
+      {asked && <p className="mt-2 text-sm text-gray-500">We asked: {asked.text}</p>}
+      <div className="mt-2 grid gap-2">
+        {said.map((t, i) => (
+          <p key={i} className="rounded-lg bg-gray-50 px-3 py-2 text-[15px] leading-relaxed text-gray-900">
+            &ldquo;{t.text}&rdquo;
+          </p>
+        ))}
+      </div>
+    </div>
   );
 }
 

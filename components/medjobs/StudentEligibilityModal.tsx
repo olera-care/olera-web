@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { IntendedProfessionalSchool } from "@/lib/types";
 import type { CoverageBucket } from "@/lib/medjobs/student-eligibility";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import Select from "@/components/ui/Select";
 
 /**
  * StudentEligibilityModal — the student funnel front door (mirror of the
@@ -94,6 +95,12 @@ export default function StudentEligibilityModal({
   }, []);
 
   const reassurance = Q1.find((q) => q.value === track)?.reassure;
+
+  // Convert partner universities to Select options format
+  const universityOptions = useMemo(
+    () => PARTNER_UNIVERSITIES.map((u) => ({ value: u.slug, label: u.name })),
+    []
+  );
 
   const toggleBucket = (b: CoverageBucket) =>
     setBuckets((cur) => (cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b]));
@@ -316,21 +323,20 @@ export default function StudentEligibilityModal({
               autoComplete="name"
             />
             <p className="mt-3 text-sm font-medium text-gray-800">Your university:</p>
-            <select
-              value={university}
-              onChange={(e) => {
-                setUniversity(e.target.value);
-                if (error) setError(null);
-              }}
-              className={fieldClass + " mt-2"}
-            >
-              <option value="">Select your university</option>
-              {PARTNER_UNIVERSITIES.map((u) => (
-                <option key={u.slug} value={u.slug}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+            <div className="mt-2">
+              <Select
+                options={universityOptions}
+                value={university}
+                onChange={(val) => {
+                  setUniversity(val);
+                  if (error) setError(null);
+                }}
+                placeholder="Select your university"
+                searchable
+                searchPlaceholder="Search universities..."
+                size="lg"
+              />
+            </div>
             <p className="mt-3 text-sm font-medium text-gray-800">Add your university email to get started:</p>
             <input
               type="email"

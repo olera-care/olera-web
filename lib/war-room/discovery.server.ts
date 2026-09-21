@@ -50,7 +50,7 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
 // Bump whenever prompt text changes. Every run row and every failure
 // diagnostic is stamped with this, so leaving it alone after editing a prompt
 // makes runs before and after the change indistinguishable in the data.
-export const WAR_ROOM_PROMPT_VERSION = "cortex-v7-instruments-clear-the-gate";
+export const WAR_ROOM_PROMPT_VERSION = "cortex-v8-commission-the-work";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;
@@ -954,6 +954,122 @@ async function runTriagePass(
  * inherited rather than re-asked, so a proposal cannot quietly contradict the
  * condition it came from, and the compiled schema stays inside budget.
  */
+/**
+ * The most material condition that is blocked on evidence rather than judgement.
+ *
+ * `needs_evidence` was the reason code on seven of eight assessments on
+ * 2026-09-21 and it routed every one of them to silent investigation. It is
+ * the trigger for commissioning work, not a reason to wait.
+ */
+function pickCommissionCandidate(
+  triage: WarRoomTriageCheckpoint,
+  investigator: WarRoomInvestigatorCheckpoint,
+): InvestigationDraft | null {
+  const blocked = (triage.rawTriageOutput.assessments ?? [])
+    .filter((assessment) => assessment.reasonCode === "needs_evidence")
+    .map((assessment) => assessment.fingerprint);
+  const candidates = investigator.provisionalInvestigations.filter((investigation) =>
+    blocked.includes(investigation.fingerprint)
+    // Match the gate's `material` test exactly. Commissioning a medium or
+    // adjacent condition buys a model call that cannot pass, which is paying
+    // to be rejected.
+    && investigation.impact === "high"
+    && investigation.strategicFit === "central"
+    // The rest of the gate, checked before spending the call rather than
+    // after. Measured against live data on 2026-09-21: 7 of 9 high-central
+    // conditions clear these, and the 2 that cannot are lens-retained rows
+    // with no options and no recorded capabilities. Drafting against one of
+    // those is paying to be rejected.
+    && (investigation.options?.length ?? 0) >= 2
+    && (investigation.existingCapabilities ?? []).some((item) => item.trim().length >= 20)
+    // Only commission against a condition that actually names something to
+    // resolve. Without an unknown there is nothing for an instrument to answer.
+    && (investigation.unknowns ?? []).some((unknown) => unknown.trim().length >= 12));
+  if (!candidates.length) return null;
+  const score = (investigation: InvestigationDraft) =>
+    (investigation.impact === "high" ? 2 : investigation.impact === "medium" ? 1 : 0)
+    + (investigation.strategicFit === "central" ? 2 : investigation.strategicFit === "adjacent" ? 1 : 0);
+  return [...candidates].sort((a, b) => score(b) - score(a))[0] ?? null;
+}
+
+/**
+ * The second nomination path: commission the work instead of deciding.
+ *
+ * Drafting only ever ran when triage nominated a condition for the *founder
+ * agenda*, and on 2026-09-21 triage nominated nothing on any scan. Eight
+ * assessments, seven `needs_evidence`, one `monitor`, zero agenda. So no
+ * drafting call was made at all, and every downstream improvement -- the
+ * instrument route through the gate, the delivery of approved non-code work --
+ * sat behind a step that had never fired in the system's history.
+ *
+ * `needs_evidence` was being read as a reason to defer. It is the opposite: it
+ * is the precise trigger for commissioning the work that produces the
+ * evidence. The dispositions are agenda, watchlist, investigate and drop, and
+ * none of them means "go get the answer", so a condition could be correctly
+ * judged not-yet-decidable and then sit for 42 scans.
+ *
+ * Cortex said as much itself the same day: "All are read-only probes with a
+ * one-pull-request blast radius and zero founder minutes", and "Zero founder
+ * minutes requested this scan; the one time-boxed act that matters is the
+ * calling."
+ *
+ * A commission is not a decision brief and must not read like one. It asks for
+ * the smallest bounded act that resolves one named unknown, who does it, and
+ * how its answer will be read. It may be repository work or a human act, and
+ * the model is told plainly that a human act with a named owner is often the
+ * right answer -- because the founder is frequently the wrong actor.
+ */
+async function runCommissionPass(
+  operatingPack: ReturnType<typeof buildOperatingPack>,
+  investigator: WarRoomInvestigatorCheckpoint,
+  commissioned: InvestigationDraft,
+) {
+  const call = await callWarRoomTool<ProposalToolOutput>({
+    stage: "drafting_decision",
+    system: COUNCIL_SYSTEM,
+    tool: WIRE_PROPOSAL_TOOL,
+    maxTokens: 12_000,
+    prompt: `This condition is real and material, and it is NOT decidable yet: its cause is unresolved and it needs evidence. Do not write a decision brief and do not ask the founder to choose anything.
+
+Commission the smallest bounded act that would resolve ONE named unknown on it. Name that unknown explicitly in the finding.
+
+Rules:
+- The act may be repository work (actionKind "code"), or a human act (actionKind "operations", "research", "business_development" or "content"). A human act with a named owner is very often the right answer.
+- Set assignedOwner to whoever should do it. The founder is usually the wrong actor: he is at UTC+7, and calling providers is owned by the calling team. Leave assignedOwner null ONLY for repository work, where the executor is the owner.
+- successMeasure must say how the answer will be read, in a sentence someone could check.
+- cheapestFalsification must say how we would find out cheaply that this was the wrong act.
+- founderAttentionMinutes should be the minutes it costs him to APPROVE it, not to do it. For a well-specified commission that is small.
+- Prefer reversible and small. A large act needs a settled cause, which this condition does not have.
+
+CONDITION:\n${JSON.stringify(commissioned)}
+
+COUNCIL CONTEXT:
+${JSON.stringify(councilContextFor(operatingPack))}
+
+CHIEF-OF-STAFF READ:
+${investigator.rawInvestigatorOutput.portfolioRead}`,
+  });
+  const brief = call.output?.brief ?? {};
+  const execution = call.output?.execution ?? {};
+  return {
+    proposal: {
+      ...brief,
+      ...execution,
+      fingerprint: interventionFingerprint(commissioned.fingerprint, brief?.actionKind),
+      sourceInvestigationFingerprint: commissioned.fingerprint,
+      domain: commissioned.domain,
+      impact: commissioned.impact,
+      urgency: commissioned.urgency,
+      strategicFit: commissioned.strategicFit,
+      existingCapabilities: commissioned.existingCapabilities ?? [],
+      capabilityEvidenceIds: commissioned.capabilityEvidenceIds ?? [],
+      counterEvidence: commissioned.counterEvidence ?? "",
+    } as unknown as AgendaProposalDraft,
+    inputTokens: call.inputTokens,
+    outputTokens: call.outputTokens,
+  };
+}
+
 async function runProposalPass(
   operatingPack: ReturnType<typeof buildOperatingPack>,
   investigator: WarRoomInvestigatorCheckpoint,
@@ -1934,6 +2050,24 @@ export async function challengeWarRoomDiscovery(
       proposals = [drafted.proposal];
       inputTokens += drafted.inputTokens;
       outputTokens += drafted.outputTokens;
+    } else {
+      // Nothing is decidable, which is the normal case and was previously the
+      // end of the scan. It is not the end: a condition that needs evidence
+      // needs someone to go and get it. Commission the single most material
+      // one rather than re-observing it tomorrow for the forty-third time.
+      //
+      // Deliberately capped at one, like the founder agenda, so this cannot
+      // become a daily list nobody works. And deliberately the same proposal
+      // pipeline, so a commission still has to clear the gate, still gets an
+      // owner, still gets measured, and can still be rejected in one click.
+      const commissioned = pickCommissionCandidate(triage, investigator);
+      if (commissioned) {
+        await updateDiscoveryStage(db, runId, "drafting_decision", { stage_attempt: attempt });
+        const drafted = await runCommissionPass(operatingPackFor(prepared), investigator, commissioned);
+        proposals = [drafted.proposal];
+        inputTokens += drafted.inputTokens;
+        outputTokens += drafted.outputTokens;
+      }
     }
     const rawCouncilOutput: CouncilOutput = { ...triage.rawTriageOutput, proposals };
     const { error: checkpointError } = await db.from("war_room_discovery_runs").update({

@@ -4,7 +4,8 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
-import { EMPLOYER_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
+import { EMPLOYER_AGREEMENT_URL, type DemandProfile } from "@/lib/medjobs/eligibility";
+import type { MedjobsRequirements } from "@/lib/medjobs/hiring-needs-questions";
 
 export interface ScheduleFormData {
   type: "video" | "in_person" | "phone";
@@ -14,6 +15,16 @@ export interface ScheduleFormData {
   altTime?: string;
   notes?: string;
   termsAccepted?: boolean;
+}
+
+/** Job details snapshot sent with interview and stored in interviews.metadata. */
+export interface JobDetails {
+  hourly_rate?: number;
+  job_description?: string;
+  coverage_buckets?: DemandProfile["coverage_buckets"];
+  demand_shape?: DemandProfile["demand_shape"];
+  prn_open?: DemandProfile["prn_open"];
+  requirements?: MedjobsRequirements;
 }
 
 interface ScheduleInterviewModalProps {
@@ -33,6 +44,8 @@ interface ScheduleInterviewModalProps {
   initialValues?: ScheduleFormData;
   /** Called when interview scheduled but pending verification (student not notified yet) */
   onScheduledUnverified?: () => void;
+  /** Provider's hiring defaults — job description pre-fills Notes, all fields stored with interview. */
+  jobDetails?: JobDetails;
 }
 
 const FORMAT_OPTIONS: { value: "video" | "phone" | "in_person"; label: string }[] = [
@@ -220,14 +233,17 @@ export default function ScheduleInterviewModal({
   onAuthRequired,
   initialValues,
   onScheduledUnverified,
+  jobDetails,
 }: ScheduleInterviewModalProps) {
+  // Pre-fill notes with job description if provided and no initial notes
+  const defaultNotes = initialValues?.notes ?? jobDetails?.job_description ?? "";
   const [type, setType] = useState<"video" | "in_person" | "phone">(initialValues?.type ?? "video");
   const [date, setDate] = useState(initialValues?.date ?? "");
   const [time, setTime] = useState(initialValues?.time ?? "");
   const [showAltTime, setShowAltTime] = useState(!!initialValues?.altDate);
   const [altDate, setAltDate] = useState(initialValues?.altDate ?? "");
   const [altTime, setAltTime] = useState(initialValues?.altTime ?? "");
-  const [notes, setNotes] = useState(initialValues?.notes ?? "");
+  const [notes, setNotes] = useState(defaultNotes);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -291,6 +307,8 @@ export default function ScheduleInterviewModal({
           proposedTime,
           alternativeTime,
           notes: notes.trim() || undefined,
+          // Include job details snapshot for storage in interview metadata
+          jobDetails: jobDetails || undefined,
         }),
       });
       const data = await res.json();

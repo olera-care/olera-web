@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import ScheduleInterviewModal, { type JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
 import TermsModal from "@/components/medjobs/TermsModal";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { DEMAND_PROFILE_KEY, type DemandProfile } from "@/lib/medjobs/eligibility";
+import { REQUIREMENTS_KEY, type MedjobsRequirements } from "@/lib/medjobs/hiring-needs-questions";
 import type { StudentMetadata } from "@/lib/types";
 
 const DUBOSE_AVATAR = "/images/for-providers/team/logan.jpg";
@@ -46,15 +48,32 @@ export default function ContactSection({
   const providerProfile = profiles.find(
     (p) => p.type === "organization" || p.type === "caregiver",
   );
+  const providerMeta = useMemo(
+    () => (providerProfile?.metadata ?? {}) as Record<string, unknown>,
+    [providerProfile?.metadata]
+  );
   // Derive terms-accepted from the live profile metadata every render (not a
   // one-time useState seed) so it stays correct across candidate pages once the
   // provider has agreed anywhere. `agreedLocally` covers the same-page moment
   // right after agreeing, before the auth refresh propagates.
-  const termsAcceptedFromMeta = !!(
-    (providerProfile?.metadata as Record<string, unknown> | undefined)?.["interview_terms_accepted_at"]
-  );
+  const termsAcceptedFromMeta = !!providerMeta["interview_terms_accepted_at"];
   const [agreedLocally, setAgreedLocally] = useState(false);
   const termsAccepted = agreedLocally || termsAcceptedFromMeta;
+
+  // Extract hiring defaults to pass to the schedule modal
+  const jobDetails = useMemo((): JobDetails | undefined => {
+    const demand = providerMeta[DEMAND_PROFILE_KEY] as Partial<DemandProfile> | undefined;
+    const requirements = providerMeta[REQUIREMENTS_KEY] as MedjobsRequirements | undefined;
+    if (!demand && !requirements) return undefined;
+    return {
+      hourly_rate: demand?.hourly_rate,
+      job_description: demand?.job_description,
+      coverage_buckets: demand?.coverage_buckets,
+      demand_shape: demand?.demand_shape,
+      prn_open: demand?.prn_open,
+      requirements,
+    };
+  }, [providerMeta]);
 
   const firstName = candidate.displayName.split(" ")[0];
 
@@ -125,6 +144,7 @@ export default function ContactSection({
       otherName={candidate.displayName}
       onClose={() => setShowSchedule(false)}
       onScheduled={() => setShowSchedule(false)}
+      jobDetails={jobDetails}
     />
   ) : null;
   const termsModal = showTerms ? (

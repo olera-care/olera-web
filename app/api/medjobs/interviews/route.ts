@@ -104,6 +104,7 @@ export async function POST(request: NextRequest) {
       location,
       notes,
       termsAcceptedAt,
+      jobDetails,
     } = body;
 
     if (!proposedTime || (!studentProfileId && !providerProfileId)) {
@@ -213,7 +214,8 @@ export async function POST(request: NextRequest) {
       studentProfile = callerStudent as typeof studentProfile;
     }
 
-    // Create the interview
+    // Create the interview with job_details snapshot if provided
+    const interviewMetadata = jobDetails ? { job_details: jobDetails } : undefined;
     const { data: interview, error: insertError } = await admin
       .from("interviews")
       .insert({
@@ -227,6 +229,7 @@ export async function POST(request: NextRequest) {
         notes: notes || null,
         proposed_by: proposedById,
         is_pending_verification: isPendingVerification,
+        metadata: interviewMetadata,
       })
       .select("id")
       .single();
@@ -416,6 +419,7 @@ export async function POST(request: NextRequest) {
               alternativeTime: formattedAltTime,
               notes: notes || null,
               viewUrl,
+              hourlyRate: jobDetails?.hourly_rate,
             }),
             emailType: "interview_proposed",
             recipientType: recipientIsStudent ? "student" : "provider",
@@ -702,6 +706,8 @@ export async function PATCH(request: NextRequest) {
 
         // Notify the recipient about the new proposed time
         if (recipient.email) {
+          // Read hourly rate from stored job details (if present)
+          const storedJobDetails = (interview.metadata as { job_details?: { hourly_rate?: number } } | null)?.job_details;
           await sendEmail({
             to: recipient.email,
             subject: `New interview time proposed by ${proposerName}`,
@@ -712,6 +718,7 @@ export async function PATCH(request: NextRequest) {
               alternativeTime: null,
               notes: interview.notes || null,
               viewUrl: recipientViewUrl,
+              hourlyRate: storedJobDetails?.hourly_rate,
             }),
             emailType: "interview_proposed",
             recipientType: callerIsProvider ? "student" : "provider",

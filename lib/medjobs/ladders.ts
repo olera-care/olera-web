@@ -505,20 +505,24 @@ export function noAnswerOutcomes(
       hint: "Message left, so they have heard us. Both logged, and the next round is queued.",
     },
     {
-      // You reached a person and they undertook to ring back. That is not a
-      // round spent: "repeat" returns this same round rather than advancing
-      // it, so somebody who is being passed up the chain internally does not
-      // burn through the seven while we wait for them.
+      // You reached a person and they undertook to ring back. The round
+      // advances like any other follow-up. It repeated itself at first, on
+      // the reasoning that a promise is not a round spent — but a rung that
+      // returns to itself writes two identical "Follow up 2" lines into the
+      // history with nothing to tell them apart, and a provider who keeps
+      // promising can never reach the end of the block.
       //
-      // It is not a strike either. A strike is a dead line; this is a live
-      // one with somebody on the other end who has agreed to use it.
+      // It is not a strike, though. A strike is a dead line; this is a live
+      // one with somebody on the other end who has agreed to use it. So it
+      // costs a round and not a strike, and waits a day longer than a
+      // voicemail before the next one to give them the room they asked for.
       label: "They will call back",
-      outcome: "repeat",
+      outcome: "next",
       delay: delay + 1,
       acts,
       ...(actLabels ? { actLabels } : {}),
       ...(carry ? { carry } : {}),
-      hint: "Somebody took it on and said they would ring. This round comes back in a few days if they have not.",
+      hint: "Somebody took it on and said they would ring. The next follow-up is queued a day later than usual to leave them room.",
     },
   ];
 }

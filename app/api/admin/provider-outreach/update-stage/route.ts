@@ -425,26 +425,27 @@ export async function POST(request: NextRequest) {
         .map((t) => t.id);
 
       if (remainingIds.length > 0) {
-        // Also update city/state from provider details to ensure consistency
-        // This fixes cases where tracking record has stale/wrong location data
+        // Update each provider individually to ensure city/state is always set correctly
+        // This is critical for city broadcasts which filter by city
         const remainingItems = toUpdate.filter((t) => !reEngageIds.has(t.id));
+
         for (const item of remainingItems) {
           const providerDetails = providerMap.get(item.provider_id);
-          if (providerDetails && remainingItems.length === 1) {
-            // Only set city/state if updating a single provider (bulk updates might have mixed states)
-            baseUpdateData.city = providerDetails.city;
-            baseUpdateData.state = providerDetails.state;
+          const updateData = {
+            ...baseUpdateData,
+            // Always update city/state from provider details to ensure consistency
+            ...(providerDetails && { city: providerDetails.city, state: providerDetails.state }),
+          };
+
+          const { error: updateError } = await db
+            .from("provider_outreach_tracking")
+            .update(updateData)
+            .eq("id", item.id);
+
+          if (updateError) {
+            console.error("[provider-outreach/update-stage] Update error for provider:", item.provider_id, updateError);
+            // Continue with other providers instead of failing the whole batch
           }
-        }
-
-        const { error: updateError } = await db
-          .from("provider_outreach_tracking")
-          .update(baseUpdateData)
-          .in("id", remainingIds);
-
-        if (updateError) {
-          console.error("[provider-outreach/update-stage] Update error:", updateError);
-          return NextResponse.json({ error: "Failed to update tracking records" }, { status: 500 });
         }
       }
     }

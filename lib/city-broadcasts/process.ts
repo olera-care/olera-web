@@ -278,51 +278,53 @@ async function findNewPoolMembers(): Promise<
     .from("city_broadcast_recipients")
     .select("provider_id");
 
-  const alreadyProcessedIds = (alreadyProcessed || []).map((r) => r.provider_id);
+  const alreadyProcessedIds = new Set((alreadyProcessed || []).map((r) => r.provider_id));
 
-  // Find providers in broadcast_ready who haven't received any broadcast yet
-  // Filter at the database level to ensure we get unprocessed providers within BATCH_SIZE
-  let query = db
+  // Find providers in broadcast_ready stage
+  // We don't filter by city here because tracking.city might be NULL due to a bug
+  // where bulk stage updates didn't copy city/state. We'll get city from olera-providers.
+  const { data: trackingRows, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, city, state")
+    .select("provider_id")
     .eq("stage", "broadcast_ready")
-    .not("city", "is", null); // Must have a city
-
-  // Exclude already-processed providers at the DB level
-  // Cast to any to avoid TypeScript's "excessively deep" error with Supabase's recursive generics
-  if (alreadyProcessedIds.length > 0) {
-    query = (query as any).not("provider_id", "in", `(${alreadyProcessedIds.join(",")})`);
-  }
-
-  const { data: poolMembers, error: trackingError } = await query.limit(BATCH_SIZE);
+    .limit(BATCH_SIZE * 2); // Fetch more since we'll filter some out
 
   if (trackingError) {
     console.error("[city-broadcasts] Failed to fetch pool members:", trackingError);
     return [];
   }
 
-  if (!poolMembers || poolMembers.length === 0) {
+  if (!trackingRows || trackingRows.length === 0) {
     return [];
   }
 
-  const providerIds = poolMembers.map((r) => r.provider_id);
+  // Filter out already-processed providers
+  const unprocessedProviderIds = trackingRows
+    .map((r) => r.provider_id)
+    .filter((id) => !alreadyProcessedIds.has(id));
 
-  // Get provider categories
+  if (unprocessedProviderIds.length === 0) {
+    return [];
+  }
+
+  // Get provider details from olera-providers (source of truth for city/state/category)
+  // This fixes the bug where tracking.city was NULL due to bulk updates
   const { data: providers } = await db
     .from("olera-providers")
-    .select("provider_id, provider_category")
-    .in("provider_id", providerIds)
+    .select("provider_id, city, state, provider_category")
+    .in("provider_id", unprocessedProviderIds.slice(0, BATCH_SIZE))
+    .not("city", "is", null) // Must have a city
     .or("deleted.is.null,deleted.eq.false");
 
-  const categoryMap = new Map(
-    (providers || []).map((p) => [p.provider_id, p.provider_category])
-  );
+  if (!providers || providers.length === 0) {
+    return [];
+  }
 
-  return poolMembers.map((r) => ({
-    providerId: r.provider_id,
-    city: r.city,
-    state: r.state || null,
-    category: categoryMap.get(r.provider_id) || null,
+  return providers.map((p) => ({
+    providerId: p.provider_id,
+    city: p.city,
+    state: p.state || null,
+    category: p.provider_category || null,
   }));
 }
 

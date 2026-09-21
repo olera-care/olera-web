@@ -166,6 +166,7 @@ const medjobsItems: NavItem[] = [
   { label: "Admin", href: `${SOP_HREF}/admin`, description: "Open the MedJobs admin manual", keywords: "staffing operations sop" },
   { label: "Sales", href: `${SOP_HREF}/sales`, description: "Open the MedJobs sales manual", keywords: "staffing prospecting sop" },
   { label: "CRM", href: `${SOP_HREF}/crm`, description: "Open the MedJobs relationship manual", keywords: "staffing clients partners sop" },
+  { label: "Scripts", href: `${SOP_HREF}/scripts`, description: "Read and edit the MedJobs call scripts and email copy", keywords: "staffing scripts email copy calls sop playbook" },
   // The daily work sits under the four workspace pages: it is where the work
   // actually happens, and it carries the only count worth glancing at.
   //

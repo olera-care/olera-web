@@ -8,6 +8,7 @@ import {
   STOP_REASONS,
   SWEEP_PREFIX,
   canReopen,
+  scriptSlug,
   shortDate,
   strikesAt,
   taskTitle,
@@ -89,7 +90,6 @@ export default function TaskView({
   onReopen: () => void;
   onAgain: () => void;
 }) {
-  const [showEmail, setShowEmail] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showDefer, setShowDefer] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -115,6 +115,9 @@ export default function TaskView({
   const [picked, setPicked] = useState<number | null>(null);
 
   const rung = rungAt(task.section, task.step, task.round);
+  // Deep-linked to this rung's section of the master scripts document.
+  const scriptSection = scriptSlug(task.section, task.step);
+  const scriptHref = scriptSection ? `/admin/medjobs/sop/scripts#${scriptSection}` : null;
   if (!rung) return null;
   const ladder = LADDERS[record.section];
   // Unsuccessful goes already logged against this rung. The one in hand is
@@ -374,50 +377,36 @@ export default function TaskView({
             ))
           )}
 
-          {/* The script and the copy, under the acts they are for. */}
-          {(rung.script || rung.email) && (
-            <div className="mt-2.5">
-              <button
-                type="button"
-                onClick={() => setShowEmail((v) => !v)}
-                className="text-[12.5px] text-gray-500 underline hover:text-gray-900"
-              >
-                {(showEmail ? "Hide " : "Show ") +
-                  (rung.scriptLabel ?? "suggested call script and email copy")}
-              </button>
-              {showEmail && (
-                <div className="mt-2 space-y-2">
-                  {rung.script && (
-                    <p className="max-h-52 overflow-y-auto whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
-                      {rung.script}
-                    </p>
-                  )}
-                  {rung.email && (
-                    <>
-                      <div className="rounded-md border border-gray-200 bg-gray-50">
-                        <p className="border-b border-gray-200 px-3 py-2 text-[12.5px] font-semibold text-gray-900">
-                          {fill(rung.email.subject, ctx)}
-                        </p>
-                        <p className="max-h-72 overflow-y-auto whitespace-pre-wrap px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
-                          {fill(rung.email.body, ctx)}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <a
-                          href={flyer}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
-                        >
-                          Open the flyer
-                        </a>
-                        <span className="text-[12px] text-gray-400">
-                          Send it from your own inbox so the reply comes back to you.
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
+          {/* The words themselves are not here. They live in one document,
+              organised by rung, that anybody can improve the moment they
+              learn something — rather than being copied onto each screen
+              where only a deploy could fix them. */}
+          {(scriptHref || rung.email) && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              {scriptHref && (
+                <a
+                  href={scriptHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
+                >
+                  {rung.scriptLabel ? `Read ${rung.scriptLabel} \u2197` : "Scripts and email copy \u2197"}
+                </a>
+              )}
+              {rung.email && (
+                <>
+                  <a
+                    href={flyer}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
+                  >
+                    Open the flyer \u2197
+                  </a>
+                  <span className="text-[12px] text-gray-400">
+                    Send it from your own inbox so the reply comes back to you.
+                  </span>
+                </>
               )}
             </div>
           )}

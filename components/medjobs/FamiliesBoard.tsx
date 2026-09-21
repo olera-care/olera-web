@@ -376,15 +376,15 @@ function Board() {
 
         {/* ── Top Jobs ── */}
         <div ref={topJobsRef} className="scroll-mt-20">
-          {/* Header — always visible: title + campus filter on one row */}
-          <div className="flex items-center justify-between gap-3 mb-4">
+          {/* Header — title then filter (stacked on mobile, inline on md+) */}
+          <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
               Top jobs near {campusName || "you"}
             </h2>
             <select
               value={campus}
               onChange={(e) => setCampus(e.target.value)}
-              className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+              className="w-full sm:w-auto rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700"
             >
               <option value="">All providers</option>
               {PARTNER_UNIVERSITIES.map((u) => (

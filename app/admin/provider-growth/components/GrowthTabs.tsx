@@ -17,7 +17,7 @@ import type { PipelineStage } from "@/lib/provider-growth/stages";
 export type ClaimedSubTab = "not_contacted" | "converted";
 export type MeetingSubTab = "ads" | "medjobs" | "both";
 export type FollowUpSubTab = "active" | "no_show" | "not_interested";
-export type PayingSubTab = "ads" | "medjobs" | "both";
+export type PayingSubTab = "ads_only" | "medjobs_only" | "both" | "churned";
 export type ActiveTab =
   | { type: "pipeline"; stage: PipelineStage; subTab?: ClaimedSubTab | MeetingSubTab | FollowUpSubTab | PayingSubTab }
   | { type: "conversion"; tab: "paying"; subTab: PayingSubTab };
@@ -55,9 +55,10 @@ const PIPELINE_TABS: Array<{ id: PipelineStage; label: string }> = [
 ];
 
 const PAYING_SUB_TABS: Array<{ id: PayingSubTab; label: string }> = [
-  { id: "ads", label: "Ads" },
-  { id: "medjobs", label: "MedJobs" },
+  { id: "ads_only", label: "Ads Only" },
+  { id: "medjobs_only", label: "MedJobs Only" },
   { id: "both", label: "Both" },
+  { id: "churned", label: "Churned" },
 ];
 
 export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts, inProgressCount, followUpSubtabCounts }: GrowthTabsProps) {
@@ -86,20 +87,26 @@ export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts,
       case "upgrade_meeting":
         return stats.upgrade_meeting;
       case "paying":
-        return stats.ads_subscribed + stats.medjobs_subscribed;
-      case "ads":
+        // Total paying: ads_only + medjobs_only + both (excludes churned)
+        return (stats.ads_only ?? 0) + (stats.medjobs_only ?? 0) + stats.both_paying;
+      case "ads_only":
         if (activeTab.type === "conversion") {
-          return stats.ads_subscribed;
+          return stats.ads_only ?? 0;
         }
         return 0;
-      case "medjobs":
+      case "medjobs_only":
         if (activeTab.type === "conversion") {
-          return stats.medjobs_subscribed;
+          return stats.medjobs_only ?? 0;
         }
         return 0;
       case "both":
         if (activeTab.type === "conversion") {
           return stats.both_paying;
+        }
+        return 0;
+      case "churned":
+        if (activeTab.type === "conversion") {
+          return stats.churned ?? 0;
         }
         return 0;
       default:
@@ -195,7 +202,7 @@ export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts,
         {/* Paying tab */}
         <button
           onClick={() => {
-            onTabChange({ type: "conversion", tab: "paying", subTab: "ads" });
+            onTabChange({ type: "conversion", tab: "paying", subTab: "ads_only" });
           }}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             isConversionActive("paying")

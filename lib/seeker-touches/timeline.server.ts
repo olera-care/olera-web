@@ -574,6 +574,28 @@ function episodeOf(
 
 // ── the list ──────────────────────────────────────────────────────────────────
 
+/**
+ * An offer the relay made on this family's behalf, and whether it landed.
+ *
+ * The board knew a family came from a city ad and nothing about what happened
+ * next. Offers, and specifically reached_channels, are the difference between
+ * "three providers passed" and "two were never told" — which is what actually
+ * happened to Bessie Brooks on 20 September, and was invisible here.
+ */
+type CityOfferRow = {
+  id: string;
+  lead_id: string;
+  provider_id: string;
+  position: number;
+  offered_at: string;
+  accepted_at: string | null;
+  declined_at: string | null;
+  decline_reason: string | null;
+  expired_at: string | null;
+  reached_channels: string[] | null;
+  delivery_note: string | null;
+};
+
 type Loaded = {
   profiles: ProfileRow[];
   conns: Map<string, ConnRow[]>;
@@ -582,6 +604,8 @@ type Loaded = {
   support: Map<string, SeekerTimelineItem[]>;
   cityLeads: Map<string, CityLeadRow>;
   cityMsgs: Map<string, CityMsgRow[]>;
+  cityOffers: Map<string, CityOfferRow[]>;
+  providerNames: Map<string, string>;
   activity: Map<string, ActivityRow[]>;
   touches: Map<string, FamilyTouchRow[]>;
   bouncedAddrs: Set<string>;
@@ -655,6 +679,8 @@ async function loadFeeds(
     support: new Map(),
     cityLeads: new Map(),
     cityMsgs: new Map(),
+    cityOffers: new Map(),
+    providerNames: new Map(),
     activity: new Map(),
     touches: new Map(),
     bouncedAddrs: new Set(),
@@ -861,6 +887,25 @@ async function loadFeeds(
         .limit(1000),
   );
 
+  const cityOfferRows = await fetchInChunks<CityOfferRow>(
+    leads.map((l) => l.id),
+    (g) =>
+      db
+        .from("city_lead_offers")
+        .select(
+          "id, lead_id, provider_id, position, offered_at, accepted_at, declined_at, decline_reason, expired_at, reached_channels, delivery_note",
+        )
+        .in("lead_id", g)
+        .order("position"),
+  );
+  const offerProviderIds = Array.from(new Set(cityOfferRows.map((o) => o.provider_id)));
+  const offerProviders = offerProviderIds.length
+    ? await fetchInChunks<{ id: string; display_name: string | null }>(offerProviderIds, (g) =>
+        db.from("business_profiles").select("id, display_name").in("id", g),
+      )
+    : [];
+  const providerNames = new Map(offerProviders.map((p) => [p.id, p.display_name ?? "a provider"]));
+
   // ── group ──
   const idSet = new Set(ids);
   const byId = <T>(rows: T[], key: (r: T) => string | null): Map<string, T[]> => {
@@ -928,6 +973,15 @@ async function loadFeeds(
     cityMsgs.set(owner, arr);
   }
 
+  const cityOffers = new Map<string, CityOfferRow[]>();
+  for (const o of cityOfferRows) {
+    const owner = leadOwner.get(o.lead_id);
+    if (!owner) continue;
+    const arr = cityOffers.get(owner) ?? [];
+    arr.push(o);
+    cityOffers.set(owner, arr);
+  }
+
   // A message sent by hand from the city queue is written TWICE: once as the
   // city_lead_messages row, and once into email_log by the sender that actually
   // delivered it. Merged naively that renders every hand-sent text as two
@@ -960,6 +1014,8 @@ async function loadFeeds(
     support: supportItems,
     cityLeads,
     cityMsgs,
+    cityOffers,
+    providerNames,
     activity: byId(actRows, (a) => a.profile_id),
     touches: byId(touchRows, (t) => t.seeker_id),
     bouncedAddrs,
@@ -1176,6 +1232,41 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
 
 // ── one family ────────────────────────────────────────────────────────────────
 
+/**
+ * One offer, as a line in the family's story.
+ *
+ * Says REACHED, not offered. Those were the same fact on every surface until
+ * 21 September, and they are not: every pooled Dallas provider number is a
+ * landline and two of the three have addresses the verification gate
+ * suppresses, so four of the first seven offers arrived nowhere while the
+ * panel showed a thirty minute clock and then "no one on call took it".
+ */
+function offerToItem(o: CityOfferRow, providerName: string): SeekerTimelineItem {
+  const reached = o.reached_channels ?? [];
+  const spoken = reached.map((c) => (c === "sms" ? "text" : c)).join(" and ");
+  const outcome = o.accepted_at
+    ? "They took it."
+    : o.declined_at
+      ? `They passed${o.decline_reason ? ` (${o.decline_reason.replace(/_/g, " ")})` : ""}.`
+      : o.expired_at
+        ? "Their 30 minutes ran out."
+        : "Their 30 minutes are running.";
+  return {
+    id: `offer-${o.id}`,
+    kind: "city",
+    actor: "system",
+    channel: "system",
+    occurred_at: o.offered_at,
+    title: `Offer #${o.position} to ${providerName}`,
+    detail: reached.length
+      ? `Sent by ${spoken}. ${outcome}`
+      : `NEVER REACHED THEM. ${o.delivery_note ?? "No offer message is recorded as delivered."} The clock ran against a provider who was never told.`,
+    status: reached.length ? "delivered" : "failed",
+    source: "city",
+    href: "/admin/city-ads",
+  };
+}
+
 export async function loadSeekerTimeline(seekerId: string): Promise<SeekerRelationship | null> {
   const db = getServiceClient();
   const now = new Date();
@@ -1195,6 +1286,9 @@ export async function loadSeekerTimeline(seekerId: string): Promise<SeekerRelati
     ...a.parts.touches,
     ...(feeds.activity.get(seekerId) ?? []).map(activityToItem),
     ...(a.lead ? [cityLeadToItem(a.lead)] : []),
+    ...(feeds.cityOffers.get(seekerId) ?? []).map((o) =>
+      offerToItem(o, feeds.providerNames.get(o.provider_id) ?? "a provider"),
+    ),
   ].sort(byNewest);
 
   return {

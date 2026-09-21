@@ -1040,7 +1040,18 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   const episode = episodeOf(now, openedAt, lastMeaningfulAt, inquiries, reach, consent, windowDays);
 
   const flags: SeekerFlag[] = [];
-  if (inbound.some((it) => it.status === "needs reply")) flags.push("awaiting_reply");
+  // AN ARCHIVED CITY LEAD IS A DECISION, AND IT HAS TO TRAVEL.
+  //
+  // Archiving already cancels their queued messages and any open offer, and it
+  // is now done automatically: the qualification classifier files a job seeker
+  // or a sales pitch on its own. Drema Mitchell Lowe was filed as looking for
+  // work, and still appeared at the top of "Reply to them" because her
+  // unanswered text set awaiting_reply — the one flag that never checked.
+  // Somebody had decided she was not a case, and the case desk asked for her
+  // anyway. Suppressing the work flags is not hiding her: she stays in All,
+  // and un-archiving puts her straight back.
+  const cityClosed = Boolean(lead?.archived_at);
+  if (!cityClosed && inbound.some((it) => it.status === "needs reply")) flags.push("awaiting_reply");
   if (reach.open.length === 0 && consent !== "opted_out") flags.push("unreachable");
   if (consent === "opted_out") flags.push("opted_out");
   if (
@@ -1070,7 +1081,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   if (
     lead &&
     !lead.reached_at &&
-    !lead.archived_at &&
+    !cityClosed &&
     getCityConfig(lead.slug)?.routingMode === "concierge" &&
     !everReached &&
     !(openAction && openAction.due)

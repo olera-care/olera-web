@@ -298,6 +298,22 @@ export type SeekerRelationshipRow = SeekerContact & {
    * reply, and no event would ever have said otherwise.
    */
   archived: { reason: string; note: string | null; at: string } | null;
+  /**
+   * Where this family came from, derived at read time.
+   *
+   * DELIBERATELY NOT "organic" for the broad bucket. A connection records
+   * nothing about acquisition — every metadata key on all 1,431 inquiries is
+   * lifecycle state, with no campaign, referrer or UTM anywhere — so a family
+   * who clicked an ad and then enquired from a provider page is
+   * indistinguishable from one who arrived by search. "provider_page" says
+   * what we observed. "organic" would be a claim we cannot support, and it is
+   * the kind of number that gets quoted later.
+   *
+   * Ad Boost is the narrowest and least complete: attribution lives on the
+   * PROVIDER side, and only 14 lead_received rows in the whole database carry
+   * it. Treat a paid count as a floor, never a total.
+   */
+  origin: "city_ad" | "ad_boost" | "benefits" | "provider_page" | "unknown";
 };
 
 export type SeekerRelationship = {
@@ -314,4 +330,6 @@ export type SeekerRelationship = {
   items: SeekerTimelineItem[];
   /** See SeekerRelationshipRow.archived. */
   archived: { reason: string; note: string | null; at: string } | null;
+  /** See SeekerRelationshipRow.origin. */
+  origin: SeekerRelationshipRow["origin"];
 };

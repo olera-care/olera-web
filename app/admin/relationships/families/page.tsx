@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { SeekerRelationshipRow } from "@/lib/seeker-touches/types";
-import { consentWarning, detailLine, nextLine, problemLine, stateOf, type Tone } from "@/lib/seeker-touches/present";
+import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, stateOf, type Tone } from "@/lib/seeker-touches/present";
 
 /**
  * Relationships — care seekers.
@@ -220,6 +220,9 @@ export default function AdminSeekerRelationshipsPage() {
   const [rows, setRows] = useState<SeekerRelationshipRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("reply");
+  // Where they came from, filtered independently of what needs doing. You
+  // almost always want "the ad families in this queue", not one or the other.
+  const [origin, setOrigin] = useState<"all" | SeekerRelationshipRow["origin"]>("all");
   const [days, setDays] = useState(45);
 
   const load = useCallback(async () => {
@@ -257,7 +260,15 @@ export default function AdminSeekerRelationshipsPage() {
     };
   }, [rows]);
 
-  const shown = (rows ?? []).filter((r) => matches(r, tab));
+  const shown = (rows ?? []).filter((r) => matches(r, tab) && (origin === "all" || r.origin === origin));
+
+  // Counted against the CURRENT queue, so the chips say how many of these are
+  // ad families rather than how many exist overall.
+  const originCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const r of rows ?? []) if (matches(r, tab)) c[r.origin] = (c[r.origin] ?? 0) + 1;
+    return c;
+  }, [rows, tab]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
@@ -339,7 +350,38 @@ export default function AdminSeekerRelationshipsPage() {
 
         {/* One line saying what this queue IS. The tab label is a verb; this is
             the rule behind it, so nobody has to infer why a row qualified. */}
-        <p className="border-b border-gray-200 px-3.5 pb-3 text-[11.5px] leading-tight text-gray-500">{TAB_BLURB[tab]}</p>
+        <p className="px-3.5 pb-2 text-[11.5px] leading-tight text-gray-500">{TAB_BLURB[tab]}</p>
+
+        {/* Where they came from. Separate from the queue on purpose: the useful
+            question is "the ad families in THIS queue". Provider page is the
+            honest name for the big one — a connection records nothing about
+            acquisition, so we know they enquired from a provider page and not
+            how they got there. Paid counts are a floor, never a total. */}
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-gray-200 px-3.5 pb-3 text-[11px]">
+          <span className="mr-0.5 font-mono uppercase tracking-[0.1em] text-gray-400">From</span>
+          <button
+            type="button"
+            onClick={() => setOrigin("all")}
+            className={`rounded-full border px-2 py-0.5 font-medium ${
+              origin === "all" ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Anywhere
+          </button>
+          {(["city_ad", "ad_boost", "benefits", "provider_page", "unknown"] as const).map((o) => (
+            <button
+              key={o}
+              type="button"
+              disabled={!originCounts[o]}
+              onClick={() => setOrigin(o)}
+              className={`rounded-full border px-2 py-0.5 font-medium disabled:opacity-35 ${
+                origin === o ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {ORIGIN_LABEL[o]} {rows ? originCounts[o] ?? 0 : ""}
+            </button>
+          ))}
+        </div>
 
         <div className="flex gap-4 border-b border-gray-200 py-2.5 pl-[19px] pr-4 text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-500">
           <span className="flex-1">Family</span>
@@ -386,6 +428,14 @@ export default function AdminSeekerRelationshipsPage() {
                   }`}
                 >
                   {r.label}
+                  {/* Only where it earns the ink. "Provider page" on 330 of 394
+                      rows is noise; the two paid origins and benefits are the
+                      ones a person scans for. */}
+                  {r.origin !== "provider_page" && r.origin !== "unknown" && (
+                    <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 align-middle font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-gray-600">
+                      {ORIGIN_LABEL[r.origin]}
+                    </span>
+                  )}
                 </div>
                 {detailLine(r) && (
                   <div className="mt-0.5 text-[12.5px] leading-normal text-gray-500">{detailLine(r)}</div>

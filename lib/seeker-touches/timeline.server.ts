@@ -609,6 +609,10 @@ type Loaded = {
   activity: Map<string, ActivityRow[]>;
   touches: Map<string, FamilyTouchRow[]>;
   archived: Map<string, { reason: string; note: string | null; at: string }>;
+  /** Inquiry ids a managed (Ad Boost) campaign is recorded as having delivered. */
+  managedConnections: Set<string>;
+  /** Families who have EVER completed the benefits finder. Not time-windowed. */
+  everDidBenefits: Set<string>;
   bouncedAddrs: Set<string>;
   dncEmails: Set<string>;
   dncPhones: Set<string>;
@@ -683,6 +687,8 @@ async function loadFeeds(
     cityOffers: new Map(),
     providerNames: new Map(),
     archived: new Map(),
+    managedConnections: new Set(),
+    everDidBenefits: new Set(),
     activity: new Map(),
     touches: new Map(),
     bouncedAddrs: new Set(),
@@ -984,6 +990,35 @@ async function loadFeeds(
   );
   const archived = new Map(archiveRows.map((a) => [a.seeker_id, { reason: a.reason, note: a.note, at: a.archived_at }]));
 
+  // Ad Boost attribution is recorded against the PROVIDER, not the family, so
+  // the only way to the family is through the connection id it names. Tiny set
+  // by construction: 14 rows in the whole table at the time of writing, which
+  // is itself the reason a paid count here is a floor rather than a total.
+  const { data: managedRows } = await db
+    .from("provider_activity")
+    .select("metadata")
+    .eq("event_type", "lead_received")
+    .eq("metadata->>utm_source", "olera_managed")
+    .limit(2000);
+  const managedConnections = new Set(
+    (managedRows ?? [])
+      .map((m) => (m.metadata as Record<string, unknown> | null)?.connection_id)
+      .filter((v): v is string => typeof v === "string"),
+  );
+
+  // ORIGIN DOES NOT EXPIRE, AND THE ACTIVITY FEED DOES.
+  //
+  // The seeker_activity feed above is windowed to the same period as the board,
+  // which is right for "what have they done lately" and wrong for "how did they
+  // arrive". Reading benefits origin off it mis-tagged three families as
+  // provider_page at 45 days, and the page offers a 14-day view where nearly
+  // every benefits family would have been wrong. One narrow unwindowed lookup
+  // instead: a single event type, for the families already on screen.
+  const benefitsRows = await fetchInChunks<{ profile_id: string }>(ids, (g) =>
+    db.from("seeker_activity").select("profile_id").eq("event_type", "benefits_completed").in("profile_id", g),
+  );
+  const everDidBenefits = new Set(benefitsRows.map((b) => b.profile_id));
+
   const cityOffers = new Map<string, CityOfferRow[]>();
   for (const o of cityOfferRows) {
     const owner = leadOwner.get(o.lead_id);
@@ -1028,6 +1063,8 @@ async function loadFeeds(
     cityOffers,
     providerNames,
     archived,
+    managedConnections,
+    everDidBenefits,
     activity: byId(actRows, (a) => a.profile_id),
     touches: byId(touchRows, (t) => t.seeker_id),
     bouncedAddrs,
@@ -1050,6 +1087,18 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   const openAction = openActionOf(touchRows);
   const everReached = touchRows.some((t) => t.reached === true);
   const archived = f.archived.get(p.id) ?? null;
+  // Order matters: most specific evidence first. A city-ad family often also
+  // has an inquiry, so checking "has an inquiry" first would swallow every
+  // paid family into provider_page and report zero ads.
+  const origin: SeekerRelationshipRow["origin"] = lead
+    ? "city_ad"
+    : conns.some((c) => f.managedConnections.has(c.id))
+      ? "ad_boost"
+      : f.everDidBenefits.has(p.id)
+        ? "benefits"
+        : conns.some((c) => c.type === "inquiry")
+          ? "provider_page"
+          : "unknown";
 
   const reach = reachabilityOf(contact, f.bouncedAddrs, f.dncEmails, f.dncPhones);
   const inquiries = conns.filter((c) => c.type === "inquiry" || c.type === "request");
@@ -1210,6 +1259,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     everReached,
     lead,
     archived,
+    origin,
     parts: { conns, emails, sms, support, cityMsgs, touches },
   };
 }
@@ -1246,6 +1296,7 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
       open_action: a.openAction,
       ever_reached: a.everReached,
       archived: a.archived,
+      origin: a.origin,
     };
   });
 
@@ -1346,6 +1397,7 @@ export async function loadSeekerTimeline(seekerId: string): Promise<SeekerRelati
     open_action: a.openAction,
     ever_reached: a.everReached,
     archived: a.archived,
+    origin: a.origin,
     items,
   };
 }

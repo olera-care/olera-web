@@ -20,6 +20,8 @@ import {
 /* ── Types ── */
 
 type InterviewWithProfiles = Interview & {
+  /** Job details snapshot stored when interview was scheduled */
+  metadata?: Record<string, unknown>;
   provider?: {
     id: string;
     display_name: string;

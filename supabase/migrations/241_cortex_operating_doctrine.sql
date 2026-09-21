@@ -1,3 +1,9 @@
+-- Renumbered 240 -> 241 on 2026-09-21. A concurrent session shipped
+-- 240_city_offer_delivery.sql the same day and both reached main sharing the
+-- number. This file was already applied to production by hand before the
+-- rename, so the number is ordering metadata for a fresh setup, not a record
+-- of what ran. Re-running it is harmless either way: the WHERE clause checks
+-- for a marker from this migration.
 -- Cortex operating doctrine: the clock, the asymmetry, and the licence to act.
 --
 -- Derived with TJ on 2026-09-21. It belongs in the company model rather than in

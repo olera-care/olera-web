@@ -62,6 +62,13 @@ export function stateOf(r: SeekerRelationshipRow): RowState {
   // Eastern on the 14th, which is what toISOString() would do.
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: SCHEDULE_TZ }).format(new Date());
 
+  // Archived outranks everything. With its work flags cleared an archived row
+  // fell all the way through to "Open", so the Archived tab read "Open" on
+  // every line and the text export said the same — the exact false claim the
+  // archive was added to remove.
+  if (r.archived) {
+    return { phrase: "Archived", tone: "none", age: r.archived.reason.replace(/_/g, " ") };
+  }
   // Opted out first, or it reads as "Waiting on us" in amber directly above a
   // line saying they asked us to stop. Four rows did exactly that.
   if (r.flags.includes("opted_out")) {

@@ -113,6 +113,7 @@ export async function buildWarRoomSnapshot(
     decisionResult,
     questionHealthResult,
     callTouchResult,
+    targetsResult,
     viewsFloorResult,
     leadsFloorResult,
     claimsFloorResult,
@@ -198,6 +199,12 @@ export async function buildWarRoomSnapshot(
       .eq("channel", "call")
       .order("occurred_at", { ascending: false })
       .limit(500),
+    // The targets, so a condition can be ranked by distance to a number rather
+    // than by how large its own number happens to be.
+    db.from("war_room_company_models")
+      .select("targets")
+      .eq("key", "olera")
+      .maybeSingle(),
     // The oldest instrumented event PER event type. At windowDays=90 (selectable
     // on the admin route) the prior window opens before these rows exist at all,
     // so the comparison divides by a period that partly did not happen and
@@ -279,6 +286,19 @@ export async function buildWarRoomSnapshot(
     else stalledAttended += 1;
   }
 
+  // Distance to the target, not the size of the number. Without this the sweep
+  // ranks by magnitude, and a five-figure traffic figure outranks "one paying
+  // provider against twelve" every time. `metric` names a fact on this same
+  // object, so a target nobody can count cannot be written down.
+  const payingProviderCount = new Set(payingRows.map((row) => row.provider_id)).size;
+  const countableMetrics: Record<string, number> = { payingProviders: payingProviderCount };
+  type CompanyTarget = { key?: string; label?: string; metric?: string; target?: number; due?: string };
+  const targetRows = (targetsResult.error ? [] : (targetsResult.data?.targets ?? [])) as CompanyTarget[];
+  const primaryTarget = targetRows.find((row) => typeof row.metric === "string"
+    && row.metric in countableMetrics
+    && typeof row.target === "number") ?? null;
+  const northStarCurrent = primaryTarget?.metric ? countableMetrics[primaryTarget.metric] ?? null : null;
+
   // Losing the only paying provider is the single largest movement away from
   // the twelve-paid target, and nothing could see it coming without a date.
   const paidRenewalDays = payingRows
@@ -321,7 +341,11 @@ export async function buildWarRoomSnapshot(
     benefitsCompleted: requireCount("benefits completions", benefitsResult),
     providerClaims: requireCount("provider claims", claimsResult),
     activeProviders: activeProviderResult.count,
-    payingProviders: new Set(payingRows.map((row) => row.provider_id)).size,
+    payingProviders: payingProviderCount,
+    northStarLabel: primaryTarget?.label ?? null,
+    northStarTarget: primaryTarget?.target ?? null,
+    northStarCurrent,
+    northStarDaysRemaining: daysUntil(primaryTarget?.due),
     mrr: payingRows.reduce((sum, row) => sum + (row.plan_value ?? 0), 0),
     adBoostOpen: adRows.filter((row) => ["pending_profile", "requested", "scheduled", "live"].includes(row.status)).length,
     adBoostEndedUnpaid: adRows.filter((row) => row.status === "ended" && !["active", "past_due"].includes(row.plan_status ?? "")).length,

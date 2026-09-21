@@ -608,6 +608,7 @@ type Loaded = {
   providerNames: Map<string, string>;
   activity: Map<string, ActivityRow[]>;
   touches: Map<string, FamilyTouchRow[]>;
+  archived: Map<string, { reason: string; note: string | null; at: string }>;
   bouncedAddrs: Set<string>;
   dncEmails: Set<string>;
   dncPhones: Set<string>;
@@ -681,6 +682,7 @@ async function loadFeeds(
     cityMsgs: new Map(),
     cityOffers: new Map(),
     providerNames: new Map(),
+    archived: new Map(),
     activity: new Map(),
     touches: new Map(),
     bouncedAddrs: new Set(),
@@ -974,6 +976,14 @@ async function loadFeeds(
     cityMsgs.set(owner, arr);
   }
 
+  // A person's decision that this row is not a case. Read for the families on
+  // screen, by primary key.
+  const archiveRows = await fetchInChunks<{ seeker_id: string; reason: string; note: string | null; archived_at: string }>(
+    ids,
+    (g) => db.from("seeker_archives").select("seeker_id, reason, note, archived_at").in("seeker_id", g),
+  );
+  const archived = new Map(archiveRows.map((a) => [a.seeker_id, { reason: a.reason, note: a.note, at: a.archived_at }]));
+
   const cityOffers = new Map<string, CityOfferRow[]>();
   for (const o of cityOfferRows) {
     const owner = leadOwner.get(o.lead_id);
@@ -1017,6 +1027,7 @@ async function loadFeeds(
     cityMsgs,
     cityOffers,
     providerNames,
+    archived,
     activity: byId(actRows, (a) => a.profile_id),
     touches: byId(touchRows, (t) => t.seeker_id),
     bouncedAddrs,
@@ -1038,6 +1049,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   const touches = touchRows.map(touchToItem);
   const openAction = openActionOf(touchRows);
   const everReached = touchRows.some((t) => t.reached === true);
+  const archived = f.archived.get(p.id) ?? null;
 
   const reach = reachabilityOf(contact, f.bouncedAddrs, f.dncEmails, f.dncPhones);
   const inquiries = conns.filter((c) => c.type === "inquiry" || c.type === "request");
@@ -1154,6 +1166,26 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     flags.push("promise_owed");
   }
 
+  // ARCHIVING IS A DECISION ABOUT THE ROW, NOT ABOUT THE EVENTS.
+  //
+  // Every flag above reads real history and is correct. "Test McTest" really
+  // does have a message nobody answered, which is exactly why it ranked first
+  // in "Reply to them" for 1,098 days. No event will ever say a row is a test
+  // record, so a person says it, and from then on the row stops asking for
+  // anyone. Emptying the flags is the whole mechanism: the queues are built
+  // from them, so nothing downstream needs to know archiving exists.
+  if (archived) {
+    // Only the flags that ASK FOR SOMEONE'S TIME. opted_out and no_name are
+    // facts about the person that stay true after a decision about the row —
+    // erasing the opt-out in particular would quietly drop the one flag that
+    // says they told us to stop.
+    const work = new Set<SeekerFlag>([
+      "awaiting_reply", "promise_owed", "unreachable",
+      "outcome_reported", "provider_silent", "never_human",
+    ]);
+    for (let i = flags.length - 1; i >= 0; i--) if (work.has(flags[i])) flags.splice(i, 1);
+  }
+
   const providers = inquiries
     .filter((c) => c.to_profile)
     .map((c) => ({
@@ -1177,6 +1209,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     openAction,
     everReached,
     lead,
+    archived,
     parts: { conns, emails, sms, support, cityMsgs, touches },
   };
 }
@@ -1212,6 +1245,7 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
       city_slug: a.lead?.slug ?? null,
       open_action: a.openAction,
       ever_reached: a.everReached,
+      archived: a.archived,
     };
   });
 
@@ -1311,6 +1345,7 @@ export async function loadSeekerTimeline(seekerId: string): Promise<SeekerRelati
     city_slug: a.lead?.slug ?? null,
     open_action: a.openAction,
     ever_reached: a.everReached,
+    archived: a.archived,
     items,
   };
 }
@@ -1329,7 +1364,10 @@ function fmt(iso: string): string {
 
 export function seekerRelationshipsToMarkdown(rows: SeekerRelationshipRow[]): string {
   const out: string[] = ["# Care seekers — who is waiting on us", ""];
-  for (const r of rows) {
+  // Archived rows are not waiting on us, and this file says in its own heading
+  // that everything below is. The page filters them into their own tab; the
+  // export had no filter at all and listed them as "Open".
+  for (const r of rows.filter((x) => !x.archived)) {
     const st = stateOf(r);
     out.push(`## ${r.label} — ${st.phrase}${st.age ? ` (${st.age})` : ""}`);
     const detail = detailLine(r);

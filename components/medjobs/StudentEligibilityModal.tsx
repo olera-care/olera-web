@@ -77,6 +77,7 @@ export default function StudentEligibilityModal({
   const [step, setStep] = useState<Step>("q1");
   const [track, setTrack] = useState<IntendedProfessionalSchool | null>(null);
   const [buckets, setBuckets] = useState<CoverageBucket[]>([]);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [university, setUniversity] = useState<string>(context.campusSlug ?? "");
   const [honeypot, setHoneypot] = useState("");
@@ -89,6 +90,10 @@ export default function StudentEligibilityModal({
     setBuckets((cur) => (cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b]));
 
   async function submit() {
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
     if (!university) {
       setError("Please select your university.");
       return;
@@ -109,6 +114,7 @@ export default function StudentEligibilityModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: name.trim(),
           email: email.trim(),
           careerPath: track,
           coverageBuckets: buckets,
@@ -285,6 +291,18 @@ export default function StudentEligibilityModal({
                 </p>
               </div>
             </div>
+            <p className="mt-3 text-sm font-medium text-gray-800">Your full name:</p>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (error) setError(null);
+              }}
+              placeholder="First and last name"
+              className={fieldClass + " mt-2"}
+              autoComplete="name"
+            />
             <p className="mt-3 text-sm font-medium text-gray-800">Your university:</p>
             <select
               value={university}
@@ -323,7 +341,7 @@ export default function StudentEligibilityModal({
             {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
             <button
               type="button"
-              disabled={!university || !email.trim() || !isEduEmail(email)}
+              disabled={!name.trim() || !university || !email.trim() || !isEduEmail(email)}
               className={btnPrimary + " disabled:opacity-50"}
               onClick={submit}
             >

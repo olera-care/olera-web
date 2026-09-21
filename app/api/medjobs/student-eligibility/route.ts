@@ -70,6 +70,7 @@ function nameFromEmail(email: string): string {
 
 interface Body {
   email?: string;
+  name?: string;
   careerPath?: IntendedProfessionalSchool;
   coverageBuckets?: CoverageBucket[];
   university?: string;
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     // ── Returning student? Email a sign-in link; never silently sign in. ──
     const { data: existingProfile } = await supabaseAdmin
       .from("business_profiles")
-      .select("id, slug")
+      .select("id, slug, display_name")
       .eq("email", email)
       .eq("type", "student")
       .maybeSingle();
@@ -121,12 +122,14 @@ export async function POST(request: NextRequest) {
         options: { redirectTo: `${siteUrl}/portal/medjobs` },
       });
       // Actually send the sign-in link (generateLink only mints it).
+      // Use stored display_name (could be real name if they provided it at signup)
+      const studentName = (existingProfile as { display_name?: string }).display_name || nameFromEmail(email);
       try {
         await sendEmail({
           to: email,
           subject: "Sign in to Olera MedJobs",
           html: studentReturningEmail({
-            studentName: nameFromEmail(email),
+            studentName,
             profileSlug: (existingProfile as { slug: string }).slug,
             magicLink: linkData?.properties?.action_link,
           }),
@@ -144,7 +147,8 @@ export async function POST(request: NextRequest) {
     }
 
     const nowIso = new Date().toISOString();
-    const displayName = nameFromEmail(email);
+    // Use provided name if available, otherwise fall back to deriving from email
+    const displayName = body.name?.trim() || nameFromEmail(email);
     const university = body.university?.trim() || undefined;
     const slug = generateSlug(displayName, university || "student");
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { EPISODE_WORD } from "@/lib/seeker-touches/present";
+import { ORIGIN_LABEL, EPISODE_WORD } from "@/lib/seeker-touches/present";
 import LogFamilyTouch from "@/components/admin/LogFamilyTouch";
 import {
   SEEKER_FLAG_LABEL,
@@ -226,6 +226,9 @@ export default function AdminSeekerTimelinePage() {
           }
           tone={data.archived ? "text-gray-500" : undefined}
         />
+        {/* The list tags this and the page did not, so opening a family lost
+            the one fact you most often open them to check. */}
+        <Fact label="Came from" value={ORIGIN_LABEL[data.origin]} note={data.city_slug ?? null} />
         <Fact
           label="Timeline they gave"
           value={profile.timeline ? profile.timeline.replace(/_/g, " ") : "not stated"}

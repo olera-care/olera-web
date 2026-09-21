@@ -260,6 +260,7 @@ export default function AdminSeekerRelationshipsPage() {
     };
   }, [rows]);
 
+  const inTab = (rows ?? []).filter((r) => matches(r, tab)).length;
   const shown = (rows ?? []).filter((r) => matches(r, tab) && (origin === "all" || r.origin === origin));
 
   // Counted against the CURRENT queue, so the chips say how many of these are
@@ -394,15 +395,35 @@ export default function AdminSeekerRelationshipsPage() {
           // An empty queue is the goal, not an error, and it should say where
           // the remaining work went rather than leaving a dead end.
           <div className="px-4 py-10 text-center">
-            <p className="text-sm font-medium text-gray-700">
-              {tab === "all" ? "Nobody has a live episode in this window." : "Nothing in this queue."}
-            </p>
-            {tab !== "all" && (
-              <p className="mt-1 text-xs text-gray-500">
-                {openWorkCount(rows) === 0
-                  ? "No family is waiting on anything right now."
-                  : `${openWorkCount(rows)} still need something in the other queues.`}
-              </p>
+            {/* "Nothing in this queue" is false when the queue has rows and the
+                origin filter hid them — and it sends someone looking for work
+                that is on screen behind a chip they forgot they clicked. */}
+            {origin !== "all" && inTab > 0 ? (
+              <>
+                <p className="text-sm font-medium text-gray-700">
+                  No {ORIGIN_LABEL[origin].toLowerCase()} families in this queue.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setOrigin("all")}
+                  className="mt-1 text-xs text-teal-700 underline-offset-2 hover:underline"
+                >
+                  Show all {inTab} from anywhere
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-gray-700">
+                  {tab === "all" ? "Nobody has a live episode in this window." : "Nothing in this queue."}
+                </p>
+                {tab !== "all" && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    {openWorkCount(rows) === 0
+                      ? "No family is waiting on anything right now."
+                      : `${openWorkCount(rows)} still need something in the other queues.`}
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}

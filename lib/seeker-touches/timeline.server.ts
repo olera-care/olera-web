@@ -3,7 +3,7 @@ import { seekerEventLabel } from "@/lib/activity/seeker-categories";
 import { getConnectionTemperature, providerResponded, type ConnectionLike } from "@/lib/connection-temperature";
 import { getCityConfig } from "@/lib/city-ads/config";
 import { isImpossibleUsPhone, last10, seekerLabel } from "./label";
-import { EPISODE_WORD, detailLine, problemLine, stateOf } from "./present";
+import { EPISODE_WORD, ORIGIN_LABEL, detailLine, problemLine, stateOf } from "./present";
 import type {
   FamilyTouchRow,
   SeekerOpenAction,
@@ -1422,7 +1422,11 @@ export function seekerRelationshipsToMarkdown(rows: SeekerRelationshipRow[]): st
   for (const r of rows.filter((x) => !x.archived)) {
     const st = stateOf(r);
     out.push(`## ${r.label} — ${st.phrase}${st.age ? ` (${st.age})` : ""}`);
-    const detail = detailLine(r);
+    // Origin moved out of detailLine and into a chip on the page, which this
+    // file cannot render. Without this the export came out with strictly LESS
+    // than before: "came from a city ad" used to appear here and the
+    // replacement was UI-only.
+    const detail = [detailLine(r), ORIGIN_LABEL[r.origin]].filter(Boolean).join(" · ");
     if (detail) out.push(detail);
     const problem = problemLine(r);
     if (problem) out.push(`**${problem}**`);

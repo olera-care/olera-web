@@ -112,7 +112,10 @@ export function buildWarRoomBriefText(input: {
     lines.push("_Just reply here. Your answer becomes evidence on tomorrow's scan._");
   }
 
-  lines.push("", input.costUsd != null ? `_Scan ${input.costUsd.toFixed(2)}._` : "_Scan cost unknown._");
+  // "Scan 2.39." was read as a scan number, not a price, by the only person who
+  // receives this message. A bare decimal after a noun reads as a version or a
+  // sequence; it made a brand-new proposal look like the 39th time of asking.
+  lines.push("", input.costUsd != null ? `_This scan cost $${input.costUsd.toFixed(2)}._` : "_Scan cost unknown._");
   return lines.join("\n");
 }
 

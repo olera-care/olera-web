@@ -417,7 +417,7 @@ export default function Select({
           role="listbox"
           aria-labelledby={label ? labelId : undefined}
           aria-activedescendant={focusedIndex >= 0 ? `${listboxId}-option-${focusedIndex}` : undefined}
-          className="z-[100] bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden max-h-[320px] flex flex-col"
+          className="z-[200] bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden max-h-[320px] flex flex-col"
           style={{ ...dropdownStyle, animation: "fade-in 0.15s ease-out" }}
         >
           {/* Search input */}

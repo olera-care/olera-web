@@ -167,21 +167,46 @@ export function cityOfferSms(p: { city: string; careLabel: string; recipientLabe
   // message from GSM-7 to UCS-2, which cuts the segment size from 160 to 70 and
   // turned a 255-character offer into four paid segments. The page and the
   // email show her text exactly as she wrote it; the SMS pays by the character.
-  const plain = stripEmoji(p.excerpt ?? "").trim();
+  const plain = smsSafe(p.excerpt ?? "").trim();
   const said = plain ? ` They said: "${truncateWords(plain, 120)}"` : "";
   return `Olera: a family in ${p.city} needs ${p.careLabel}.${detail}${said} Yours alone for the next ${p.minutes} min, so we can tell them who to expect. Reply YES to take it, or NO and we'll ask another provider.`;
 }
 
-function stripEmoji(s: string): string {
-  return s.replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D\p{Emoji_Modifier}]/gu, "").replace(/\s+/g, " ");
+/**
+ * Make a quoted excerpt safe to send as GSM-7.
+ *
+ * Stripping emoji is not enough on its own. A single character outside GSM-7
+ * flips the WHOLE message to UCS-2, which cuts the segment size from 160 to 70,
+ * and the usual culprits are not emoji at all: a curly apostrophe (every iPhone
+ * types one), a curly quote, an en or em dash, and the ellipsis our own
+ * truncation used to append. So the excerpt is folded to plain ASCII
+ * punctuation before it goes anywhere near a segment count.
+ *
+ * Only the SMS excerpt is treated this way. The offer page and the offer email
+ * show what the family actually typed.
+ */
+function smsSafe(s: string): string {
+  return s
+    .replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D\p{Emoji_Modifier}]/gu, "")
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2013\u2014\u2015]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ");
 }
 
-/** Cut on a word boundary so a quote never ends mid-word. */
+/**
+ * Cut on a word boundary so a quote never ends mid-word.
+ *
+ * Ends in three ASCII dots, not an ellipsis character: U+2026 is outside GSM-7
+ * and would undo the folding above on exactly the long messages this trims.
+ */
 function truncateWords(s: string, max: number): string {
   if (s.length <= max) return s;
   const cut = s.slice(0, max);
   const sp = cut.lastIndexOf(" ");
-  return `${(sp > max * 0.6 ? cut.slice(0, sp) : cut).trimEnd()}…`;
+  return `${(sp > max * 0.6 ? cut.slice(0, sp) : cut).trimEnd()}...`;
 }
 
 /** Provider said YES: the family's details, and the expectation. */

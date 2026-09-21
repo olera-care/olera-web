@@ -31,6 +31,14 @@ import { cityQualifyingQuestion } from "./qualify";
 
 /** Messages shown. Enough for a real back-and-forth, short of a wall of text. */
 const MAX_TURNS = 8;
+/**
+ * Rows fetched before filtering. Higher than MAX_TURNS on purpose: bare
+ * acknowledgements are dropped AFTER the read, so fetching exactly MAX_TURNS
+ * means a family who sent eight "ok"s and then the real answer would have the
+ * answer cut off by the limit and fall through to the all-acknowledgements
+ * branch. The headroom is what makes that branch mean what it says.
+ */
+const FETCH_LIMIT = 40;
 /** Per-message cap. Long enough for a paragraph, short of a pasted essay. */
 const MAX_CHARS = 400;
 
@@ -104,9 +112,30 @@ function clean(raw: string): string {
  * offer must still go out when the message store is unavailable.
  */
 export async function getLeadExchange(db: SupabaseClient, lead: ExchangeLead): Promise<ExchangeTurn[]> {
-  const turns: ExchangeTurn[] = [
-    { who: "olera", text: cap(cityQualifyingQuestion(lead.care_recipient)), at: lead.created_at },
-  ];
+  const question: ExchangeTurn = {
+    who: "olera",
+    text: cap(cityQualifyingQuestion(lead.care_recipient)),
+    at: lead.created_at,
+  };
+  try {
+    return await buildExchange(db, lead, question);
+  } catch (e) {
+    // This runs AFTER the offer row is inserted and the lead is stamped
+    // "offered", and the caller has no try/catch of its own. A throw here
+    // would leave a provider recorded as asked and never actually told, and
+    // would take the rest of the five-minute sweep down with it. The words are
+    // a bonus on the offer; the offer is not a bonus on the words.
+    console.error("[city-ads] exchange build failed", e);
+    return [question];
+  }
+}
+
+async function buildExchange(
+  db: SupabaseClient,
+  lead: ExchangeLead,
+  question: ExchangeTurn,
+): Promise<ExchangeTurn[]> {
+  const turns: ExchangeTurn[] = [question];
 
   const digits = last10(lead.phone);
   let inbound: { body: string | null; created_at: string }[] = [];
@@ -117,7 +146,7 @@ export async function getLeadExchange(db: SupabaseClient, lead: ExchangeLead): P
       .eq("phone_last10", digits)
       .gte("created_at", lead.created_at)
       .order("created_at", { ascending: true })
-      .limit(MAX_TURNS);
+      .limit(FETCH_LIMIT);
     if (error) console.error("[city-ads] exchange read failed", error);
     else inbound = data ?? [];
   }

@@ -600,6 +600,34 @@ function containsUnfinishedInvestigation(proposal: AgendaProposalDraft) {
  * Founder interruption is an all-gates decision. The numeric score is retained
  * for stable ordering and legacy storage, but it can never rescue a failed gate.
  */
+/**
+ * An instrument: repository work whose whole purpose is to resolve a named
+ * unknown on a condition we already have corroborated evidence for.
+ *
+ * Deliberately strict about the things that keep it safe, and silent about the
+ * thing it cannot have. It must be `code`, because only repository work has a
+ * blast radius bounded by a pull request nobody has to merge. It must point at
+ * an unknown the investigation actually recorded, so it cannot be a feature
+ * wearing a lab coat. It must say how it will be read and how it could be shown
+ * wrong cheaply.
+ *
+ * It is NOT required to know the cause. That is the entire point.
+ */
+function isInstrumentationProposal(
+  proposal: AgendaProposalDraft,
+  investigation: InvestigationDraft,
+): boolean {
+  if (proposal.actionKind !== "code") return false;
+  if (!investigation.unknowns.some((unknown) => cleanExecutiveText(unknown).length >= 12)) return false;
+  // How it will be read, and how it could be cheaply falsified. An instrument
+  // nobody will read is a feature, and one that cannot fail is decoration.
+  if (cleanExecutiveText(proposal.successMeasure).length < 30) return false;
+  if (cleanExecutiveText(proposal.cheapestFalsification).length < 20) return false;
+  // Small or medium only. A large "instrument" is a rewrite in disguise, and
+  // the case for it should rest on a diagnosis rather than on curiosity.
+  return proposal.effort !== "large";
+}
+
 export function applyAgendaGate(
   proposals: AgendaProposalDraft[],
   investigations: InvestigationDraft[],
@@ -647,13 +675,48 @@ export function applyAgendaGate(
         && investigation?.impact === "high"
         && investigation.strategicFit === "central"
         && proposal.domain === investigation.domain,
+      // Two ways to clear this, because there are two kinds of work and only one
+      // of them needs a settled cause.
+      //
+      // The original test demanded `decision_ready` and a cause better than
+      // `low`. It has never once passed. Three proposals exist in the system's
+      // entire history, all created 2026-08-15 before this gate existed, none
+      // ever approved, and the repository executor -- a real coding agent that
+      // opens pull requests -- has never fired. Meanwhile nine conditions were
+      // re-observed up to 42 times each without producing anything.
+      //
+      // The reason is structural, not a threshold. An instrument is what you
+      // build *because* the cause is unknown, so gating instrumentation on a
+      // settled cause is backwards: the one class of work that resolves
+      // uncertainty was the one class forbidden while uncertainty existed. All
+      // three proposals that ever existed were instrumentation ("Make traffic
+      // losses attributable", "Instrument the Ad Boost checkout funnel",
+      // "Instrument the question-to-answer loop") and could only be produced
+      // before the gate was built.
+      //
+      // So an instrument clears on different terms: it must name the unknown it
+      // resolves, be repository work whose blast radius is a pull request a
+      // human closes, state how it will be read, and be falsifiable cheaply. It
+      // still needs real corroborated evidence that the *condition* is real --
+      // that is not relaxed. What is relaxed is the demand to already know why.
+      //
+      // The company model authorises exactly this, added 2026-09-21: "the
+      // repository executor cannot merge and cannot deploy, so the worst output
+      // of an executed proposal is a pull request a human closes. Repository
+      // proposals are therefore cheap, and should be generated freely rather
+      // than rationed."
       causeSupported: investigation != null
-        && investigation.readiness === "decision_ready"
-        && investigation.causeConfidence !== "low"
-        && proposal.confidence !== "low"
         && diagnosisEvidenceIds.length >= 3
         && sharedDiagnosisEvidence.length >= 2
-        && evidenceFamilies.size >= 2,
+        && evidenceFamilies.size >= 2
+        && (
+          // Settled-cause route: act on a diagnosis we trust.
+          (investigation.readiness === "decision_ready"
+            && investigation.causeConfidence !== "low"
+            && proposal.confidence !== "low")
+          // Instrument route: resolve the uncertainty instead of asserting past it.
+          || isInstrumentationProposal(proposal, investigation)
+        ),
       existingStateVerified: cleanedExistingCapabilities.some((item) => item.length >= 20)
         && (proposal.actionKind !== "code" || proposal.capabilityEvidenceIds.length > 0),
       beatsAlternatives: investigation?.options.length ? investigation.options.length >= 2 && cleanedWhyBetter.length >= 40 : false,

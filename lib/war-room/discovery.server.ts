@@ -50,7 +50,7 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
 // Bump whenever prompt text changes. Every run row and every failure
 // diagnostic is stamped with this, so leaving it alone after editing a prompt
 // makes runs before and after the change indistinguishable in the data.
-export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v6-bounded-dossiers";
+export const WAR_ROOM_PROMPT_VERSION = "cortex-v7-instruments-clear-the-gate";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;
@@ -708,7 +708,19 @@ function buildOperatingPack(
     availableProbes: warRoomProbeMenu(),
     operatingContract: {
       objective: "Improve Olera's probability of durable success, not the volume of completed tasks.",
-      founderInterruptionBudget: "At most one decision per scan; zero is preferred to a merely useful task.",
+      // Was: "zero is preferred to a merely useful task." True of decisions that
+      // spend the founder's judgement, and it produced exactly zero proposals in
+      // 37 days while nine conditions recurred up to 42 times each. Stated
+      // without the other half, it reads as an instruction never to nominate.
+      founderInterruptionBudget: "At most one decision per scan. Zero is right when the alternative is a merely useful task that spends the founder's judgement on something reversible and small.",
+      // The other half, and the one that was missing. Instruments are cheap
+      // because the executor cannot merge or deploy: its worst output is a pull
+      // request a human closes. A condition that keeps recurring without
+      // resolving is the system failing to learn, and proposing the instrument
+      // that would resolve it is the correct move, not an interruption. Do not
+      // wait for a settled cause to propose an instrument; that is backwards,
+      // because the instrument is how the cause gets settled.
+      instrumentationIsCheap: "When a material condition has a named unknown and no resolved cause, nominate the repository instrument that would resolve it. Blast radius is one pull request nobody has to merge. Say how it will be read and how it could be shown wrong cheaply. Recurrence without resolution is a reason to instrument, not a reason to keep watching.",
       automatic: "Read, compare, investigate, form private dossiers, monitor, and measure.",
       approvalRequired: "Any branch, outreach, content publication, operational mutation, spend, send, or external coordination.",
       prohibited: "No automatic merge, deployment, production mutation, customer send, spend, deletion, permissions, or secrets changes.",

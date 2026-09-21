@@ -765,7 +765,7 @@ async function runQualificationPass(db: SupabaseClient): Promise<{ judged: numbe
     if (file) {
       out.filed++;
       await sendSlackAlert(
-        `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and will NOT go to a provider. They said: "${said}" ${result.reason} Undo at /admin/city-ads.`,
+        `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and will NOT go to a provider. They said: "${said}" ${result.reason} Wrong? Put them back at /admin/city-ads.`,
       );
     } else if (result.verdict !== "care_seeker") {
       out.holding++;

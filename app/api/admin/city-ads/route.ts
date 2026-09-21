@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
     switch (action) {
       case "archive_lead": {
         const reason = String(body.reason ?? "");
-        if (!["opted_out", "no_longer_needed", "looking_for_work", "duplicate", "other"].includes(reason)) return NextResponse.json({error:"Choose an archive reason"},{status:400});
+        if (!["opted_out", "no_longer_needed", "looking_for_work", "recruiter", "media", "solicitation", "competitor", "wrong_number", "spam", "duplicate", "other"].includes(reason)) return NextResponse.json({error:"Choose an archive reason"},{status:400});
         if(reason === "opted_out") {
           const {data:lead,error} = await db.from("city_leads").select("phone").eq("id",String(body.leadId ?? "")).single();
           if(error) throw error;
@@ -239,9 +239,28 @@ export async function POST(req: NextRequest) {
         const reply = String(body.reply ?? "").trim();
         if (!reply) return NextResponse.json({ error: "Type what they told you" }, { status: 400 });
         if (await cityLeadBlocked(db, leadId)) return NextResponse.json({ error: "Lead is archived or opted out" }, { status: 409 });
+        // A PERSON WHO SPOKE TO THE FAMILY OUTRANKS THE CLASSIFIER.
+        //
+        // This box is "what they told you on the phone", so reaching it means
+        // someone has already done, better, the job the model does from a text.
+        // Without a verdict written here the relay's gate would see an answered
+        // lead with no judgement and hold it, the admin would read "Saved." and
+        // reasonably assume it had gone out, and the lead would then wait for a
+        // model to second-guess a human who had them on the line.
+        //
+        // If what they learned was that this is NOT a family, the Archive
+        // button is the control for that, not this one.
         const { error } = await db
           .from("city_leads")
-          .update({ qualification_reply: reply.slice(0, 2000), qualification_reply_at: now, updated_at: now })
+          .update({
+            qualification_reply: reply.slice(0, 2000),
+            qualification_reply_at: now,
+            qualification_verdict: "care_seeker",
+            qualification_verdict_category: "care_seeker",
+            qualification_verdict_reason: `Recorded by ${auth.user.email ?? auth.user.id} from a conversation with the family.`,
+            qualification_verdict_at: now,
+            updated_at: now,
+          })
           .eq("id", leadId);
         if (error) throw error;
         const r = await startOrAdvance(db, leadId);
@@ -255,8 +274,43 @@ export async function POST(req: NextRequest) {
                 ? "Saved. It will be offered when their morning opens."
                 : r.action === "unfilled"
                   ? "Saved, but nobody is on call for this city yet."
-                  : "Saved.",
+                  : r.action === "held"
+                    ? "Saved. Nothing has gone to a provider; open the lead to see why."
+                    : "Saved.",
         });
+      }
+      case "unarchive_lead": {
+        // The classifier files wrong-audience leads on its own now, and the
+        // whole justification for letting it do that is that a mistake is
+        // cheap to undo. Until this existed it was not: archived leads render
+        // with every action stripped, so a family filed by accident was filed
+        // for good, and the Slack alert telling someone to undo it pointed at
+        // a page with no way to.
+        //
+        // Clearing the verdict alone would be a loop: the classify pass would
+        // pick the lead straight back up and file it again on the next tick.
+        // So un-archiving is recorded as a person overruling the model, which
+        // is what it is.
+        const leadId = String(body.leadId ?? "");
+        const { data, error } = await db
+          .from("city_leads")
+          .update({
+            archived_at: null,
+            archive_reason: null,
+            archived_by: null,
+            qualification_verdict: "care_seeker",
+            qualification_verdict_category: "care_seeker",
+            qualification_verdict_reason: `Un-archived by ${auth.user.email ?? auth.user.id}, overruling an automatic filing.`,
+            qualification_verdict_at: now,
+            updated_at: now,
+          })
+          .eq("id", leadId)
+          .not("archived_at", "is", null)
+          .select("id, first_name")
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) return NextResponse.json({ error: "That lead is not archived" }, { status: 409 });
+        return NextResponse.json({ ok: true, id: data.id, message: `${data.first_name} is back in the queue and will be offered to a provider.` });
       }
       case "offer_next": {
         const r = await startOrAdvance(db, String(body.leadId ?? ""), { force: true });

@@ -394,10 +394,38 @@ export async function startOrAdvance(
       requireMobile: !candidate.phone_override, // a number typed as the override was given for texts
       metadata: { lead_id: lead.id, offer_id: inserted.id, slug: lead.slug, position: nextPosition },
     });
-    if (r.success && !r.skipped) channels.push("text");
+    // "sms", not "text". This array is persisted to reached_channels, and the
+    // backfill derived its values from email_log.channel, which is 'sms'. Two
+    // spellings in one column would read fine in a sentence and quietly break
+    // the first query that filtered on either. Display maps it back to "text".
+    if (r.success && !r.skipped) channels.push("sms");
   }
+  // OFFERED IS NOT REACHED, and for two days they were the same row.
+  //
+  // Every Dallas provider number is a landline, so every offer text was skipped.
+  // Two of the three have info@ addresses cached invalid, and a suppressed email
+  // returns success-with-skipped and writes NOTHING anywhere, so half the
+  // failure was not even recoverable afterwards. The result looked like three
+  // providers passing on a request. Two had never been told one existed.
+  //
+  // This line is what makes the difference legible to the case tracker rather
+  // than to whoever happened to be reading Slack that minute.
+  const spoken = (cs: string[]) => cs.map((c) => (c === "sms" ? "text" : c)).join(" and ");
+  const note = channels.length
+    ? null
+    : [
+        email ? "email address did not accept the send" : "no email address on file",
+        phone ? "number cannot receive texts" : "no phone number on file",
+      ].join("; ");
+  await db
+    .from("city_lead_offers")
+    .update({ reached_channels: channels, delivery_note: note })
+    .eq("id", inserted.id as string);
+
   await sendSlackAlert(
-    `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} by ${channels.length ? channels.join(" and ") : "NOTHING (both sends failed)"}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel ?? "urgency not stated"}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`,
+    channels.length
+      ? `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} by ${spoken(channels)}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel ?? "urgency not stated"}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`
+      : `🚨 City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} REACHED NOBODY (${note}). The 30 min clock is running against a provider who was never told. Fix their contact details or offer it to someone else: /admin/city-ads`,
   );
   return { action: "offered", providerName: name };
 }

@@ -152,17 +152,19 @@ export async function GET(request: NextRequest) {
         incompleteCount++;
       }
 
-      // Lifecycle state counts
-      if (profile.is_active) {
+      // Lifecycle state counts - application_completed is the approval flag
+      // A student is only "Live" if both approved AND active
+      if (meta.application_completed && profile.is_active) {
+        // Approved and active = visible to providers
         activeCount++;
-      } else if (meta.application_completed) {
-        // Was live, now paused
+      } else if (meta.application_completed && !profile.is_active) {
+        // Approved but paused by student
         pausedCount++;
       } else if (meta.review_requested_at) {
-        // Requested review, awaiting approval
+        // Requested review, awaiting approval (regardless of is_active)
         pendingReviewCount++;
       } else {
-        // Never went live, no pending review
+        // Never requested review or rejected
         notLiveCount++;
       }
     }

@@ -384,11 +384,21 @@ export default function AdminStudentDetailPage() {
             </span>
           )}
           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            student.is_active
+            isApproved && student.is_active
               ? "bg-green-100 text-green-700"
+              : isApproved && !student.is_active
+              ? "bg-amber-100 text-amber-700"
+              : isPendingReview
+              ? "bg-orange-100 text-orange-700"
               : "bg-gray-100 text-gray-600"
           }`}>
-            {student.is_active ? "Active" : "Paused"}
+            {isApproved && student.is_active
+              ? "Live"
+              : isApproved && !student.is_active
+              ? "Paused"
+              : isPendingReview
+              ? "Pending Review"
+              : "Not Live"}
           </span>
           <span className="text-sm text-gray-500">
             {connectionCount} application{connectionCount !== 1 ? "s" : ""}
@@ -488,7 +498,7 @@ export default function AdminStudentDetailPage() {
               value={meta.profile_completeness ? `${meta.profile_completeness}%` : null}
             />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <label className="block text-sm font-medium text-gray-700">Visibility</label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -498,6 +508,11 @@ export default function AdminStudentDetailPage() {
                 />
                 <span className="text-sm text-gray-700">Active</span>
               </label>
+              <p className="text-xs text-gray-400">
+                {isApproved
+                  ? "Uncheck to pause visibility to providers"
+                  : "Profile must be approved before it becomes visible"}
+              </p>
             </div>
           </div>
         </Section>

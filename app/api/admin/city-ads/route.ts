@@ -77,6 +77,24 @@ export async function GET() {
         .order("created_at")
     : { data: [] as Record<string, unknown>[] };
 
+  // THEIR SIDE OF THE CONVERSATION. Until now this page queried only what we
+  // SENT: `texts` above reads email_log, which is outbound. The one place a
+  // family's own words appeared was city_leads.qualification_reply, and that
+  // column keeps only the FIRST reply by design.
+  //
+  // Bessie Brooks texted three times in ninety seconds and the second message
+  // named her area. The offer relay shows providers all of it, because
+  // getLeadExchange reads this table. The support team, looking at the same
+  // lead, saw one line. The people deciding what to do next had less of the
+  // conversation than the provider being asked to take it.
+  const { data: inbound } = leadPhones.length
+    ? await db
+        .from("sms_inbound")
+        .select("id, created_at, body, phone_last10")
+        .in("phone_last10", leadPhones.map((p) => p.replace(/\D/g, "").slice(-10)))
+        .order("created_at")
+    : { data: [] as Record<string, unknown>[] };
+
   // Counted separately from the 200-row lead list above. The rollup is the
   // number that decides which platform we keep, so it must count every lead
   // ever, not the most recent page of them — a truncated denominator would
@@ -133,6 +151,9 @@ export async function GET() {
         .filter((o) => o.lead_id === l.id)
         .map((o) => ({ ...o, provider: byId.get(o.provider_id as string) ?? null })),
       texts: (texts ?? []).filter((t) => t.recipient === l.phone),
+      // Matched on the last ten digits, the same key sms_inbound is indexed on,
+      // because the stored formats differ between the two tables.
+      inbound: (inbound ?? []).filter((m) => m.phone_last10 === String(l.phone ?? "").replace(/\D/g, "").slice(-10)),
     })),
   });
 }

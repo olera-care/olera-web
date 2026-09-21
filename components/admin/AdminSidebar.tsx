@@ -89,11 +89,11 @@ const navSections: NavSection[] = [
       { label: "Organic Growth", href: "/admin/organic-growth", description: "Track search visibility and acquisition", keywords: "seo google traffic metrics" },
       { label: "Analytics", href: "/admin/analytics", description: "Explore site usage and performance", keywords: "traffic metrics visitors conversion" },
       { label: "Ad Boost", href: "/admin/ad-boost", description: "Manage provider advertising campaigns", keywords: "ads google nextdoor paid promotion" },
-      { label: "Relationships", href: "/admin/relationships", description: "Track provider contacts and follow-ups", keywords: "crm touches calls meetings quiet" },
+      { label: "Provider Relationships", href: "/admin/relationships", description: "Track provider contacts and follow-ups", keywords: "crm touches calls meetings quiet relationships" },
       // The family half of the same idea. Separate entry rather than a tab
       // because the two are opened for different reasons: providers on a Tuesday
       // to keep accounts warm, families when someone is waiting on an answer.
-      { label: "Family Relationships", href: "/admin/relationships/families", description: "See which families are waiting on us", keywords: "crm care seekers families reach consent episode unreachable" },
+      { label: "Care Seeker Relationships", href: "/admin/relationships/families", description: "Work the families who need something from us", keywords: "crm care seekers families reach consent episode unreachable cases case desk queue" },
       { label: "Automations", href: "/admin/automations", description: "Review scheduled workflows", keywords: "cron jobs schedules email sequences" },
       // Sits next to Automations on purpose: that page carries account-level
       // send risk, this one carries who stopped hearing from us. Two halves.

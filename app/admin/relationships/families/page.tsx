@@ -24,37 +24,69 @@ import { consentWarning, detailLine, nextLine, problemLine, stateOf, type Tone }
  * lib/seeker-touches/timeline.server.ts and put into words in ./present.
  */
 
-type Tab = "needs_you" | "open" | "unreachable" | "waiting" | "all";
+/**
+ * TABS ARE ACTIONS, NOT STATES.
+ *
+ * "Waiting on us" held 72 families across four unrelated jobs: answer a text,
+ * make a promised call, write down an outcome somebody already gave us, and
+ * fix a broken phone number. Working it meant re-deciding what KIND of task
+ * each row was, one row at a time, seventy-two times. Splitting on the
+ * physical action is what turns the list into a shift somebody can finish.
+ *
+ * "Providers have it" is deliberately NOT here. It was 295 rows, four times
+ * the size of every real queue combined, and there is no action attached to
+ * any of them: it means "we handed this over and have never seen what
+ * happened", which is a measurement, not a job. Presenting it as a tab beside
+ * genuine work implied the two were the same kind of thing and made the board
+ * open feeling hopeless. It lives in the strip above as a number instead.
+ *
+ * "Chase a provider" was tried here and removed for the same reason, which is
+ * worth recording because it looked like a real queue. provider_silent is 307
+ * rows: past the cold threshold with nothing observable back. Putting a verb
+ * on it does not make it workable, and nobody is chasing three hundred
+ * agencies. The genuinely actionable version of that signal is a family who
+ * told us the provider never got back to them, and those are already in
+ * "Write down what they told us" with their answer attached.
+ */
+type Tab = "reply" | "call" | "record" | "reach" | "all";
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: "needs_you", label: "Waiting on us" },
-  { key: "open", label: "Open" },
-  { key: "unreachable", label: "Can't reach" },
-  { key: "waiting", label: "Providers have it" },
+  { key: "reply", label: "Reply to them" },
+  { key: "call", label: "Call them" },
+  { key: "record", label: "Write down what they told us" },
+  { key: "reach", label: "Fix how we reach them" },
   { key: "all", label: "All" },
 ];
 
+const TAB_BLURB: Record<Tab, string> = {
+  reply: "They wrote to us and nobody has answered.",
+  call: "We promised a call and have not reached them.",
+  record: "They already told us how it went. The record still says pending.",
+  reach: "No working phone or email, so nothing we send can land.",
+  all: "Everyone with a live episode in the window.",
+};
+
 function matches(r: SeekerRelationshipRow, tab: Tab): boolean {
+  // Opted out never appears in a work queue: there is no channel left to act
+  // on, so it only pads the lists meant to be finished.
+  if (tab !== "all" && r.flags.includes("opted_out")) return false;
   switch (tab) {
-    case "needs_you":
-      // Opted out is never "waiting on us": there is no channel left to answer
-      // on, so leaving them here just pads the one tab meant to be a to-do list.
-      if (r.flags.includes("opted_out")) return false;
-      return (
-        r.flags.includes("awaiting_reply") ||
-        r.flags.includes("promise_owed") ||
-        r.flags.includes("unreachable") ||
-        r.flags.includes("outcome_reported")
-      );
-    case "open":
-      return r.episode.state === "open";
-    case "unreachable":
+    case "reply":
+      return r.flags.includes("awaiting_reply");
+    case "call":
+      return r.flags.includes("promise_owed");
+    case "record":
+      return r.flags.includes("outcome_reported");
+    case "reach":
       return r.flags.includes("unreachable");
-    case "waiting":
-      return r.episode.state === "waiting";
     default:
       return true;
   }
+}
+
+/** Everything with an action attached, for the "nothing is waiting" case. */
+function openWorkCount(rows: SeekerRelationshipRow[]): number {
+  return rows.filter((r) => TABS.some((t) => t.key !== "all" && matches(r, t.key))).length;
 }
 
 const RAIL: Record<Tone, string> = {
@@ -78,7 +110,7 @@ const PROBLEM_TONE: Record<Tone, string> = {
 export default function AdminSeekerRelationshipsPage() {
   const [rows, setRows] = useState<SeekerRelationshipRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("needs_you");
+  const [tab, setTab] = useState<Tab>("reply");
   const [days, setDays] = useState(45);
 
   const load = useCallback(async () => {
@@ -99,7 +131,7 @@ export default function AdminSeekerRelationshipsPage() {
   }, [load]);
 
   const counts = useMemo(() => {
-    const c: Record<Tab, number> = { needs_you: 0, open: 0, unreachable: 0, waiting: 0, all: 0 };
+    const c: Record<Tab, number> = { reply: 0, call: 0, record: 0, reach: 0, all: 0 };
     for (const r of rows ?? []) for (const t of TABS) if (matches(r, t.key)) c[t.key] += 1;
     return c;
   }, [rows]);
@@ -152,7 +184,7 @@ export default function AdminSeekerRelationshipsPage() {
           {[
             { n: stats.unanswered, k: "wrote to us, still unanswered", tone: "text-orange-800" },
             { n: stats.unreachable, k: "no working way to reach", tone: "text-red-700" },
-            { n: stats.withProvider, k: "a provider has their request", tone: "text-gray-900" },
+            { n: stats.withProvider, k: "handed over, outcome unknown", tone: "text-gray-900" },
             { n: stats.unnamed, k: "we don't know their name", tone: "text-gray-900" },
           ].map((s) => (
             <div key={s.k} className="bg-white px-3.5 py-3">
@@ -164,7 +196,7 @@ export default function AdminSeekerRelationshipsPage() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-y border-gray-200 px-3.5 py-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2 border-t border-gray-200 px-3.5 py-3 text-xs">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -192,6 +224,10 @@ export default function AdminSeekerRelationshipsPage() {
           </select>
         </div>
 
+        {/* One line saying what this queue IS. The tab label is a verb; this is
+            the rule behind it, so nobody has to infer why a row qualified. */}
+        <p className="border-b border-gray-200 px-3.5 pb-3 text-[11.5px] leading-tight text-gray-500">{TAB_BLURB[tab]}</p>
+
         <div className="flex gap-4 border-b border-gray-200 py-2.5 pl-[19px] pr-4 text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-500">
           <span className="flex-1">Family</span>
           <span className="w-[150px] shrink-0 text-right">Where it stands</span>
@@ -200,7 +236,20 @@ export default function AdminSeekerRelationshipsPage() {
         {error && <p className="px-4 py-6 text-sm text-red-600">{error}</p>}
         {rows === null && !error && <p className="px-4 py-10 text-center text-sm text-gray-400">Loading…</p>}
         {rows !== null && shown.length === 0 && (
-          <p className="px-4 py-10 text-center text-sm text-gray-400">Nothing here.</p>
+          // An empty queue is the goal, not an error, and it should say where
+          // the remaining work went rather than leaving a dead end.
+          <div className="px-4 py-10 text-center">
+            <p className="text-sm font-medium text-gray-700">
+              {tab === "all" ? "Nobody has a live episode in this window." : "Nothing in this queue."}
+            </p>
+            {tab !== "all" && (
+              <p className="mt-1 text-xs text-gray-500">
+                {openWorkCount(rows) === 0
+                  ? "No family is waiting on anything right now."
+                  : `${openWorkCount(rows)} still need something in the other queues.`}
+              </p>
+            )}
+          </div>
         )}
 
         {shown.map((r) => {

@@ -1,4 +1,5 @@
 import { cityLeadBlocked } from "./messages.server";
+import { getLeadExchange } from "./exchange.server";
 /**
  * City lead offer chain — server only.
  *
@@ -340,6 +341,14 @@ export async function startOrAdvance(
 
   if (await cityLeadBlocked(db, lead.id)) return { action: "noop" };
   const l = labels(lead);
+  // The family's own words ride along with the offer, in all three places a
+  // provider might read it. Everything above this line is generated from four
+  // form fields; this is the only part she wrote. Best effort by construction:
+  // getLeadExchange swallows its own read errors and returns what it has, so a
+  // message-store problem degrades the offer rather than blocking it.
+  const exchange = await getLeadExchange(db, lead);
+  const askedQuestion = exchange.find((t) => t.who === "olera")?.text ?? null;
+  const familySaid = exchange.filter((t) => t.who === "family").map((t) => t.text);
   // Email first: many provider numbers are office lines. The text goes only
   // where a text can land (requireMobile), and carries the same link.
   const channels: string[] = [];
@@ -347,7 +356,7 @@ export async function startOrAdvance(
     const r = await sendEmail({
       to: email,
       subject: `A family in ${city} is looking for ${l.careLabel}`,
-      html: cityOfferEmail({ providerName: name, city, ...l, minutes: OFFER_WINDOW_MINUTES, offerUrl }),
+      html: cityOfferEmail({ providerName: name, city, ...l, minutes: OFFER_WINDOW_MINUTES, offerUrl, askedQuestion, familySaid }),
       replyTo: "support@olera.care",
       emailType: "city_lead_offer",
       recipientType: "provider",
@@ -359,7 +368,7 @@ export async function startOrAdvance(
   if (phone) {
     const r = await sendSMS({
       to: phone,
-      body: `${cityOfferSms({ city, ...l, minutes: OFFER_WINDOW_MINUTES })} Details: ${offerUrl}`,
+      body: `${cityOfferSms({ city, ...l, minutes: OFFER_WINDOW_MINUTES, excerpt: familySaid[0] ?? null })} Details: ${offerUrl}`,
       emailType: "city_lead_offer",
       recipientType: "provider",
       recipientLogProfileId: candidate.provider_id,

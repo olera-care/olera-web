@@ -20,6 +20,15 @@ export type ChannelStatus = "not_yet" | "in_progress" | "live" | "not_available"
 /** What a rung says when the ladder moved past it before anybody worked it. */
 export const SKIPPED = "Not needed — they said yes first";
 
+/**
+ * Record id prefix for the per-university map sweep.
+ *
+ * The sweep has no row of its own until it is done, so its record is
+ * synthesised from the campus. The prefix is how the server tells that id
+ * apart from an outreach id when the task comes back to be completed.
+ */
+export const SWEEP_PREFIX = "sweep:";
+
 export interface BoardTask {
   id: string;
   section: SectionKey;

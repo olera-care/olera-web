@@ -6,6 +6,7 @@ import { LADDERS, rungAt, type ContactField, type SectionKey } from "@/lib/medjo
 import {
   canReopen,
   complete,
+  SWEEP_PREFIX,
   defer,
   doAgain,
   doneToday,
@@ -200,6 +201,13 @@ export default function UniversityFlow({
   const openRecord = (r: BoardRecord) => {
     setOpenSections((o) => ({ ...o, [r.section]: true }));
     setCameFrom(r.id);
+    // The map sweep has no record behind it — no contact, no address, no
+    // history. Opening its record screen would show a form about nobody, so
+    // its row goes straight to the one task it exists to hand over.
+    if (r.id.startsWith(SWEEP_PREFIX) && r.tasks[0]) {
+      setView({ kind: "task", recordId: r.id, taskId: r.tasks[0].id });
+      return;
+    }
     setView({ kind: "record", recordId: r.id });
   };
 

@@ -10,6 +10,7 @@ import {
   studentFacts,
 } from "@/lib/medjobs/student-profile";
 import {
+  SWEEP_PREFIX,
   derivedStep,
   forwardStep,
   formatPhone,
@@ -582,6 +583,64 @@ export async function GET() {
         state: facts.hired ? LADDERS.students.goal : null,
         tasks,
       });
+    }
+
+    // The map sweep: one per university, at the bottom of the Providers
+    // section, gone once it is done.
+    //
+    // Pushed last so it sits under the last provider, which is where it
+    // belongs — it is a job about the list rather than a member of it.
+    //
+    // Derived rather than seeded. A campus with no completed sweep row has
+    // one to do, which means a campus created tomorrow gets the task with no
+    // backfill and nothing to remember in the campus-creation path. The only
+    // row this ever reads is the completed one.
+    {
+      const swept = (siteTasksByCampus.get(campus.id) ?? []).some(
+        (t) => t.task_type === "provider_map_sweep" && t.status === "completed",
+      );
+      if (!swept) {
+        const step = LADDERS.providers.steps.findIndex((r) => r.branch === "mapsweep");
+        records.providers.push({
+          id: `${SWEEP_PREFIX}${campus.id}`,
+          section: "providers",
+          name: "Sweep Google Maps for missing agencies",
+          contact: "",
+          role: "",
+          phone: "",
+          email: "",
+          website: "",
+          address: "",
+          step,
+          round: 0,
+          state: null,
+          tasks: [
+            {
+              id: `${SWEEP_PREFIX}task:${campus.id}`,
+              section: "providers",
+              step,
+              round: 0,
+              // Always due. It is never urgent and never blocks, and it
+              // stays on the board until somebody does it.
+              dueAt: day(new Date().toISOString()),
+              done: false,
+              outcome: null,
+              note: "",
+              loggedOn: null,
+              spawned: [],
+              spawnedRecords: [],
+              // The rung renders this as its link. Building it here means
+              // the operator does not retype the campus into Maps, and the
+              // search is the same one every time, at every university.
+              fields: {
+                maps_url:
+                  "https://www.google.com/maps/search/" +
+                  encodeURIComponent(`home care near ${campus.name}`),
+              },
+            },
+          ],
+        });
+      }
     }
 
     // The job board has no person to chase, so the channel itself is the

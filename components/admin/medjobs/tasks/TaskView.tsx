@@ -6,6 +6,7 @@ import { ContactFields } from "./RecordView";
 import {
   DEFERRALS,
   STOP_REASONS,
+  SWEEP_PREFIX,
   canReopen,
   shortDate,
   strikesAt,
@@ -188,14 +189,19 @@ export default function TaskView({
 
   return (
     <div className="px-5 py-4">
-      {/* Who this is with. */}
-      <button
-        type="button"
-        onClick={onOpenRecord}
-        className="block text-left text-[15px] font-semibold text-gray-900 hover:underline"
-      >
-        {record.name} <span className="font-normal text-gray-400">›</span>
-      </button>
+      {/* Who this is with — when it is with somebody. A task that belongs to
+          the university rather than to a person has no record behind it, so
+          the line would be a link to a form about nobody, carrying the rung
+          title a second time. */}
+      {!record.id.startsWith(SWEEP_PREFIX) && (
+        <button
+          type="button"
+          onClick={onOpenRecord}
+          className="block text-left text-[15px] font-semibold text-gray-900 hover:underline"
+        >
+          {record.name} <span className="font-normal text-gray-400">›</span>
+        </button>
+      )}
       {contactLine.length > 0 && (
         <p className="mt-0.5 text-[12.5px] text-gray-500">
           {contactLine.map((bit, i) => (
@@ -376,7 +382,8 @@ export default function TaskView({
                 onClick={() => setShowEmail((v) => !v)}
                 className="text-[12.5px] text-gray-500 underline hover:text-gray-900"
               >
-                {showEmail ? "Hide suggested call script and email copy" : "Show suggested call script and email copy"}
+                {(showEmail ? "Hide " : "Show ") +
+                  (rung.scriptLabel ?? "suggested call script and email copy")}
               </button>
               {showEmail && (
                 <div className="mt-2 space-y-2">

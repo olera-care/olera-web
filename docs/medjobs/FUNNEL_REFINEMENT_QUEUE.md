@@ -61,17 +61,32 @@ The goal also reads plainly now — **ready for students**, not *ready for
 their first student* — since it is a standing state rather than a countdown
 to one event.
 
-## 4 · A final sweep against the Google map pack — ALIGN
+## 4 · A final sweep against the Google map pack — SHIPPED
 
 The directory is where the provider list comes from and it will have missed
-agencies. After the loaded providers are worked, one last task per campus:
-search the map pack, compare against what is on the board, and add by hand
-anything viable that is not there.
+agencies. Every university now carries one task, once: search the map pack,
+compare against the board, and add what is not there.
 
-To settle: what counts as viable, written as instructions somebody can follow
-without judgement calls; how the task knows it is done; whether it recurs.
-Adding a provider by hand already exists, so the UX cost is small — this is a
-question of instructions, not machinery.
+**Settled.** Viable means home care agencies only — an agency that sends
+caregivers to somebody's home, near campus, with a working phone or website,
+not already on the board under another phone or street address. The four
+tests are on the rung, so nobody has to remember them. It is done when
+somebody logs it with a count, and zero is a real answer: it says the
+directory pull was complete for that campus, which is information about the
+directory. It does not recur.
+
+**Not gated.** An earlier sketch held it back until every provider had been
+researched. Dropped — it is available from the moment a university opens,
+because it is never urgent and never blocks, and a gate would only be one
+more thing to explain. It sits at the bottom of the Providers section, under
+the last provider, and it goes when it is done.
+
+**How it is built.** A branch rung on the providers ladder, so a branch is
+stepped over when climbing and no provider can ever land on it. The record is
+synthesised from the campus rather than stored, so a university created
+tomorrow carries the task with no backfill and nothing to remember in the
+campus-creation path. The only row ever written is the completed one, and a
+unique index makes a second impossible.
 
 ## 5 · The provider flyer — CONTENT
 

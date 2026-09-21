@@ -184,6 +184,15 @@ export interface LadderRung {
   why: string;
   steps: string[];
   script?: string;
+  /**
+   * What the disclosure holding `script` is called, when "suggested call
+   * script and email copy" does not describe it.
+   *
+   * The map sweep keeps its test for what counts as an agency worth adding
+   * behind that disclosure, and a reader told it was a call script will not
+   * open it.
+   */
+  scriptLabel?: string;
   /** The email to send, with tokens filled from the record. */
   email?: LadderEmail;
   /** Offers "They replied", which breaks out of a follow-up block. */
@@ -957,6 +966,59 @@ Dr. Logan DuBose's office · Olera`,
             hint: "Logged as a no-show. Back to chasing tomorrow, where you can book another.",
           },
           ERRAND,
+        ],
+      },
+      {
+        // A branch, and not a rung any provider climbs: it belongs to the
+        // university rather than to an agency. The board puts it at the
+        // bottom of the Providers section, under the last provider, and it
+        // goes when it is done.
+        //
+        // Sitting at the end of the ladder is what keeps it harmless. A
+        // branch is stepped over when climbing, and the end is the only
+        // place a rung can be added without renumbering the task rows
+        // already written against every step before it.
+        branch: "mapsweep",
+        title: "Sweep Google Maps for missing agencies",
+        what: "Search the map pack around campus and add the home care agencies the directory never had.",
+        why: "The directory can only give us agencies it has heard of. The map pack has ones it has not, and those stay invisible until somebody looks.",
+        steps: [
+          "Open Google Maps at the campus, below.",
+          "Search each of: home care, home health, senior care, caregiver agency.",
+          "For each result near campus, check it against the provider list. Match on phone and street address, not name — franchises repeat names.",
+          "Add the ones that pass the test below with Add a provider, then come back here.",
+        ],
+        script: `Add an agency when all four are true:
+
+  1. It sends caregivers to someone's home. Not a facility, not hospital staffing, not medical supply. Home care agencies only.
+  2. Its address is near campus, inside the area we recruit from.
+  3. It has a phone number that works, or a website.
+  4. No provider already on the board shares its phone number or its street address.
+
+If you are unsure on any of the four, leave it out and say so in the note. A provider added wrongly costs somebody a research rung and a call.`,
+        textarea: "Anything worth saying about the sweep",
+        scriptLabel: "what counts as one worth adding",
+        // Built by the board from the campus name, so the same search runs
+        // at every university and nobody retypes it.
+        link: { key: "maps_url", label: "Google Maps near campus" },
+        // Once per university, so there is nothing to defer to.
+        defer: false,
+        inputs: [
+          {
+            key: "added",
+            label: "How many did you add (0 is an answer)",
+            type: "number",
+            required: true,
+            needs: "Put in how many you added",
+          },
+        ],
+        actions: [
+          {
+            label: "Swept",
+            outcome: "goal",
+            delay: 0,
+            hint: "Done for this university. Zero added means the directory already had them all, which is worth knowing.",
+          },
         ],
       },
     ],

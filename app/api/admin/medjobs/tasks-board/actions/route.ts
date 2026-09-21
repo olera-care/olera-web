@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   SKIPPED,
+  SWEEP_PREFIX,
   carryFrom,
   dueFor,
   dueIn,
@@ -225,9 +226,49 @@ export async function POST(req: Request) {
     .eq("id", body.recordId)
     .maybeSingle();
 
-  // Three kinds of thing carry an id on this board and only one of them is a
+  // Four kinds of thing carry an id on this board and only one of them is a
   // student_outreach row. A job board is the channel row itself; a student is
-  // their own profile. So a miss here is a question rather than an answer.
+  // their own profile; the map sweep has no row at all until it is done. So a
+  // miss here is a question rather than an answer.
+  //
+  // The sweep goes first because its id is synthetic — there is nothing to
+  // look up, and every other lookup would miss it and cost a round trip.
+  if (body.recordId.startsWith(SWEEP_PREFIX)) {
+    const campusId = body.recordId.slice(SWEEP_PREFIX.length);
+    if (body.op !== "complete_record_task") {
+      return NextResponse.json(
+        { error: "The sweep can only be logged, not deferred or reopened." },
+        { status: 400 },
+      );
+    }
+    const fields =
+      body.fields && typeof body.fields === "object"
+        ? (body.fields as Record<string, string>)
+        : {};
+    // Upsert, not insert. The unique index makes a second row impossible, so
+    // without this a double click returns an error rather than a no-op — and
+    // to the operator a double click is one click that did not seem to work.
+    const { error } = await db
+      .from("site_tasks")
+      .upsert(
+        {
+          campus_id: campusId,
+          task_type: "provider_map_sweep",
+          channel: null,
+          due_at: new Date().toISOString(),
+          status: "completed",
+          completed_at: new Date().toISOString(),
+          completed_by: user.id,
+          created_by: user.id,
+          payload: { added: Number(fields.added ?? 0) },
+          notes: (body.note ?? "").trim() || null,
+        },
+        { onConflict: "campus_id", ignoreDuplicates: true },
+      );
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true, swept: campusId });
+  }
+
   if (!outreach) {
     const { data: student } = await db
       .from("business_profiles")

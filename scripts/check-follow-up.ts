@@ -77,6 +77,7 @@ const FOLLOW = steps.findIndex((r) => r.rounds);
 const ONBOARD = named("onboarding");
 const ONBOARDFOLLOW = named("onboardfollow");
 const HELP = named("help");
+const SWEEP = named("mapsweep");
 const ERRAND = named("errand");
 
 const at = (step: number, round = 0): [BoardUniversity, BoardRecord] => {
@@ -107,8 +108,16 @@ ok("5 the onboarding follow-up block", ONBOARDFOLLOW === 5, String(ONBOARDFOLLOW
 ok("6 the seasonal check", steps[6].seasonal === true);
 ok("7 something else", ERRAND === 7, String(ERRAND));
 ok("8 help them on a call", HELP === 8, String(HELP));
-ok("and that is the whole ladder", steps.length === 9, String(steps.length));
-ok("two branches, both reached by name", steps.filter((r) => r.branch).length === 2);
+ok("9 the map sweep", SWEEP === 9, String(SWEEP));
+ok("and that is the whole ladder", steps.length === 10, String(steps.length));
+ok("three branches, all reached by name", steps.filter((r) => r.branch).length === 3);
+// The sweep belongs to the university, not to any agency, so no provider
+// may ever climb into it. Being a branch is what guarantees that: branches
+// are stepped over, and nothing on the ladder names this one.
+ok(
+  "and nothing climbs into the sweep",
+  !steps.some((r) => (r.actions ?? []).some((a) => a.goto === "mapsweep")),
+);
 ok(
   "the goal is what we are actually waiting for",
   LADDERS.providers.goal === "ready for students",
@@ -373,10 +382,13 @@ console.log("\nWhere Not yet is offered");
   const off = SECTION_ORDER.flatMap((s) =>
     LADDERS[s].steps.filter((r) => r.defer === false).map((r) => `${s}:${r.title}`),
   );
+  // The sweep is the fourth reason: it is a one-off that sits at the bottom
+  // of the section until it is done, so deferring it would only hide the one
+  // thing whose whole job is to stay visible.
   ok(
-    "only where putting it off is the same act as the next round, or is rebooking",
+    "only where putting it off is the same act as the next round, is rebooking, or would hide a one-off",
     off.join("|") ===
-      "providers:Follow up 1|providers:Onboarding follow up 1|providers:Help them on a call|advisors:Follow up 1|orgs:Follow up 1",
+      "providers:Follow up 1|providers:Onboarding follow up 1|providers:Help them on a call|providers:Sweep Google Maps for missing agencies|advisors:Follow up 1|orgs:Follow up 1",
     off.join("|"),
   );
   for (const [i, why] of [

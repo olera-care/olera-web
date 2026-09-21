@@ -146,7 +146,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
       </head>
-      <body className="bg-white min-h-screen flex flex-col font-sans">
+      <body className="bg-white min-h-screen flex flex-col font-sans overflow-x-hidden">
         <Script src="https://cdn.lordicon.com/lordicon.js" strategy="afterInteractive" />
         <AuthProvider>
           <SavedProvidersProvider>

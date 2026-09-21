@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { IntendedProfessionalSchool } from "@/lib/types";
 import type { CoverageBucket } from "@/lib/medjobs/student-eligibility";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import Select from "@/components/ui/Select";
 
 /**
  * StudentEligibilityModal — the student funnel front door (mirror of the
@@ -77,18 +78,38 @@ export default function StudentEligibilityModal({
   const [step, setStep] = useState<Step>("q1");
   const [track, setTrack] = useState<IntendedProfessionalSchool | null>(null);
   const [buckets, setBuckets] = useState<CoverageBucket[]>([]);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [university, setUniversity] = useState<string>(context.campusSlug ?? "");
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [existing, setExisting] = useState(false);
 
+  // Lock body scroll when modal is open to prevent background "shaking" on mobile
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const reassurance = Q1.find((q) => q.value === track)?.reassure;
+
+  // Convert partner universities to Select options format
+  const universityOptions = useMemo(
+    () => PARTNER_UNIVERSITIES.map((u) => ({ value: u.slug, label: u.name })),
+    []
+  );
 
   const toggleBucket = (b: CoverageBucket) =>
     setBuckets((cur) => (cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b]));
 
   async function submit() {
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
     if (!university) {
       setError("Please select your university.");
       return;
@@ -109,6 +130,7 @@ export default function StudentEligibilityModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: name.trim(),
           email: email.trim(),
           careerPath: track,
           coverageBuckets: buckets,
@@ -170,16 +192,19 @@ export default function StudentEligibilityModal({
 
   return (
     <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
-      <div className="relative w-full max-w-md rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl">
+      <div className="relative w-full max-w-md max-h-[90vh] rounded-t-2xl bg-white shadow-xl sm:max-h-[85vh] sm:rounded-2xl">
+        {/* Close button - fixed position relative to modal, not scrollable content */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+          className="absolute right-4 top-4 z-10 text-gray-400 hover:text-gray-600"
         >
           ✕
         </button>
 
+        {/* Scrollable content area */}
+        <div className="overflow-y-auto overscroll-contain max-h-[90vh] p-6 pt-12 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:max-h-[85vh] sm:pb-6">
         {context.campusName ? (
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary-600">
             {context.campusName} · Student Caregiver Program
@@ -285,22 +310,33 @@ export default function StudentEligibilityModal({
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-sm font-medium text-gray-800">Your university:</p>
-            <select
-              value={university}
+            <p className="mt-3 text-sm font-medium text-gray-800">Your full name:</p>
+            <input
+              type="text"
+              value={name}
               onChange={(e) => {
-                setUniversity(e.target.value);
+                setName(e.target.value);
                 if (error) setError(null);
               }}
+              placeholder="First and last name"
               className={fieldClass + " mt-2"}
-            >
-              <option value="">Select your university</option>
-              {PARTNER_UNIVERSITIES.map((u) => (
-                <option key={u.slug} value={u.slug}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+              autoComplete="name"
+            />
+            <p className="mt-3 text-sm font-medium text-gray-800">Your university:</p>
+            <div className="mt-2">
+              <Select
+                options={universityOptions}
+                value={university}
+                onChange={(val) => {
+                  setUniversity(val);
+                  if (error) setError(null);
+                }}
+                placeholder="Select your university"
+                searchable
+                searchPlaceholder="Search universities..."
+                size="lg"
+              />
+            </div>
             <p className="mt-3 text-sm font-medium text-gray-800">Add your university email to get started:</p>
             <input
               type="email"
@@ -323,7 +359,7 @@ export default function StudentEligibilityModal({
             {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
             <button
               type="button"
-              disabled={!university || !email.trim() || !isEduEmail(email)}
+              disabled={!name.trim() || !university || !email.trim() || !isEduEmail(email)}
               className={btnPrimary + " disabled:opacity-50"}
               onClick={submit}
             >
@@ -333,6 +369,7 @@ export default function StudentEligibilityModal({
         ) : (
           <div className="py-8 text-center text-sm text-gray-500">Setting up your account…</div>
         )}
+        </div>
       </div>
     </div>
   );

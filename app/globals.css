@@ -4,6 +4,12 @@
 
 /* Custom base styles */
 @layer base {
+  html,
+  body {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
   html {
     scroll-behavior: smooth;
   }

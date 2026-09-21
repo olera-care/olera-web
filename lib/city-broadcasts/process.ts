@@ -103,51 +103,41 @@ export async function detectNewEvents(): Promise<DetectedEvent[]> {
   }
 
   // Find recent published profiles that haven't been broadcast
-  // seeker_activity has profile_id, need to join to business_profiles for city
-  const { data: seekerActivity, error: pErr } = await db
-    .from("seeker_activity")
-    .select("id, profile_id, metadata")
-    .eq("event_type", "profile_published")
+  // Query business_profiles directly - seeker_activity records with event_type='profile_published'
+  // were never being created, so we use business_profiles as the source of truth.
+  const { data: recentProfiles, error: pErr } = await db
+    .from("business_profiles")
+    .select("id, city, state")
+    .not("account_id", "is", null) // Has an actual seeker account
+    .not("city", "is", null) // Must have a city
     .gte("created_at", oneHourAgo)
     .limit(BATCH_SIZE);
 
   if (pErr) {
     console.error("[city-broadcasts] Failed to fetch profiles:", pErr);
-  } else if (seekerActivity && seekerActivity.length > 0) {
+  } else if (recentProfiles && recentProfiles.length > 0) {
     // Filter out profiles that already have a broadcast event
-    const activityIds = seekerActivity.map((p) => p.id);
+    // Use prefixed IDs to match what findExistingActivityForCity returns
+    const profileEventIds = recentProfiles.map((p) => `profile_${p.id}`);
     const { data: existing } = await db
       .from("city_broadcast_events")
       .select("event_id")
       .eq("event_type", "profile_published")
-      .in("event_id", activityIds);
+      .in("event_id", profileEventIds);
     const existingIds = new Set((existing || []).map((e) => e.event_id));
 
-    // Fetch business_profiles to get city/state
-    const newActivity = seekerActivity.filter((a) => !existingIds.has(a.id));
-    if (newActivity.length > 0) {
-      const profileIds = newActivity.map((a) => a.profile_id);
-      const { data: profiles } = await db
-        .from("business_profiles")
-        .select("id, city, state")
-        .in("id", profileIds);
+    for (const profile of recentProfiles) {
+      const eventId = `profile_${profile.id}`;
+      if (existingIds.has(eventId)) continue;
+      if (!profile.city) continue;
 
-      const profileMap = new Map(
-        (profiles || []).map((p) => [p.id, p])
-      );
-
-      for (const activity of newActivity) {
-        const profile = profileMap.get(activity.profile_id);
-        if (!profile?.city) continue;
-
-        events.push({
-          eventType: "profile_published",
-          eventId: activity.id,
-          city: profile.city,
-          state: profile.state || null,
-          category: null, // Profile broadcasts don't filter by category
-        });
-      }
+      events.push({
+        eventType: "profile_published",
+        eventId,
+        city: profile.city,
+        state: profile.state || null,
+        category: null, // Profile broadcasts don't filter by category
+      });
     }
   }
 
@@ -374,23 +364,17 @@ async function findExistingActivityForCity(
 
   if (profiles && profiles.length > 0) {
     const profile = profiles[0];
-    // Find the seeker_activity for this profile
-    const { data: activity } = await db
-      .from("seeker_activity")
-      .select("id")
-      .eq("profile_id", profile.id)
-      .eq("event_type", "profile_published")
-      .limit(1);
-
-    if (activity && activity.length > 0) {
-      return {
-        eventType: "profile_published",
-        eventId: activity[0].id,
-        city: profile.city,
-        state: profile.state || null,
-        category: null,
-      };
-    }
+    // Use the profile ID directly as the event ID
+    // Previously we required a seeker_activity record with event_type='profile_published',
+    // but those records were never being created, causing broadcasts to never send.
+    // The business_profile itself is sufficient evidence of family activity.
+    return {
+      eventType: "profile_published",
+      eventId: `profile_${profile.id}`, // Prefix to distinguish from seeker_activity IDs
+      city: profile.city,
+      state: profile.state || null,
+      category: null,
+    };
   }
 
   // If no published profile, try to find a recent question in the city

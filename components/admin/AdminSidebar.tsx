@@ -166,9 +166,15 @@ const medjobsItems: NavItem[] = [
   { label: "Admin", href: `${SOP_HREF}/admin`, description: "Open the MedJobs admin manual", keywords: "staffing operations sop" },
   { label: "Sales", href: `${SOP_HREF}/sales`, description: "Open the MedJobs sales manual", keywords: "staffing prospecting sop" },
   { label: "CRM", href: `${SOP_HREF}/crm`, description: "Open the MedJobs relationship manual", keywords: "staffing clients partners sop" },
-  // The daily queue sits under the four workspace pages: it is where the work
+  // The daily work sits under the four workspace pages: it is where the work
   // actually happens, and it carries the only count worth glancing at.
-  { label: "In Basket", href: "/admin/medjobs/in-basket", description: "Work the daily MedJobs queue", keywords: "staffing replies meetings calls prospects" },
+  //
+  // Universities is the board. Archive is where records go when the rounds
+  // run out or somebody closes them by hand — somewhere you visit on purpose
+  // rather than part of the daily pass, which is why it is a destination in
+  // the menu and no longer a tab sitting beside the work.
+  { label: "Universities", href: "/admin/medjobs/in-basket", description: "Work through every university, one task at a time", keywords: "staffing in basket queue campuses tasks providers students" },
+  { label: "Archive", href: "/admin/medjobs/archive", description: "Records closed by hand or out of rounds", keywords: "staffing closed archived revive" },
 ];
 
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites

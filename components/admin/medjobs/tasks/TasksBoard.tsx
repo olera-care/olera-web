@@ -143,10 +143,6 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
         </table>
       </div>
 
-      <p className="mt-3 text-[11px] text-gray-500">
-        A red dot means something is waiting. Open a university to see its sections, then start
-        working through them one task at a time.
-      </p>
 
       {open && (
         <UniversityFlow

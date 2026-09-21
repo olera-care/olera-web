@@ -44,16 +44,29 @@ import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, stateO
  * worth recording because it looked like a real queue. provider_silent is 307
  * rows: past the cold threshold with nothing observable back. Putting a verb
  * on it does not make it workable, and nobody is chasing three hundred
- * agencies. The genuinely actionable version of that signal is a family who
- * told us the provider never got back to them, and those are already in
- * "Write down what they told us" with their answer attached.
+ * agencies. The genuinely actionable version of that signal is the family
+ * themselves telling us the provider never got back to them, which is what
+ * the "Provider never got back to them" queue holds.
+ *
+ * That queue replaced "Write down what they told us", which was a defect
+ * wearing a verb. It fired whenever a family answered the outcome email AND
+ * connections.status still read pending — but status is the in-app accept
+ * state and has never moved off pending for a single one of 1,431 inquiries,
+ * so the flag fired on every answer ever given, including "yes". It asked a
+ * person to transcribe an answer that was already stored, structured, on the
+ * connection. Nothing needed writing down. What is worth a human is the
+ * subset who said NO, and only while it is still fresh enough to act on:
+ * capped at fourteen days, which covers eleven of the thirty-seven answers on
+ * record. Uncapped it would be a monument, not a queue — the average "no" is
+ * thirty-eight days old and there is nothing useful to say to a family about
+ * a referral from last quarter.
  */
 type Tab = "reply" | "call" | "record" | "reach" | "all" | "archived";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "reply", label: "Reply to them" },
   { key: "call", label: "Call them" },
-  { key: "record", label: "Write down what they told us" },
+  { key: "record", label: "Provider never got back to them" },
   { key: "reach", label: "Fix how we reach them" },
   { key: "all", label: "All" },
   { key: "archived", label: "Archived" },
@@ -62,7 +75,7 @@ const TABS: { key: Tab; label: string }[] = [
 const TAB_BLURB: Record<Tab, string> = {
   reply: "They wrote to us and nobody has answered.",
   call: "We promised a call and have not reached them.",
-  record: "They already told us how it went. The record still says pending.",
+  record: "They told us the provider never got back to them, in the last two weeks.",
   reach: "No working phone or email, so nothing we send can land.",
   all: "Everyone with a live episode in the window.",
   archived: "Rows a person decided are not cases. Nothing here is in any queue.",
@@ -83,7 +96,7 @@ function matches(r: SeekerRelationshipRow, tab: Tab): boolean {
     case "call":
       return r.flags.includes("promise_owed");
     case "record":
-      return r.flags.includes("outcome_reported");
+      return r.flags.includes("provider_no_show");
     case "reach":
       return r.flags.includes("unreachable");
     default:

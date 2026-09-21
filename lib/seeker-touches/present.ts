@@ -89,8 +89,14 @@ export function stateOf(r: SeekerRelationshipRow): RowState {
   if (r.flags.includes("awaiting_reply")) {
     return { phrase: "Waiting on us", tone: "warn", age: quiet };
   }
-  if (r.flags.includes("outcome_reported") && r.episode.state !== "closed") {
-    return { phrase: "Outcome reported", tone: "warn", age: quiet };
+  // The age here is days since they ANSWERED, not days since we last heard
+  // anything, because the answer is what puts the row in the queue and the
+  // queue is capped at fourteen days from it. Showing quiet time instead would
+  // put a row reading "2 days" next to one about to age out.
+  if (r.flags.includes("provider_no_show")) {
+    const n = r.outcome ? Math.floor((Date.now() - new Date(r.outcome.at).getTime()) / 86_400_000) : null;
+    const said = n === null ? quiet : n <= 0 ? "said so today" : `said so ${days(n)} ago`;
+    return { phrase: "Provider never replied", tone: "act", age: said };
   }
   if (r.episode.state === "closed") {
     // The reason goes in the small line. "Closed — no connection formed" is 29
@@ -201,8 +207,8 @@ export function problemLine(r: SeekerRelationshipRow): string | null {
     return "Wrote to us and nobody has replied.";
   }
 
-  if (r.flags.includes("outcome_reported") && r.episode.state !== "closed") {
-    return "Told us how it went. The request is still marked open.";
+  if (r.flags.includes("provider_no_show")) {
+    return "Told us the provider never got back to them.";
   }
 
   return null;

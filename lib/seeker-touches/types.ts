@@ -221,7 +221,7 @@ export type SeekerFlag =
    */
   | "provider_silent"
   /** They told us how it went and the connection row still says "pending". */
-  | "outcome_reported"
+  | "provider_no_show"
   /** Nobody from Olera has ever said anything to them by hand. */
   | "never_human"
   /** display_name is a placeholder, so the row has nothing to call itself. */
@@ -234,7 +234,7 @@ export const SEEKER_FLAG_LABEL: Record<SeekerFlag, string> = {
   unreachable: "no way to reach them",
   opted_out: "opted out",
   provider_silent: "no reply on file",
-  outcome_reported: "they told us how it went",
+  provider_no_show: "provider never got back to them",
   never_human: "only ever got automated email",
   no_name: "no name on file",
   promise_owed: "promised a call",
@@ -314,6 +314,19 @@ export type SeekerRelationshipRow = SeekerContact & {
    * it. Treat a paid count as a floor, never a total.
    */
   origin: "city_ad" | "ad_boost" | "benefits" | "provider_page" | "unknown";
+  /**
+   * What they told us when we asked "did the provider get back to you?".
+   *
+   * Already structured, already stored, arriving by one click from an email.
+   * It was never something a person needed to transcribe — the queue that
+   * asked them to was reading a flag that fires on ANY answer, because it
+   * compared against connections.status, which is the in-app accept state and
+   * has never moved off pending for a single inquiry.
+   *
+   * "yes" means the provider GOT BACK TO THEM. It does not mean placed, and it
+   * does not mean they chose that provider. Do not label it "matched".
+   */
+  outcome: { value: "yes" | "not_yet" | "no"; at: string } | null;
 };
 
 export type SeekerRelationship = {
@@ -332,4 +345,6 @@ export type SeekerRelationship = {
   archived: { reason: string; note: string | null; at: string } | null;
   /** See SeekerRelationshipRow.origin. */
   origin: SeekerRelationshipRow["origin"];
+  /** See SeekerRelationshipRow.outcome. */
+  outcome: SeekerRelationshipRow["outcome"];
 };

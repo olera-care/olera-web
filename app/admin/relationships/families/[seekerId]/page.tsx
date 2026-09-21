@@ -25,7 +25,7 @@ const FLAG_STYLE: Record<SeekerFlag, string> = {
   unreachable: "bg-red-50 text-red-700",
   opted_out: "bg-gray-100 text-gray-600",
   provider_silent: "bg-amber-50 text-amber-800",
-  outcome_reported: "bg-emerald-50 text-emerald-800",
+  provider_no_show: "bg-amber-50 text-amber-800",
   never_human: "bg-gray-100 text-gray-600",
   no_name: "bg-gray-100 text-gray-500",
   promise_owed: "bg-orange-50 text-orange-800",

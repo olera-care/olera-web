@@ -53,15 +53,36 @@ export interface ProgramPdfConfig {
   /** "Why agencies participate" — 4 short benefit cards. Each
    *  is 1 short title + 1-sentence supporting text. */
   benefits: Array<{ title: string; body: string }>;
-  /** "How it works" — 4 numbered steps. Single-clause each. */
-  steps: string[];
+  /**
+   * "How it works" — numbered steps.
+   *
+   * A plain string on the student flyer, where a step is one clause. The
+   * provider brochure gives each step a bold lead and a sentence, because an
+   * agency is deciding whether the process fits around how they already
+   * hire, and a single clause cannot answer that.
+   */
+  steps: Array<string | { title: string; body: string }>;
   /** "Student vetting" — 4 short bullets. */
   vetting: string[];
   /** "Participation & pricing" — two-line block. headline carries
    *  trial + monthly cost + cancel terms; body carries what the fee
    *  covers and what's included. Rendered hero-style (single styled
    *  block) below the vetting section. */
-  pricing: { headline: string; body: string };
+  pricing?: { headline: string; body: string };
+  /**
+   * What replaced pricing on the provider brochure.
+   *
+   * There is no number on it any more. The first student is free, the ask is
+   * one word, and what it costs afterwards is a conversation we have once it
+   * has worked — so the panel carries the offer rather than a price list.
+   */
+  offer?: { headline: string; ask: string; body: string };
+  /** The closing panel on the team page. */
+  nextStep?: { heading: string; kicker: string; ask: string; body: string };
+  /** The one-word reply block that ends the brochure. */
+  replyBlock?: { label: string; word: string; tail: string };
+  /** The rule-line at the very bottom of the last page. */
+  footerLine?: string;
   /** Bottom CTA line ("Schedule a call · Learn more"). */
   ctaLabel: string;
 
@@ -81,7 +102,7 @@ export interface ProgramPdfConfig {
    * brochure means the first thing they agree to is something they have
    * already read, rather than a process that appears after they commit.
    */
-  afterReply?: string[];
+  afterReply?: Array<{ title: string; body: string }>;
   /**
    * The people an agency will actually deal with.
    *
@@ -124,51 +145,65 @@ export const TEXAS_AM: ProgramPdfConfig = {
   universityAccent: "#500000", // Aggie maroon
   ctaUrl: "https://olera.care/medjobs/providers",
   heroHeadline:
-    "Pre-health students, ready for your hardest shifts.",
+    "Pre-health students, ready to help fill the shifts you need covered.",
   heroSubhead:
-    "We recruit and qualify college students on a pre-health track and match them to your agency. You interview and hire them as caregivers, on your own terms. They want supervised hours, mentorship and a recommendation for health school, so they commit to a semester of recurring availability and take the work seriously. Clients notice the difference.",
+    "Olera recruits and qualifies local pre-health college students and connects them with your agency. You interview and hire the students who fit your needs. Students gain meaningful healthcare experience, and your agency gains another source of reliable caregiver candidates.",
   benefits: [
     {
-      title: "We run the university funnel",
-      body: "Recruitment and qualification happen on campus, before anybody reaches you. You get candidates, not a hiring project.",
+      title: "We recruit the students",
+      body: "We handle university outreach and initial qualification before a candidate reaches you.",
     },
     {
-      title: "Coverage you can schedule around",
-      body: "Students commit to a semester of recurring availability: nights, weekends, and standing schedules.",
+      title: "Recurring availability",
+      body: "We look for students who can commit to consistent shifts for at least one semester.",
     },
     {
-      title: "Motivated by more than pay",
-      body: "They need supervised hours, mentorship and a recommendation for health school, so they show up and take it seriously.",
+      title: "Strong motivation",
+      body: "Students are building healthcare experience and value mentorship, supervised hours, and future recommendations.",
     },
     {
-      title: "A new cohort every semester",
-      body: "Local students, available term after term, from the same university.",
+      title: "A renewable local pipeline",
+      body: "New student cohorts create an opportunity to recruit from nearby universities each semester.",
     },
   ],
   steps: [
-    "Tell us your ideal caregiver and how many you want each semester.",
-    "We recruit and qualify students, then send you matches to interview.",
-    "Interview, hire, and they start.",
+    {
+      title: "Tell us what you need.",
+      body: "Share your ideal caregiver, preferred shifts, and how many students you may want.",
+    },
+    {
+      title: "We send qualified matches.",
+      body: "We recruit and screen students, then send candidates for you to review and interview.",
+    },
+    {
+      title: "You decide who to hire.",
+      body: "You remain the employer and handle your normal hiring, onboarding, and supervision.",
+    },
   ],
-  vetting: [
-    "Screened pre-nursing and pre-medical students.",
-    "Committed to at least a semester of recurring availability.",
-    "Professionalism and scheduling expectations set before they reach you.",
-    "We only send students we are confident in.",
-  ],
-  pricing: {
-    headline: "Your first hire is free. $250 per confirmed hire after that.",
-    body: "No subscription, and nothing to sign to start. The fee pays the staff who run the university recruitment funnels and keep students coming to you. You remain the employer and run your own hiring and onboarding.",
-  },
-  story: {
-    heading: "Why this program exists",
-    body: "Dr. DuBose was a pre-med student who found hands-on clinical experience hard to come by. Later, doing research funded by the National Institute on Aging, he found that 63% of home care agencies face staffing shortages. Students need hours. Agencies need caregivers. Families need someone reliable at home. The program was built to serve all three.",
+  vetting: [],
+  offer: {
+    headline: "Try your first student at no cost.",
+    ask: "Simply reply \u201cInterested\u201d to the email that included this flyer.",
+    body: "That is all we need to start. We will answer any questions, learn what you are looking for, and set you up to try the program with one student at no cost.",
   },
   afterReply: [
-    "We set up what you want in a caregiver: hours, shift types, anything you will not move on.",
-    "When a student near you is ready, we send you their one-page profile and a short video.",
-    "You interview, you decide, and you hire on your own terms. We confirm it with both of you.",
+    {
+      title: "We learn your needs.",
+      body: "We confirm preferred shifts, candidate profile, and any non-negotiables.",
+    },
+    {
+      title: "We send a student.",
+      body: "When a qualified student is available near you, we send a short profile for review.",
+    },
+    {
+      title: "You interview and decide.",
+      body: "If there is a fit, you hire the student through your normal process.",
+    },
   ],
+  story: {
+    heading: "Why this program exists",
+    body: "Pre-health students often need meaningful, hands-on experience before professional school. Home care agencies often need dependable caregivers. Olera built the Student Caregiver Program to connect those needs while helping families receive reliable support at home.",
+  },
   team: [
     {
       name: "Logan DuBose, MD, MBA",
@@ -180,24 +215,37 @@ export const TEXAS_AM: ProgramPdfConfig = {
       name: "Chantel Wright",
       role: "Lead Program Coordinator",
       email: "chantel@olera.care",
-      bio: "Two years with the team. Coordinates providers and students end to end: onboarding, qualifying, matching, and following up after a hire.",
+      bio: "Coordinates provider and student onboarding, qualification, matching, and follow-up.",
       photo: "chantel",
     },
     {
       name: "Graize Belandres",
       role: "Assistant to Dr. Logan DuBose",
       email: "graize@olera.care",
-      bio: "Four years with the team and ten in healthcare documentation and administrative support. Handles provider and student relations.",
+      bio: "Supports provider and student communication and program administration.",
       photo: "grazie",
     },
     {
       name: "Sara Conkling",
       role: "Assistant to Dr. Logan DuBose",
       email: "sara@olera.care",
-      bio: "Pre-medical student at Clemson University. Helps coordinate providers and students, alongside research and healthcare work on campus.",
+      bio: "Pre-medical student at Clemson University who supports provider and student coordination.",
       photo: "sara",
     },
   ],
+  nextStep: {
+    heading: "The easiest next step",
+    kicker: "No form. No commitment. No pricing decision today.",
+    ask: "Reply \u201cInterested\u201d to the email that included this flyer.",
+    body: "We will answer your questions, learn what kind of caregiver would be useful to your agency, and explain the program. If you would like to try it, we will set you up with your first student at no cost.",
+  },
+  replyBlock: {
+    label: "REPLY WITH ONE WORD",
+    word: "INTERESTED",
+    tail: "We\u2019ll take it from there.",
+  },
+  footerLine: "Olera Student Caregiver Program \u2022 For home care agencies",
   ctaLabel: "Learn more",
 };
+
 

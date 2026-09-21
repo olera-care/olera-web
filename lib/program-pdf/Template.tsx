@@ -18,6 +18,7 @@
 import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ProgramPdfConfig } from "./configs";
+import { StudentFlyer } from "./StudentFlyer";
 
 const EMERALD = "#059669";
 const EMERALD_DARK = "#047857";
@@ -103,7 +104,11 @@ const styles = StyleSheet.create({
     paddingTop: 5,
     marginRight: 8,
   },
-  stepText: { flex: 1, fontSize: 8.5, color: GRAY_700, lineHeight: 1.45, paddingRight: 10 },
+  // No flex here. It used to sit directly in the row, where flex:1 gave it
+  // the remaining width; it now sits inside a column beside the number, and
+  // flex:1 in a column made it claim a height it did not have and clipped
+  // the third line of every step.
+  stepText: { fontSize: 8.5, color: GRAY_700, lineHeight: 1.45 },
 
   // ── vetting ───────────────────────────────────────────────────────────
   vetRow: { flexDirection: "row", marginBottom: 14 },
@@ -121,6 +126,38 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   priceRow: { flexDirection: "row", marginBottom: 12, alignItems: "flex-start" },
+  // The offer panel that replaced pricing. One ask, stated once, with room
+  // around it — the page has no other call to action competing with it.
+  offerBox: {
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    backgroundColor: EMERALD_TINT,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  offerHead: { fontSize: 14, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 6 },
+  offerAsk: { fontSize: 10.5, color: EMERALD_DARK, fontFamily: "Helvetica-Bold", marginBottom: 7 },
+  offerBody: { fontSize: 8.5, color: GRAY_600, lineHeight: 1.5 },
+  stepTitle: { fontSize: 8.8, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 1.5 },
+  // The one-word reply, given the weight of the thing we actually want.
+  replyBox: {
+    backgroundColor: EMERALD_DEEP,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  replyLabel: { fontSize: 8, color: "#6ee7b7", letterSpacing: 1.6, fontFamily: "Helvetica-Bold", marginBottom: 6 },
+  replyWord: {
+    fontSize: 30,
+    fontFamily: "Helvetica-Bold",
+    color: WHITE,
+    letterSpacing: 2,
+    lineHeight: 1.2,
+  },
+  replyTail: { fontSize: 9, color: "#a7f3d0", marginTop: 8 },
+  footerLine: { fontSize: 8, color: GRAY_500, textAlign: "center" },
   priceCell: { flex: 1 },
   priceLabel: { fontSize: 8, color: EMERALD_DARK, letterSpacing: 1.1, fontFamily: "Helvetica-Bold", marginBottom: 3 },
   priceBig: { fontSize: 16, fontFamily: "Helvetica-Bold", color: GRAY_900, lineHeight: 1.2 },
@@ -154,15 +191,9 @@ const styles = StyleSheet.create({
   // the middle of a half-empty page.
   footerPinned: {
     position: "absolute",
-    bottom: 30,
+    bottom: 28,
     left: 42,
     right: 42,
-    paddingTop: 11,
-    borderTopWidth: 0.75,
-    borderTopColor: GRAY_200,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
 
   // ── page two ──────────────────────────────────────────────────────────
@@ -247,6 +278,13 @@ export function ProgramPdfTemplate({
   config: ProgramPdfConfig;
   assets: ProgramPdfAssets;
 }) {
+  // Two audiences, two documents. They shared one layout until the provider
+  // brochure grew a price, a team and a one-word reply, at which point the
+  // student flyer inherited all three.
+  if (config.audience === "student") {
+    return <StudentFlyer config={config} assets={assets} />;
+  }
+
   const photos: Record<string, string | undefined> = {
     logan: assets.loganPhotoDataUri,
     grazie: assets.graziePhotoDataUri,
@@ -256,10 +294,9 @@ export function ProgramPdfTemplate({
   const team = config.team ?? [];
   const lead = team[0];
   const rest = team.slice(1);
-  // The generic brochure carries no university, and printing its
-  // placeholder name in the band read as if the agency were being pitched a
-  // student body rather than a programme.
   const uni = config.universityShort;
+  const stepOf = (s: string | { title: string; body: string }) =>
+    typeof s === "string" ? { title: "", body: s } : s;
 
   const Band = ({ right }: { right: string }) => (
     <View style={styles.band}>
@@ -275,10 +312,25 @@ export function ProgramPdfTemplate({
     </View>
   );
 
+  const Steps = ({ items }: { items: Array<{ title: string; body: string }> }) => (
+    <View style={styles.stepRow}>
+      {items.map((step, i) => (
+        <View style={styles.step} key={step.body}>
+          <Text style={styles.stepNum}>{i + 1}</Text>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            {step.title ? <Text style={styles.stepTitle}>{step.title}</Text> : null}
+            <Text style={styles.stepText}>{step.body}</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
   return (
     <Document
       title={`Olera Student Caregiver Program — ${config.universityName}`}
       author="Olera"
+      subject={config.documentSubject ?? "Provider outreach packet"}
     >
       {/* ── page one: the offer ─────────────────────────────────────── */}
       <Page size="LETTER" style={styles.page}>
@@ -310,64 +362,26 @@ export function ProgramPdfTemplate({
 
           <View style={{ height: 10 }} />
           <SectionHead>HOW IT WORKS</SectionHead>
-          <View style={styles.stepRow}>
-            {config.steps.map((s, i) => (
-              <View style={styles.step} key={s}>
-                <Text style={styles.stepNum}>{i + 1}</Text>
-                <Text style={styles.stepText}>{s}</Text>
-              </View>
-            ))}
-          </View>
+          <Steps items={config.steps.map(stepOf)} />
 
-          <SectionHead>WHAT VETTED MEANS</SectionHead>
-          <View style={styles.vetRow}>
-            {[0, 1].map((col) => (
-              <View style={styles.vetCol} key={col}>
-                {config.vetting
-                  .filter((_, i) => i % 2 === col)
-                  .map((v) => (
-                    <View style={styles.vetItem} key={v}>
-                      <Text style={styles.vetTick}>•</Text>
-                      <Text style={styles.vetText}>{v}</Text>
-                    </View>
-                  ))}
-              </View>
-            ))}
-          </View>
+          {config.offer ? (
+            <View style={styles.offerBox}>
+              <Text style={styles.offerHead}>{config.offer.headline}</Text>
+              <Text style={styles.offerAsk}>{config.offer.ask}</Text>
+              <Text style={styles.offerBody}>{config.offer.body}</Text>
+            </View>
+          ) : null}
 
-          <SectionHead>WHAT IT COSTS</SectionHead>
-          <View style={styles.priceBox}>
-            <View style={styles.priceRow}>
-              <View style={styles.priceCell}>
-                <Text style={styles.priceLabel}>YOUR FIRST HIRE</Text>
-                <Text style={styles.priceBig}>Free</Text>
-              </View>
-              <View style={styles.priceDivider} />
-              <View style={styles.priceCell}>
-                <Text style={styles.priceLabel}>AFTER THAT</Text>
-                <Text style={styles.priceBig}>$250 per confirmed hire</Text>
-              </View>
-            </View>
-            <Text style={styles.priceBody}>{config.pricing.body}</Text>
-          </View>
-
-          <View style={styles.footer}>
-            <View style={styles.footerAsk}>
-              <Text style={styles.footerAskTitle}>Ready to try it with one student?</Text>
-              <Text style={styles.footerAskBody}>
-                Reply to the email this came with and we will set up your first hire. The
-                people you will be working with are on the next page.
-              </Text>
-            </View>
-            <View style={styles.qrWrap}>
-              <Image src={assets.qrDataUri} style={styles.qr} />
-              <Text style={styles.qrLabel}>{config.ctaLabel}</Text>
-            </View>
-          </View>
+          {config.afterReply?.length ? (
+            <>
+              <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
+              <Steps items={config.afterReply} />
+            </>
+          ) : null}
         </View>
       </Page>
 
-      {/* ── page two: the people ────────────────────────────────────── */}
+      {/* ── page two: the people, and the one-word reply ────────────── */}
       {team.length > 0 ? (
         <Page size="LETTER" style={styles.page}>
           <Band right="the team" />
@@ -396,20 +410,6 @@ export function ProgramPdfTemplate({
               </>
             ) : null}
 
-            {config.afterReply?.length ? (
-              <>
-                <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
-                <View style={styles.stepRow}>
-                  {config.afterReply.map((step, i) => (
-                    <View style={styles.step} key={step}>
-                      <Text style={styles.stepNum}>{i + 1}</Text>
-                      <Text style={styles.stepText}>{step}</Text>
-                    </View>
-                  ))}
-                </View>
-              </>
-            ) : null}
-
             <SectionHead>WHO YOU WILL BE WORKING WITH</SectionHead>
             <View style={styles.teamRow}>
               {rest.map((m, i) => (
@@ -431,20 +431,30 @@ export function ProgramPdfTemplate({
                 </React.Fragment>
               ))}
             </View>
-
           </View>
 
           <View style={styles.footerPinned}>
-            <View style={styles.footerAsk}>
-              <Text style={styles.footerAskTitle}>Your first student is free.</Text>
-              <Text style={styles.footerAskBody}>
-                Reply to the email this came with and we will set it up. Nothing to sign,
-                and no obligation to carry on.
-              </Text>
-            </View>
-            <View style={styles.qrWrap}>
-              <Image src={assets.qrDataUri} style={styles.qr} />
-              <Text style={styles.qrLabel}>{config.ctaLabel}</Text>
+            <View style={{ flex: 1 }}>
+              {config.nextStep ? (
+                <View style={styles.offerBox}>
+                  <Text style={styles.offerHead}>{config.nextStep.heading}</Text>
+                  <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
+                  <Text style={[styles.offerAsk, { color: GRAY_900 }]}>
+                    {config.nextStep.ask}
+                  </Text>
+                  <Text style={styles.offerBody}>{config.nextStep.body}</Text>
+                </View>
+              ) : null}
+              {config.replyBlock ? (
+                <View style={styles.replyBox}>
+                  <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
+                  <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
+                  <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
+                </View>
+              ) : null}
+              {config.footerLine ? (
+                <Text style={styles.footerLine}>{config.footerLine}</Text>
+              ) : null}
             </View>
           </View>
         </Page>

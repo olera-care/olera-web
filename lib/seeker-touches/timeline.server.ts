@@ -1174,7 +1174,17 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   // record, so a person says it, and from then on the row stops asking for
   // anyone. Emptying the flags is the whole mechanism: the queues are built
   // from them, so nothing downstream needs to know archiving exists.
-  if (archived) flags.length = 0;
+  if (archived) {
+    // Only the flags that ASK FOR SOMEONE'S TIME. opted_out and no_name are
+    // facts about the person that stay true after a decision about the row —
+    // erasing the opt-out in particular would quietly drop the one flag that
+    // says they told us to stop.
+    const work = new Set<SeekerFlag>([
+      "awaiting_reply", "promise_owed", "unreachable",
+      "outcome_reported", "provider_silent", "never_human",
+    ]);
+    for (let i = flags.length - 1; i >= 0; i--) if (work.has(flags[i])) flags.splice(i, 1);
+  }
 
   const providers = inquiries
     .filter((c) => c.to_profile)
@@ -1354,7 +1364,10 @@ function fmt(iso: string): string {
 
 export function seekerRelationshipsToMarkdown(rows: SeekerRelationshipRow[]): string {
   const out: string[] = ["# Care seekers — who is waiting on us", ""];
-  for (const r of rows) {
+  // Archived rows are not waiting on us, and this file says in its own heading
+  // that everything below is. The page filters them into their own tab; the
+  // export had no filter at all and listed them as "Open".
+  for (const r of rows.filter((x) => !x.archived)) {
     const st = stateOf(r);
     out.push(`## ${r.label} — ${st.phrase}${st.age ? ` (${st.age})` : ""}`);
     const detail = detailLine(r);

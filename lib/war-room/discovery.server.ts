@@ -2255,11 +2255,18 @@ export async function persistWarRoomDiscovery(
   // model ever ran. Spreading it alone discards everything written to
   // source_summary during the scan -- the cost ledger among it -- so the live
   // row is read back and layered on top of it.
+  //
+  // `checkpoints` is deliberately NOT carried over. It is resume state, it
+  // holds a full copy of the lens sweep and the triage output, and completion
+  // is exactly the moment it stops being needed. Completed runs have never
+  // retained it; keeping it here would have added the better part of a hundred
+  // kilobytes to every row and to every later read of this column.
   const { data: liveRow } = await db.from("war_room_discovery_runs")
     .select("source_summary")
     .eq("id", runId)
     .maybeSingle();
-  const liveSummary = (liveRow?.source_summary ?? {}) as Record<string, unknown>;
+  const { checkpoints: _resumeState, ...liveSummary } =
+    (liveRow?.source_summary ?? {}) as Record<string, unknown>;
   const { error: finishError } = await db.from("war_room_discovery_runs").update({
     status: "completed",
     source_summary: {

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendSlackAlert, sendSlackDirectMessage } from "@/lib/slack";
 import { getSiteUrl } from "@/lib/site-url";
 import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
+import { pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
 
 /**
@@ -63,6 +64,7 @@ export function buildWarRoomBriefText(input: {
   open: number;
   watching: number;
   costUsd: number | null;
+  question?: FounderQuestion | null;
 }): string {
   const { run, siteUrl } = input;
   const date = shortDate(run.created_at);
@@ -100,7 +102,17 @@ export function buildWarRoomBriefText(input: {
     lines.push("", `No founder decision is ready. ${input.open} case${input.open === 1 ? "" : "s"} open, ${input.watching} watching.`);
   }
 
-  lines.push("", input.costUsd != null ? `_Scan $${input.costUsd.toFixed(2)}._` : "_Scan cost unknown._");
+  // One question, never a list. This system's whole design is that it spends
+  // its compute removing work before the founder sees it, and a brief ending in
+  // six questions is a brief that gets none of them answered. Replying in the
+  // DM is what makes the answer evidence on the next scan.
+  if (input.question) {
+    lines.push("", "*One thing only you can answer*");
+    lines.push(input.question.question);
+    lines.push("_Just reply here. Your answer becomes evidence on tomorrow's scan._");
+  }
+
+  lines.push("", input.costUsd != null ? `_Scan ${input.costUsd.toFixed(2)}._` : "_Scan cost unknown._");
   return lines.join("\n");
 }
 
@@ -130,7 +142,11 @@ export async function deliverWarRoomBrief(
     let proposals: ProposalRow[] = [];
     let open = 0;
     let watching = 0;
+    let question: FounderQuestion | null = null;
     if (run.status !== "failed") {
+      // Never ask on a failed scan. There is no fresh read behind the question,
+      // and the only useful message on a failure is that it failed.
+      question = await pickQuestionForFounder(db).catch(() => null);
       const [readingResult, proposalResult, investigationResult] = await Promise.all([
         loadWarRoomBriefing(db),
         db.from("war_room_proposals")
@@ -154,6 +170,7 @@ export async function deliverWarRoomBrief(
       open,
       watching,
       costUsd: warRoomScanCost(run)?.usd ?? null,
+      question,
     });
 
     // Prefer a DM. The shared webhook posts to the operations channel, where
@@ -177,6 +194,11 @@ export async function deliverWarRoomBrief(
     }
     if (!result.success) result = await sendSlackAlert(text);
     if (!result.success) return { delivered: false, reason: result.error ?? "Slack send failed" };
+
+    // Only after the message is out. Recording an ask nobody received would
+    // leave an open question that can never be answered, and the next reply
+    // would attach to it instead of to the real one.
+    if (question) await recordFounderAsk(db, question, runId).catch(() => false);
 
     await db.from("war_room_source_state").upsert({
       source_key: DELIVERY_STATE_KEY,

@@ -297,6 +297,7 @@ export interface WarRoomProposal {
   fingerprint: string;
   status: WarRoomProposalStatus;
   action_kind: WarRoomActionKind;
+  assigned_owner: string | null;
   domain: WarRoomDomain;
   title: string;
   finding: string;

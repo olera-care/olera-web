@@ -53,7 +53,7 @@ ALTER TABLE medjobs_scripts ENABLE ROW LEVEL SECURITY;
 COMMENT ON TABLE medjobs_scripts IS
   'The master call scripts, email copy and situation notes for MedJobs. '
   'One row per ladder rung plus one per situation no rung covers. Edited '
-  'from /admin/medjobs/sop/scripts; linked from every task.';
+  'from /admin/medjobs/sop/scripts, and linked from every task.';
 
 -- ===========================================================================
 -- Seed: every rung's copy as it stands in the ladder today.
@@ -109,7 +109,7 @@ Each student arrives as one page: what they are studying, when they can work, wh
   4. We confirm the hire with you and with them
 
 WHAT YOU ARE LOOKING FOR
-Tell us and we will only send students who fit — hours, shift types, certifications, anything you will not move on. The easiest thing is to reply to this email and say it in your own words; we will set it up on our side. If you would rather do it yourself, it is all in your portal: {portal_link}
+Tell us and we will only send students who fit — hours, shift types, certifications, anything you will not move on. The easiest thing is to reply to this email and say it in your own words$sq$ || chr(59) || $sq$ we will set it up on our side. If you would rather do it yourself, it is all in your portal: {portal_link}
 
 THE TERMS, FOR YOUR REVIEW
 Attached. Nothing to sign, and no obligation to carry on — this is a pilot. We will keep sending you students until you hire one and the placement works out. If you like working with our students after that, we agree formal terms then rather than now.
@@ -286,7 +286,7 @@ Two questions:
   1. Is there anything coming up that is not on the public calendar?
   2. Would you ever co-host a short info session with us?
 
-We bring the material and the people; you bring the room and the students.
+We bring the material and the people$sq$ || chr(59) || $sq$ you bring the room and the students.
 
 Thank you,
 [your name]
@@ -449,5 +449,5 @@ Ask for the call. Do not send this and wait — the whole message is a reason to
 — What does it cost? See "When they ask what it costs".
 — Are they licensed? No. They are pre-health students looking for non-medical caregiving work. See "Checking they can hire non-licensed staff".
 — Do we have to sign anything? No, and nothing to sign is the point. Say it early.
-— How many students are there? Six applied in the week of 21 September at IU Bloomington. Use the real number; it is more convincing than "several".$sq$, 1060)
+— How many students are there? Six applied in the week of 21 September at IU Bloomington. Use the real number$sq$ || chr(59) || $sq$ it is more convincing than "several".$sq$, 1060)
 ON CONFLICT (slug) DO NOTHING;

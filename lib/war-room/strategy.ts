@@ -220,6 +220,70 @@ function sourceFamily(evidence: WarRoomProposalEvidence) {
   return family;
 }
 
+/**
+ * Cause confidence, computed from evidence rather than self-reported.
+ *
+ * It was a field the model wrote about its own work, and the gate then demanded
+ * it be better than `low`. `retainStrategicLensInvestigations` hardcoded `low`
+ * on everything it kept, and `validateInvestigations` demoted anything `low`
+ * out of `decision_ready`. So the value could not rise by any mechanism, the
+ * gate could never open, and the repository executor — which has been wired up
+ * and capable of opening pull requests since it was built — had fired exactly
+ * zero times in the system's history as of 2026-09-21. Three proposals ever,
+ * all on 2026-08-15, none approved.
+ *
+ * `docs/war-room-operating-agent.md` already diagnosed this and said probes
+ * would close it, because "cause confidence only rises when a probe resolves a
+ * hypothesis". Probes shipped. Nothing rose. That sentence described an
+ * intention the code never implemented: probes emit evidence, and the model
+ * remained free to keep writing `low` beside it.
+ *
+ * So derive it from what the system can count, using the same notions the
+ * agenda gate already trusts — independent evidence families, and diagnosis
+ * evidence that is not merely a capability index.
+ *
+ * `probe:` and `founder:` evidence are treated as resolving, because both are
+ * answers to a question that was actually asked: a probe ran a real query, and
+ * a founder answer is the person who knows telling us directly. A model
+ * assertion never resolves anything; that is the whole point.
+ */
+export function computeCauseConfidence(
+  evidenceIds: readonly string[],
+  evidenceCatalog: WarRoomProposalEvidence[],
+  openUnknowns = 0,
+): "high" | "medium" | "low" {
+  const evidenceById = new Map(evidenceCatalog.map((item) => [item.id, item]));
+  const diagnosisIds = evidenceIds.filter((id) =>
+    !id.startsWith("capability:")
+    && !id.startsWith("decision:")
+    && !id.startsWith("source:"),
+  );
+  const families = new Set(diagnosisIds
+    .map((id) => evidenceById.get(id))
+    .filter((item): item is WarRoomProposalEvidence => Boolean(item))
+    .map(sourceFamily));
+  const resolving = diagnosisIds.filter((id) => id.startsWith("probe:") || id.startsWith("founder:")).length;
+
+  // Open unknowns dominate, and this is the part worth being stubborn about.
+  // A first cut scored purely on evidence volume and promoted all nine live
+  // investigations from `low` to `high` on 2026-09-21. That is not a gate
+  // opening, it is a gate being lied to: every one of those nine carries four
+  // competing hypotheses, an empty `resolution_evidence`, and a `likely_cause`
+  // that begins with the word "Unresolved". Evidence volume measures how much
+  // is known about the *condition*. It says nothing about the *cause*, and
+  // confidence that ignores the difference manufactures decision-readiness out
+  // of accumulated reading.
+  //
+  // So an unresolved unknown holds confidence down no matter how much evidence
+  // has piled up beside it. The honest consequence is that today this returns
+  // `low` for everything, exactly as before — the mechanical defect below was
+  // real, but it was never the only reason the gate stays shut.
+  if (openUnknowns > 0) return resolving >= 1 && openUnknowns <= 1 ? "medium" : "low";
+  if (resolving >= 1 && families.size >= 2 && diagnosisIds.length >= 3) return "high";
+  if (resolving >= 1 || (families.size >= 2 && diagnosisIds.length >= 3)) return "medium";
+  return "low";
+}
+
 export function validateInvestigations(
   drafts: InvestigationDraft[],
   evidenceCatalog: WarRoomProposalEvidence[],
@@ -264,6 +328,8 @@ export function validateInvestigations(
       `${option.actionKind}:${cleanExecutiveText(option.title).toLowerCase()}`,
     ));
     if (draft.evidenceIds.length < 2) return false;
+    // Recomputed from evidence, replacing whatever the model said about itself.
+    draft.causeConfidence = computeCauseConfidence(draft.evidenceIds, evidenceCatalog, draft.unknowns.length);
     draft.founderAttentionMinutes = Math.max(0, Math.min(240, Math.round(draft.founderAttentionMinutes)));
     // Weak alternatives mean the case is not decision-ready. They do not make
     // the observed company condition disappear. Preserve it as private work so
@@ -351,6 +417,13 @@ export function retainStrategicLensInvestigations(
       situation: cleanExecutiveText(review.finding),
       whyItMatters: cleanExecutiveText(review.whyItMatters),
       likelyCause: "The current evidence establishes the condition, but not yet its cause.",
+      // Stays `low`, deliberately, and this is not the hardcode it looks like.
+      // A retained lens condition is constructed two lines above with a
+      // likelyCause that says in plain words that the cause is not established.
+      // Scoring it from evidence promoted two of nine live investigations to
+      // `medium` on 2026-09-21 -- the exact inflation computeCauseConfidence
+      // exists to refuse. An investigation that admits it has no cause has low
+      // cause confidence by definition, whatever has piled up beside it.
       causeConfidence: "low",
       existingCapabilities: [],
       capabilityEvidenceIds: [],

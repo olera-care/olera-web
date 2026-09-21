@@ -46,6 +46,35 @@ function firstUnknown(value: unknown): string | null {
 }
 
 /**
+ * Investigations already put to the founder recently.
+ *
+ * Without this the picker re-asks the same thing every morning. The ranking is
+ * deterministic — on 2026-09-21 all seven investigating rows scored identically
+ * on impact and strategic fit, so the tiebreak fell to `updated_at` and the same
+ * unknown would have come up day after day whether or not he had answered it.
+ * `brief-delivery.server.ts` already guards against delivering one brief twice
+ * for the same reason; an ask repeated daily is the same defect one layer up,
+ * and it is the thing that teaches someone to stop reading a channel.
+ *
+ * Silence is the correct output when every open investigation has been asked
+ * about. The brief simply ends without a question, which it already handles.
+ */
+const FOUNDER_ASK_COOLDOWN_DAYS = 14;
+
+async function loadRecentlyAskedInvestigations(db: SupabaseClient): Promise<Set<string>> {
+  const since = new Date(Date.now() - FOUNDER_ASK_COOLDOWN_DAYS * 86_400_000).toISOString();
+  const { data, error } = await db.from("war_room_investigation_events")
+    .select("investigation_id")
+    .eq("event_type", "founder_asked")
+    .gte("created_at", since)
+    .limit(200);
+  // A read failure must not silence the brief. Asking a question he has already
+  // seen is a smaller harm than asking nothing at all.
+  if (error) return new Set<string>();
+  return new Set((data ?? []).map((row) => (row as { investigation_id: string }).investigation_id));
+}
+
+/**
  * The single question most worth a founder's attention right now.
  *
  * Deliberately one, not a list. The whole design of this system is that it
@@ -64,7 +93,9 @@ export async function pickQuestionForFounder(db: SupabaseClient): Promise<Founde
     .limit(20);
   if (error || !data?.length) return null;
 
-  const rows = data as InvestigationRow[];
+  const recentlyAsked = await loadRecentlyAskedInvestigations(db);
+  const rows = (data as InvestigationRow[]).filter((row) => !recentlyAsked.has(row.id));
+  if (!rows.length) return null;
   const ranked = [...rows].sort((a, b) => {
     const score = (r: InvestigationRow) =>
       (r.impact === "high" ? 2 : r.impact === "medium" ? 1 : 0)
@@ -98,11 +129,23 @@ export async function recordFounderAsk(
 }
 
 /**
- * Attach an inbound Slack reply to the question it answers.
+ * Attach an inbound Slack reply to the most recent question asked.
  *
- * "The most recent ask that has no answer after it." The brief asks at most one
- * question per scan, so this is unambiguous without threading Slack message ids
- * through the database — and it still works when he replies a day late.
+ * Two things this deliberately does NOT do, both learned on 2026-09-21.
+ *
+ * It does not require the newest event to be an unanswered ask. That version
+ * dropped every reply after the first one — silently, because the Slack route
+ * still answers 200 and Slack has nowhere to show a capture failure. A founder
+ * who answers, rethinks, and sends a correction lost the correction. A later
+ * reply now supersedes: `loadFounderEvidence` dedupes by investigation keeping
+ * the newest, so the last thing he said is what the next scan reasons with.
+ *
+ * It does not pretend to know which brief he is replying to. Slack DMs are not
+ * threaded, so a reply typed today after today's scan has already asked about a
+ * different investigation attaches to today's question, not yesterday's. The
+ * previous comment here claimed replying "a day late" still worked; with a daily
+ * cron that is false, and it filed answers against conditions he never read.
+ * Latest-ask is the honest rule, and the brief tells him to just reply.
  */
 export async function captureFounderAnswer(
   db: SupabaseClient,
@@ -113,16 +156,15 @@ export async function captureFounderAnswer(
 
   const { data, error } = await db.from("war_room_investigation_events")
     .select("id, investigation_id, event_type, details, created_at")
-    .in("event_type", ["founder_asked", "founder_answered"])
+    .eq("event_type", "founder_asked")
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(1);
   if (error) return { captured: false, reason: error.message };
 
   const rows = (data ?? []) as Array<{ investigation_id: string; event_type: string; details: Record<string, unknown> | null }>;
-  // Newest first, so the first ask we meet before meeting an answer is the open one.
   const newest = rows[0];
-  if (!newest || newest.event_type !== "founder_asked") {
-    return { captured: false, reason: "no open question" };
+  if (!newest) {
+    return { captured: false, reason: "nothing has been asked yet" };
   }
 
   const askedQuestion = typeof newest.details?.question === "string" ? newest.details.question : null;
@@ -148,9 +190,14 @@ export async function loadFounderEvidence(db: SupabaseClient): Promise<WarRoomPr
     .select("investigation_id, details, created_at")
     .eq("event_type", "founder_answered")
     .order("created_at", { ascending: false })
-    .limit(20);
+    // Fetch wide, keep few. Replies supersede rather than being dropped, so one
+    // investigation answered repeatedly can own many rows; a tight fetch limit
+    // would let it evict every other investigation's answer from the evidence
+    // set. The distinct cap below is what actually bounds the prompt.
+    .limit(200);
   if (error) return [];
 
+  const MAX_DISTINCT_ANSWERS = 20;
   const seen = new Set<string>();
   const evidence: WarRoomProposalEvidence[] = [];
   for (const row of (data ?? []) as Array<{ investigation_id: string; details: Record<string, unknown> | null; created_at: string }>) {
@@ -159,6 +206,7 @@ export async function loadFounderEvidence(db: SupabaseClient): Promise<WarRoomPr
     const answer = typeof row.details?.answer === "string" ? row.details.answer : "";
     const question = typeof row.details?.question === "string" ? row.details.question : null;
     if (!answer) continue;
+    if (evidence.length >= MAX_DISTINCT_ANSWERS) break;
     evidence.push({
       id: `founder:${row.investigation_id}`,
       label: "Founder answer",

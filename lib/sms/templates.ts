@@ -152,10 +152,61 @@ export function familyAnswerAckSms(): string {
  * about her. And declining is given an explicit, costless outcome, so NO is a
  * real option rather than a failure.
  */
-export function cityOfferSms(p: { city: string; careLabel: string; recipientLabel: string; urgencyLabel?: string | null; paymentLabel?: string | null; minutes: number }): string {
+/**
+ * `excerpt` is the family's own first words, already redacted of contact
+ * details. It is here because the generated line above it ("a family needs
+ * care, type not decided yet") is what a provider passes on: on 20 September
+ * three Dallas agencies let two requests expire against exactly that sentence,
+ * and the thing that would have told them what the job was sat unread in the
+ * database. It costs a segment and it is worth a segment.
+ */
+export function cityOfferSms(p: { city: string; careLabel: string; recipientLabel: string; urgencyLabel?: string | null; paymentLabel?: string | null; minutes: number; excerpt?: string | null }): string {
   const extra = [p.urgencyLabel, p.paymentLabel].filter(Boolean).join(", ");
   const detail = extra ? ` ${cap(extra)}.` : "";
-  return `Olera: a family in ${p.city} needs ${p.careLabel}.${detail} Yours alone for the next ${p.minutes} min, so we can tell them who to expect. Reply YES to take it, or NO and we'll ask another provider.`;
+  // Emoji are stripped here and nowhere else. One of them flips the whole
+  // message from GSM-7 to UCS-2, which cuts the segment size from 160 to 70 and
+  // turned a 255-character offer into four paid segments. The page and the
+  // email show her text exactly as she wrote it; the SMS pays by the character.
+  const plain = smsSafe(p.excerpt ?? "").trim();
+  const said = plain ? ` They said: "${truncateWords(plain, 120)}"` : "";
+  return `Olera: a family in ${p.city} needs ${p.careLabel}.${detail}${said} Yours alone for the next ${p.minutes} min, so we can tell them who to expect. Reply YES to take it, or NO and we'll ask another provider.`;
+}
+
+/**
+ * Make a quoted excerpt safe to send as GSM-7.
+ *
+ * Stripping emoji is not enough on its own. A single character outside GSM-7
+ * flips the WHOLE message to UCS-2, which cuts the segment size from 160 to 70,
+ * and the usual culprits are not emoji at all: a curly apostrophe (every iPhone
+ * types one), a curly quote, an en or em dash, and the ellipsis our own
+ * truncation used to append. So the excerpt is folded to plain ASCII
+ * punctuation before it goes anywhere near a segment count.
+ *
+ * Only the SMS excerpt is treated this way. The offer page and the offer email
+ * show what the family actually typed.
+ */
+function smsSafe(s: string): string {
+  return s
+    .replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D\p{Emoji_Modifier}]/gu, "")
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2013\u2014\u2015]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+/**
+ * Cut on a word boundary so a quote never ends mid-word.
+ *
+ * Ends in three ASCII dots, not an ellipsis character: U+2026 is outside GSM-7
+ * and would undo the folding above on exactly the long messages this trims.
+ */
+function truncateWords(s: string, max: number): string {
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const sp = cut.lastIndexOf(" ");
+  return `${(sp > max * 0.6 ? cut.slice(0, sp) : cut).trimEnd()}...`;
 }
 
 /** Provider said YES: the family's details, and the expectation. */

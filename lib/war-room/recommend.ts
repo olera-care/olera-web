@@ -17,6 +17,14 @@ export interface WarRoomFacts {
   mrr: number;
   adBoostOpen: number;
   adBoostEndedUnpaid: number;
+  // The stall split. A count of "days since we asked" on its own reads every
+  // stall as neglect; these say what was actually done about each one.
+  adBoostStalledUnattended: number;
+  adBoostStalledUnreachable: number;
+  adBoostStalledPaused: number;
+  adBoostStalledAttended: number;
+  adBoostSoonestPaidRenewalDays: number | null;
+  adBoostCallRecordAvailable: boolean;
   supportUnhandled: number;
   supportUrgent: number;
   latestGrowthAt: string | null;

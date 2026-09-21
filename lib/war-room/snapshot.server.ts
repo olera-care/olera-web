@@ -112,6 +112,7 @@ export async function buildWarRoomSnapshot(
     recentInquiryResult,
     decisionResult,
     questionHealthResult,
+    callTouchResult,
     viewsFloorResult,
     leadsFloorResult,
     claimsFloorResult,
@@ -133,8 +134,15 @@ export async function buildWarRoomSnapshot(
     db.from("provider_activity").select("id", { count: "exact", head: true })
       .eq("event_type", "claim_completed").gte("created_at", from).lt("created_at", until),
     fetchMeaningfulProviderActivity(db, from, until),
+    // Was five columns and not one of them a date, so this view of Managed Ads
+    // was timeless: it could count 7 requested but never that one of them had
+    // been waiting 59 days. Worse, with no pause state and no photo state, a
+    // provider deliberately held back for a Nextdoor test looked identical to
+    // an abandoned one. TJ named that exact defect about the admin page on
+    // 2026-09-17: "the page doesn't show that their email is paused
+    // deliberately."
     db.from("ad_campaign_requests")
-      .select("provider_id, status, plan_status, plan_value, deleted_at")
+      .select("provider_id, display_name, status, plan_status, plan_value, deleted_at, created_at, subscribed_at, flight_start_date, flight_end_date, ended_at, ended_reason, photo_readiness_status, photo_update_requested_at, photo_update_submitted_at, provider_comms_paused_at, provider_comms_paused_reason")
       .is("deleted_at", null),
     db.from("growth_metric_snapshots")
       .select("week_start, week_end, source, definition_version, collected_at, ga4, gsc, marketplace, source_status, anomalies")
@@ -180,6 +188,16 @@ export async function buildWarRoomSnapshot(
       .gte("created_at", from)
       .order("created_at", { ascending: false })
       .limit(50_000),
+    // The human record. Without it a campaign stalled behind a photo request is
+    // indistinguishable from one nobody chased, and on 2026-09-21 that produced
+    // a confident, wrong reading that four providers had been abandoned. Three
+    // of them had dead phone lines and a fourth never received the email,
+    // all of it already called and logged by Ces on 2026-09-17.
+    db.from("provider_touches")
+      .select("provider_id, channel, outcome, occurred_at")
+      .eq("channel", "call")
+      .order("occurred_at", { ascending: false })
+      .limit(500),
     // The oldest instrumented event PER event type. At windowDays=90 (selectable
     // on the admin route) the prior window opens before these rows exist at all,
     // so the comparison divides by a period that partly did not happen and
@@ -213,6 +231,60 @@ export async function buildWarRoomSnapshot(
 
   const adRows = adBoostResult.data ?? [];
   const payingRows = adRows.filter((row) => ["active", "past_due"].includes(row.plan_status ?? ""));
+
+  // A stall is only a finding when nobody has acted on it. Counting "days since
+  // we asked" alone says four providers were abandoned; the truth on
+  // 2026-09-21 was three dead phone lines and one broken email address, every
+  // one of them already called. So the count is split by what was actually
+  // done, and a stall nobody attended is the only one that should read as a
+  // problem. A call touch never fails the snapshot: losing the human record
+  // should degrade the split, not the scan.
+  const ADBOOST_STALL_DAYS = 14;
+  const nowMs = Date.now();
+  const daysSince = (iso: string | null | undefined) =>
+    iso ? Math.floor((nowMs - Date.parse(iso)) / 86_400_000) : null;
+  const daysUntil = (iso: string | null | undefined) =>
+    iso ? Math.ceil((Date.parse(iso) - nowMs) / 86_400_000) : null;
+
+  const callRows = (callTouchResult.error ? [] : callTouchResult.data ?? []) as Array<{
+    provider_id: string | null;
+    outcome: string | null;
+    occurred_at: string | null;
+  }>;
+  // Newest first from the query, so the first hit per provider is the last call.
+  const lastCallByProvider = new Map<string, { outcome: string | null; occurred_at: string | null }>();
+  for (const row of callRows) {
+    if (!row.provider_id || lastCallByProvider.has(row.provider_id)) continue;
+    lastCallByProvider.set(row.provider_id, { outcome: row.outcome, occurred_at: row.occurred_at });
+  }
+
+  let stalledUnattended = 0;
+  let stalledUnreachable = 0;
+  let stalledPaused = 0;
+  let stalledAttended = 0;
+  for (const row of adRows) {
+    if (row.status === "ended") continue;
+    if (row.photo_readiness_status !== "update_requested") continue;
+    if (row.photo_update_submitted_at) continue;
+    const asked = daysSince(row.photo_update_requested_at);
+    if (asked === null || asked < ADBOOST_STALL_DAYS) continue;
+    // Deliberately held is not neglected. TJ, 2026-09-17: "the page doesn't
+    // show that their email is paused deliberately."
+    if (row.provider_comms_paused_at) { stalledPaused += 1; continue; }
+    const call = row.provider_id ? lastCallByProvider.get(row.provider_id) : undefined;
+    const calledSinceAsk = Boolean(call?.occurred_at && row.photo_update_requested_at
+      && Date.parse(call.occurred_at) >= Date.parse(row.photo_update_requested_at));
+    if (!calledSinceAsk) { stalledUnattended += 1; continue; }
+    if (call?.outcome === "bad_number" || call?.outcome === "no_answer") stalledUnreachable += 1;
+    else stalledAttended += 1;
+  }
+
+  // Losing the only paying provider is the single largest movement away from
+  // the twelve-paid target, and nothing could see it coming without a date.
+  const paidRenewalDays = payingRows
+    .map((row) => daysUntil(row.flight_end_date))
+    .filter((value): value is number => value !== null)
+    .sort((a, b) => a - b);
   const growthRows = growthResult.error ? [] : growthResult.data as GrowthSnapshot[];
   const latestGrowth = growthRows[0] ?? null;
   const priorGrowth = growthRows[1] ?? null;
@@ -253,6 +325,12 @@ export async function buildWarRoomSnapshot(
     mrr: payingRows.reduce((sum, row) => sum + (row.plan_value ?? 0), 0),
     adBoostOpen: adRows.filter((row) => ["pending_profile", "requested", "scheduled", "live"].includes(row.status)).length,
     adBoostEndedUnpaid: adRows.filter((row) => row.status === "ended" && !["active", "past_due"].includes(row.plan_status ?? "")).length,
+    adBoostStalledUnattended: stalledUnattended,
+    adBoostStalledUnreachable: stalledUnreachable,
+    adBoostStalledPaused: stalledPaused,
+    adBoostStalledAttended: stalledAttended,
+    adBoostSoonestPaidRenewalDays: paidRenewalDays[0] ?? null,
+    adBoostCallRecordAvailable: !callTouchResult.error,
     supportUnhandled: supportCountResult.count ?? 0,
     supportUrgent: supportUrgentResult.count ?? 0,
     latestGrowthAt: latestGrowth?.week_end ? `${latestGrowth.week_end}T23:59:59Z` : null,

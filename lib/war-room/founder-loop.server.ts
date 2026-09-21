@@ -89,9 +89,10 @@ export async function recordFounderAsk(
 ): Promise<boolean> {
   const { error } = await db.from("war_room_investigation_events").insert({
     investigation_id: question.investigationId,
+    discovery_run_id: runId,
     event_type: "founder_asked",
-    summary: question.question.slice(0, 500),
-    details: { run_id: runId, question: question.question, title: question.title },
+    actor: "war-room",
+    details: { question: question.question, title: question.title },
   });
   return !error;
 }
@@ -111,24 +112,25 @@ export async function captureFounderAnswer(
   if (body.length < 2) return { captured: false, reason: "empty reply" };
 
   const { data, error } = await db.from("war_room_investigation_events")
-    .select("id, investigation_id, event_type, summary, created_at")
+    .select("id, investigation_id, event_type, details, created_at")
     .in("event_type", ["founder_asked", "founder_answered"])
     .order("created_at", { ascending: false })
     .limit(10);
   if (error) return { captured: false, reason: error.message };
 
-  const rows = (data ?? []) as Array<{ investigation_id: string; event_type: string; summary: string | null }>;
+  const rows = (data ?? []) as Array<{ investigation_id: string; event_type: string; details: Record<string, unknown> | null }>;
   // Newest first, so the first ask we meet before meeting an answer is the open one.
   const newest = rows[0];
   if (!newest || newest.event_type !== "founder_asked") {
     return { captured: false, reason: "no open question" };
   }
 
+  const askedQuestion = typeof newest.details?.question === "string" ? newest.details.question : null;
   const { error: insertError } = await db.from("war_room_investigation_events").insert({
     investigation_id: newest.investigation_id,
     event_type: "founder_answered",
-    summary: body.slice(0, 500),
-    details: { answer: body.slice(0, 2_000), question: newest.summary ?? null, answered_at: new Date().toISOString() },
+    actor: "founder",
+    details: { answer: body.slice(0, 2_000), question: askedQuestion, answered_at: new Date().toISOString() },
   });
   if (insertError) return { captured: false, reason: insertError.message };
   return { captured: true, investigationId: newest.investigation_id };
@@ -143,7 +145,7 @@ export async function captureFounderAnswer(
  */
 export async function loadFounderEvidence(db: SupabaseClient): Promise<WarRoomProposalEvidence[]> {
   const { data, error } = await db.from("war_room_investigation_events")
-    .select("investigation_id, summary, details, created_at")
+    .select("investigation_id, details, created_at")
     .eq("event_type", "founder_answered")
     .order("created_at", { ascending: false })
     .limit(20);
@@ -151,10 +153,10 @@ export async function loadFounderEvidence(db: SupabaseClient): Promise<WarRoomPr
 
   const seen = new Set<string>();
   const evidence: WarRoomProposalEvidence[] = [];
-  for (const row of (data ?? []) as Array<{ investigation_id: string; summary: string | null; details: Record<string, unknown> | null; created_at: string }>) {
+  for (const row of (data ?? []) as Array<{ investigation_id: string; details: Record<string, unknown> | null; created_at: string }>) {
     if (seen.has(row.investigation_id)) continue;
     seen.add(row.investigation_id);
-    const answer = typeof row.details?.answer === "string" ? row.details.answer : (row.summary ?? "");
+    const answer = typeof row.details?.answer === "string" ? row.details.answer : "";
     const question = typeof row.details?.question === "string" ? row.details.question : null;
     if (!answer) continue;
     evidence.push({

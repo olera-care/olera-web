@@ -46,6 +46,20 @@ function firstUnknown(value: unknown): string | null {
 }
 
 /**
+ * How many re-observations without progress before a condition stops being a
+ * finding and becomes a question about whether we are going to do anything.
+ * Twenty is roughly three weeks of daily scans -- long enough that it is not
+ * noise, short enough that it does not reach forty-two.
+ */
+const RECURRENCE_ESCALATION_THRESHOLD = 20;
+
+type StalledRow = InvestigationRow & {
+  occurrence_count: number | null;
+  first_seen_at: string | null;
+  resolution_evidence: unknown[] | null;
+};
+
+/**
  * Investigations already put to the founder recently.
  *
  * Without this the picker re-asks the same thing every morning. The ranking is
@@ -87,13 +101,46 @@ async function loadRecentlyAskedInvestigations(db: SupabaseClient): Promise<Set<
  */
 export async function pickQuestionForFounder(db: SupabaseClient): Promise<FounderQuestion | null> {
   const { data, error } = await db.from("war_room_investigations")
-    .select("id, title, domain, impact, strategic_fit, status, unknowns, readiness_reason")
+    .select("id, title, domain, impact, strategic_fit, status, unknowns, readiness_reason, occurrence_count, first_seen_at, resolution_evidence")
     .eq("status", "investigating")
     .order("updated_at", { ascending: false })
     .limit(20);
   if (error || !data?.length) return null;
 
   const recentlyAsked = await loadRecentlyAskedInvestigations(db);
+
+  // A condition that keeps coming back and never moves outranks every other
+  // question, because it is the one the system has been failing at longest.
+  //
+  // On 2026-09-21 nine conditions had been re-observed between 25 and 42 times
+  // since 2026-08-16, every one with empty `resolution_evidence` and no
+  // proposal ever raised. Cortex re-confirmed the same nine facts every morning
+  // for 36 days and nothing escalated, nothing closed. TJ: "it ran 42 times and
+  // nothing happened."
+  //
+  // Recurrence without progress is not new information, so asking about the
+  // condition itself wastes the one question. The useful question is about the
+  // system's relationship to it: does this deserve a plan, or should it stop
+  // being rediscovered? That is a decision only the founder can make, and it is
+  // the one that unsticks the queue.
+  //
+  // Deliberately keyed on `occurrence_count` and empty `resolution_evidence`
+  // rather than `last_progress_at`. That field was set on evidence-hash drift
+  // until today, so every row currently claims progress as of this morning; it
+  // will only become trustworthy after a fortnight of honest writes.
+  const stalled = (data as StalledRow[])
+    .filter((row) => !recentlyAsked.has(row.id))
+    .filter((row) => (row.occurrence_count ?? 0) >= RECURRENCE_ESCALATION_THRESHOLD)
+    .filter((row) => !(row.resolution_evidence?.length))
+    .sort((a, b) => (b.occurrence_count ?? 0) - (a.occurrence_count ?? 0))[0];
+  if (stalled) {
+    const since = typeof stalled.first_seen_at === "string" ? stalled.first_seen_at.slice(0, 10) : "it was first seen";
+    return {
+      investigationId: stalled.id,
+      title: stalled.title,
+      question: `This has been observed ${stalled.occurrence_count} times since ${since} and has never moved: no resolved unknown, no proposal, no closure. Is it worth a real plan, or should it stop being raised? Either answer is useful. "Close it" is a decision, not a failure.`,
+    };
+  }
   const rows = (data as InvestigationRow[]).filter((row) => !recentlyAsked.has(row.id));
   if (!rows.length) return null;
   const ranked = [...rows].sort((a, b) => {

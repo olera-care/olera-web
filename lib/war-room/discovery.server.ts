@@ -1113,6 +1113,27 @@ async function saveInvestigations(
     const evidenceChanged = Boolean(prior?.evidence_hash && prior.evidence_hash !== evidenceHash);
     const probeChanged = stableHash(prior?.next_probe ?? null) !== stableHash(draft.nextProbe ?? null);
     const terminal = status === "resolved" || status === "invalidated";
+
+    // Progress is categorical, not numerical drift.
+    //
+    // `last_progress_at` used to be set whenever the evidence hash moved. The
+    // evidence carries daily-moving counts -- a question total ticking 1,658 to
+    // 1,662, page views wobbling -- so the hash changed every morning and every
+    // condition reported progress every day. On 2026-09-21 all ten live
+    // investigations read "0 days since progress" while `resolution_evidence`
+    // was empty on all ten and nine had been re-observed between 25 and 42
+    // times since 2026-08-16 without a single proposal. The field meant "we
+    // looked again", not "something changed", and because it looked healthy
+    // nothing could ever notice a condition was stuck.
+    //
+    // These four are the things that actually advance a case: it ended, an
+    // unknown closed, the cause got better supported, or its disposition moved.
+    // A number wobbling is none of them.
+    const unknownsClosed = (prior?.unknowns?.length ?? 0) > draft.unknowns.length;
+    const confidenceRose = CAUSE_CONFIDENCE_RANK[draft.causeConfidence]
+      > CAUSE_CONFIDENCE_RANK[(prior?.cause_confidence ?? "low") as keyof typeof CAUSE_CONFIDENCE_RANK];
+    const statusMoved = Boolean(prior && prior.status !== status);
+    const realProgress = terminal || unknownsClosed || confidenceRose || statusMoved;
     const progressSummary = terminal
       ? `${status === "resolved" ? "Resolved" : "Invalidated"}: ${cleanExecutiveText(assessment?.reason || draft.readinessReason)}`
       : draft.nextProbe
@@ -1153,7 +1174,10 @@ async function saveInvestigations(
       founder_attention_minutes: draft.founderAttentionMinutes,
       progress_summary: progressSummary,
       evidence_hash: evidenceHash,
-      last_progress_at: terminal || evidenceChanged || probeChanged ? now : prior?.last_progress_at ?? null,
+      // Deliberately NOT evidenceChanged. See realProgress above: the evidence
+      // hash moves every day on count drift, which is what made every condition
+      // look healthy while nothing advanced for 36 days.
+      last_progress_at: realProgress ? now : prior?.last_progress_at ?? null,
       last_seen_at: now,
       updated_at: now,
     };
@@ -1459,6 +1483,8 @@ async function linkInvestigationsToProposals(
     }
   }
 }
+
+const CAUSE_CONFIDENCE_RANK = { low: 0, medium: 1, high: 2 } as const;
 
 async function loadCompanyModel(db: SupabaseClient): Promise<WarRoomCompanyModel> {
   const { data, error } = await db.from("war_room_company_models")

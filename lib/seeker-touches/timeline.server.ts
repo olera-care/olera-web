@@ -523,7 +523,7 @@ function reachabilityOf(
  *
  * A concierge city lead is the strict case: the consent checkbox on
  * /care/{city} names Olera and nobody else when routingMode is "concierge", so
- * their details may not go to a provider without a spoken yes. That fact lives
+ * their details reach a provider only through the relay. That fact lives
  * in a code comment today and nowhere a person can see it before picking up the
  * phone. Here it is a column.
  */

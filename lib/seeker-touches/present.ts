@@ -227,7 +227,7 @@ export function nextLine(r: SeekerRelationshipRow): string | null {
 
 /** What we're allowed to do, when it restricts us. Silent when it doesn't. */
 export function consentWarning(r: SeekerRelationshipRow): string | null {
-  if (r.consent === "olera_only") return "Olera only — needs a spoken yes before any handoff";
+  if (r.consent === "olera_only") return "Olera only — providers hear about them from us, never the reverse";
   if (r.consent === "opted_out") return "Asked us to stop contacting them";
   return null;
 }

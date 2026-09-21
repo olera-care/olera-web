@@ -171,7 +171,10 @@ export type Reachability = {
  *
  *   olera_only — a concierge-city lead. The checkbox they ticked names Olera
  *                and nobody else, so their details may NOT be handed to a
- *                provider without a spoken yes (see the city-ads consent gap).
+ *                provider except through the relay, which introduces us rather
+ *                than handing over a phone number to call cold. A REPLY to the
+ *                qualifying text is what releases routing, not a phone call
+ *                from us; a call is a courtesy that runs alongside it.
  *   provider_ok — they asked us to contact a provider, so a handoff is covered.
  *   opted_out   — do_not_contact. No channel.
  *   unknown     — no consent record we can read. Treat as olera_only in practice.

@@ -1,4 +1,11 @@
--- 242: Let a person take a family off the care seeker board.
+-- 243: Let a person take a family off the care seeker board.
+--
+-- Renumbered 242 -> 243 before merge. A concurrent session shipped
+-- 242_cortex_north_star_target.sql while this branch was open, and git does
+-- not flag a number collision because the filenames differ. This file was
+-- already applied to production by hand under its old name, so the number is
+-- ordering metadata for a fresh setup, not a record of what ran — the same
+-- situation as the 240 collision earlier the same day.
 --
 -- The board is a view over events and stores nothing, which is what keeps it
 -- honest. But some rows are not families at all, and no event will ever say so:
@@ -39,7 +46,7 @@ COMMENT ON COLUMN public.seeker_archives.reason IS
 -- The row that prompted this. Ranked first in the highest-priority queue since
 -- 2023 because a test message genuinely has no reply.
 INSERT INTO public.seeker_archives (seeker_id, reason, note, archived_by)
-SELECT id, 'test_record', 'Test row from TJ''s own inbox checks. Archived by migration 242.', 'migration:242'
+SELECT id, 'test_record', 'Test row from TJ''s own inbox checks. Archived by migration 243.', 'migration:243'
   FROM public.business_profiles
  WHERE id = 'b32bb6fd-1547-49f6-88f2-929c9fcec060'
    AND type = 'family'

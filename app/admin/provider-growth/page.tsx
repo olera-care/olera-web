@@ -50,7 +50,7 @@ export default function ProviderGrowthPage() {
   // Tab state
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
     const tab = searchParams.get("tab");
-    const sub = searchParams.get("sub") as "ads" | "medjobs" | "both" | "not_contacted" | "converted" | "active" | "no_show" | "not_interested" | null;
+    const sub = searchParams.get("sub") as "ads_only" | "medjobs_only" | "both" | "churned" | "not_contacted" | "converted" | "active" | "no_show" | "not_interested" | null;
 
     // Check for new_claim with subtab (Claimed tab)
     if (tab === "new_claim") {
@@ -77,8 +77,8 @@ export default function ProviderGrowthPage() {
     }
 
     // Check for paying tab
-    if (tab === "paying" && sub && ["ads", "medjobs", "both"].includes(sub)) {
-      return { type: "conversion", tab: "paying", subTab: sub as "ads" | "medjobs" | "both" };
+    if (tab === "paying" && sub && ["ads_only", "medjobs_only", "both", "churned"].includes(sub)) {
+      return { type: "conversion", tab: "paying", subTab: sub as "ads_only" | "medjobs_only" | "both" | "churned" };
     }
 
     // Default to new_claim with not_contacted subtab
@@ -244,13 +244,15 @@ export default function ProviderGrowthPage() {
       } else {
         // Conversion tabs (only Paying now)
         if (activeTab.tab === "paying") {
-          if (activeTab.subTab === "ads") {
-            params.set("adsStatus", "subscribed");
-          } else if (activeTab.subTab === "medjobs") {
-            params.set("medjobsStatus", "subscribed");
+          if (activeTab.subTab === "ads_only") {
+            params.set("adsOnly", "true");
+          } else if (activeTab.subTab === "medjobs_only") {
+            params.set("medjobsOnly", "true");
           } else if (activeTab.subTab === "both") {
             params.set("adsStatus", "subscribed");
             params.set("medjobsStatus", "subscribed");
+          } else if (activeTab.subTab === "churned") {
+            params.set("churned", "true");
           }
         }
       }

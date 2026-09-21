@@ -136,6 +136,22 @@ export async function GET(request: NextRequest) {
       options.assignedTo = assignedTo;
     }
 
+    // Mutually exclusive Paying subtab filters
+    const adsOnly = searchParams.get("adsOnly");
+    if (adsOnly === "true") {
+      options.adsOnly = true;
+    }
+
+    const medjobsOnly = searchParams.get("medjobsOnly");
+    if (medjobsOnly === "true") {
+      options.medjobsOnly = true;
+    }
+
+    const churned = searchParams.get("churned");
+    if (churned === "true") {
+      options.churned = true;
+    }
+
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     options.limit = Math.min(limit, 100);
@@ -177,6 +193,15 @@ export async function GET(request: NextRequest) {
     }
     if (options.medjobsStatus) {
       adminCountsOptions.medjobsStatus = options.medjobsStatus;
+    }
+    if (options.adsOnly) {
+      adminCountsOptions.adsOnly = options.adsOnly;
+    }
+    if (options.medjobsOnly) {
+      adminCountsOptions.medjobsOnly = options.medjobsOnly;
+    }
+    if (options.churned) {
+      adminCountsOptions.churned = options.churned;
     }
 
     // Fetch providers and admin counts in parallel

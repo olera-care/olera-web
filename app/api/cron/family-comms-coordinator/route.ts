@@ -33,6 +33,7 @@ import { familySelfReportedYes } from "@/lib/family-comms/outcome";
 import { ARCHETYPE_ASK } from "@/lib/family-comms/archetype";
 import {
   connectionOutcomeCheckEmail,
+  placementCheckEmail,
   archetypeEmail,
   archetypeSubject,
   providerSilentEmail,
@@ -85,6 +86,9 @@ import type { NudgeSequence } from "@/lib/types";
  * (the personalized quiz), completion is woven in as a value-exchange (never a naked
  * ask). Responsiveness is an INTERNAL ranking signal only — no response-time claims.
  *   0. GLOBAL STOPS  — unsubscribed / self-reported "yes" / active live thread
+ *      (with one exception: the placement check, below, is allowed through the
+ *      "yes" stop once, because "yes" only ever meant the provider called back)
+ *   0.5 placement check (yes + 14d)        → family_placement_check
  *   1. outcome-check          → family_outcome_check       (the self-report sensor)
  *   2. provider-silent → compare cards + benefits quiz     → family_provider_silent
  *   3. never-engaged → compare cards (guide fallback)      → family_never_engaged
@@ -415,10 +419,27 @@ export async function GET(request: NextRequest) {
       // isSuccessfulConnection (provider merely *responded*), which is exactly R4's
       // target (provider replied, family hasn't). Stopping on it would silently kill
       // the awaiting-match rung. Self-report "yes" is the only unambiguous "done".
+      //
+      // ONE EXCEPTION, AND IT IS THE POINT OF THE PLACEMENT CHECK. "Yes" means
+      // the provider got back to them. It has never meant care started, and it
+      // has never meant they chose that provider — but this stop is permanent
+      // and computeFamilyOutcome counts the same answer as "connected". So the
+      // one cohort we declare a success is also the one cohort we guarantee
+      // never to ask again. The placement check is the single message allowed
+      // through, once, about two weeks after the answer.
+      let override: RungPlan | null = null;
       if (familySelfReportedYes(fam.inquiries)) {
-        counts.skipped++;
-        counts.stops.self_reported_yes++;
-        continue;
+        override = placementRung();
+        if (!override) {
+          counts.skipped++;
+          counts.stops.self_reported_yes++;
+          continue;
+        }
+        // Nothing is counted here. Every other key in `stops` means "we stopped
+        // and did nothing", and a family counted at this point can still be
+        // dropped by the active-thread guard, by having no address, or by a
+        // failed or capped send. byRung.placement_check is incremented on the
+        // send itself and is the honest number.
       }
       // Active live conversation: provider replied AND family replied, latest activity < 7d.
       const inActiveThread = fam.inquiries.some((c) => {
@@ -610,7 +631,55 @@ export async function GET(request: NextRequest) {
       // Build the ladder for this family; first non-null plan wins. `ghostSkip` is set by
       // the completion rung when it suppresses a non-opener (distinct skip reason vs no_rung).
       let ghostSkip = false;
-      const plan = await pickRung();
+      const plan = override ?? (await pickRung());
+
+      /**
+       * The placement check. Not part of the ladder: it runs for families the
+       * ladder has already stopped on, and it is the only thing that ever will.
+       *
+       * Fourteen days after the "yes", not after the inquiry — long enough for
+       * an intake visit, short enough to still be remembered. One-shot, stamped
+       * on the connection.
+       */
+      function placementRung(): RungPlan | null {
+        // Once per FAMILY, not once per connection. A family who enquired with
+        // three providers and heard back from two would otherwise get two of
+        // these in consecutive runs, about different providers, which reads as
+        // a system that is not keeping track.
+        if (fam.inquiries.some((x) => metaOf(x).placement_check_sent_at || metaOf(x).placement)) return null;
+        const c = fam.inquiries.find((x) => {
+          const m = metaOf(x);
+          const o = m.outcome as { value?: string; at?: string } | undefined;
+          if (o?.value !== "yes" || !o.at) return false;
+          return now - new Date(o.at).getTime() >= 14 * DAY;
+        });
+        if (!c) return null;
+        const providerName = norm(c.to_profile)?.display_name || "the provider";
+        return {
+          rung: "placement_check",
+          emailType: "family_placement_check",
+          subject: `Did things work out with ${providerName}?`,
+          metadata: { connection_id: c.id },
+          buildHtml: (eid) => {
+            const link = (v: string) =>
+              `${siteUrl}${appendTrackingParams(`/connection-outcome?cid=${c.id}&p=${v}`, eid)}`;
+            return placementCheckEmail({
+              unsubscribeUrl: careUnsubscribeUrl(fam.familyId),
+              familyName,
+              providerName,
+              workingUrl: link("working"),
+              switchedUrl: link("switched"),
+              lookingUrl: link("looking"),
+            });
+          },
+          stamp: async (sentAt) => {
+            await db
+              .from("connections")
+              .update({ metadata: { ...metaOf(c), placement_check_sent_at: sentAt, placement_check_sent_by: "cron:family-comms-coordinator" } })
+              .eq("id", c.id);
+          },
+        };
+      }
 
       async function pickRung(): Promise<RungPlan | null> {
         // ── Rung 1: outcome-check (sensor) — inquiry 48-72h, provider silent ──

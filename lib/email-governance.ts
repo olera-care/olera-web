@@ -93,6 +93,10 @@ export const PENDING_COUNT_WINDOW_MINUTES = 15;
 export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   // Help-cascade rungs (connection-triggered)
   "family_outcome_check",
+  // The placement check (coordinator rung 0.5). It reaches families the ladder
+  // has otherwise stopped on, which is exactly why it has to sit under the same
+  // cap as every other family nudge rather than beside it.
+  "family_placement_check",
   // Archetype first-touch (intent/urgency self-sort) — the guidance journey's
   // clean opener; family_archetype = the rung, archetype_intro = the one-time
   // campaign to the existing base. Both governed so every cap applies.

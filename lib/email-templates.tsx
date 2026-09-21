@@ -1745,6 +1745,71 @@ export function connectionOutcomeCheckEmail(opts: {
   );
 }
 
+/**
+ * Placement check — the question "yes" never answered.
+ *
+ * The outcome check asks whether the provider got back to them. A "yes" to that
+ * is treated as terminal everywhere downstream: it is a permanent global stop on
+ * the coordinator and it counts as "connected" in computeFamilyOutcome. But a
+ * returned phone call is not care. Of the twenty-four families who have ever
+ * answered "yes", not one has told us whether they ended up with that provider,
+ * with somebody else, or with nobody — because nothing has ever asked.
+ *
+ * Sent at least two weeks after the "yes", which is long enough for an intake
+ * visit. Three doors, and they are a genuine partition: working with them, went
+ * elsewhere, still looking.
+ *
+ * The opening line does NOT say "a couple of weeks ago". There is a standing
+ * backlog of families whose "yes" is months old and who have never been asked,
+ * and they get this message too. Dating the email would make it false for most
+ * of the people it first goes out to.
+ *
+ * ONE QUESTION. Satisfaction is not in here. It has no answer until care is
+ * actually happening, so it is asked on the landing page of the families who
+ * just said they are working with the provider, and of nobody else.
+ */
+export function placementCheckEmail(opts: {
+  familyName: string;
+  providerName: string;
+  workingUrl: string;
+  switchedUrl: string;
+  lookingUrl: string;
+  unsubscribeUrl?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const provider = escapeHtml(opts.providerName);
+
+  // All three read as equal weight. There is no right answer to this question,
+  // and styling one as primary would tell them which one we want to hear.
+  const btn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:13px 24px;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border:1px solid #d1d5db;border-radius:8px;">${label}</a>`;
+
+  const footer = opts.unsubscribeUrl
+    ? `<p style="font-size:12px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">You're getting this because you reached out to a provider on Olera. <a href="${opts.unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a> from care-search updates.</p>`
+    : "";
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      You told us <strong>${provider}</strong> got back to you.
+      <strong>Where did things land?</strong>
+    </p>
+    <div style="margin:0 0 12px;">${btn("We're working with them", opts.workingUrl)}</div>
+    <div style="margin:0 0 12px;">${btn("We went with someone else", opts.switchedUrl)}</div>
+    <div style="margin:0 0 24px;">${btn("Still looking", opts.lookingUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">
+      One tap, and there's no wrong answer. If you're still looking we'll show you
+      others nearby, and if you've found care we'll leave you to it.
+    </p>
+    ${footer}
+  `,
+    `Did things work out with ${opts.providerName}? One tap to let us know.`,
+  );
+}
+
 // ── Benefits Cascade (rungs B1/B2 of the family-comms coordinator) ─────────
 
 /** Subject for the ten-minute first step. Program name only, no PHI. */

@@ -167,6 +167,17 @@ const HELP_CASCADE_LADDER: CommsJourney = {
       ownedBy: "family-comms-coordinator",
     },
     {
+      key: "placement",
+      title: "R1.5 · Placement check",
+      timing: "14 days after a \"yes\" on the outcome check",
+      description:
+        "\"Where did things land?\" — working with them, went with someone else, or still looking. The only message allowed through the self-reported-yes stop, because that answer only ever meant the provider called back. Satisfaction is asked after the tap, on the page, and only of the families who said they are working with the provider.",
+      emailType: "family_placement_check",
+      ownedBy: "family-comms-coordinator",
+      traits: ["Once per connection"],
+      gate: "Skipped entirely if the family is unsubscribed or in an active thread",
+    },
+    {
       key: "archetype",
       title: "First touch · Archetype (intent self-sort)",
       timing: "Any recent inquiry, once ever",

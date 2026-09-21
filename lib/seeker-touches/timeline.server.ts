@@ -48,6 +48,31 @@ import type {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
+ * How long a "the provider never got back to me" answer stays workable.
+ *
+ * Measured, not guessed: of 37 such answers, 5 came in the last week and 11 in
+ * the last fortnight, and the average is 38 days old. A family who told us two
+ * weeks ago that nobody called is still plausibly looking. Past that,
+ * re-contacting is more likely to be unwelcome than useful, and a queue nobody
+ * can finish stops being a queue.
+ */
+const NO_SHOW_ACTIONABLE_MS = 14 * DAY_MS;
+
+/** The most recent outcome answer across a family's inquiries. */
+function latestOutcome(
+  inquiries: { metadata?: Record<string, unknown> | null }[],
+): { value: "yes" | "not_yet" | "no"; at: string } | null {
+  let best: { value: "yes" | "not_yet" | "no"; at: string } | null = null;
+  for (const c of inquiries) {
+    const o = (c.metadata ?? {}).outcome as { value?: string; at?: string } | undefined;
+    if (!o?.value || !o.at) continue;
+    if (o.value !== "yes" && o.value !== "not_yet" && o.value !== "no") continue;
+    if (!best || o.at > best.at) best = { value: o.value, at: o.at };
+  }
+  return best;
+}
+
+/**
  * How far back an episode counts as live. 45 days is the point past which a
  * family who has said nothing is more likely to have resolved their situation
  * elsewhere than to be waiting on us. Overridable per request.
@@ -498,7 +523,7 @@ function reachabilityOf(
  *
  * A concierge city lead is the strict case: the consent checkbox on
  * /care/{city} names Olera and nobody else when routingMode is "concierge", so
- * their details may not go to a provider without a spoken yes. That fact lives
+ * their details reach a provider only through the relay. That fact lives
  * in a code comment today and nowhere a person can see it before picking up the
  * phone. Here it is a column.
  */
@@ -622,13 +647,23 @@ type Loaded = {
  * Find the families with a live episode, newest signal first, capped.
  *
  * "In a relationship with" is defined as: inquired, or came in as a city lead,
- * or texted us, or wrote to support@, inside the window.
+ * or texted us, or wrote to support@, or ANSWERED the outcome email, inside
+ * the window.
+ *
+ * That last one is here because every other feed is keyed on when the family
+ * arrived, and an outcome answer is keyed on when they replied. The two drift
+ * apart by exactly as long as it takes somebody to answer an email. A family
+ * who enquired in June and told us in September that the provider never came
+ * back is the most actionable row on the board, and without this query she is
+ * not a candidate at all — the queue would silently drop the rows it exists
+ * for. The stored timestamp is an ISO-8601 UTC string of fixed shape, so the
+ * text comparison below orders correctly.
  */
 async function candidateIds(
   db: ReturnType<typeof getServiceClient>,
   sinceIso: string,
 ): Promise<string[]> {
-  const [conns, leads, sms, threads] = await Promise.all([
+  const [conns, leads, sms, threads, answered] = await Promise.all([
     db.from("connections").select("from_profile_id, created_at").gte("created_at", sinceIso).limit(4000),
     db
       .from("city_leads")
@@ -651,6 +686,11 @@ async function candidateIds(
       .not("matched_profile_id", "is", null)
       .gte("last_message_at", sinceIso)
       .limit(2000),
+    db
+      .from("connections")
+      .select("from_profile_id, metadata->outcome->>at")
+      .gte("metadata->outcome->>at", sinceIso)
+      .limit(1000),
   ]);
 
   const latest = new Map<string, string>();
@@ -663,6 +703,7 @@ async function candidateIds(
   for (const r of (leads.data ?? []) as { care_seeker_id: string; created_at: string }[]) note(r.care_seeker_id, r.created_at);
   for (const r of (sms.data ?? []) as { profile_id: string; created_at: string }[]) note(r.profile_id, r.created_at);
   for (const r of (threads.data ?? []) as { matched_profile_id: string; last_message_at: string }[]) note(r.matched_profile_id, r.last_message_at);
+  for (const r of (answered.data ?? []) as { from_profile_id: string; at: string }[]) note(r.from_profile_id, r.at);
 
   return Array.from(latest.entries())
     .sort((a, b) => (a[1] < b[1] ? 1 : -1))
@@ -1190,13 +1231,25 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   ) {
     flags.push("provider_silent");
   }
+  // WHAT THEY SAID, NOT THAT THEY SAID SOMETHING.
+  //
+  // The old flag fired on ANY answer, because it also required
+  // status === 'pending' — and status is the in-app accept state, which has
+  // never moved off pending for a single one of 1,431 inquiries. So the
+  // condition was permanently true of every answered inquiry and could never
+  // clear. It produced a 42-row queue asking a person to write down a value
+  // that arrived as structured data from a one-click link.
+  //
+  // Only one of the three answers is work. "no" means they told us the
+  // provider never came back, which is a request we can re-route. "yes" means
+  // contacted, not placed, and is the audience for a follow-up rather than a
+  // task. "not_yet" is a timer.
+  const outcome = latestOutcome(inquiries);
   if (
-    inquiries.some((c) => {
-      const o = (c.metadata ?? {}).outcome as { value?: string } | undefined;
-      return !!o?.value && (c.status ?? "pending") === "pending";
-    })
+    outcome?.value === "no" &&
+    now.getTime() - new Date(outcome.at).getTime() < NO_SHOW_ACTIONABLE_MS
   ) {
-    flags.push("outcome_reported");
+    flags.push("provider_no_show");
   }
   if (humanTouches.length === 0) flags.push("never_human");
   if (contact.label_is_fallback) flags.push("no_name");
@@ -1230,7 +1283,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     // says they told us to stop.
     const work = new Set<SeekerFlag>([
       "awaiting_reply", "promise_owed", "unreachable",
-      "outcome_reported", "provider_silent", "never_human",
+      "provider_no_show", "provider_silent", "never_human",
     ]);
     for (let i = flags.length - 1; i >= 0; i--) if (work.has(flags[i])) flags.splice(i, 1);
   }
@@ -1260,6 +1313,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     lead,
     archived,
     origin,
+    outcome,
     parts: { conns, emails, sms, support, cityMsgs, touches },
   };
 }
@@ -1297,6 +1351,7 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
       ever_reached: a.everReached,
       archived: a.archived,
       origin: a.origin,
+      outcome: a.outcome,
     };
   });
 
@@ -1307,7 +1362,7 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
     if (r.flags.includes("awaiting_reply")) return 0;
     if (r.flags.includes("promise_owed")) return 1;
     if (r.flags.includes("unreachable")) return 2;
-    if (r.flags.includes("outcome_reported")) return 3;
+    if (r.flags.includes("provider_no_show")) return 3;
     if (r.episode.state === "open") return 4;
     if (r.flags.includes("provider_silent")) return 5;
     if (r.episode.state === "waiting") return 6;
@@ -1398,6 +1453,7 @@ export async function loadSeekerTimeline(seekerId: string): Promise<SeekerRelati
     ever_reached: a.everReached,
     archived: a.archived,
     origin: a.origin,
+    outcome: a.outcome,
     items,
   };
 }

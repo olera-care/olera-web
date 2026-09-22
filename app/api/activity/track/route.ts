@@ -651,6 +651,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (event_type === "ads_touchpoint_dismissed") {
+      try {
+        const meta = (metadata as Record<string, unknown>) || {};
+        const { sendSlackAlert, slackManagedAdsDismissed } = await import("@/lib/slack");
+        const alert = slackManagedAdsDismissed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          source: (meta.touchpoint as string) || "unknown",
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
     if (event_type === "managed_ads_boost_viewed") {
       try {
         const { sendSlackAlert, slackBoostViewed } = await import("@/lib/slack");

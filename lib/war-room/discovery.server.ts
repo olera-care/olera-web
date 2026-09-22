@@ -992,7 +992,7 @@ async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingP
       system: INVESTIGATOR_SYSTEM,
       tool,
       maxTokens: 14_000,
-      prompt: `This call owns the ${group.label} lenses: ${group.domains.join(", ")}. Review each of them against the operating pack and populate every required named field. Do not review any other lens in this call, and do not optimize for producing a founder task.\n${JSON.stringify(operatingPack)}`,
+      prompt: `This call owns the ${group.label} lenses: ${group.domains.join(", ")}. Review each of them against the operating pack and populate every required named field. Do not review any other lens in this call, and do not optimize for producing a founder task.\n${JSON.stringify(sweepContextFor(operatingPack))}`,
     });
     const reviews = group.domains.map((domain) => {
       const review = call.output?.lensReviews?.[domain] ?? {};
@@ -1068,6 +1068,53 @@ function councilContextFor(operatingPack: ReturnType<typeof buildOperatingPack>)
     proposalMemory: operatingPack.proposalMemory,
     investigationMemory: operatingPack.investigationMemory,
     evidenceCatalog: operatingPack.evidenceCatalog,
+  };
+}
+
+/**
+ * The pack with memory as identity rather than prose.
+ *
+ * The lens sweep was handed `JSON.stringify(operatingPack)` unmodified: every
+ * investigation as a full record including its inline evidence copies, and
+ * forty proposals in full, to review ten business domains. It is the most
+ * expensive pass in the scan, two calls at about fifty cents each, and I had
+ * asserted it "needs breadth" without ever opening its prompt.
+ *
+ * Tested A/B against a live pack, same model, same lens group. Scoped input
+ * was 37,990 tokens against 86,401, and the output did not thin -- it grew.
+ * Mean tokens per lens review went from 416 to 510, field completeness was
+ * identical at ten of ten, and it cited more evidence, four to five ids per
+ * review against three to four. Less irrelevant context, not less attention.
+ *
+ * That is one sample per arm on one lens group, which is enough to act on and
+ * not enough to quote as a ratio.
+ *
+ * What stays whole: the evidence catalog, because both
+ * `retainStrategicLensInvestigations` and `applyAgendaGate` reject a review
+ * citing fewer than two ids that resolve against it. Everything else the sweep
+ * reads -- the company model, the mechanics, the probe menu, the contract, the
+ * facts -- is untouched.
+ */
+function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
+  return {
+    ...operatingPack,
+    proposalMemory: operatingPack.proposalMemory.map((proposal) => ({
+      fingerprint: proposal.fingerprint,
+      status: proposal.status,
+      title: proposal.title,
+      outcomeStatus: proposal.outcomeStatus,
+    })),
+    investigationMemory: operatingPack.investigationMemory.map((investigation) => ({
+      fingerprint: investigation.fingerprint,
+      status: investigation.status,
+      domain: investigation.domain,
+      title: investigation.title,
+      likelyCause: investigation.likelyCause,
+      causeConfidence: investigation.causeConfidence,
+      unknowns: investigation.unknowns,
+      occurrenceCount: investigation.occurrenceCount,
+      lastSeenAt: investigation.lastSeenAt,
+    })),
   };
 }
 

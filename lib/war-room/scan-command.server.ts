@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { start } from "workflow/api";
 import { detectMaterialChange } from "@/lib/war-room/change-check.server";
+import { failWarRoomDiscovery, queueWarRoomDiscovery } from "@/lib/war-room/discovery.server";
+import { warRoomDiscoveryWorkflow } from "@/workflows/war-room-discovery";
 
 /**
  * "scan" typed into the founder's Slack DM.
@@ -65,10 +68,11 @@ export async function runScanCommand(
     }
   }
 
-  const { queueWarRoomDiscovery, failWarRoomDiscovery } = await import("@/lib/war-room/discovery.server");
-  const { warRoomDiscoveryWorkflow } = await import("@/workflows/war-room-discovery");
-  const { start } = await import("workflow/api");
-
+  // Statically imported, like the two callers that are known to work (the cron
+  // route and the proposal approval route). `withWorkflow` is a build-time
+  // transform over the static import graph, and a dynamically imported workflow
+  // is not an edge it can see -- which would fail the way the SOP file tracing
+  // fails, working locally and not in production.
   const queued = await queueWarRoomDiscovery(db, "manual", "slack:founder");
   // A scan is already in flight. Saying so is the honest answer, and it is also
   // what stops a double-tap -- or a Slack retry -- from paying twice.

@@ -58,6 +58,8 @@ export async function POST(request: NextRequest) {
     // Channel messages still go to the evidence reader below — an answer is a
     // reply in the DM, not a remark in a channel.
     if (payload.event.channel_type === "im" && !payload.event.bot_id && !payload.event.subtype && payload.event.text) {
+      const founderUserId = process.env.WAR_ROOM_BRIEF_SLACK_USER_ID?.trim();
+
       // "scan" is a command, not an answer. Checked before capture so the word
       // is never filed as evidence against whatever was last asked.
       const command = parseScanCommand(payload.event.text);
@@ -79,7 +81,6 @@ export async function POST(request: NextRequest) {
         //
         // Unset env means nobody is authorised, which is the safe default: the
         // bot simply does not answer the word.
-        const founderUserId = process.env.WAR_ROOM_BRIEF_SLACK_USER_ID?.trim();
         if (!founderUserId || payload.event.user !== founderUserId) {
           return NextResponse.json({ ok: true, scanCommand: { ignored: "not the founder" } });
         }
@@ -90,6 +91,18 @@ export async function POST(request: NextRequest) {
         // that never started.
         await sendSlackDirectMessage(founderUserId, result.reply).catch(() => null);
         return NextResponse.json({ ok: true, scanCommand: { started: result.started, runId: result.runId ?? null } });
+      }
+
+      // Anyone who can DM this bot was having their words recorded as a
+      // `founder_answered` event and fed to the next scan attributed to the
+      // founder. Trust in this path is total and deliberate -- an answer here
+      // outranks a probe -- which is exactly why it must be him.
+      //
+      // Fails OPEN when the env var is unset, because this loop works in
+      // production today and an unset variable must not silently break it. It
+      // only rejects when we positively know the sender is somebody else.
+      if (founderUserId && payload.event.user !== founderUserId) {
+        return NextResponse.json({ ok: true, founderAnswer: { captured: false, reason: "not the founder" } });
       }
 
       const captured = await captureFounderAnswer(db, payload.event.text);

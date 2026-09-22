@@ -19,6 +19,7 @@ import {
   type BoardTask,
   type BoardUniversity,
   type ChannelStatus,
+  type ExtraContact,
 } from "@/lib/medjobs/task-board";
 
 /**
@@ -127,7 +128,7 @@ export async function GET() {
         .order("id", { ascending: true }),
       db
         .from("student_outreach_contacts")
-        .select("outreach_id, name, first_name, last_name, role, email, phone, is_primary, created_at")
+        .select("id, outreach_id, name, first_name, last_name, role, email, phone, is_primary, created_at")
         // Ordered, because "the contact" has to be a decision rather than
         // whichever row the database happened to return first. Primary
         // wins; otherwise the oldest, which is the one somebody found first.
@@ -292,7 +293,9 @@ export async function GET() {
   // ── contacts, one per record: the first with anything usable on it ──
   type Person = { contact: string; role: string; email: string; phone: string };
   const contactOf = new Map<string, Person>();
-  const secondOf = new Map<string, Person>();
+  // Everyone beyond the primary. An advising office lists four people as
+  // often as one, and this used to keep exactly the second and drop the rest.
+  const othersOf = new Map<string, ExtraContact[]>();
   for (const c of contactsRes.data ?? []) {
     const name = c.name || [c.first_name, c.last_name].filter(Boolean).join(" ");
     if (!name && !c.email && !c.phone) continue;
@@ -305,7 +308,7 @@ export async function GET() {
       phone: formatPhone(c.phone ?? ""),
     };
     if (!contactOf.has(c.outreach_id)) contactOf.set(c.outreach_id, person);
-    else if (!secondOf.has(c.outreach_id)) secondOf.set(c.outreach_id, person);
+    else othersOf.set(c.outreach_id, [...(othersOf.get(c.outreach_id) ?? []), { id: c.id, ...person }]);
   }
 
   // ── tasks, grouped by what they hang off ──────────────────────────
@@ -453,7 +456,7 @@ export async function GET() {
         flaggedOn: research.flagged_on ?? null,
         address: editedAddr || addrFromDirectory,
         addressEdited: Boolean(editedAddr),
-        contact2: secondOf.get(row.id),
+        others: othersOf.get(row.id) ?? [],
         // Position is derived from the work in flight, not stored twice. The
         // lowest open rung leads, so a block reads top down.
         step: closed ? null : tasks.filter((t) => !t.done)[0]?.step ?? 0,

@@ -365,7 +365,14 @@ export default function UniversityFlow({
         // nothing, which is a strange thing for the action somebody
         // performs sixty times in a sitting and has to trust every time.
         "Saved",
-        { keepBoard: true },
+        // A fan-out is the one outcome that must refetch. It draws the
+        // records it created straight away so the sitting keeps its shape,
+        // but those are the page's own inventions with placeholder ids —
+        // the real rows, and the ids everything else is keyed on, only
+        // exist once the server has answered. Without this the offices a
+        // sweep just produced could be opened and not acted on: every write
+        // against them came back "invalid input syntax for type uuid".
+        { keepBoard: action.outcome !== "fanout" },
       ).then(({ ok, data }) => {
         if (!ok || !data?.live) return;
         // The server has just told us the channel activated. The dot reads
@@ -451,7 +458,7 @@ export default function UniversityFlow({
         website: record.websiteEdited ? record.website : undefined,
         name: record.name,
         address: record.addressEdited ? record.address : undefined,
-        second: record.contact2,
+        others: record.others,
       },
       "Saved",
     );
@@ -600,15 +607,8 @@ export default function UniversityFlow({
             record[f] = v;
             force((n) => n + 1);
           }}
-          onField2={(f, v) => {
-            record.contact2 = {
-              contact: "",
-              role: "",
-              phone: "",
-              email: "",
-              ...(record.contact2 ?? {}),
-              [f]: v,
-            };
+          onOthers={(next) => {
+            record.others = next;
             force((n) => n + 1);
           }}
           onSaveFields={saveFields}

@@ -9,6 +9,7 @@ import {
   STOP_REASONS,
   SWEEP_PREFIX,
   attachmentKind,
+  isSaved,
   canReopen,
   formatPhone,
   scriptSlug,
@@ -194,7 +195,7 @@ export default function TaskView({
           the university rather than to a person has no record behind it, so
           the line would be a link to a form about nobody, carrying the rung
           title a second time. */}
-      {!record.id.startsWith(SWEEP_PREFIX) && (
+      {isSaved(record.id) && (
         <button
           type="button"
           onClick={onOpenRecord}
@@ -228,7 +229,7 @@ export default function TaskView({
           <div className="mt-4 border-t border-gray-100 pt-4">
             <Note value={task.note} onChange={onNote} />
           </div>
-          {!record.id.startsWith(SWEEP_PREFIX) && (
+          {isSaved(record.id) && (
             <Collateral
               recordId={record.id}
               recordKind={attachmentKind(record.section)}
@@ -302,7 +303,7 @@ export default function TaskView({
                     rel="noreferrer"
                     className="font-medium text-primary-700 underline hover:no-underline"
                   >
-                    Review instructions on this step \u2197
+                    Review instructions on this step ↗
                   </a>
                   <span className="mt-0.5 block text-[12px] text-gray-500">
                     What to do and why, the call script, the email copy and the walkthrough
@@ -403,7 +404,7 @@ export default function TaskView({
                   rel="noreferrer"
                   className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
                 >
-                  {rung.scriptLabel ? `Read ${rung.scriptLabel} \u2197` : "Scripts and email copy \u2197"}
+                  {rung.scriptLabel ? `Read ${rung.scriptLabel} ↗` : "Scripts and email copy ↗"}
                 </a>
               )}
               {rung.email && (
@@ -414,7 +415,7 @@ export default function TaskView({
                     rel="noreferrer"
                     className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
                   >
-                    Open the flyer \u2197
+                    Open the flyer ↗
                   </a>
                   <span className="text-[12px] text-gray-400">
                     Send it from your own inbox so the reply comes back to you.
@@ -449,7 +450,7 @@ export default function TaskView({
                 finished-task branch by mistake, so it only ever appeared on
                 work already done. The sweeps have synthetic ids and are not
                 records, so they get nothing to attach to. */}
-            {!replying && !record.id.startsWith(SWEEP_PREFIX) && (
+            {!replying && isSaved(record.id) && (
               <Collateral
                 recordId={record.id}
                 recordKind={attachmentKind(record.section)}
@@ -725,8 +726,11 @@ const FOUND_FIELDS: Array<{ key: keyof FoundRecord; label: string }> = [
   { key: "address", label: "Address" },
 ];
 
-const summarise = (f: FoundRecord) =>
-  [f.contact, f.role, f.phone, f.email, f.website].filter(Boolean).join(" · ");
+const summarise = (f: FoundRecord) => {
+  const line = [f.contact, f.role, f.phone, f.email, f.website].filter(Boolean).join(" · ");
+  const more = (f.others ?? []).length;
+  return more > 0 ? `${line}${line ? " · " : ""}+${more} more` : line;
+};
 
 /**
  * What a sweep found, and the form for adding one more.
@@ -758,7 +762,11 @@ function FoundList({
   const commit = () => {
     const name = draft.name.trim();
     if (!name) return;
-    const clean: FoundRecord = { ...draft, name };
+    const clean: FoundRecord = {
+      ...draft,
+      name,
+      others: (draft.others ?? []).filter((o) => o.contact || o.role || o.phone || o.email),
+    };
     if (editing === null) onChange([...found, clean]);
     else onChange(found.map((f, i) => (i === editing ? clean : f)));
     reset();
@@ -835,6 +843,65 @@ function FoundList({
             </label>
           ))}
         </div>
+        {/* An advising office lists four people as often as one, so the
+            form takes as many as the page does rather than one and a spare. */}
+        {(draft.others ?? []).map((o, i) => (
+          <div key={i} className="mt-2 border-t border-primary-200 pt-2">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[11px] font-medium text-gray-400">
+                {o.contact.trim() || `Contact ${i + 2}`}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft((d) => ({
+                    ...d,
+                    others: (d.others ?? []).filter((_, j) => j !== i),
+                  }))
+                }
+                className="text-[11.5px] text-gray-400 underline hover:text-error-700"
+              >
+                Remove
+              </button>
+            </div>
+            <div className="space-y-1.5">
+              {(["contact", "role", "phone", "email"] as const).map((k) => (
+                <label key={k} className="flex items-center gap-2.5">
+                  <span className="w-24 shrink-0 text-[12px] text-gray-500">
+                    {k === "contact" ? "Name" : k === "role" ? "Role" : k === "phone" ? "Phone" : "Email"}
+                  </span>
+                  <input
+                    value={o[k]}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        others: (d.others ?? []).map((x, j) =>
+                          j === i ? { ...x, [k]: e.target.value } : x,
+                        ),
+                      }))
+                    }
+                    placeholder="—"
+                    className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() =>
+            setDraft((d) => ({
+              ...d,
+              others: [...(d.others ?? []), { contact: "", role: "", phone: "", email: "" }],
+            }))
+          }
+          className="mt-2 text-[12.5px] font-medium text-primary-700 hover:underline"
+        >
+          + Add another contact
+        </button>
+
         <div className="mt-2.5 flex items-center gap-2">
           <button
             type="button"

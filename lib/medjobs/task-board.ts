@@ -74,6 +74,21 @@ export function parseSweepId(id: string): { kind: SweepKind; campusId: string } 
  * while looking at its website should not be given a smaller set of boxes
  * than the record will have, and then be asked for the rest later.
  */
+/**
+ * Somebody at a record besides the primary contact.
+ *
+ * An advising office lists four people as often as one, and the record used
+ * to hold two: the primary and a single "second contact". `id` is the row in
+ * student_outreach_contacts, absent on one typed and not yet saved.
+ */
+export interface ExtraContact {
+  id?: string;
+  contact: string;
+  role: string;
+  phone: string;
+  email: string;
+}
+
 export interface FoundRecord {
   name: string;
   contact?: string;
@@ -82,6 +97,8 @@ export interface FoundRecord {
   email?: string;
   website?: string;
   address?: string;
+  /** Everyone else listed on the page, beyond the one above. */
+  others?: Array<{ contact: string; role: string; phone: string; email: string }>;
 }
 
 export interface BoardTask {
@@ -169,7 +186,7 @@ export interface BoardRecord {
    * disclosure in the UI: one contact is the normal case and two should not
    * cost the normal case any attention.
    */
-  contact2?: { contact: string; role: string; phone: string; email: string };
+  others?: ExtraContact[];
   /**
    * Job board only. A channel is not a person, so none of the fields above
    * describe it: what it has is a way in and, once there is one, a listing.
@@ -452,7 +469,19 @@ export function nextReady(
 // ── changing things ──────────────────────────────────────────────────
 
 let seq = 0;
-const newId = (): string => `local-${Date.now().toString(36)}-${(seq += 1).toString(36)}`;
+/**
+ * The prefix on an id the page invented.
+ *
+ * A fan-out draws its new records immediately, before the server has given
+ * them real ids, so anything keyed on the id has to wait for the next read.
+ */
+export const LOCAL_PREFIX = "local-";
+
+/** True when this record exists only in the page, with no row behind it. */
+export const isSaved = (id: string): boolean =>
+  !id.startsWith(LOCAL_PREFIX) && !id.startsWith(SWEEP_PREFIX);
+
+const newId = (): string => `${LOCAL_PREFIX}${Date.now().toString(36)}-${(seq += 1).toString(36)}`;
 
 function makeTask(section: SectionKey, step: number, round: number, dueAt: string): BoardTask {
   return {

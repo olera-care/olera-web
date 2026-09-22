@@ -100,7 +100,12 @@ type Body =
       name?: string;
       /** An admin correction. Absent means keep using the directory. */
       address?: string;
-      second?: Partial<Record<ContactField, string>>;
+      /**
+       * Everyone beyond the primary, as the page believes the list should
+       * be. Absent means contacts are not being edited; an empty array means
+       * they have all been removed.
+       */
+      others?: Array<{ id?: string; contact?: string; role?: string; phone?: string; email?: string }>;
     };
 
 const ARCHIVED_STATUS = "archived";
@@ -159,6 +164,7 @@ function cleanFound(raw: unknown): Array<{
   email: string;
   website: string;
   address: string;
+  others: Array<{ contact: string; role: string; phone: string; email: string }>;
 }> {
   if (!Array.isArray(raw)) return [];
   const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
@@ -174,6 +180,15 @@ function cleanFound(raw: unknown): Array<{
         email: str(r.email, 200),
         website: str(r.website, 500),
         address: str(r.address, 500),
+        others: (Array.isArray(r.others) ? r.others : []).slice(0, 20).map((o) => {
+          const x = (o ?? {}) as Record<string, unknown>;
+          return {
+            contact: str(x.contact, 200),
+            role: str(x.role, 200),
+            phone: str(x.phone, 50),
+            email: str(x.email, 200),
+          };
+        }),
       };
     })
     .filter((f) => f.name !== "");
@@ -191,6 +206,7 @@ async function createFound(
     email?: string;
     website?: string;
     address?: string;
+    others?: Array<{ contact?: string; role?: string; phone?: string; email?: string }>;
   },
   userId: string,
 ): Promise<{ id?: string; error?: string }> {
@@ -237,6 +253,24 @@ async function createFound(
       .from("student_outreach_contacts")
       .insert({ outreach_id: data.id, is_primary: true, name: "", ...person });
     if (contactError) return { error: contactError.message };
+  }
+
+  // Everyone else the page listed. An advising office names four people as
+  // often as one, and dropping them here would mean going back to the same
+  // web page to find them again.
+  const rest = (found.others ?? [])
+    .map((o) => ({
+      outreach_id: data.id,
+      is_primary: false,
+      name: (o.contact ?? "").trim(),
+      role: (o.role ?? "").trim() || null,
+      email: (o.email ?? "").trim() || null,
+      phone: o.phone?.trim() ? formatPhone(o.phone) : null,
+    }))
+    .filter((o) => o.name || o.role || o.email || o.phone);
+  if (rest.length > 0) {
+    const { error: restError } = await db.from("student_outreach_contacts").insert(rest);
+    if (restError) return { error: restError.message };
   }
 
   // Where a new record starts, which is the one place the two sections
@@ -948,33 +982,53 @@ export async function POST(req: Request) {
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // ── the second contact ────────────────────────────────────────────
-      // Written only when something was actually typed, so opening the
-      // disclosure and closing it again does not leave an empty person
-      // behind for the next reader to wonder about.
-      const s2 = body.second ?? {};
-      const patch2: Record<string, string> = {};
-      if (typeof s2.contact === "string") patch2.name = s2.contact.trim();
-      if (typeof s2.role === "string") patch2.role = s2.role.trim();
-      if (typeof s2.email === "string") patch2.email = s2.email.trim();
-      if (typeof s2.phone === "string") patch2.phone = formatPhone(s2.phone);
-      const second_has_content = Object.values(patch2).some((v) => v !== "");
-
-      if (second_has_content) {
+      // ── everyone else ─────────────────────────────────────────────────
+      // An office lists four people as often as one. This used to hold
+      // exactly two, so the third was typed into the second's boxes or not
+      // written down at all.
+      //
+      // Sent whole rather than as a diff: the page knows what the list
+      // should be, so a row with an id is updated, one without is new, and
+      // anything no longer in the list was removed on screen and goes. An
+      // absent `others` means the page is not editing contacts at all —
+      // which is not the same as an empty one, and must not delete them.
+      if (Array.isArray(body.others)) {
         const { data: rows } = await db
           .from("student_outreach_contacts")
           .select("id")
           .eq("outreach_id", outreach.id)
-          .order("is_primary", { ascending: false })
-          .order("created_at", { ascending: true });
+          .eq("is_primary", false);
 
-        const existingSecond = (rows ?? [])[1];
-        const { error } = existingSecond
-          ? await db.from("student_outreach_contacts").update(patch2).eq("id", existingSecond.id)
-          : await db
-              .from("student_outreach_contacts")
-              .insert({ outreach_id: outreach.id, is_primary: false, name: "", ...patch2 });
-        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        const sent = body.others
+          .map((o) => ({
+            id: typeof o.id === "string" ? o.id : undefined,
+            name: (o.contact ?? "").trim(),
+            role: (o.role ?? "").trim(),
+            email: (o.email ?? "").trim(),
+            phone: formatPhone(o.phone ?? ""),
+          }))
+          // A blank row is somebody who pressed Add and changed their mind.
+          .filter((o) => o.name || o.role || o.email || o.phone);
+
+        const keep = new Set(sent.map((o) => o.id).filter(Boolean));
+        const gone = (rows ?? []).map((r) => r.id as string).filter((id) => !keep.has(id));
+        if (gone.length > 0) {
+          const { error } = await db
+            .from("student_outreach_contacts")
+            .delete()
+            .in("id", gone);
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        for (const o of sent) {
+          const { id, ...values } = o;
+          const { error } = id
+            ? await db.from("student_outreach_contacts").update(values).eq("id", id)
+            : await db
+                .from("student_outreach_contacts")
+                .insert({ outreach_id: outreach.id, is_primary: false, ...values });
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
       }
 
       // ── the record itself: name, address, website ─────────────────────

@@ -13,9 +13,9 @@ import { PRN_OPTIONS, COVERAGE_OPTIONS } from "@/lib/medjobs/hiring-needs-questi
 /**
  * EligibilityScreenerModal — the provider eligibility screener.
  *
- * Authed provider: Q1 → Q2 → Q3 → writes eligibility → onComplete.
+ * Authed provider: Q1 → Q2 → writes eligibility → onComplete.
  *
- * Anonymous provider (no providerProfileId): Q1 → Q2 → Q3 → a "You're a fit!"
+ * Anonymous provider (no providerProfileId): Q1 → Q2 → a "You're a fit!"
  * step that creates OR claims their agency + signs them in instantly (the
  * `claim-instant` no-code flow, the same mechanism /provider/onboarding uses),
  * then writes the captured eligibility — all in this one modal, no redirect.
@@ -124,7 +124,7 @@ export default function EligibilityScreenerModal({
     }
   };
 
-  // Q3 → finish. Authed: write + done. Anon: go collect agency + sign in.
+  // Q2 → finish. Authed: write + done. Anon: go collect agency + sign in.
   const finish = async () => {
     if (!providerProfileId) {
       setError(null);
@@ -138,7 +138,7 @@ export default function EligibilityScreenerModal({
       await onComplete();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save your answers");
-      setStep("q3");
+      setStep("q2");
     }
   };
 

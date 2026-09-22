@@ -49,31 +49,28 @@ export default function BackgroundCard({ meta, onEdit }: BackgroundCardProps) {
           }
         />
       ) : (
-        <div className="relative pl-4 border-l-2 border-gray-200 space-y-3">
+        <div className="space-y-3">
           {sortedEntries.slice(0, 3).map((entry) => {
             const tagStyle = TAG_STYLES[entry.tag] || TAG_STYLES.other;
             return (
-              <div key={entry.id} className="relative">
-                <div className="absolute -left-[calc(1rem+5px)] top-1.5 w-2 h-2 rounded-full bg-gray-400" />
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{entry.title}</p>
-                    <p className="text-xs text-gray-500">
-                      {formatMonth(entry.start_date)} – {entry.end_date ? formatMonth(entry.end_date) : "Present"}
-                    </p>
-                  </div>
-                  <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${tagStyle.className}`}>
+              <div key={entry.id} className="bg-gray-50 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm font-medium text-gray-900">{entry.title}</p>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${tagStyle.className}`}>
                     {tagStyle.label}
                   </span>
                 </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {formatMonth(entry.start_date)} – {entry.end_date ? formatMonth(entry.end_date) : "Present"}
+                </p>
                 {entry.description && (
-                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{entry.description}</p>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{entry.description}</p>
                 )}
               </div>
             );
           })}
           {sortedEntries.length > 3 && (
-            <p className="text-xs text-gray-400 pl-1">+{sortedEntries.length - 3} more</p>
+            <p className="text-xs text-gray-400">+{sortedEntries.length - 3} more</p>
           )}
         </div>
       )}

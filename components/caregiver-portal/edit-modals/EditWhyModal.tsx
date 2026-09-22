@@ -158,7 +158,7 @@ export default function EditWhyModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="pt-2">
+      <div className="pt-2 pb-8">
         <p className="text-sm text-gray-600 mb-4">
           Be genuine — like a personal statement. What draws you to caregiving?
         </p>

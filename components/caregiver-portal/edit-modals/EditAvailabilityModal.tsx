@@ -429,7 +429,7 @@ export default function EditAvailabilityModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="pt-2">
+      <div className="pt-2 pb-8">
         {renderStepContent()}
 
         {/* Error Message */}

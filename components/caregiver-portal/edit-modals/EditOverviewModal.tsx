@@ -407,7 +407,7 @@ export default function EditOverviewModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="pt-6">
+      <div className="pt-6 pb-8">
         {/* Photo Upload - Centered */}
         <div className="flex flex-col items-center mb-6">
           <div

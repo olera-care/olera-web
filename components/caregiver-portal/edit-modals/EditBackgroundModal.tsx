@@ -172,7 +172,7 @@ export default function EditBackgroundModal({
 
   return (
     <Modal isOpen onClose={onClose} title={headerContent} size="2xl" footer={footerContent}>
-      <div className="pt-2">
+      <div className="pt-2 pb-8">
         <p className="text-sm text-gray-600 mb-4">
           Add your caregiving roles — paid, volunteer, family, or clinical.
         </p>

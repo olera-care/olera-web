@@ -79,7 +79,40 @@ export default function AdminMedJobsDetailPage() {
   const [slug, setSlug] = useState("");
   const [applicationCount, setApplicationCount] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [viewingDoc, setViewingDoc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // View a document from private storage by fetching a signed URL
+  async function viewDocument(path: string, docType: string) {
+    if (!path) return;
+    setViewingDoc(docType);
+
+    // Open window synchronously to avoid popup blocker
+    // (async window.open calls may be blocked by browsers)
+    const newWindow = window.open("about:blank", "_blank");
+
+    try {
+      const res = await fetch("/api/admin/medjobs/view-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      const data = await res.json();
+      if (data.url && newWindow) {
+        newWindow.location.href = data.url;
+      } else if (newWindow) {
+        newWindow.close();
+        alert(data.error || "Failed to load document");
+      } else {
+        alert(data.error || "Popup blocked - please allow popups for this site");
+      }
+    } catch {
+      if (newWindow) newWindow.close();
+      alert("Failed to load document");
+    } finally {
+      setViewingDoc(null);
+    }
+  }
 
   // City search
   const [cityQuery, setCityQuery] = useState("");
@@ -739,7 +772,6 @@ export default function AdminMedJobsDetailPage() {
         {/* Links & Media */}
         <Section title="Links & Media">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldInput label="Resume URL" value={formData.resume_url as string} onChange={(v) => updateField("resume_url", v || undefined)} />
             <FieldInput label="Video Intro URL" value={formData.video_intro_url as string} onChange={(v) => updateField("video_intro_url", v || undefined)} />
             <FieldInput label="LinkedIn URL" value={formData.linkedin_url as string} onChange={(v) => updateField("linkedin_url", v || undefined)} />
           </div>
@@ -747,22 +779,26 @@ export default function AdminMedJobsDetailPage() {
 
         {/* Documents */}
         <Section title="Documents">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {/* Resume */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Driver&apos;s License</label>
-              {formData.drivers_license_url ? (
-                <div className="flex items-center gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <div className="min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Resume</label>
+              {formData.resume_url ? (
+                <div className="flex items-center justify-between gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <p className="text-sm font-medium text-primary-800">Uploaded</p>
-                    {formData.drivers_license_uploaded_at ? (
-                      <p className="text-xs text-primary-600 truncate">
-                        {new Date(formData.drivers_license_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
-                      </p>
-                    ) : null}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => viewDocument(formData.resume_url as string, "resume")}
+                    disabled={viewingDoc === "resume"}
+                    className="text-xs font-medium text-primary-600 hover:text-primary-700 px-2 py-1 rounded hover:bg-primary-100 transition-colors disabled:opacity-50"
+                  >
+                    {viewingDoc === "resume" ? "..." : "View"}
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -773,21 +809,68 @@ export default function AdminMedJobsDetailPage() {
                 </div>
               )}
             </div>
+            {/* Driver's License */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Driver&apos;s License</label>
+              {formData.drivers_license_url ? (
+                <div className="flex items-center justify-between gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-primary-800">Uploaded</p>
+                      {formData.drivers_license_uploaded_at ? (
+                        <p className="text-xs text-primary-600 truncate">
+                          {new Date(formData.drivers_license_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => viewDocument(formData.drivers_license_url as string, "license")}
+                    disabled={viewingDoc === "license"}
+                    className="text-xs font-medium text-primary-600 hover:text-primary-700 px-2 py-1 rounded hover:bg-primary-100 transition-colors disabled:opacity-50"
+                  >
+                    {viewingDoc === "license" ? "..." : "View"}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm font-medium text-amber-700">Not uploaded</p>
+                </div>
+              )}
+            </div>
+            {/* Car Insurance */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Car Insurance</label>
               {formData.car_insurance_url ? (
-                <div className="flex items-center gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
-                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-primary-800">Uploaded</p>
-                    {formData.car_insurance_uploaded_at ? (
-                      <p className="text-xs text-primary-600 truncate">
-                        {new Date(formData.car_insurance_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
-                      </p>
-                    ) : null}
+                <div className="flex items-center justify-between gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-primary-800">Uploaded</p>
+                      {formData.car_insurance_uploaded_at ? (
+                        <p className="text-xs text-primary-600 truncate">
+                          {new Date(formData.car_insurance_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => viewDocument(formData.car_insurance_url as string, "insurance")}
+                    disabled={viewingDoc === "insurance"}
+                    className="text-xs font-medium text-primary-600 hover:text-primary-700 px-2 py-1 rounded hover:bg-primary-100 transition-colors disabled:opacity-50"
+                  >
+                    {viewingDoc === "insurance" ? "..." : "View"}
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">

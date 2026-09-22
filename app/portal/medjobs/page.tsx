@@ -1413,10 +1413,17 @@ function StudentPortalContent({
                       {profile.is_active ? "Live" : isPaused ? "Paused" : isPendingReview ? "Pending Review" : "Draft"}
                     </div>
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[15px] text-gray-500">
-                    {meta.university && <span>{meta.university}</span>}
-                    {meta.major && <><span className="text-gray-300">·</span><span>{meta.major}</span></>}
-                    {profile.city && profile.state && <><span className="text-gray-300">·</span><span>{profile.city}, {profile.state}</span></>}
+                  <div className="mt-1.5 space-y-0.5 text-[15px] text-gray-500">
+                    {meta.university && (
+                      <p className="leading-snug">{meta.university}</p>
+                    )}
+                    {(meta.major || (profile.city && profile.state)) && (
+                      <p className="text-sm text-gray-400">
+                        {meta.major}
+                        {meta.major && profile.city && profile.state && <span className="mx-1.5">·</span>}
+                        {profile.city && profile.state && `${profile.city}, ${profile.state}`}
+                      </p>
+                    )}
                   </div>
                   {profile.is_active && (
                     <a

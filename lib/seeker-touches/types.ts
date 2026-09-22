@@ -351,3 +351,51 @@ export type SeekerRelationship = {
   /** See SeekerRelationshipRow.outcome. */
   outcome: SeekerRelationshipRow["outcome"];
 };
+
+// ── What a logged note was read to contain ───────────────────────────────────
+
+/** The fields worth having, in the order they read on screen. */
+export const HEARD_FIELDS = [
+  "care_for",
+  "relationship",
+  "care_type",
+  "care_zip",
+  "interim_location",
+  "hours",
+  "transfers",
+  "payment",
+  "starts",
+  "budget",
+] as const;
+
+export type HeardField = (typeof HEARD_FIELDS)[number];
+
+export const HEARD_LABEL: Record<HeardField, string> = {
+  care_for: "for",
+  relationship: "relation",
+  care_type: "care",
+  care_zip: "where",
+  interim_location: "interim",
+  hours: "hours",
+  transfers: "transfers",
+  payment: "paying",
+  starts: "starts",
+  budget: "budget",
+};
+
+export type HeardValue = {
+  /** Short display string. Null means the note did not mention it. */
+  value: string | null;
+  /** False renders as a guess to be checked rather than a fact. */
+  sure: boolean;
+};
+
+export type Heard = {
+  fields: Partial<Record<HeardField, HeardValue>>;
+  /** Verbatim fragments worth carrying that no field covers. */
+  also_noted: string[];
+  /** Set when a person edited a field by hand; those are never overwritten. */
+  edited_fields?: HeardField[];
+  extracted_at: string;
+  model: string;
+};

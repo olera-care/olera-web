@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { getRoutingPlan } from "@/lib/city-ads/plan.server";
+import { extractHeard, saveHeard } from "@/lib/seeker-touches/extract.server";
 import { FAMILY_TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type FamilyTouchInput } from "@/lib/seeker-touches/types";
 import {
   loadSeekerRelationships,
@@ -212,7 +213,22 @@ export async function POST(request: NextRequest) {
     if (closeErr) console.error("[seeker-touches] failed to close prior actions:", closeErr);
   }
 
-  return NextResponse.json({ touch: data }, { status: 201 });
+  // Read the note for the care details a provider would ask for.
+  //
+  // AFTER the insert and deliberately not awaited into the success of it: the
+  // touch is already saved and the log has already succeeded, so a slow or
+  // failing model must not turn a written record into an error on screen. It
+  // is awaited here only because Vercel kills pending promises once a response
+  // is returned, and `extractHeard` swallows everything and returns null.
+  let heard = null;
+  const noteForExtract = [summary, clean(body.detail)].filter(Boolean).join("\n");
+  const fresh = await extractHeard(noteForExtract, {
+    channel,
+    reached: typeof body.reached === "boolean" ? body.reached : null,
+  });
+  if (fresh) heard = await saveHeard(db, seeker_id, fresh);
+
+  return NextResponse.json({ touch: data, heard }, { status: 201 });
 }
 
 export async function PATCH(request: NextRequest) {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackDirectMessage } from "@/lib/slack";
 import { ingestSlackEventEvidence, verifySlackRequest } from "@/lib/war-room/sources.server";
-import { captureFounderAnswer, findAskByThread } from "@/lib/war-room/founder-loop.server";
+import { captureFounderAnswer, findAskByThread, findOpenAsk } from "@/lib/war-room/founder-loop.server";
 import { answerFounderQuestion, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
 
@@ -165,15 +165,34 @@ export async function POST(request: NextRequest) {
       // A question is not an answer. Filing one as evidence writes it into the
       // record attributed to the founder and hands it to the next scan, which
       // is worse than doing nothing.
-      if (classifyMessage(payload.event.text) === "question" || openExchange) {
+      const looksLikeAnswer = classifyMessage(payload.event.text) === "answer";
+      if (!looksLikeAnswer || openExchange) {
         const answer = await answerFounderQuestion(
           db,
           payload.event.text,
           addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
           openExchange,
         );
+
+        // A statement arriving mid-conversation is ambiguous in a way no
+        // wording test can settle: "Aging in America" is a correction and
+        // "Close it, not worth a plan" is a verdict, and they look identical.
+        // Treating it as conversation is right for the first and silently
+        // loses the second -- and losing a verdict is the expensive direction,
+        // because that is the answer the recurrence question exists to collect.
+        //
+        // So it is not resolved by guessing. The reply says what was and was
+        // not recorded, and names what is still open.
+        let note = "";
+        if (looksLikeAnswer) {
+          const stillOpen = await findOpenAsk(db);
+          note = stillOpen
+            ? `\n\n_Taken as conversation, not recorded. If that was your answer about *${stillOpen.title ?? "the open question"}*, reply in that brief's thread and I will file it._`
+            : "\n\n_Taken as conversation, not recorded as evidence._";
+        }
+
         if (dmTarget) {
-          await sendSlackDirectMessage(dmTarget, answer.reply, { threadTs }).catch(() => null);
+          await sendSlackDirectMessage(dmTarget, answer.reply + note, { threadTs }).catch(() => null);
         }
         // Only a real answer continues the exchange. A failure to answer should
         // not hold the conversation open and swallow the next thing he says.

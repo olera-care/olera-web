@@ -212,11 +212,11 @@ export async function deliverWarRoomBrief(
     // as soon as a newer brief lands in between.
     if (question) await recordFounderAsk(db, question, runId, result.ts ?? null).catch(() => false);
 
-    // A brief changes the subject. Any conversation still counted as "in
-    // progress" must end here, or the next thing he types would be read as a
-    // follow-up to an old exchange rather than an answer to what was just
-    // asked -- the same misrouting in the opposite direction.
-    if (question) await closeExchange(db);
+    // A brief changes the subject, whether or not it carried a question. Any
+    // conversation still counted as "in progress" ends here, or the next thing
+    // he types is read as a follow-up to an older exchange -- the same
+    // misrouting in the opposite direction.
+    await closeExchange(db);
 
     await db.from("war_room_source_state").upsert({
       source_key: DELIVERY_STATE_KEY,

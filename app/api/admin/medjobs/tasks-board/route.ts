@@ -88,6 +88,31 @@ function emptyRecords(): Record<SectionKey, BoardRecord[]> {
   return out;
 }
 
+/**
+ * The order a record's history reads in.
+ *
+ * Finished work sorts by when it was finished, not by which rung it was.
+ * Rung numbers are positions in a ladder that gets reordered — put the
+ * application before the meeting and every student worked under the old
+ * order starts showing the application above a meeting that happened first.
+ * What was done when does not change when the ladder does.
+ *
+ * Work still waiting sorts by rung, because that is the order it will be
+ * done in, and it sorts after everything finished.
+ */
+function byWorkedOrder(
+  a: { done: boolean; loggedOn: string | null; step: number; round: number },
+  b: { done: boolean; loggedOn: string | null; step: number; round: number },
+): number {
+  if (a.done !== b.done) return a.done ? -1 : 1;
+  if (a.done && b.done) {
+    const at = a.loggedOn ?? "";
+    const bt = b.loggedOn ?? "";
+    if (at !== bt) return at < bt ? -1 : 1;
+  }
+  return a.step - b.step || a.round - b.round;
+}
+
 const day = (iso: string | null): string =>
   iso ? new Date(iso).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
 
@@ -445,7 +470,7 @@ export async function GET() {
             spawnedRecords: [],
           });
         }
-        tasks.sort((a, b) => a.step - b.step || a.round - b.round);
+        tasks.sort(byWorkedOrder);
       }
 
       records[section].push({
@@ -555,7 +580,7 @@ export async function GET() {
         });
       }
 
-      tasks.sort((a, b) => a.step - b.step || a.round - b.round);
+      tasks.sort(byWorkedOrder);
 
       const meta = (st.metadata ?? {}) as {
         intended_professional_school?: string;

@@ -1059,27 +1059,13 @@ If you are unsure on any of the four, leave it out and say so in the note. A pro
     label: "Students",
     goal: "hired",
     auto: true,
-    // The meeting and the application. Neither waits on the other: most
-    // students finish their own application, some need the meeting to get
-    // there, and we meet every student either way.
-    openTogether: 2,
+    // The application opens on its own now. The meeting used to open beside
+    // it, on the reasoning that neither waits on the other; the order this
+    // ladder runs in says otherwise — qualification comes between them, and
+    // there is no point meeting a student who has not been qualified.
+    openTogether: 1,
     emptyNote: "Students appear here when an application lands.",
     steps: [
-      {
-        name: "meeting-with-the-student",
-        title: "Meeting with the student",
-        what: "The intro call with the applicant.",
-        why: "We meet every student before putting them in front of a provider.",
-        steps: ["Book a time.", "Hold it.", "Log how it went."],
-        textarea: "How it went",
-        // Not every student needs one, and a student who has already been
-        // interviewed plainly did not. The second outcome exists so nobody
-        // has to log a meeting that never happened to move a record on.
-        actions: [
-          { label: "Meeting held", outcome: "next", delay: 0 },
-          { label: "No meeting needed", outcome: "next", delay: 0 },
-        ],
-      },
       {
         name: "complete-their-application",
         title: "Complete their application",
@@ -1107,6 +1093,30 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Application complete", outcome: "next", delay: 0 }],
       },
       {
+        name: "qualify-their-application",
+        title: "Qualify their application",
+        what: "TODO — write this up in the scripts document.",
+        why: "TODO.",
+        steps: ["TODO."],
+        actions: [{ label: "Qualified", outcome: "next", delay: 0 }],
+      },
+      {
+        name: "meeting-with-the-student",
+        title: "Meeting with the student",
+        what: "The intro call with the applicant.",
+        why: "We meet every student before putting them in front of a provider.",
+        steps: ["Book a time.", "Hold it.", "Log how it went."],
+        textarea: "How it went",
+        // Not every student needs one, and a student who has already been
+        // interviewed plainly did not. The second outcome exists so nobody
+        // has to log a meeting that never happened to move a record on.
+        actions: [
+          { label: "Meeting held", outcome: "next", delay: 0 },
+          { label: "No meeting needed", outcome: "next", delay: 0 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
+        ],
+      },
+      {
         name: "get-them-an-interview",
         title: "Get them an interview",
         what: "Put them in front of a signed-up provider.",
@@ -1130,9 +1140,17 @@ Dr. Logan DuBose's office · Olera`,
         // "next" would queue the hours and leave the record reading as
         // unfinished, which is the opposite of what a hire means.
         actions: [
-          { label: "Hired", outcome: "goal", delay: 30, goto: "hours" },
+          { label: "Hired", outcome: "goal", delay: 30, goto: "mentor" },
           { label: "Not hired", outcome: "archive", delay: 0 },
         ],
+      },
+      {
+        name: "mentor",
+        title: "Mentor student",
+        what: "TODO — write this up in the scripts document.",
+        why: "TODO.",
+        steps: ["TODO."],
+        actions: [{ label: "Logged", outcome: "goal", delay: 30, goto: "hours" }],
       },
       {
         monthly: true,
@@ -1143,6 +1161,15 @@ Dr. Logan DuBose's office · Olera`,
         steps: ["Ask the student how many hours this month.", "Type the number.", "Log it."],
         inputs: [{ key: "hours", label: "Hours this month", type: "number" }],
         actions: [{ label: "Logged", outcome: "repeat", delay: 30 }],
+      },
+      {
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever the student asked for that no rung covers.",
+        why: "Nobody can guess in advance what a student will need.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "meeting-with-the-student" }],
       },
     ],
   },
@@ -1200,7 +1227,10 @@ Thank you,
 Dr. Logan DuBose's office · Olera`,
         },
         // Two business days, because approval is somebody else's queue.
-        actions: [{ label: "Submitted", outcome: "next", delay: 2, ticks: ["submitted"] }],
+        actions: [
+          { label: "Submitted", outcome: "next", delay: 2, ticks: ["submitted"] },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
+        ],
       },
       {
         name: "confirm-it-s-approved",
@@ -1237,32 +1267,16 @@ Dr. Logan DuBose's office · Olera`,
         attachment: { label: "Example posting", doc: "posting" },
         actions: [
           { label: "Still live", outcome: "goal", delay: 120, goto: "seasonal" },
-          { label: "It's gone", outcome: "next", delay: 0, goto: "relist" },
         ],
       },
       {
-        branch: "relist",
-        title: "Get the listing back up",
-        what: "The posting dropped off. Put it back.",
-        why: "Every day it's down is a day students can't find us.",
-        steps: ["Contact the job board owner.", "Resubmit.", "Confirm it's back."],
-        email: {
-          subject: "Re-posting the Student Caregiver role — {university}",
-          body: `Hello,
-
-Our Student Caregiver posting appears to have expired from the {university} job board. Students are still applying through other channels, so we would like it back up.
-
-Same role as before — part-time paid caregiving shifts for pre-health students, flexible around classes. Details here: {flyer}
-
-Is there anything you need from me to renew it?
-
-Thank you,
-[your name]
-Dr. Logan DuBose's office · Olera`,
-        },
-        actions: [
-          { label: "Back up", outcome: "goal", delay: 120, ticks: ["visible"], goto: "seasonal" },
-        ],
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever the job board asked for that no rung covers.",
+        why: "Every campus runs its board differently and some ask for things nothing here anticipates.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "confirm-it-s-submitted" }],
       },
     ],
   },
@@ -1272,15 +1286,6 @@ Dr. Logan DuBose's office · Olera`,
     goal: "circulating · meeting held",
     channel: "st4",
     steps: [
-      {
-        name: "research-the-advising-offices",
-        title: "Research the advising offices",
-        what: "Find who advises pre-health students here.",
-        why: "You need a named office before any outreach starts.",
-        steps: ["Search the university site.", "Add each office you find.", "Done — each one starts its own outreach."],
-        fanout: ["Pre-Health Advising Office", "Nursing Student Services"],
-        actions: [{ label: "Done — start outreach", outcome: "fanout", delay: 0 }],
-      },
       {
         name: "send-the-program-info",
         title: "Send the program info",
@@ -1318,34 +1323,17 @@ Dr. Logan DuBose's office · Olera`,
       },
       {
         name: "confirm-a-meeting-with-the-team",
-        title: "Confirm a meeting with the team",
-        what: "A conversation about raising awareness with students.",
-        why: "The meeting is where the partnership actually forms.",
-        steps: ["Offer times.", "Confirm one.", "Put it in the calendar."],
+        title: "Meeting with the team",
+        what: "A conversation about raising awareness with students — booked, held, logged.",
+        why: "The meeting is where the partnership actually forms, and people no-show often.",
+        steps: ["Offer times and confirm one.", "Hold it.", "Pick the outcome and write a line about it."],
         inputs: [{ key: "meeting_at", label: "Meeting date and time", type: "datetime-local" }],
-        actions: [{ label: "Meeting booked", outcome: "next", delay: 0 }],
-      },
-      {
-        name: "log-the-meeting",
-        title: "Log the meeting",
-        what: "What happened at the meeting.",
-        why: "People no-show often. What happens next depends on which.",
-        steps: ["Pick the outcome.", "Write a line about it."],
         textarea: "How it went",
         actions: [
-          {
-            // An advisor is never finished with. The meeting is the goal and
-            // the record says so, but a `goal` carrying a delay also queues
-            // the rung it names — so the relationship comes back round each
-            // term instead of going quiet the moment it is working.
-            label: "Held",
-            outcome: "goal",
-            goto: "recirculate",
-            delay: 90,
-            hint: "Marks them as a partner, and brings them back next term to circulate again.",
-          },
-          { label: "No-show", outcome: "reschedule", delay: 0 },
-          { label: "Needs reschedule", outcome: "reschedule", delay: 0 },
+          { label: "Held", outcome: "goal", delay: 120, goto: "recirculate" },
+          { label: "No-show", outcome: "reschedule", delay: 7 },
+          { label: "Needs reschedule", outcome: "reschedule", delay: 7 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
         ],
       },
       {
@@ -1393,7 +1381,7 @@ Dr. Logan DuBose's office · Olera`,
         // here acts on an advisor record, and until this ran there was no
         // way for one to exist.
         branch: "advisorsweep",
-        title: "Find career centers and advising offices",
+        title: "Research advising offices",
         what: "Search the university for the offices that can put this programme in front of pre-health students, and add each one.",
         why: "Nobody at a university is going to find us. Every advisor record on this board starts here.",
         steps: [
@@ -1432,6 +1420,15 @@ If two names turn out to be the same office, add it once. If you are not sure wh
             delay: 0,
           },
         ],
+      },
+      {
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever the office asked for that no rung covers.",
+        why: "Nobody can guess in advance what an advising office will need.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "confirm-the-flyer-is-circulating" }],
       },
     ],
   },

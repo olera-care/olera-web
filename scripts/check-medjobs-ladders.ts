@@ -17,7 +17,7 @@
 
 import { LADDERS, SECTION_ORDER } from "../lib/medjobs/ladders";
 import { scriptSlug, SWEEPS } from "../lib/medjobs/task-board";
-import { seedSections } from "../lib/medjobs/scripts-seed";
+import { seedSections, NON_RUNG_SECTIONS, READS_FIRST_ANCHORS } from "../lib/medjobs/scripts-seed";
 
 const problems: string[] = [];
 const note = (s: string) => problems.push(s);
@@ -89,9 +89,24 @@ for (const section of SECTION_ORDER) {
 }
 
 // A section of the document nothing links to is a page somebody maintains
-// and nobody is ever sent to.
+// and nobody is ever sent to — unless it is deliberately not a rung.
 for (const slug of seeded) {
-  if (!reachable.has(slug)) note(`the document has #${slug}, which no rung links to`);
+  if (!reachable.has(slug) && !NON_RUNG_SECTIONS.has(slug)) {
+    note(`the document has #${slug}, which no rung links to`);
+  }
+}
+
+// The reading order names rungs by anchor, so a deleted rung must not still
+// be ordering the contents.
+for (const [section, key] of READS_FIRST_ANCHORS) {
+  const ladder = LADDERS[section as (typeof SECTION_ORDER)[number]];
+  if (!ladder) {
+    note(`the reading order mentions section "${section}", which does not exist`);
+    continue;
+  }
+  if (!ladder.steps.some((r) => r.name === key || r.branch === key)) {
+    note(`the reading order puts "${key}" first in ${section}, which names no rung there`);
+  }
 }
 
 const line = `${rungs} rungs across ${SECTION_ORDER.length} ladders · ${seeded.size} document sections`;

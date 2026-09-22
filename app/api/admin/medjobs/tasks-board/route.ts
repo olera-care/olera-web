@@ -19,6 +19,7 @@ import {
   type BoardTask,
   type BoardUniversity,
   type ChannelStatus,
+  type ExtraContact,
 } from "@/lib/medjobs/task-board";
 
 /**
@@ -127,7 +128,7 @@ export async function GET() {
         .order("id", { ascending: true }),
       db
         .from("student_outreach_contacts")
-        .select("outreach_id, name, first_name, last_name, role, email, phone, is_primary, created_at")
+        .select("id, outreach_id, name, first_name, last_name, role, email, phone, is_primary, created_at")
         // Ordered, because "the contact" has to be a decision rather than
         // whichever row the database happened to return first. Primary
         // wins; otherwise the oldest, which is the one somebody found first.
@@ -292,10 +293,16 @@ export async function GET() {
   // ── contacts, one per record: the first with anything usable on it ──
   type Person = { contact: string; role: string; email: string; phone: string };
   const contactOf = new Map<string, Person>();
-  const secondOf = new Map<string, Person>();
+  // Everyone beyond the primary. An advising office lists four people as
+  // often as one, and this used to keep exactly the second and drop the rest.
+  const othersOf = new Map<string, ExtraContact[]>();
   for (const c of contactsRes.data ?? []) {
     const name = c.name || [c.first_name, c.last_name].filter(Boolean).join(" ");
-    if (!name && !c.email && !c.phone) continue;
+    // Role counts. A sweep often finds "Director of Health Professions
+    // Advising" before it finds who holds the post, and dropping the row for
+    // want of a name meant the role was typed in, saved, and never seen
+    // again — which reads as the research not persisting.
+    if (!name && !c.email && !c.phone && !c.role) continue;
     const person: Person = {
       contact: name ?? "",
       role: c.role ?? "",
@@ -305,7 +312,7 @@ export async function GET() {
       phone: formatPhone(c.phone ?? ""),
     };
     if (!contactOf.has(c.outreach_id)) contactOf.set(c.outreach_id, person);
-    else if (!secondOf.has(c.outreach_id)) secondOf.set(c.outreach_id, person);
+    else othersOf.set(c.outreach_id, [...(othersOf.get(c.outreach_id) ?? []), { id: c.id, ...person }]);
   }
 
   // ── tasks, grouped by what they hang off ──────────────────────────
@@ -453,7 +460,7 @@ export async function GET() {
         flaggedOn: research.flagged_on ?? null,
         address: editedAddr || addrFromDirectory,
         addressEdited: Boolean(editedAddr),
-        contact2: secondOf.get(row.id),
+        others: othersOf.get(row.id) ?? [],
         // Position is derived from the work in flight, not stored twice. The
         // lowest open rung leads, so a block reads top down.
         step: closed ? null : tasks.filter((t) => !t.done)[0]?.step ?? 0,
@@ -598,10 +605,14 @@ export async function GET() {
     // row this ever reads is the completed one.
     for (const kind of ["map", "advisor"] as const) {
       const sweep = SWEEPS[kind];
-      const done = (siteTasksByCampus.get(campus.id) ?? []).some(
-        (t) => t.task_type === sweep.taskType && t.status === "completed",
+      const row = (siteTasksByCampus.get(campus.id) ?? []).find(
+        (t) => t.task_type === sweep.taskType,
       );
-      if (done) continue;
+      if (row?.status === "completed") continue;
+      // What has been typed into the sweep so far. It is saved as it is
+      // entered, onto a pending row, so a board reload does not empty it and
+      // somebody can add a few and come back.
+      const found = ((row?.payload as { found?: unknown })?.found ?? []) as unknown[];
       const step = LADDERS[sweep.section].steps.findIndex((r) => r.branch === sweep.branch);
       if (step < 0) continue;
       const id = sweepId(kind, campus.id);
@@ -629,10 +640,11 @@ export async function GET() {
             dueAt: day(new Date().toISOString()),
             done: false,
             outcome: null,
-            note: "",
+            note: (row?.notes as string) ?? "",
             loggedOn: null,
             spawned: [],
             spawnedRecords: [],
+            found: found as BoardTask["found"],
             // The rung renders this as its link. Building it here means the
             // operator does not retype the campus into a search box, and the
             // same search runs at every university.

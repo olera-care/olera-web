@@ -10,6 +10,7 @@ import {
   formatPhone,
   SWEEP_PREFIX,
   attachmentKind,
+  isSaved,
   isCheck,
   isReady,
   longDate,
@@ -17,6 +18,7 @@ import {
   stillToCome,
   taskTitle,
   type BoardRecord,
+  type ExtraContact,
   type BoardTask,
 } from "@/lib/medjobs/task-board";
 
@@ -96,7 +98,7 @@ export default function RecordView({
   onWebsite,
   onRename,
   onAddress,
-  onField2,
+  onOthers,
   onChannelField,
   onOpenTask,
   onCheck,
@@ -121,7 +123,8 @@ export default function RecordView({
   /** Where they are. Directory value unless somebody has corrected it. */
   onAddress: (value: string) => void;
   /** The second person, if the disclosure is open. */
-  onField2: (field: ContactField, value: string) => void;
+  /** Everyone beyond the primary, as the list should now be. */
+  onOthers: (next: ExtraContact[]) => void;
   /** Job board only: one of the channel's own fields changed. */
   onChannelField: (field: ChannelField, value: string) => void;
   onOpenTask: (task: BoardTask) => void;
@@ -266,7 +269,7 @@ export default function RecordView({
           campus={campus}
         />
 
-        <SecondContact record={record} onField2={onField2} onSaveFields={onSaveFields} />
+        <OtherContacts record={record} onOthers={onOthers} onSaveFields={onSaveFields} />
         </>
       )}
 
@@ -322,7 +325,7 @@ export default function RecordView({
 
       {/* Last on the page, under everything the record still has to do. A
           sweep's synthetic id is not a record, so it gets no files band. */}
-      {!record.id.startsWith(SWEEP_PREFIX) && (
+      {isSaved(record.id) && (
         <div className="mt-5 border-t border-gray-100 pt-3">
           <Collateral
             recordId={record.id}
@@ -1025,25 +1028,24 @@ function RecordMenu({
  * cost the normal case any attention. It opens by itself when there is
  * already someone there, so an existing second contact is never hidden.
  */
-function SecondContact({
+function OtherContacts({
   record,
-  onField2,
+  onOthers,
   onSaveFields,
 }: {
   record: BoardRecord;
-  onField2: (field: ContactField, value: string) => void;
+  onOthers: (next: ExtraContact[]) => void;
   onSaveFields: () => void;
 }) {
-  const existing = record.contact2;
-  const filled = Boolean(
-    existing && (existing.contact || existing.role || existing.phone || existing.email),
-  );
-  const [open, setOpen] = useState(filled);
+  const others = record.others ?? [];
+  const [open, setOpen] = useState(others.length > 0);
+
+  const set = (i: number, field: ContactField, value: string) =>
+    onOthers(others.map((o, j) => (j === i ? { ...o, [field]: value } : o)));
 
   if (!open) {
-    // Collapsed, but never silently. If somebody is in there, their name is
-    // on the button, so a second contact is not hidden by a closed panel.
-    const who = existing?.contact?.trim() || existing?.email?.trim();
+    // Collapsed, but never silently: if somebody is in there, they are
+    // counted on the button, so a contact is not hidden by a closed panel.
     return (
       <button
         type="button"
@@ -1051,7 +1053,9 @@ function SecondContact({
         className="mt-2 flex items-center gap-1.5 text-[12.5px] font-medium text-primary-700 hover:text-primary-800 hover:underline"
       >
         <Chevron open={false} />
-        {filled && who ? `Second contact · ${who}` : "Add a contact"}
+        {others.length > 0
+          ? `${others.length} more ${others.length === 1 ? "contact" : "contacts"}`
+          : "Add a contact"}
       </button>
     );
   }
@@ -1064,30 +1068,59 @@ function SecondContact({
         className="mb-1.5 flex w-full items-center gap-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-400 hover:text-gray-600"
       >
         <Chevron open />
-        Second contact
-        <span className="ml-auto text-[11px] font-medium normal-case tracking-normal">
-          Hide
-        </span>
+        Other contacts
+        <span className="ml-auto text-[11px] font-medium normal-case tracking-normal">Hide</span>
       </button>
-      <div className="space-y-1.5">
-        {FIELDS.map((f) => (
-          <label key={f} className="flex items-center gap-2.5">
-            <span className="w-24 shrink-0 text-[12px] text-gray-500">
-              {f === "contact" ? "Name" : LABEL[f]}
+
+      {others.map((o, i) => (
+        <div
+          key={o.id ?? `new-${i}`}
+          className="mb-2 border-b border-gray-200 pb-2 last:mb-0 last:border-b-0 last:pb-0"
+        >
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-[11px] font-medium text-gray-400">
+              {o.contact?.trim() || `Contact ${i + 2}`}
             </span>
-            <input
-              value={existing?.[f] ?? ""}
-              onChange={(e) => onField2(f, e.target.value)}
-              onBlur={() => {
-                if (f === "phone") onField2(f, formatPhone(existing?.phone ?? ""));
+            <button
+              type="button"
+              onClick={() => {
+                onOthers(others.filter((_, j) => j !== i));
                 onSaveFields();
               }}
-              placeholder="—"
-              className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:outline-none"
-            />
-          </label>
-        ))}
-      </div>
+              className="text-[11.5px] text-gray-400 underline hover:text-error-700"
+            >
+              Remove
+            </button>
+          </div>
+          <div className="space-y-1.5">
+            {FIELDS.map((f) => (
+              <label key={f} className="flex items-center gap-2.5">
+                <span className="w-24 shrink-0 text-[12px] text-gray-500">
+                  {f === "contact" ? "Name" : LABEL[f]}
+                </span>
+                <input
+                  value={o[f] ?? ""}
+                  onChange={(e) => set(i, f, e.target.value)}
+                  onBlur={() => {
+                    if (f === "phone") set(i, f, formatPhone(o.phone ?? ""));
+                    onSaveFields();
+                  }}
+                  placeholder="—"
+                  className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 focus:border-primary-600 focus:outline-none"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => onOthers([...others, { contact: "", role: "", phone: "", email: "" }])}
+        className="mt-2 text-[12.5px] font-medium text-primary-700 hover:underline"
+      >
+        + Add another contact
+      </button>
     </div>
   );
 }

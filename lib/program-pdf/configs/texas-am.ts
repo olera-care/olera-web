@@ -21,6 +21,15 @@
  */
 
 export interface ProgramPdfConfig {
+  /**
+   * The line above the headline, and the heading over the benefits.
+   *
+   * Both were hardcoded to the agency wording, which is the whole document
+   * saying "for home care agencies" to an advising office. Optional so the
+   * provider configs that predate the advisor one keep reading as they did.
+   */
+  eyebrow?: string;
+  benefitsHeading?: string;
   /** Stable slug — matches student_outreach_campuses.slug so the
    *  attachment can be looked up by outreach.campus.slug. */
   slug: string;
@@ -124,7 +133,7 @@ export interface ProgramPdfConfig {
   // them to flip every audience-specific label.
   /** Who this config addresses. Drives the registry lookup + filename; the
    *  renderer keys off the header/subtitle fields below. Defaults to "provider". */
-  audience?: "provider" | "student";
+  audience?: "provider" | "student" | "advisor";
   /** Subtitle under the title. Provider default:
    *  "Pre-nursing and pre-medical student staffing pipeline for home care agencies". */
   subtitle?: string;

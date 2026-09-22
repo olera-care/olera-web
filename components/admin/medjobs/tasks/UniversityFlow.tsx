@@ -355,17 +355,19 @@ export default function UniversityFlow({
           // its time only until the page reloaded, and the checkbox that
           // opens the meeting branch never reached the server at all.
           fields: task.fields ?? {},
-          // The names typed into a fan-out rung. These were held in the
-          // page and nowhere else: every office somebody found on the
-          // advisor sweep was lost on the next reload, and none of them
-          // ever became a record.
+          // The list as the page has it, ids and all. Every entry is already
+          // a record; sending it lets the server catch an edit made in the
+          // moment before the button was pressed.
           found: task.found ?? [],
         },
         // Say so. Finishing a task was the one write that confirmed
         // nothing, which is a strange thing for the action somebody
         // performs sixty times in a sitting and has to trust every time.
         "Saved",
-        { keepBoard: true },
+        // A fan-out refetches. Its records exist already — each was created
+        // when it was added — but finishing the sweep takes the sweep's own
+        // row off the board, and that is the server's to decide.
+        { keepBoard: action.outcome !== "fanout" },
       ).then(({ ok, data }) => {
         if (!ok || !data?.live) return;
         // The server has just told us the channel activated. The dot reads
@@ -451,7 +453,7 @@ export default function UniversityFlow({
         website: record.websiteEdited ? record.website : undefined,
         name: record.name,
         address: record.addressEdited ? record.address : undefined,
-        second: record.contact2,
+        others: record.others,
       },
       "Saved",
     );
@@ -526,9 +528,24 @@ export default function UniversityFlow({
             record[f] = v;
             force((n) => n + 1);
           }}
+          saving={busy}
           onFound={(next) => {
             task.found = next;
             force((n) => n + 1);
+            // Each addition becomes a record on the spot, so the board is
+            // refetched rather than kept: the office somebody just added has
+            // to appear in the list above the sweep, or the only evidence
+            // the work landed is a row on the sweep's own screen — which is
+            // exactly what made a morning of research look lost.
+            //
+            // The refetch is safe here in a way it is not elsewhere on this
+            // screen. A sweep's id is derived from the campus and its task's
+            // from that, so the drawer reopens on the same screen, and the
+            // list it comes back with is the server's rather than ours.
+            void send(
+              { op: "save_sweep_found", recordId: record.id, found: next, note: task.note },
+              "",
+            );
           }}
           onFieldValue={(key, value) => {
             task.fields = { ...(task.fields ?? {}), [key]: value };
@@ -589,15 +606,8 @@ export default function UniversityFlow({
             record[f] = v;
             force((n) => n + 1);
           }}
-          onField2={(f, v) => {
-            record.contact2 = {
-              contact: "",
-              role: "",
-              phone: "",
-              email: "",
-              ...(record.contact2 ?? {}),
-              [f]: v,
-            };
+          onOthers={(next) => {
+            record.others = next;
             force((n) => n + 1);
           }}
           onSaveFields={saveFields}

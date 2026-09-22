@@ -159,7 +159,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
     const channelIndex = (previousIndex + step) % channels.length;
     const channel = channels[channelIndex];
     lastIndex = channelIndex;
-    const outcome = await backfillSlackChannel(db, token, channel, oldest);
+    const outcome = await backfillSlackChannel(db, token, channel, oldest, deadline);
     results.push({ channel: channel.label, ...outcome });
     imported += outcome.imported ?? 0;
   }
@@ -184,52 +184,112 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
 }
 
 /** One channel's bounded page. Never throws: a channel the bot cannot read must not stop the rest. */
+async function slackApi<T>(token: string, method: string, body: Record<string, unknown>): Promise<T> {
+  const response = await fetch(`https://slack.com/api/${method}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(20_000),
+  });
+  const payload = await response.json() as { ok?: boolean; error?: string } & T;
+  if (!response.ok || !payload.ok) throw new Error(payload.error || `Slack HTTP ${response.status}`);
+  return payload;
+}
+
+/**
+ * One message, ingested.
+ *
+ * `thread_ts` alone does not mean "this is a reply". Slack sets it on the
+ * thread's parent too, where it equals the message's own `ts`. The previous
+ * version keyed the label off its presence, so every thread parent was filed as
+ * a reply -- 38 of them in the first real ingestion, and not one genuine reply
+ * among them.
+ */
+function slackItem(channel: SlackChannelConfig, message: SlackMessage): SourceItemInput {
+  const occurredAt = new Date(Number(message.ts) * 1_000).toISOString();
+  const isReply = Boolean(message.thread_ts) && message.thread_ts !== message.ts;
+  return {
+    source: "slack",
+    external_id: `${channel.id}:${message.ts}`,
+    source_group: channel.label,
+    source_kind: isReply ? "thread_reply" : "channel_message",
+    title: `#${channel.label} conversation`,
+    content: message.text || "",
+    source_url: slackMessageUrl(channel.id, message.ts || ""),
+    occurred_at: occurredAt,
+    last_edited_at: null,
+    freshness: freshness(occurredAt),
+    trust: "context",
+    metadata: {
+      channel_id: channel.id,
+      user_id: message.user ?? null,
+      thread_ts: message.thread_ts ?? null,
+      reply_count: message.reply_count ?? 0,
+      reactions: message.reactions ?? [],
+    },
+  };
+}
+
+/**
+ * How many threads to open per channel, and how deep.
+ *
+ * `conversations.history` returns only top-level messages. Replies live behind
+ * `conversations.replies`, one call per thread, and nothing was making those
+ * calls -- so every threaded conversation in the workspace was invisible.
+ *
+ * That is not a minor omission here. The #aging-in-america channel returned a
+ * single stored item, Chantel's opening message, while the eighteen replies
+ * underneath it carried the entire substance: which cloud service, how large
+ * the footage is, how long an upload takes, and the answer to a question the
+ * founder had asked Cortex and been told did not exist.
+ */
+const THREADS_PER_CHANNEL = 6;
+const REPLIES_PER_THREAD = 30;
+
 async function backfillSlackChannel(
   db: SupabaseClient,
   token: string,
   channel: SlackChannelConfig,
   oldest: string,
+  deadline: number,
 ): Promise<{ imported?: number; error?: string }> {
   try {
     // Slack's custom-app history limit is intentionally respected here: one
     // allowlisted channel, one bounded page, per discovery run. Fresh messages
     // arrive through the Events API endpoint instead of repeated polling.
-    const response = await fetch("https://slack.com/api/conversations.history", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-      body: JSON.stringify({ channel: channel.id, oldest, limit: 15 }),
-      signal: AbortSignal.timeout(20_000),
+    const payload = await slackApi<{ messages?: SlackMessage[] }>(token, "conversations.history", {
+      channel: channel.id, oldest, limit: 15,
     });
-    const payload = await response.json() as { ok?: boolean; error?: string; messages?: SlackMessage[] };
-    if (!response.ok || !payload.ok) throw new Error(payload.error || `Slack HTTP ${response.status}`);
-    const items = (payload.messages ?? [])
-      .filter((message) => message.ts && message.text?.trim() && !message.bot_id && !message.subtype)
-      .map((message): SourceItemInput => {
-        const occurredAt = new Date(Number(message.ts) * 1_000).toISOString();
-        return {
-          source: "slack",
-          external_id: `${channel.id}:${message.ts}`,
-          source_group: channel.label,
-          source_kind: message.thread_ts ? "thread_reply" : "channel_message",
-          title: `#${channel.label} conversation`,
-          content: message.text || "",
-          source_url: slackMessageUrl(channel.id, message.ts || ""),
-          occurred_at: occurredAt,
-          last_edited_at: null,
-          freshness: freshness(occurredAt),
-          trust: "context",
-          metadata: {
-            channel_id: channel.id,
-            user_id: message.user ?? null,
-            thread_ts: message.thread_ts ?? null,
-            reply_count: message.reply_count ?? 0,
-            reactions: message.reactions ?? [],
-          },
-        };
-      });
+    const usable = (message: SlackMessage) =>
+      Boolean(message.ts && message.text?.trim() && !message.bot_id && !message.subtype);
+    const top = (payload.messages ?? []).filter(usable);
+    const items = top.map((message) => slackItem(channel, message));
+
+    // Open the busiest threads, newest first. A thread with more replies is
+    // where a decision got made; a thread with one is usually an acknowledgement.
+    const threads = top
+      .filter((message) => (message.reply_count ?? 0) > 0)
+      .sort((a, b) => (b.reply_count ?? 0) - (a.reply_count ?? 0))
+      .slice(0, THREADS_PER_CHANNEL);
+
+    for (const parent of threads) {
+      if (Date.now() >= deadline) break;
+      try {
+        const thread = await slackApi<{ messages?: SlackMessage[] }>(token, "conversations.replies", {
+          channel: channel.id, ts: parent.ts, limit: REPLIES_PER_THREAD,
+        });
+        // The first element is the parent again, and it is already in `items`;
+        // upsert keys on external_id so a duplicate would be harmless, but
+        // skipping it keeps the imported count honest.
+        for (const reply of (thread.messages ?? []).filter(usable)) {
+          if (reply.ts === parent.ts) continue;
+          items.push(slackItem(channel, reply));
+        }
+      } catch {
+        // One unreadable thread must not cost the rest of the channel.
+      }
+    }
+
     return { imported: await upsertSourceItems(db, items) };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };

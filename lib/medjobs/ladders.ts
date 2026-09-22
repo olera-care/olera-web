@@ -364,9 +364,6 @@ export interface Ladder {
   steps: LadderRung[];
 }
 
-/** The season the current checkpoint belongs to. */
-export const SEASON = "late July";
-
 /**
  * Book a call to help, from anywhere.
  *
@@ -754,7 +751,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
       {
         name: "research",
         check: true,
-        title: "Research",
+        title: "Research the provider",
         what: "Check what we hold against the provider's own website, before anyone calls.",
         why: "Every wrong number caught here is a call nobody has to waste later.",
         steps: [
@@ -944,7 +941,7 @@ Dr. Logan DuBose's office · Olera`,
       {
         name: "seasonal-check-late-july",
         seasonal: true,
-        title: `Seasonal check — ${SEASON}`,
+        title: "Seasonal check",
         what: "Meet the provider to review the season.",
         why: "We need feedback on the students and to know if they want more next term.",
         steps: ["Book a short call.", "Ask how the students did.", "Ask if they want more next season."],
@@ -1018,7 +1015,7 @@ Dr. Logan DuBose's office · Olera`,
         // place a rung can be added without renumbering the task rows
         // already written against every step before it.
         branch: "mapsweep",
-        title: "Sweep Google Maps for missing agencies",
+        title: "Find more local providers",
         what: "Search the map pack around campus and add the home care agencies the directory never had.",
         why: "The directory can only give us agencies it has heard of. The map pack has ones it has not, and those stay invisible until somebody looks.",
         steps: [
@@ -1160,7 +1157,7 @@ Dr. Logan DuBose's office · Olera`,
       {
         name: "research",
         check: true,
-        title: "Research",
+        title: "Research university job boards",
         // No {university} token: the help panel shows a rung as written, and
         // only the email copy is filled from the record. A token here reached
         // the screen as a token.
@@ -1233,7 +1230,7 @@ Dr. Logan DuBose's office · Olera`,
       {
         seasonal: true,
         name: "seasonal",
-        title: `Confirm the listing is still live — ${SEASON}`,
+        title: "Seasonal check",
         what: "The seasonal look at the posting.",
         why: "Postings expire silently.",
         steps: ["Open the listing link.", "Confirm a student could still apply."],
@@ -1356,7 +1353,7 @@ Dr. Logan DuBose's office · Olera`,
         // Named, because a goal that recurs has to say which rung comes
         // back and `goto` addresses a rung by name.
         name: "recirculate",
-        title: `Recirculate the flyer — ${SEASON}`,
+        title: "Seasonal check",
         what: "Ask the office to send the flyer out again.",
         why: "A flyer sent last term isn't reaching this term's students.",
         steps: ["Email the office with the current flyer.", "Confirm it went out."],
@@ -1508,7 +1505,7 @@ Dr. Logan DuBose's office · Olera`,
       {
         name: "recirculate-with-the-org-late-july",
         seasonal: true,
-        title: `Recirculate with the org — ${SEASON}`,
+        title: "Seasonal check",
         what: "Reach the org again for the new term.",
         why: "Presidents and officers change every year.",
         steps: ["Check the contact is still there.", "Ask for the flyer to go out again."],
@@ -1611,7 +1608,7 @@ Dr. Logan DuBose's office · Olera`,
       {
         name: "what-s-coming-this-term-late-july",
         seasonal: true,
-        title: `What's coming this term — ${SEASON}`,
+        title: "Seasonal check",
         what: "Look ahead at the term's events.",
         why: "Registration closes weeks before the event.",
         steps: ["Check the calendar.", "Add anything worth attending."],
@@ -1700,7 +1697,7 @@ Dr. Logan DuBose's office · Olera`,
       {
         name: "message-professors-again-late-july",
         seasonal: true,
-        title: `Message professors again — ${SEASON}`,
+        title: "Seasonal check",
         what: "The one message this season.",
         why: "A new term means new students on the roster.",
         steps: ["Send the seasonal email.", "Log it."],

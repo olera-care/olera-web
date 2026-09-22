@@ -1317,13 +1317,26 @@ Dr. Logan DuBose's office · Olera`,
         steps: ["Pick the outcome.", "Write a line about it."],
         textarea: "How it went",
         actions: [
-          { label: "Held", outcome: "goal", delay: 0 },
+          {
+            // An advisor is never finished with. The meeting is the goal and
+            // the record says so, but a `goal` carrying a delay also queues
+            // the rung it names — so the relationship comes back round each
+            // term instead of going quiet the moment it is working.
+            label: "Held",
+            outcome: "goal",
+            goto: "recirculate",
+            delay: 90,
+            hint: "Marks them as a partner, and brings them back next term to circulate again.",
+          },
           { label: "No-show", outcome: "reschedule", delay: 0 },
           { label: "Needs reschedule", outcome: "reschedule", delay: 0 },
         ],
       },
       {
         seasonal: true,
+        // Named, because a goal that recurs has to say which rung comes
+        // back and `goto` addresses a rung by name.
+        name: "recirculate",
         title: `Recirculate the flyer — ${SEASON}`,
         what: "Ask the office to send the flyer out again.",
         why: "A flyer sent last term isn't reaching this term's students.",
@@ -1342,7 +1355,68 @@ Thank you,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Logged", outcome: "goal", delay: 0, ticks: ["flyer_sent"] }],
+        actions: [
+          {
+            label: "Logged",
+            outcome: "goal",
+            goto: "recirculate",
+            delay: 90,
+            ticks: ["flyer_sent"],
+            hint: "Circulated again. Comes back next term.",
+          },
+        ],
+      },
+      {
+        // A branch at the end of the ladder, and the only rung here that
+        // belongs to the university rather than to an office — the same
+        // shape as the providers' map sweep, and for the same reason: the
+        // end is the only place a rung can be added without renumbering the
+        // task rows already written against every step before it.
+        //
+        // It is also what makes this ladder start at all. Every other rung
+        // here acts on an advisor record, and until this ran there was no
+        // way for one to exist.
+        branch: "advisorsweep",
+        title: "Find the people who can reach students",
+        what: "Search the university for the staff who can put this programme in front of pre-health students, and add each one.",
+        why: "Nobody at a university is going to find us. Every advisor record on this board starts here.",
+        steps: [
+          "Open the university site search, below.",
+          "Work through the list of places to look in the note.",
+          "For each one that passes the test, add the office by name.",
+          "Put the person's job title in when you add them — the title is what the next person reads.",
+        ],
+        script: `Search the university site for each of these:
+
+  pre-health advising · pre-med advising · health professions
+  nursing student services · career center · career services
+  student success · college of arts and sciences advising
+
+Add an office when all three are true:
+
+  1. Somebody employed by the university works there. Not a student club — those are the Student orgs section.
+  2. They talk to pre-health or pre-nursing students as part of the job. An advisor, a career centre manager, a programme director, a dean, a department administrator all count.
+  3. There is a way to reach them — an email address, a contact form, or a phone number.
+
+Add the office, not the building. "Pre-Health Advising Office" is a record; "Student Services" on its own is not.
+
+If two names turn out to be the same office, add it once. If you are not sure whether somebody counts, add them and say why in the note — a wrong advisor costs one email, and a missed one costs a term.`,
+        scriptLabel: "where to look, and what counts",
+        textarea: "Anything worth saying about the sweep",
+        // Built by the board from the campus, so the same search runs at
+        // every university and nobody retypes it.
+        link: { key: "advisor_search_url", label: "Search the university site" },
+        // Once per university, so there is nothing to defer to.
+        defer: false,
+        fanout: ["Pre-Health Advising Office", "Career Center", "Nursing Student Services"],
+        actions: [
+          {
+            label: "Done — start outreach",
+            outcome: "fanout",
+            delay: 0,
+            hint: "Each one you added becomes its own record and starts its own outreach. Zero is an answer too.",
+          },
+        ],
       },
     ],
   },

@@ -3,7 +3,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   SKIPPED,
-  SWEEP_PREFIX,
+  SWEEPS,
+  parseSweepId,
   carryFrom,
   dueFor,
   dueIn,
@@ -53,6 +54,8 @@ type Body =
       note?: string;
       /** Typed values the outcome asked for — a link, a date, a choice. */
       fields?: Record<string, string>;
+      /** Names typed into a fan-out rung. Each becomes its own record. */
+      found?: string[];
     }
   | { op: "defer_record_task"; recordId: string; step: number; round: number; days: number }
   | {
@@ -118,6 +121,55 @@ const stamp = (userId: string) => ({
   last_edited_by: userId,
   last_edited_at: new Date().toISOString(),
 });
+
+/**
+ * A stakeholder record, created by a sweep or a fan-out.
+ *
+ * Starts at rung 1, not rung 0: rung 0 on these ladders is the research that
+ * found it, and handing somebody a research task for a record they have just
+ * researched is asking them to do it twice.
+ *
+ * `kind` and `stakeholder_type` both say advisor, and
+ * provider_business_profile_id stays null — the partial constraint from
+ * migration 072 requires exactly that of anything that is not a provider.
+ */
+async function createStakeholder(
+  db: ReturnType<typeof getServiceClient>,
+  campusId: string,
+  name: string,
+  userId: string,
+): Promise<{ id?: string; error?: string }> {
+  const { data, error } = await db
+    .from("student_outreach")
+    .insert({
+      campus_id: campusId,
+      kind: "advisor",
+      stakeholder_type: "advisor",
+      organization_name: name.slice(0, 200),
+      status: "researched",
+      cadence_day: 0,
+      research_data: {
+        found_by: "advisor_sweep",
+        added_by: userId,
+        added_at: new Date().toISOString(),
+      },
+      ...stamp(userId),
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { error: error?.message ?? "Could not create the record" };
+
+  const { error: taskError } = await db.from("student_outreach_tasks").insert({
+    outreach_id: data.id,
+    task_type: taskTypeFor("advisors", 1),
+    status: "pending",
+    due_at: new Date().toISOString().slice(0, 10),
+    payload: { step: 1, round: LADDERS.advisors.steps[1]?.rounds ? 1 : 0 },
+  });
+  if (taskError) return { error: taskError.message };
+
+  return { id: data.id };
+}
 
 export async function POST(req: Request) {
   const user = await getAuthUser();
@@ -233,11 +285,12 @@ export async function POST(req: Request) {
   //
   // The sweep goes first because its id is synthetic — there is nothing to
   // look up, and every other lookup would miss it and cost a round trip.
-  if (body.recordId.startsWith(SWEEP_PREFIX)) {
-    const campusId = body.recordId.slice(SWEEP_PREFIX.length);
+  const sweep = parseSweepId(body.recordId);
+  if (sweep) {
+    const { taskType, section } = SWEEPS[sweep.kind];
     if (body.op !== "complete_record_task") {
       return NextResponse.json(
-        { error: "The sweep can only be logged, not deferred or reopened." },
+        { error: "A sweep can only be logged, not deferred or reopened." },
         { status: 400 },
       );
     }
@@ -245,28 +298,60 @@ export async function POST(req: Request) {
       body.fields && typeof body.fields === "object"
         ? (body.fields as Record<string, string>)
         : {};
-    // Upsert, not insert. The unique index makes a second row impossible, so
-    // without this a double click returns an error rather than a no-op — and
-    // to the operator a double click is one click that did not seem to work.
-    const { error } = await db
-      .from("site_tasks")
-      .upsert(
-        {
-          campus_id: campusId,
-          task_type: "provider_map_sweep",
-          channel: null,
-          due_at: new Date().toISOString(),
-          status: "completed",
-          completed_at: new Date().toISOString(),
-          completed_by: user.id,
-          created_by: user.id,
-          payload: { added: Number(fields.added ?? 0) },
-          notes: (body.note ?? "").trim() || null,
-        },
-        { onConflict: "campus_id", ignoreDuplicates: true },
+
+    // The advisor sweep's whole output is the offices it found, so they are
+    // created before the sweep is marked done. The other order would let a
+    // failure halfway leave a campus with its sweep closed and nothing to
+    // show for it, and the sweep cannot be reopened.
+    const found: string[] = Array.isArray(body.found)
+      ? [...new Set(body.found.map((n) => String(n).trim()).filter(Boolean))].slice(0, 50)
+      : [];
+    let made = 0;
+    if (sweep.kind === "advisor" && found.length > 0) {
+      const { data: existing } = await db
+        .from("student_outreach")
+        .select("organization_name")
+        .eq("campus_id", sweep.campusId)
+        .eq("kind", "advisor");
+      const already = new Set(
+        (existing ?? []).map((r) => (r.organization_name ?? "").trim().toLowerCase()),
       );
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ ok: true, swept: campusId });
+      for (const name of found) {
+        if (already.has(name.toLowerCase())) continue;
+        const created = await createStakeholder(db, sweep.campusId, name, user.id);
+        if (created.error) {
+          return NextResponse.json({ error: created.error }, { status: 500 });
+        }
+        already.add(name.toLowerCase());
+        made += 1;
+      }
+    }
+
+    // A plain insert, not an upsert. The unique index behind each sweep is
+    // partial, and a partial index cannot satisfy ON CONFLICT (campus_id) —
+    // Postgres answers "no unique or exclusion constraint matching the ON
+    // CONFLICT specification", which is a 500 to whoever pressed the button.
+    // So: insert, and treat the unique violation a double click causes as
+    // what it is, which is the row already being there.
+    const { error } = await db.from("site_tasks").insert({
+      campus_id: sweep.campusId,
+      task_type: taskType,
+      channel: null,
+      due_at: new Date().toISOString(),
+      status: "completed",
+      completed_at: new Date().toISOString(),
+      completed_by: user.id,
+      created_by: user.id,
+      payload:
+        sweep.kind === "advisor"
+          ? { found, added: made }
+          : { added: Number(fields.added ?? 0) },
+      notes: (body.note ?? "").trim() || null,
+    });
+    if (error && error.code !== "23505") {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, swept: sweep.campusId, section, added: made });
   }
 
   if (!outreach) {

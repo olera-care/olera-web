@@ -29,6 +29,43 @@ export const SKIPPED = "Not needed — they said yes first";
  */
 export const SWEEP_PREFIX = "sweep:";
 
+/**
+ * The sweeps: one-off jobs that belong to a campus rather than to any record.
+ *
+ * Both are derived, not seeded. A campus with no completed row for a sweep
+ * has it to do, which means a campus created tomorrow gets both with no
+ * backfill and nothing to remember in the campus-creation path.
+ */
+export type SweepKind = "map" | "advisor";
+
+export const SWEEPS: Record<
+  SweepKind,
+  { taskType: string; section: SectionKey; branch: string }
+> = {
+  map: { taskType: "provider_map_sweep", section: "providers", branch: "mapsweep" },
+  advisor: { taskType: "advisor_sweep", section: "advisors", branch: "advisorsweep" },
+};
+
+export const sweepId = (kind: SweepKind, campusId: string) =>
+  `${SWEEP_PREFIX}${kind}:${campusId}`;
+
+/**
+ * Reads a synthetic sweep id back apart.
+ *
+ * Ids written before there were two sweeps carried no kind — `sweep:<uuid>`
+ * — and a board rendered by an older tab can still send one. Those are the
+ * map sweep, which is what they were.
+ */
+export function parseSweepId(id: string): { kind: SweepKind; campusId: string } | null {
+  if (!id.startsWith(SWEEP_PREFIX)) return null;
+  const rest = id.slice(SWEEP_PREFIX.length);
+  const cut = rest.indexOf(":");
+  if (cut < 0) return { kind: "map", campusId: rest };
+  const kind = rest.slice(0, cut);
+  if (kind !== "map" && kind !== "advisor") return { kind: "map", campusId: rest };
+  return { kind, campusId: rest.slice(cut + 1) };
+}
+
 export interface BoardTask {
   id: string;
   section: SectionKey;
@@ -593,6 +630,13 @@ export function complete(
       case "repeat":
         queue(task.step, task.round);
         break;
+      case "fanout":
+        // A sweep is finished by the records it produced, not by anything
+        // that happens to the sweep itself. It leaves the board here; the
+        // offices it found arrive on the next read, because only the server
+        // knows what they were given as ids.
+        stop(ladder.goal);
+        break;
       case "goal": {
         // A goal that recurs — monthly hours, or the seasonal check a
         // finished channel earns. `goto` names which rung comes back; with
@@ -796,6 +840,10 @@ export function resolveNext(
 
   const rung = rungAt(section, step, round);
   switch (action.outcome) {
+    // A fan-out leads nowhere on its own ladder: what it produces is other
+    // records, each starting their own. The sweep that ran it is done.
+    case "fanout":
+      return null;
     case "repeat":
     // A no-show is the same rung again, from the record's point of view.
     // It was missing here, so the server closed the meeting task and

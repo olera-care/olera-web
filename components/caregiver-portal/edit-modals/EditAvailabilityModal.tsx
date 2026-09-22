@@ -78,8 +78,9 @@ export default function EditAvailabilityModal({
     setYearRoundAvailability((prev) => {
       // If clearing the selection, remove the entry entirely
       if (!status) {
-        const { [season]: _, ...rest } = prev;
-        return rest;
+        return Object.fromEntries(
+          Object.entries(prev).filter(([key]) => key !== season)
+        ) as typeof prev;
       }
       return {
         ...prev,

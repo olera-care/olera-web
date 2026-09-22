@@ -38,6 +38,14 @@ import {
  * Auth: admin only.
  */
 
+/**
+ * POST now makes one model call before it answers, so the default ceiling is
+ * too close to the worst case. A function killed mid-flight would return a
+ * failure for a touch that has ALREADY been inserted, and the obvious response
+ * to "Could not save that" is to press Log again, which writes it twice.
+ */
+export const maxDuration = 30;
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -221,7 +229,11 @@ export async function POST(request: NextRequest) {
   // is awaited here only because Vercel kills pending promises once a response
   // is returned, and `extractHeard` swallows everything and returns null.
   let heard = null;
-  const noteForExtract = [summary, clean(body.detail)].filter(Boolean).join("\n");
+  // `detail` already CONTAINS `summary` — the client stores the first 240
+  // characters as the summary and the whole thing as the detail once it is
+  // longer than that. Concatenating them fed the model the opening twice and
+  // put a duplicated passage in the verbatim haystack.
+  const noteForExtract = clean(body.detail) ?? summary;
   const fresh = await extractHeard(noteForExtract, {
     channel,
     reached: typeof body.reached === "boolean" ? body.reached : null,

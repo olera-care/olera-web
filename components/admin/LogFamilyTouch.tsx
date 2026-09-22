@@ -253,10 +253,14 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
  * a receipt back into a form.
  */
 function HeardStrip({ heard, onDismiss }: { heard: Heard; onDismiss: () => void }) {
-  const got = HEARD_FIELDS.filter((f) => heard.fields[f]);
-  const missing = HEARD_FIELDS.filter((f) => !heard.fields[f]);
+  // Same defence as mergeHeard: a stored shape missing either key must degrade
+  // to fewer chips, never to a blank page from a render throw.
+  const fields = heard.fields ?? {};
+  const alsoNoted = heard.also_noted ?? [];
+  const got = HEARD_FIELDS.filter((f) => fields[f]);
+  const missing = HEARD_FIELDS.filter((f) => !fields[f]);
   const shownMissing = missing.slice(0, 3);
-  const unsure = got.filter((f) => heard.fields[f]?.sure === false).length;
+  const unsure = got.filter((f) => fields[f]?.sure === false).length;
 
   return (
     <div className="mt-3 border-t border-dashed border-gray-200 pt-3">
@@ -273,7 +277,7 @@ function HeardStrip({ heard, onDismiss }: { heard: Heard; onDismiss: () => void 
 
       <div className="mt-2 flex flex-wrap gap-1.5">
         {got.map((f) => {
-          const v = heard.fields[f]!;
+          const v = fields[f]!;
           return (
             <span
               key={f}
@@ -305,10 +309,10 @@ function HeardStrip({ heard, onDismiss }: { heard: Heard; onDismiss: () => void 
         ))}
       </div>
 
-      {heard.also_noted.length > 0 && (
+      {alsoNoted.length > 0 && (
         <p className="mt-2 border-l-2 border-teal-600 pl-2.5 text-[12.5px] leading-relaxed text-gray-600">
           Also noted, in your words:{" "}
-          {heard.also_noted.map((q, i) => (
+          {alsoNoted.map((q, i) => (
             <span key={i}>
               {i > 0 && " · "}
               <span className="bg-teal-50 px-0.5">&ldquo;{q}&rdquo;</span>

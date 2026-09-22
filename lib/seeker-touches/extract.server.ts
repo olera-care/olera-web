@@ -41,8 +41,13 @@ import { HEARD_FIELDS, type Heard, type HeardField, type HeardValue } from "./ty
 
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 700;
-/** One short call on a user-facing POST; the log must never feel slow. */
-const TIMEOUT_MS = 12_000;
+/**
+ * One short call on a user-facing POST, and the person is watching a button.
+ * Haiku answers a note this size in two to four seconds, so this is headroom
+ * rather than a budget: past it the read is worth less than the wait, and
+ * giving up costs nothing because the touch is already saved.
+ */
+const TIMEOUT_MS = 6_000;
 
 const SYSTEM = `You read a note an Olera staff member wrote after speaking with a family about senior care, and pull out the details a care provider would need before saying yes or no to the case.
 
@@ -179,7 +184,12 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
     fields[key] = next;
   }
 
-  const also_noted = Array.from(new Set([...fresh.also_noted, ...existing.also_noted])).slice(0, 4);
+  // Defensive against a stored shape that predates or postdates this one:
+  // spreading an undefined throws, and the throw is swallowed upstream, which
+  // would silently kill the feature for that one family and nowhere else.
+  const also_noted = Array.from(
+    new Set([...(fresh.also_noted ?? []), ...(existing.also_noted ?? [])]),
+  ).slice(0, 4);
   return {
     fields,
     also_noted,

@@ -13,13 +13,14 @@ import { TEXAS_AM } from "./texas-am";
 import { TEXAS_AM_STUDENT } from "./texas-am-student";
 import { GENERIC_STUDENT } from "./generic-student";
 import { GENERIC_PROVIDER } from "./generic-provider";
+import { GENERIC_ADVISOR } from "./generic-advisor";
 import type { ProgramPdfConfig } from "./texas-am";
 
 export type { ProgramPdfConfig };
 
 /** Audience for a program PDF. Provider = agency brochure; student = the flyer
  *  partners share with pre-health students. */
-export type PdfAudience = "provider" | "student";
+export type PdfAudience = "provider" | "student" | "advisor";
 
 /** The campus-agnostic floor config per audience. Every campus resolves to one
  *  of these when it has no campus-specific config, so outreach is never blocked
@@ -29,6 +30,13 @@ export const GENERIC_SLUG = "generic";
 export const PROGRAM_PDF_CONFIGS: Record<string, ProgramPdfConfig> = {
   [TEXAS_AM.slug]: TEXAS_AM,
   [GENERIC_PROVIDER.slug]: GENERIC_PROVIDER,
+};
+
+/** The advising-office flyer. An office is not buying anything and is not the
+ *  employer, so this is the student's opportunity described to the person who
+ *  can put it in front of them. */
+export const PROGRAM_PDF_CONFIGS_ADVISOR: Record<string, ProgramPdfConfig> = {
+  [GENERIC_ADVISOR.slug]: GENERIC_ADVISOR,
 };
 
 export const PROGRAM_PDF_CONFIGS_STUDENT: Record<string, ProgramPdfConfig> = {
@@ -43,7 +51,12 @@ export function getProgramPdfConfig(
   audience: PdfAudience = "provider",
 ): ProgramPdfConfig | null {
   if (!slug) return null;
-  const map = audience === "student" ? PROGRAM_PDF_CONFIGS_STUDENT : PROGRAM_PDF_CONFIGS;
+  const map =
+    audience === "student"
+      ? PROGRAM_PDF_CONFIGS_STUDENT
+      : audience === "advisor"
+        ? PROGRAM_PDF_CONFIGS_ADVISOR
+        : PROGRAM_PDF_CONFIGS;
   return map[slug] ?? null;
 }
 

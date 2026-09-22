@@ -74,7 +74,29 @@ export function parseSweepId(id: string): { kind: SweepKind; campusId: string } 
  * while looking at its website should not be given a smaller set of boxes
  * than the record will have, and then be asked for the rest later.
  */
+/**
+ * Somebody at a record besides the primary contact.
+ *
+ * An advising office lists four people as often as one, and the record used
+ * to hold two: the primary and a single "second contact". `id` is the row in
+ * student_outreach_contacts, absent on one typed and not yet saved.
+ */
+export interface ExtraContact {
+  id?: string;
+  contact: string;
+  role: string;
+  phone: string;
+  email: string;
+}
+
 export interface FoundRecord {
+  /**
+   * The record this entry became. Written by the server the moment the entry
+   * is added, and the reason a sweep's list is a receipt rather than a
+   * holding pen — with an id, Edit reaches the record instead of only the
+   * row on screen.
+   */
+  id?: string;
   name: string;
   contact?: string;
   role?: string;
@@ -82,6 +104,8 @@ export interface FoundRecord {
   email?: string;
   website?: string;
   address?: string;
+  /** Everyone else listed on the page, beyond the one above. */
+  others?: ExtraContact[];
 }
 
 export interface BoardTask {
@@ -169,7 +193,7 @@ export interface BoardRecord {
    * disclosure in the UI: one contact is the normal case and two should not
    * cost the normal case any attention.
    */
-  contact2?: { contact: string; role: string; phone: string; email: string };
+  others?: ExtraContact[];
   /**
    * Job board only. A channel is not a person, so none of the fields above
    * describe it: what it has is a way in and, once there is one, a listing.
@@ -452,7 +476,19 @@ export function nextReady(
 // ── changing things ──────────────────────────────────────────────────
 
 let seq = 0;
-const newId = (): string => `local-${Date.now().toString(36)}-${(seq += 1).toString(36)}`;
+/**
+ * The prefix on an id the page invented.
+ *
+ * A fan-out draws its new records immediately, before the server has given
+ * them real ids, so anything keyed on the id has to wait for the next read.
+ */
+export const LOCAL_PREFIX = "local-";
+
+/** True when this record exists only in the page, with no row behind it. */
+export const isSaved = (id: string): boolean =>
+  !id.startsWith(LOCAL_PREFIX) && !id.startsWith(SWEEP_PREFIX);
+
+const newId = (): string => `${LOCAL_PREFIX}${Date.now().toString(36)}-${(seq += 1).toString(36)}`;
 
 function makeTask(section: SectionKey, step: number, round: number, dueAt: string): BoardTask {
   return {
@@ -681,23 +717,20 @@ export function complete(
         break;
       }
       case "fanout": {
-        // Rung 1, not task.step + 1. This was written when the fan-out was
-        // rung 0 and the next rung was genuinely the one after it; the sweep
-        // that replaced it is a branch at the end of the ladder, where
-        // step + 1 is off the end. Rung 1 is where a found record starts on
-        // every one of these ladders — rung 0 is the research that found it
-        // — and it is the same step the server queues.
-        const after = 1;
-        const startRound = ladder.steps[after]?.rounds ? 1 : 0;
-        // What the operator typed, not the examples on the rung. A sweep
-        // that found nothing should create nothing.
-        const names = (task.found ?? []).map((f) => f.name.trim()).filter(Boolean);
-        const born = names.map((name) => {
-          const r = makeRecord(record.section, name, after, startRound, 0);
-          (u.records[record.section] ??= []).push(r);
-          task.spawnedRecords.push(r.id);
-          return r;
-        });
+        // Nothing is born here any more. Every entry on a sweep's list became
+        // a record the moment it was added, so the records this would invent
+        // are already on the board with the ids the server gave them — and
+        // inventing them again produced a second copy carrying a placeholder
+        // id, which every later write rejected as not a uuid.
+        //
+        // Finishing a sweep now only closes the sweep and lands on the first
+        // thing it produced.
+        const made = task.found ?? [];
+        const here = u.records[record.section] ?? [];
+        const born = made
+          .map((f) => here.find((r) => (f.id ? r.id === f.id : r.name === f.name.trim())))
+          .filter((r): r is BoardRecord => Boolean(r));
+        for (const r of born) task.spawnedRecords.push(r.id);
         record.state = "done";
         record.step = null;
         if (born.length) landRecord = born[0];

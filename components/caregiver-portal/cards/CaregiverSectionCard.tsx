@@ -28,8 +28,8 @@ export default function CaregiverSectionCard({
       className="bg-white rounded-2xl border border-gray-200/80 p-6"
     >
       {/* Header row */}
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="text-[24px] font-display font-bold text-gray-900 truncate min-w-0">{title}</h3>
+      <div className="flex items-start justify-between gap-3 mb-5">
+        <h3 className="text-xl sm:text-[24px] font-display font-bold text-gray-900">{title}</h3>
         <div className="flex items-center gap-2.5 shrink-0">
           {/* Edit button */}
           {onEdit && (

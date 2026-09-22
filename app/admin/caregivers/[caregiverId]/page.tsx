@@ -636,23 +636,26 @@ export default function AdminStudentDetailPage() {
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-500 mb-3">Weekly Schedule</p>
             {meta.availability_schedule && Object.keys(meta.availability_schedule).length > 0 ? (
-              <div className="grid grid-cols-7 gap-1 text-xs">
-                {(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const).map((day) => {
+              <div className="divide-y divide-gray-100">
+                {(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const).map((day) => {
                   const slots = meta.availability_schedule?.[day] || [];
+                  if (slots.length === 0) return null;
+                  const fullDay = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" }[day];
                   return (
-                    <div key={day} className="text-center">
-                      <p className="font-medium text-gray-600 capitalize mb-1">{day.slice(0, 3)}</p>
-                      {slots.length > 0 ? (
-                        <div className="space-y-0.5">
-                          {slots.map((slot, i) => (
-                            <p key={i} className="text-gray-500 bg-primary-50 rounded px-1 py-0.5">
-                              {typeof slot === "string" ? slot : `${slot.start}–${slot.end}`}
-                            </p>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-300">—</p>
-                      )}
+                    <div key={day} className="py-2 first:pt-0 last:pb-0 flex items-baseline justify-between gap-4">
+                      <span className="text-sm font-medium text-gray-700">{fullDay}</span>
+                      <span className="text-sm text-gray-500">
+                        {slots.map((slot, i) => {
+                          const fmt = (t: string) => {
+                            const [hStr, mStr] = t.split(":");
+                            const h = parseInt(hStr, 10);
+                            const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                            const ampm = h >= 12 ? "pm" : "am";
+                            return mStr === "00" ? `${hour}${ampm}` : `${hour}:${mStr}${ampm}`;
+                          };
+                          return typeof slot === "string" ? slot : `${fmt(slot.start)}–${fmt(slot.end)}`;
+                        }).join(", ")}
+                      </span>
                     </div>
                   );
                 })}

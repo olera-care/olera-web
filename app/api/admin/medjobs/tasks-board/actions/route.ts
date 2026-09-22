@@ -70,6 +70,23 @@ type Body =
       website?: string;
       address?: string;
     }
+  | {
+      /**
+       * A sweep's found list, saved as it is typed.
+       *
+       * The sweep has no task row of its own — it is derived from the
+       * absence of a completed one — so what was typed into it lived on an
+       * object in the page and nowhere else. Five of the writes on that
+       * screen reload the board, which replaces that object, so a list built
+       * over a sitting could vanish without anybody touching it. It is
+       * written to a pending site_tasks row now, which is also what lets
+       * somebody add a few and come back.
+       */
+      op: "save_sweep_found";
+      recordId: string;
+      found?: Array<Record<string, unknown>>;
+      note?: string;
+    }
   | { op: "unarchive_record"; recordId: string }
   | { op: "clear_flag"; recordId: string }
   | { op: "delete_record"; recordId: string; reason?: string }
@@ -83,7 +100,12 @@ type Body =
       name?: string;
       /** An admin correction. Absent means keep using the directory. */
       address?: string;
-      second?: Partial<Record<ContactField, string>>;
+      /**
+       * Everyone beyond the primary, as the page believes the list should
+       * be. Absent means contacts are not being edited; an empty array means
+       * they have all been removed.
+       */
+      others?: Array<{ id?: string; contact?: string; role?: string; phone?: string; email?: string }>;
     };
 
 const ARCHIVED_STATUS = "archived";
@@ -133,6 +155,58 @@ const stamp = (userId: string) => ({
  * handing somebody a research task for a record they have just researched is
  * asking them to do it twice.
  */
+/** What a sweep found, cleaned, however it arrived. */
+type Found = {
+  /** The record this entry became. Absent until it has been created. */
+  id?: string;
+  name: string;
+  contact: string;
+  role: string;
+  phone: string;
+  email: string;
+  website: string;
+  address: string;
+  others: Array<{ id?: string; contact: string; role: string; phone: string; email: string }>;
+};
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function cleanFound(raw: unknown): Found[] {
+  if (!Array.isArray(raw)) return [];
+  const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
+  // Only a real uuid counts as an id. The page used to hand back synthetic
+  // ones from an optimistic render, and a write keyed on those came back
+  // "invalid input syntax for type uuid" — better to treat an unrecognised
+  // id as no id and create the record than to fail the whole save.
+  const uid = (v: unknown) => (typeof v === "string" && UUID.test(v) ? v : undefined);
+  return raw
+    .slice(0, 100)
+    .map((f) => {
+      const r = (f ?? {}) as Record<string, unknown>;
+      return {
+        id: uid(r.id),
+        name: str(r.name, 200),
+        contact: str(r.contact, 200),
+        role: str(r.role, 200),
+        phone: str(r.phone, 50),
+        email: str(r.email, 200),
+        website: str(r.website, 500),
+        address: str(r.address, 500),
+        others: (Array.isArray(r.others) ? r.others : []).slice(0, 20).map((o) => {
+          const x = (o ?? {}) as Record<string, unknown>;
+          return {
+            id: uid(x.id),
+            contact: str(x.contact, 200),
+            role: str(x.role, 200),
+            phone: str(x.phone, 50),
+            email: str(x.email, 200),
+          };
+        }),
+      };
+    })
+    .filter((f) => f.name !== "");
+}
+
 async function createFound(
   db: ReturnType<typeof getServiceClient>,
   section: "providers" | "advisors",
@@ -145,6 +219,7 @@ async function createFound(
     email?: string;
     website?: string;
     address?: string;
+    others?: Array<{ contact?: string; role?: string; phone?: string; email?: string }>;
   },
   userId: string,
 ): Promise<{ id?: string; error?: string }> {
@@ -193,6 +268,24 @@ async function createFound(
     if (contactError) return { error: contactError.message };
   }
 
+  // Everyone else the page listed. An advising office names four people as
+  // often as one, and dropping them here would mean going back to the same
+  // web page to find them again.
+  const rest = (found.others ?? [])
+    .map((o) => ({
+      outreach_id: data.id,
+      is_primary: false,
+      name: (o.contact ?? "").trim(),
+      role: (o.role ?? "").trim() || null,
+      email: (o.email ?? "").trim() || null,
+      phone: o.phone?.trim() ? formatPhone(o.phone) : null,
+    }))
+    .filter((o) => o.name || o.role || o.email || o.phone);
+  if (rest.length > 0) {
+    const { error: restError } = await db.from("student_outreach_contacts").insert(rest);
+    if (restError) return { error: restError.message };
+  }
+
   // Where a new record starts, which is the one place the two sections
   // genuinely differ — and differ because their ladders do, not by accident.
   //
@@ -222,6 +315,187 @@ async function createFound(
   if (taskError) return { error: taskError.message };
 
   return { id: data.id };
+}
+
+/**
+ * Bring an already-created record back in line with its row in the sweep.
+ *
+ * Pressing Edit on a swept office has to reach the record, not just the
+ * list: the list is a receipt, and a phone number corrected on the receipt
+ * and nowhere else is a phone number nobody will ever dial.
+ */
+async function applyFound(
+  db: ReturnType<typeof getServiceClient>,
+  id: string,
+  f: Found,
+  userId: string,
+): Promise<{ error?: string }> {
+  const { data: row } = await db
+    .from("student_outreach")
+    .select("id, organization_name, research_data")
+    .eq("id", id)
+    .maybeSingle();
+  // Archived out from under us, or deleted. Nothing to line up with.
+  if (!row) return {};
+
+  const research = { ...((row.research_data ?? {}) as Record<string, unknown>) };
+  for (const [key, value] of [
+    ["website", f.website],
+    ["address", f.address],
+  ] as const) {
+    if (value) research[key] = value;
+    else delete research[key];
+  }
+  const columns: Record<string, unknown> = { research_data: research, ...stamp(userId) };
+  if (f.name && f.name !== row.organization_name) {
+    if (!research.original_name) research.original_name = row.organization_name;
+    columns.organization_name = f.name;
+  }
+  const { error } = await db.from("student_outreach").update(columns).eq("id", id);
+  if (error) return { error: error.message };
+
+  // Contacts are sent whole, the same way the record screen sends them: a
+  // row with an id is updated, one without is new, and anything no longer
+  // in the list was taken off on screen and goes.
+  const { data: rows } = await db
+    .from("student_outreach_contacts")
+    .select("id, is_primary, created_at")
+    .eq("outreach_id", id)
+    .order("is_primary", { ascending: false })
+    .order("created_at", { ascending: true });
+
+  // The same split the board reads with: first row is the contact, the rest
+  // are the others. It has to be the same split, because the ids in `others`
+  // are the ones the board handed the page.
+  const primary = (rows ?? [])[0];
+  const person: Record<string, string> = {
+    name: f.contact,
+    role: f.role,
+    email: f.email,
+    phone: f.phone ? formatPhone(f.phone) : "",
+  };
+  const hasPerson = Object.values(person).some(Boolean);
+  if (hasPerson) {
+    const { error: pErr } = primary
+      ? await db.from("student_outreach_contacts").update(person).eq("id", primary.id)
+      : await db
+          .from("student_outreach_contacts")
+          .insert({ outreach_id: id, is_primary: true, ...person });
+    if (pErr) return { error: pErr.message };
+  }
+  // Cleared on screen: it falls out of `keep` below and is deleted with
+  // everything else that went, rather than in a second statement that would
+  // try to delete the same row twice.
+
+  const sent = f.others
+    .map((o) => ({
+      id: o.id,
+      name: o.contact,
+      role: o.role,
+      email: o.email,
+      phone: o.phone ? formatPhone(o.phone) : "",
+    }))
+    .filter((o) => o.name || o.role || o.email || o.phone);
+  const keep = new Set(sent.map((o) => o.id).filter(Boolean));
+  const keptPrimary = hasPerson && primary ? primary.id : null;
+  const gone = (rows ?? [])
+    .map((r) => r.id as string)
+    .filter((rid) => rid !== keptPrimary && !keep.has(rid));
+  if (gone.length > 0) {
+    const { error: dErr } = await db.from("student_outreach_contacts").delete().in("id", gone);
+    if (dErr) return { error: dErr.message };
+  }
+  for (const o of sent) {
+    const { id: cid, ...values } = o;
+    const { error: cErr } = cid
+      ? await db.from("student_outreach_contacts").update(values).eq("id", cid)
+      : await db
+          .from("student_outreach_contacts")
+          .insert({ outreach_id: id, is_primary: false, ...values });
+    if (cErr) return { error: cErr.message };
+  }
+  return {};
+}
+
+/**
+ * Make the records match the list, and hand the list back with their ids.
+ *
+ * A sweep used to hold everything it found in a JSON blob and turn the blob
+ * into records only when the whole sweep was finished. That is a trap: the
+ * research was safe but invisible, so a campus swept over three sittings
+ * showed nothing on the board until the last one, and anybody who added a
+ * few offices and came back the next day reasonably concluded their work
+ * had been lost. A record is now created the moment it is added, and the
+ * list becomes a receipt of what this sweep produced.
+ *
+ * Reconciled rather than diffed, because the page already knows what the
+ * list should be: no id means create, an id means update, and an id that
+ * has dropped out of the list means the row was taken off on screen.
+ */
+async function syncFound(
+  db: ReturnType<typeof getServiceClient>,
+  section: "providers" | "advisors",
+  campusId: string,
+  list: Found[],
+  before: Found[],
+  userId: string,
+): Promise<{ found?: Found[]; error?: string }> {
+  // Taken off the list on screen. Archived, not deleted: the board's promise
+  // is that archiving removes a record from the queues while leaving the row
+  // there, which is also what stops a later sweep recreating it.
+  const kept = new Set(list.map((f) => f.id).filter(Boolean));
+  const dropped = before.map((f) => f.id).filter((id): id is string => Boolean(id) && !kept.has(id));
+  if (dropped.length > 0) {
+    const { error } = await db
+      .from("student_outreach")
+      .update({ status: ARCHIVED_STATUS, ...stamp(userId) })
+      .in("id", dropped);
+    if (error) return { error: error.message };
+    // Nobody should be given work on a record that has left the board. The
+    // archive op does the same thing, and skipping it here would leave the
+    // campus's task count counting offices nobody can open.
+    await db
+      .from("student_outreach_tasks")
+      .update({ status: "cancelled" })
+      .in("outreach_id", dropped)
+      .eq("status", "pending");
+  }
+
+  // Two operators on the same campus, or one adding a name twice. Matched on
+  // name because that is the only field a sweep is guaranteed to have.
+  const { data: existing } = await db
+    .from("student_outreach")
+    .select("id, organization_name, status")
+    .eq("campus_id", campusId)
+    .eq("kind", section === "providers" ? "provider" : "advisor");
+  const byName = new Map(
+    (existing ?? [])
+      // Archived ones are off the board on purpose — usually because this
+      // very list removed them. Adopting one would write the research into a
+      // row nobody can see, so a name that comes back gets a fresh record.
+      .filter((r) => r.status !== ARCHIVED_STATUS)
+      .map((r) => [(r.organization_name ?? "").trim().toLowerCase(), r.id as string]),
+  );
+
+  const out: Found[] = [];
+  for (const f of list) {
+    let id = f.id;
+    if (!id) {
+      const match = byName.get(f.name.toLowerCase());
+      if (match) id = match;
+    }
+    if (id) {
+      const { error } = await applyFound(db, id, f, userId);
+      if (error) return { error };
+    } else {
+      const created = await createFound(db, section, campusId, f, userId);
+      if (created.error) return { error: created.error };
+      id = created.id;
+      if (id) byName.set(f.name.toLowerCase(), id);
+    }
+    out.push({ ...f, id });
+  }
+  return { found: out };
 }
 
 export async function POST(req: Request) {
@@ -304,60 +578,96 @@ export async function POST(req: Request) {
   const sweep = parseSweepId(body.recordId);
   if (sweep) {
     const { taskType, section } = SWEEPS[sweep.kind];
+
+    // Adding one. Each addition becomes a record straight away, and the row
+    // below keeps the receipt so a sweep spread over several sittings shows
+    // what it has produced so far.
+    if (body.op === "save_sweep_found") {
+      const list = cleanFound(body.found);
+      const { data: open } = await db
+        .from("site_tasks")
+        .select("id, status, payload")
+        .eq("campus_id", sweep.campusId)
+        .eq("task_type", taskType)
+        .maybeSingle();
+
+      // A finished sweep is finished. Reopening it would let the same
+      // offices be created twice.
+      if (open?.status === "completed") {
+        return NextResponse.json({ error: "That sweep is already done" }, { status: 409 });
+      }
+
+      const before = cleanFound((open?.payload as { found?: unknown })?.found);
+      const synced = await syncFound(db, section, sweep.campusId, list, before, user.id);
+      if (synced.error) {
+        return NextResponse.json({ error: synced.error }, { status: 500 });
+      }
+      const saved = synced.found ?? [];
+
+      const row = {
+        campus_id: sweep.campusId,
+        task_type: taskType,
+        channel: null,
+        due_at: new Date().toISOString(),
+        status: "pending",
+        payload: { found: saved },
+        notes: (body.note ?? "").trim() || null,
+        created_by: user.id,
+      };
+      const { error } = open
+        ? await db.from("site_tasks").update(row).eq("id", open.id)
+        : await db.from("site_tasks").insert(row);
+      // A unique violation means somebody else created the row between the
+      // read and the write, which is the row being there — not a failure.
+      if (error && error.code !== "23505") {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ ok: true, saved: saved.length, found: saved });
+    }
+
     if (body.op !== "complete_record_task") {
       return NextResponse.json(
         { error: "A sweep can only be logged, not deferred or reopened." },
         { status: 400 },
       );
     }
-    // A sweep's whole output is what it found, so those are created before
-    // the sweep is marked done. The other order would let a failure halfway
-    // leave a campus with its sweep closed and nothing to show for it, and a
-    // sweep cannot be reopened.
-    const raw = Array.isArray(body.found) ? body.found.slice(0, 100) : [];
-    const found = raw
-      .map((f) => ({
-        name: String(f?.name ?? "").trim().slice(0, 200),
-        contact: String(f?.contact ?? "").trim().slice(0, 200),
-        role: String(f?.role ?? "").trim().slice(0, 200),
-        phone: String(f?.phone ?? "").trim().slice(0, 50),
-        email: String(f?.email ?? "").trim().slice(0, 200),
-        website: String(f?.website ?? "").trim().slice(0, 500),
-        address: String(f?.address ?? "").trim().slice(0, 500),
-      }))
-      .filter((f) => f.name !== "");
+    // Everything on the list is already a record — each was created when it
+    // was added. Finishing runs the same reconcile once more rather than
+    // creating in bulk: it is what catches a row edited and the button
+    // pressed before the edit's own save came back, and it is what creates
+    // the entries of a sweep that was started before records were made on
+    // add.
+    const sent = cleanFound(body.found);
+    // What the page sent wins, but what was saved along the way is the
+    // fallback: a board reloaded between the last save and the button press
+    // hands back a task with an empty list, and finishing then would drop a
+    // morning's work off the receipt.
+    const { data: existingRow } = await db
+      .from("site_tasks")
+      .select("id, status, payload")
+      .eq("campus_id", sweep.campusId)
+      .eq("task_type", taskType)
+      .maybeSingle();
+    const saved = cleanFound((existingRow?.payload as { found?: unknown })?.found);
+    const list = sent.length > 0 ? sent : saved;
+    // Only what the page sent can have dropped a row. Falling back to the
+    // saved list means the page sent nothing, and nothing is not a removal.
+    const before = sent.length > 0 ? saved : [];
 
-    let made = 0;
-    if (found.length > 0) {
-      // Two operators sweeping the same campus, or one pressing the button
-      // twice, must not double the list. Matched on name because that is
-      // the only field a sweep is guaranteed to have.
-      const { data: existing } = await db
-        .from("student_outreach")
-        .select("organization_name")
-        .eq("campus_id", sweep.campusId)
-        .eq("kind", sweep.kind === "map" ? "provider" : "advisor");
-      const already = new Set(
-        (existing ?? []).map((r) => (r.organization_name ?? "").trim().toLowerCase()),
-      );
-      for (const f of found) {
-        if (already.has(f.name.toLowerCase())) continue;
-        const created = await createFound(db, section, sweep.campusId, f, user.id);
-        if (created.error) {
-          return NextResponse.json({ error: created.error }, { status: 500 });
-        }
-        already.add(f.name.toLowerCase());
-        made += 1;
-      }
+    const synced = await syncFound(db, section, sweep.campusId, list, before, user.id);
+    if (synced.error) {
+      return NextResponse.json({ error: synced.error }, { status: 500 });
     }
+    const found = synced.found ?? [];
+    const made = found.length;
 
-    // A plain insert, not an upsert. The unique index behind each sweep is
-    // partial, and a partial index cannot satisfy ON CONFLICT (campus_id) —
-    // Postgres answers "no unique or exclusion constraint matching the ON
-    // CONFLICT specification", which is a 500 to whoever pressed the button.
-    // So: insert, and treat the unique violation a double click causes as
-    // what it is, which is the row already being there.
-    const { error } = await db.from("site_tasks").insert({
+    // Update the row saving-as-you-type left behind, or insert one if the
+    // whole sweep was done without a save landing. Not an upsert: the unique
+    // index behind each sweep is partial, and a partial index cannot satisfy
+    // ON CONFLICT (campus_id) — Postgres answers "no unique or exclusion
+    // constraint matching the ON CONFLICT specification", which is a 500 to
+    // whoever pressed the button.
+    const done = {
       campus_id: sweep.campusId,
       task_type: taskType,
       channel: null,
@@ -368,7 +678,12 @@ export async function POST(req: Request) {
       created_by: user.id,
       payload: { found, added: made },
       notes: (body.note ?? "").trim() || null,
-    });
+    };
+    const { error } = existingRow
+      ? await db.from("site_tasks").update(done).eq("id", existingRow.id)
+      : await db.from("site_tasks").insert(done);
+    // A unique violation is the row already being there, which for a double
+    // click is what should happen — not a failure.
     if (error && error.code !== "23505") {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -857,33 +1172,53 @@ export async function POST(req: Request) {
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // ── the second contact ────────────────────────────────────────────
-      // Written only when something was actually typed, so opening the
-      // disclosure and closing it again does not leave an empty person
-      // behind for the next reader to wonder about.
-      const s2 = body.second ?? {};
-      const patch2: Record<string, string> = {};
-      if (typeof s2.contact === "string") patch2.name = s2.contact.trim();
-      if (typeof s2.role === "string") patch2.role = s2.role.trim();
-      if (typeof s2.email === "string") patch2.email = s2.email.trim();
-      if (typeof s2.phone === "string") patch2.phone = formatPhone(s2.phone);
-      const second_has_content = Object.values(patch2).some((v) => v !== "");
-
-      if (second_has_content) {
+      // ── everyone else ─────────────────────────────────────────────────
+      // An office lists four people as often as one. This used to hold
+      // exactly two, so the third was typed into the second's boxes or not
+      // written down at all.
+      //
+      // Sent whole rather than as a diff: the page knows what the list
+      // should be, so a row with an id is updated, one without is new, and
+      // anything no longer in the list was removed on screen and goes. An
+      // absent `others` means the page is not editing contacts at all —
+      // which is not the same as an empty one, and must not delete them.
+      if (Array.isArray(body.others)) {
         const { data: rows } = await db
           .from("student_outreach_contacts")
           .select("id")
           .eq("outreach_id", outreach.id)
-          .order("is_primary", { ascending: false })
-          .order("created_at", { ascending: true });
+          .eq("is_primary", false);
 
-        const existingSecond = (rows ?? [])[1];
-        const { error } = existingSecond
-          ? await db.from("student_outreach_contacts").update(patch2).eq("id", existingSecond.id)
-          : await db
-              .from("student_outreach_contacts")
-              .insert({ outreach_id: outreach.id, is_primary: false, name: "", ...patch2 });
-        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        const sent = body.others
+          .map((o) => ({
+            id: typeof o.id === "string" ? o.id : undefined,
+            name: (o.contact ?? "").trim(),
+            role: (o.role ?? "").trim(),
+            email: (o.email ?? "").trim(),
+            phone: formatPhone(o.phone ?? ""),
+          }))
+          // A blank row is somebody who pressed Add and changed their mind.
+          .filter((o) => o.name || o.role || o.email || o.phone);
+
+        const keep = new Set(sent.map((o) => o.id).filter(Boolean));
+        const gone = (rows ?? []).map((r) => r.id as string).filter((id) => !keep.has(id));
+        if (gone.length > 0) {
+          const { error } = await db
+            .from("student_outreach_contacts")
+            .delete()
+            .in("id", gone);
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        for (const o of sent) {
+          const { id, ...values } = o;
+          const { error } = id
+            ? await db.from("student_outreach_contacts").update(values).eq("id", id)
+            : await db
+                .from("student_outreach_contacts")
+                .insert({ outreach_id: outreach.id, is_primary: false, ...values });
+          if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        }
       }
 
       // ── the record itself: name, address, website ─────────────────────

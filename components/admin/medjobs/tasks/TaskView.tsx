@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { LADDERS, rungAt, type ContactField, type LadderInput } from "@/lib/medjobs/ladders";
+import {
+  LADDERS,
+  rungAt,
+  type ContactField,
+  type LadderInput,
+  type SectionKey,
+} from "@/lib/medjobs/ladders";
 import Collateral from "./Collateral";
 import { ContactFields } from "./RecordView";
 import {
@@ -9,6 +15,7 @@ import {
   STOP_REASONS,
   SWEEP_PREFIX,
   attachmentKind,
+  isSaved,
   canReopen,
   formatPhone,
   scriptSlug,
@@ -63,6 +70,7 @@ export default function TaskView({
   onNote,
   onField,
   onFound,
+  saving,
   onFieldValue,
   onWebsite,
   onAddress,
@@ -81,8 +89,13 @@ export default function TaskView({
   onStop: (reason: string) => void;
   onNote: (text: string) => void;
   onField: (field: ContactField, value: string) => void;
-  /** Research rungs: the names found, which become records on finishing. */
+  /** Research rungs: each addition becomes a record straight away. */
   onFound: (found: FoundRecord[]) => void;
+  /** A write is in flight. The found list locks, because each of its
+   *  buttons creates, updates or archives a record, and pressing two
+   *  before the first has answered is how the same office gets added
+   *  twice. */
+  saving?: boolean;
   /** A typed value the rung asked for. */
   onFieldValue: (key: string, value: string) => void;
   /** The three record fields a confirming call also puts right. */
@@ -155,7 +168,7 @@ export default function TaskView({
   // reaching students get the audience the PDF is written for.
   const flyer = `${typeof window === "undefined" ? "" : window.location.origin}/api/medjobs/program-pdf?university=${
     encodeURIComponent(universitySlug)
-  }&audience=${record.section === "students" ? "student" : "provider"}`;
+  }&audience=${flyerAudience(record.section)}`;
 
   const ctx: Record<string, string> = {
     university: universityName,
@@ -194,7 +207,7 @@ export default function TaskView({
           the university rather than to a person has no record behind it, so
           the line would be a link to a form about nobody, carrying the rung
           title a second time. */}
-      {!record.id.startsWith(SWEEP_PREFIX) && (
+      {isSaved(record.id) && (
         <button
           type="button"
           onClick={onOpenRecord}
@@ -228,7 +241,7 @@ export default function TaskView({
           <div className="mt-4 border-t border-gray-100 pt-4">
             <Note value={task.note} onChange={onNote} />
           </div>
-          {!record.id.startsWith(SWEEP_PREFIX) && (
+          {isSaved(record.id) && (
             <Collateral
               recordId={record.id}
               recordKind={attachmentKind(record.section)}
@@ -302,7 +315,7 @@ export default function TaskView({
                     rel="noreferrer"
                     className="font-medium text-primary-700 underline hover:no-underline"
                   >
-                    Review instructions on this step \u2197
+                    Review instructions on this step ↗
                   </a>
                   <span className="mt-0.5 block text-[12px] text-gray-500">
                     What to do and why, the call script, the email copy and the walkthrough
@@ -403,7 +416,7 @@ export default function TaskView({
                   rel="noreferrer"
                   className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
                 >
-                  {rung.scriptLabel ? `Read ${rung.scriptLabel} \u2197` : "Scripts and email copy \u2197"}
+                  {rung.scriptLabel ? `Read ${rung.scriptLabel} ↗` : "Scripts and email copy ↗"}
                 </a>
               )}
               {rung.email && (
@@ -414,7 +427,7 @@ export default function TaskView({
                     rel="noreferrer"
                     className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
                   >
-                    Open the flyer \u2197
+                    Open the flyer ↗
                   </a>
                   <span className="text-[12px] text-gray-400">
                     Send it from your own inbox so the reply comes back to you.
@@ -429,6 +442,7 @@ export default function TaskView({
               found={found}
               noun={rung.foundNoun ?? "one"}
               onChange={onFound}
+              saving={saving}
             />
           )}
 
@@ -449,7 +463,7 @@ export default function TaskView({
                 finished-task branch by mistake, so it only ever appeared on
                 work already done. The sweeps have synthetic ids and are not
                 records, so they get nothing to attach to. */}
-            {!replying && !record.id.startsWith(SWEEP_PREFIX) && (
+            {!replying && isSaved(record.id) && (
               <Collateral
                 recordId={record.id}
                 recordKind={attachmentKind(record.section)}
@@ -715,6 +729,21 @@ export default function TaskView({
  * Served through the guarded SOP route by key, never as a public URL: these
  * are internal, and the route is the one place that decides who sees them.
  */
+/**
+ * Which flyer a section sends.
+ *
+ * An advising office is not being sold anything and is not the employer, so
+ * the agency brochure would be answering questions they never asked. They get
+ * the same programme described as the student's opportunity. Everything that
+ * is neither a student nor an advising office gets the provider brochure,
+ * which is what it was written for.
+ */
+function flyerAudience(section: SectionKey): "student" | "advisor" | "provider" {
+  if (section === "students") return "student";
+  if (section === "advisors") return "advisor";
+  return "provider";
+}
+
 /** The fields a found record carries, in the order the record shows them. */
 const FOUND_FIELDS: Array<{ key: keyof FoundRecord; label: string }> = [
   { key: "contact", label: "Primary contact" },
@@ -725,8 +754,11 @@ const FOUND_FIELDS: Array<{ key: keyof FoundRecord; label: string }> = [
   { key: "address", label: "Address" },
 ];
 
-const summarise = (f: FoundRecord) =>
-  [f.contact, f.role, f.phone, f.email, f.website].filter(Boolean).join(" · ");
+const summarise = (f: FoundRecord) => {
+  const line = [f.contact, f.role, f.phone, f.email, f.website].filter(Boolean).join(" · ");
+  const more = (f.others ?? []).length;
+  return more > 0 ? `${line}${line ? " · " : ""}+${more} more` : line;
+};
 
 /**
  * What a sweep found, and the form for adding one more.
@@ -735,16 +767,23 @@ const summarise = (f: FoundRecord) =>
  * the record's own labels. Somebody adding an agency is looking at its
  * website while they do it — giving them three boxes now and asking for the
  * rest on a later rung is asking them to find the same page twice.
+ *
+ * Every change here reaches a record. Add creates one, Edit updates it, and
+ * × archives it — the list is a receipt of what the sweep produced, not a
+ * holding pen that turns into records when the sweep is finished.
  */
 function FoundList({
   found,
   noun,
   onChange,
+  saving,
 }: {
   found: FoundRecord[];
   /** What one of these is called, for the empty form's first box. */
   noun: string;
   onChange: (next: FoundRecord[]) => void;
+  /** A write is in flight, so nothing that writes may be pressed. */
+  saving?: boolean;
 }) {
   const [draft, setDraft] = useState<FoundRecord>({ name: "" });
   /** Which row is being corrected, or null when adding a new one. */
@@ -758,7 +797,11 @@ function FoundList({
   const commit = () => {
     const name = draft.name.trim();
     if (!name) return;
-    const clean: FoundRecord = { ...draft, name };
+    const clean: FoundRecord = {
+      ...draft,
+      name,
+      others: (draft.others ?? []).filter((o) => o.contact || o.role || o.phone || o.email),
+    };
     if (editing === null) onChange([...found, clean]);
     else onChange(found.map((f, i) => (i === editing ? clean : f)));
     reset();
@@ -777,7 +820,7 @@ function FoundList({
         <ul className="mt-1">
           {found.map((f, i) => (
             <li
-              key={`${f.name}-${i}`}
+              key={f.id ?? `${f.name}-${i}`}
               className="flex items-start gap-2 border-b border-gray-100 py-2 last:border-b-0"
             >
               <div className="min-w-0 flex-1">
@@ -788,22 +831,25 @@ function FoundList({
               </div>
               <button
                 type="button"
+                disabled={saving}
                 onClick={() => {
                   setDraft(f);
                   setEditing(i);
                 }}
-                className="shrink-0 text-[11.5px] text-gray-400 underline hover:text-gray-700"
+                className="shrink-0 text-[11.5px] text-gray-400 underline hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Edit
               </button>
               <button
                 type="button"
                 aria-label={`Remove ${f.name}`}
+                title={`Remove ${f.name}. It was created as a record when it was added, so removing it here archives that record.`}
+                disabled={saving}
                 onClick={() => {
                   onChange(found.filter((_, j) => j !== i));
                   if (editing === i) reset();
                 }}
-                className="shrink-0 px-1 text-[15px] leading-none text-gray-400 hover:text-error-700"
+                className="shrink-0 px-1 text-[15px] leading-none text-gray-400 hover:text-error-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 ×
               </button>
@@ -835,14 +881,73 @@ function FoundList({
             </label>
           ))}
         </div>
+        {/* An advising office lists four people as often as one, so the
+            form takes as many as the page does rather than one and a spare. */}
+        {(draft.others ?? []).map((o, i) => (
+          <div key={i} className="mt-2 border-t border-primary-200 pt-2">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[11px] font-medium text-gray-400">
+                {o.contact.trim() || `Contact ${i + 2}`}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft((d) => ({
+                    ...d,
+                    others: (d.others ?? []).filter((_, j) => j !== i),
+                  }))
+                }
+                className="text-[11.5px] text-gray-400 underline hover:text-error-700"
+              >
+                Remove
+              </button>
+            </div>
+            <div className="space-y-1.5">
+              {(["contact", "role", "phone", "email"] as const).map((k) => (
+                <label key={k} className="flex items-center gap-2.5">
+                  <span className="w-24 shrink-0 text-[12px] text-gray-500">
+                    {k === "contact" ? "Name" : k === "role" ? "Role" : k === "phone" ? "Phone" : "Email"}
+                  </span>
+                  <input
+                    value={o[k]}
+                    onChange={(e) =>
+                      setDraft((d) => ({
+                        ...d,
+                        others: (d.others ?? []).map((x, j) =>
+                          j === i ? { ...x, [k]: e.target.value } : x,
+                        ),
+                      }))
+                    }
+                    placeholder="—"
+                    className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() =>
+            setDraft((d) => ({
+              ...d,
+              others: [...(d.others ?? []), { contact: "", role: "", phone: "", email: "" }],
+            }))
+          }
+          className="mt-2 text-[12.5px] font-medium text-primary-700 hover:underline"
+        >
+          + Add another contact
+        </button>
+
         <div className="mt-2.5 flex items-center gap-2">
           <button
             type="button"
             onClick={commit}
-            disabled={!draft.name.trim()}
-            className={draft.name.trim() ? BTN : `${BTN} cursor-not-allowed opacity-40`}
+            disabled={!draft.name.trim() || saving}
+            className={draft.name.trim() && !saving ? BTN : `${BTN} cursor-not-allowed opacity-40`}
           >
-            {editing === null ? "Add" : "Save"}
+            {saving ? "Saving…" : editing === null ? "Add" : "Save"}
           </button>
           {editing !== null && (
             <button

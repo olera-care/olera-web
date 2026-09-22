@@ -21,8 +21,9 @@ import { resolveProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/con
  */
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
+  const asked = url.searchParams.get("audience");
   const audience: PdfAudience =
-    url.searchParams.get("audience") === "student" ? "student" : "provider";
+    asked === "student" || asked === "advisor" ? asked : "provider";
   // Default to the generic config so a bare URL always renders something
   // campus-agnostic. Providers used to default to the Texas A&M brochure,
   // from when that was the only provider config there was — which meant a

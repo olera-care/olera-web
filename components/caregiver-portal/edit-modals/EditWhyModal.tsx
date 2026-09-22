@@ -89,12 +89,9 @@ export default function EditWhyModal({
     return guidedMode && onGuidedBack ? "Back" : "Cancel";
   };
 
-  // Custom header with title and subtitle
+  // Custom header
   const headerContent = (
-    <div>
-      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Why Caregiving</h2>
-      <p className="text-sm text-gray-500 mt-0.5">Be genuine — like a personal statement</p>
-    </div>
+    <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Why Caregiving</h2>
   );
 
   // Footer component
@@ -161,56 +158,51 @@ export default function EditWhyModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="pt-6 flex flex-col items-center">
-        {/* Textarea */}
-        <div className="w-full max-w-lg">
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="I want to be a caregiver because..."
-            rows={7}
-            maxLength={500}
-            className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-2xl px-5 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-none leading-relaxed"
-          />
+      <div className="pt-2">
+        <p className="text-sm text-gray-600 mb-4">
+          Be genuine — like a personal statement. What draws you to caregiving?
+        </p>
 
-          {/* Character count */}
-          <div className="flex items-center justify-between mt-3 px-1">
-            <span className={`text-xs transition-colors ${
-              charCount === 0
-                ? "text-gray-400"
-                : charCount < 100
-                ? "text-amber-600"
-                : charCount > 500
-                ? "text-red-500"
-                : "text-primary-600"
-            }`}>
-              {charCount === 0
-                ? "100–500 characters"
-                : charCount < 100
-                ? `${100 - charCount} more characters needed`
-                : `${charCount}/500`
-              }
+        <textarea
+          ref={textareaRef}
+          aria-label="Why I want to be a caregiver"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="I want to be a caregiver because..."
+          rows={8}
+          maxLength={500}
+          className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[200px]"
+        />
+
+        {/* Character count */}
+        <div className="flex items-center justify-between mt-2">
+          <span className={`text-xs transition-colors ${
+            charCount === 0
+              ? "text-gray-400"
+              : charCount < 100
+              ? "text-amber-600"
+              : "text-gray-400"
+          }`}>
+            {charCount === 0
+              ? "100–500 characters"
+              : charCount < 100
+              ? `${100 - charCount} more characters needed`
+              : `${charCount}/500`
+            }
+          </span>
+          {isValid && (
+            <span className="flex items-center gap-1 text-xs text-primary-600">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Good
             </span>
-            {isValid && (
-              <div className="flex items-center gap-1.5 text-primary-600">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-xs font-medium">Good length</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Tips - simple text, clearly not clickable */}
-        <div className="w-full max-w-lg mt-6 text-xs text-gray-400">
-          <span className="font-medium">Tip:</span> Strong answers mention what draws you to caregiving, how it connects to your career, or a specific experience that motivated you.
+          )}
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="w-full max-w-lg mt-4 p-4 bg-red-50 border border-red-200 rounded-2xl">
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
             <p className="text-sm text-red-600 text-center" role="alert">{error}</p>
           </div>
         )}

@@ -1071,6 +1071,58 @@ function councilContextFor(operatingPack: ReturnType<typeof buildOperatingPack>)
   };
 }
 
+/**
+ * What the drafting pass actually needs, which is far less than it was given.
+ *
+ * Measured on a live pack: drafting received 71,316 tokens to write up a single
+ * condition that triage had already chosen and handed to it by name. Inside
+ * that were all twelve investigations in full (38,052 tokens) when it is
+ * writing about one of them, and forty proposals in full (12,787) when all it
+ * needs from them is "have we proposed this before".
+ *
+ * Two things are deliberately NOT cut, because I checked the gate before
+ * cutting and it would have broken.
+ *
+ * The evidence catalog stays whole. `applyAgendaGate` rejects any draft citing
+ * fewer than two ids that resolve against the catalog, and cause confidence
+ * rises with the number of distinct evidence families cited. Handing drafting
+ * only the nominated condition's own three evidence items would have starved
+ * both checks and produced proposals that fail the gate for a reason nobody
+ * would trace back to here.
+ *
+ * Proposal memory stays, but as identity rather than prose: fingerprint,
+ * status, title and outcome are what answer "was this already tried", and the
+ * full body is not read.
+ */
+function draftingContextFor(
+  operatingPack: ReturnType<typeof buildOperatingPack>,
+  nominatedFingerprint: string,
+) {
+  return {
+    generatedAt: operatingPack.generatedAt,
+    companyModel: operatingPack.companyModel,
+    operatingContract: operatingPack.operatingContract,
+    // Identity only. Enough to notice a repeat, not the whole brief again.
+    priorProposals: operatingPack.proposalMemory.map((proposal) => ({
+      fingerprint: proposal.fingerprint,
+      status: proposal.status,
+      title: proposal.title,
+      outcomeStatus: proposal.outcomeStatus,
+    })),
+    // Every other open condition as one line, so a brief can say how this one
+    // relates to the rest without carrying all of them.
+    otherOpenConditions: operatingPack.investigationMemory
+      .filter((investigation) => investigation.fingerprint !== nominatedFingerprint)
+      .map((investigation) => ({
+        fingerprint: investigation.fingerprint,
+        status: investigation.status,
+        domain: investigation.domain,
+        title: investigation.title,
+      })),
+    evidenceCatalog: operatingPack.evidenceCatalog,
+  };
+}
+
 async function runTriagePass(
   operatingPack: ReturnType<typeof buildOperatingPack>,
   investigator: WarRoomInvestigatorCheckpoint,
@@ -1186,7 +1238,7 @@ Rules:
 CONDITION:\n${JSON.stringify(commissioned)}
 
 COUNCIL CONTEXT:
-${JSON.stringify(councilContextFor(operatingPack))}
+${JSON.stringify(draftingContextFor(operatingPack, commissioned.fingerprint))}
 
 CHIEF-OF-STAFF READ:
 ${investigator.rawInvestigatorOutput.portfolioRead}`,
@@ -1223,7 +1275,7 @@ async function runProposalPass(
     system: COUNCIL_SYSTEM,
     tool: WIRE_PROPOSAL_TOOL,
     maxTokens: 12_000,
-    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(councilContextFor(operatingPack))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
+    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(draftingContextFor(operatingPack, nominated.fingerprint))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
   });
   const brief = call.output?.brief ?? {};
   const execution = call.output?.execution ?? {};

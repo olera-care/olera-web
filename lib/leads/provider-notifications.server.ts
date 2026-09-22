@@ -83,6 +83,35 @@ function safeFirstName(raw: string | null | undefined): string | null {
 }
 
 /**
+ * Has this exact email already gone out for this connection?
+ *
+ * The Ad Boost sender has carried its own dedupe for a while; the generic lead
+ * email and the first-lead celebration never needed one, because they used to
+ * run exactly once inside the request that created the lead. Now that a failed
+ * send is requeued for the cron, a retry could re-send an email that had already
+ * succeeded before a later step threw. Same guard, same shape.
+ */
+async function alreadySent(
+  db: ReturnType<typeof getServiceClient>,
+  emailType: string,
+  connectionId: string,
+): Promise<boolean> {
+  const { data, error } = await db
+    .from("email_log")
+    .select("id, status")
+    .eq("email_type", emailType)
+    .filter("metadata->>connection_id", "eq", connectionId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error(`[lead-notify] dedupe lookup failed for ${emailType}:`, error);
+    return false;
+  }
+  return !!data && data.status !== "failed";
+}
+
+/**
  * Mark a freshly created inquiry as awaiting notification. Called at insert time
  * in place of the old inline send block. Never sends.
  */
@@ -202,7 +231,9 @@ export async function sendProviderLeadNotifications(opts: {
     return { sent: false, reason: "already_claimed" };
   }
 
-  const finish = async (state: "sent" | "skipped") => {
+  // Re-read before writing: the family can answer enrichment while this is
+  // mid-flight, and that write must not be clobbered by a stale copy.
+  const setState = async (state: string, extra: Record<string, unknown> = {}) => {
     const { data: current } = await db
       .from("connections")
       .select("metadata")
@@ -211,8 +242,30 @@ export async function sendProviderLeadNotifications(opts: {
     const latest = ((current?.metadata as Record<string, unknown>) || metadata);
     await db
       .from("connections")
-      .update({ metadata: { ...latest, provider_notify_state: state } })
+      .update({ metadata: { ...latest, provider_notify_state: state, ...extra } })
       .eq("id", connection.id);
+  };
+  const finish = (state: "sent" | "skipped") => setState(state);
+
+  /**
+   * A throw anywhere in the send would otherwise strand the row in `sending`
+   * forever: the cron only sweeps `held`, so the provider would never be told
+   * about that lead and nothing would ever retry. Hand it back to the cron with
+   * a fresh ceiling instead, and give up after three attempts so a permanently
+   * bad row cannot loop.
+   */
+  const MAX_ATTEMPTS = 3;
+  const failAndRequeue = async (err: unknown) => {
+    const attempts = Number(metadata.provider_notify_attempts ?? 0) + 1;
+    console.error(`[lead-notify] send failed (attempt ${attempts}) for ${connection.id}:`, err);
+    if (attempts >= MAX_ATTEMPTS) {
+      await setState("failed", { provider_notify_attempts: attempts });
+      return;
+    }
+    await setState("held", {
+      provider_notify_attempts: attempts,
+      provider_notify_after: new Date(Date.now() + 5 * 60_000).toISOString(),
+    });
   };
 
   const { data: provider } = await db
@@ -251,195 +304,207 @@ export async function sendProviderLeadNotifications(opts: {
   const providerSlug = provider.slug || provider.id;
   const siteUrl = getSiteUrl();
 
-  // ── Ad Boost lead email (campaign-attributed leads only) ──
-  const utmCampaign = typeof metadata.utm_campaign === "string" ? metadata.utm_campaign : null;
-  const utmSource = typeof metadata.utm_source === "string" ? metadata.utm_source : null;
-  let adBoostHandled = false;
-  let shouldSendGenericLeadEmail = true;
+  try {
+    // ── Ad Boost lead email (campaign-attributed leads only) ──
+    const utmCampaign = typeof metadata.utm_campaign === "string" ? metadata.utm_campaign : null;
+    const utmSource = typeof metadata.utm_source === "string" ? metadata.utm_source : null;
+    let adBoostHandled = false;
+    let shouldSendGenericLeadEmail = true;
 
-  if (providerEmail && utmCampaign) {
-    const adBoostLeadEmail = await sendAdBoostLeadDeliveredEmail({
-      managedUtm: { utmSource, utmCampaign } as ManagedUtm,
-      connectionId: connection.id,
-      providerEmail,
-      providerName,
-      providerSlug: provider.slug || null,
-      providerProfileId: connection.to_profile_id,
-      familyName: familyFirstName || "A family",
-      careType: careTypeDisplay,
-      city: providerCity,
-      careRecipient: careRecipientDisplay,
-      enriched,
-    });
-    adBoostHandled = adBoostLeadEmail.sent || adBoostLeadEmail.skipped === "already_sent";
-    shouldSendGenericLeadEmail =
-      adBoostLeadEmail.skipped === "not_managed" ||
-      adBoostLeadEmail.skipped === "missing_campaign" ||
-      adBoostLeadEmail.skipped === "unknown_campaign";
-  }
-
-  // ── Generic new-lead email ──
-  if (providerEmail && shouldSendGenericLeadEmail) {
-    const subject = buildLeadSubject({
-      enriched,
-      familyFirstName,
-      city: providerCity,
-      careTypeDisplay,
-    });
-    const emailLogId = await reserveEmailLogId({
-      to: providerEmail,
-      subject,
-      emailType: "connection_request",
-      recipientType: "provider",
-      providerId: connection.to_profile_id,
-      metadata: { connection_id: connection.id },
-    });
-
-    let viewUrl: string;
-    let manageListingUrl: string;
-    let settingsUrl: string;
-    try {
-      const { generateLeadClaimUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
-      viewUrl = appendTrackingParams(
-        generateLeadClaimUrl(providerSlug, providerEmail, connection.id, siteUrl),
-        emailLogId,
-      );
-      manageListingUrl = generateProviderPortalUrl(providerSlug, providerEmail, "manage", siteUrl);
-      settingsUrl = generateProviderPortalUrl(providerSlug, providerEmail, "settings", siteUrl);
-    } catch {
-      viewUrl = appendTrackingParams(
-        `${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${connection.id}`,
-        emailLogId,
-      );
-      manageListingUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=manage`;
-      settingsUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=settings`;
-    }
-
-    await sendEmail({
-      to: providerEmail,
-      subject,
-      html: connectionRequestEmail({
+    if (providerEmail && utmCampaign) {
+      const adBoostLeadEmail = await sendAdBoostLeadDeliveredEmail({
+        managedUtm: { utmSource, utmCampaign } as ManagedUtm,
+        connectionId: connection.id,
+        providerEmail,
         providerName,
+        providerSlug: provider.slug || null,
+        providerProfileId: connection.to_profile_id,
         familyName: familyFirstName || "A family",
         careType: careTypeDisplay,
         city: providerCity,
         careRecipient: careRecipientDisplay,
-        viewUrl,
-        manageListingUrl,
-        settingsUrl,
         enriched,
-      }),
-      emailType: "connection_request",
-      recipientType: "provider",
-      providerId: connection.to_profile_id,
-      emailLogId: emailLogId ?? undefined,
-      recipientProfileId: connection.to_profile_id,
-    });
-  }
-
-  // ── First lead celebration ──
-  // Only when the lead is legible. Congratulating a provider on their first lead
-  // and then showing them an email address with nothing attached is worse than
-  // saying nothing.
-  if (providerEmail && metadata.provider_notify_is_first_lead && !adBoostHandled && enriched) {
-    const celebrationEmailLogId = await reserveEmailLogId({
-      to: providerEmail,
-      subject: "You got your first lead!",
-      emailType: "first_lead_celebration",
-      recipientType: "provider",
-      providerId: connection.to_profile_id,
-      metadata: { connection_id: connection.id },
-    });
-    let celebrationViewUrl: string;
-    try {
-      const { generateLeadClaimUrl } = await import("@/lib/claim-tokens");
-      celebrationViewUrl = appendTrackingParams(
-        generateLeadClaimUrl(providerSlug, providerEmail, connection.id, siteUrl),
-        celebrationEmailLogId,
-      );
-    } catch {
-      celebrationViewUrl = appendTrackingParams(
-        `${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${connection.id}`,
-        celebrationEmailLogId,
-      );
+      });
+      adBoostHandled = adBoostLeadEmail.sent || adBoostLeadEmail.skipped === "already_sent";
+      shouldSendGenericLeadEmail =
+        adBoostLeadEmail.skipped === "not_managed" ||
+        adBoostLeadEmail.skipped === "missing_campaign" ||
+        adBoostLeadEmail.skipped === "unknown_campaign";
     }
-    await sendEmail({
-      to: providerEmail,
-      subject: "You got your first lead!",
-      html: firstLeadCelebrationEmail({
-        providerName,
-        recipientName: providerName,
-        familyName: familyFirstName || "A family",
-        connectionId: connection.id,
-        viewUrl: celebrationViewUrl,
-      }),
-      emailType: "first_lead_celebration",
-      recipientType: "provider",
-      providerId: connection.to_profile_id,
-      emailLogId: celebrationEmailLogId ?? undefined,
-      recipientProfileId: connection.to_profile_id,
-    });
-  }
 
-  // ── SMS ──
-  try {
-    let providerPhone = provider.phone || null;
-    const lookupId = provider.source_provider_id;
-    if (!providerPhone && lookupId) {
-      const { data: iosPhone } = await db
-        .from("olera-providers")
-        .select("phone")
-        .eq("provider_id", lookupId)
-        .maybeSingle();
-      providerPhone = iosPhone?.phone || null;
-    }
-    const normalized = providerPhone ? normalizeUSPhone(providerPhone) : null;
-    if (normalized) {
-      await sendSMS({
-        to: normalized,
-        body: newInquirySms({
-          familyName: familyFirstName || undefined,
-          url: `${siteUrl}/provider/connections`,
+    // ── Generic new-lead email ──
+    if (providerEmail && shouldSendGenericLeadEmail && !(await alreadySent(db, "connection_request", connection.id))) {
+      const subject = buildLeadSubject({
+        enriched,
+        familyFirstName,
+        city: providerCity,
+        careTypeDisplay,
+      });
+      const emailLogId = await reserveEmailLogId({
+        to: providerEmail,
+        subject,
+        emailType: "connection_request",
+        recipientType: "provider",
+        providerId: connection.to_profile_id,
+        metadata: { connection_id: connection.id },
+      });
+
+      let viewUrl: string;
+      let manageListingUrl: string;
+      let settingsUrl: string;
+      try {
+        const { generateLeadClaimUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
+        viewUrl = appendTrackingParams(
+          generateLeadClaimUrl(providerSlug, providerEmail, connection.id, siteUrl),
+          emailLogId,
+        );
+        manageListingUrl = generateProviderPortalUrl(providerSlug, providerEmail, "manage", siteUrl);
+        settingsUrl = generateProviderPortalUrl(providerSlug, providerEmail, "settings", siteUrl);
+      } catch {
+        viewUrl = appendTrackingParams(
+          `${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${connection.id}`,
+          emailLogId,
+        );
+        manageListingUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=manage`;
+        settingsUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=settings`;
+      }
+
+      await sendEmail({
+        to: providerEmail,
+        subject,
+        html: connectionRequestEmail({
+          providerName,
+          familyName: familyFirstName || "A family",
+          careType: careTypeDisplay,
+          city: providerCity,
+          careRecipient: careRecipientDisplay,
+          viewUrl,
+          manageListingUrl,
+          settingsUrl,
+          enriched,
         }),
+        emailType: "connection_request",
+        recipientType: "provider",
+        providerId: connection.to_profile_id,
+        emailLogId: emailLogId ?? undefined,
         recipientProfileId: connection.to_profile_id,
-        notificationType: "new_leads",
-        // Directory landlines mostly. They still get the email above.
-        requireMobile: true,
       });
     }
-  } catch (smsErr) {
-    console.error("[lead-notify] sms failed:", smsErr);
-  }
 
-  // ── WhatsApp (opted-in providers only) ──
-  try {
-    if (providerMeta.whatsapp_opted_in) {
-      let waPhone = provider.phone || null;
-      if (!waPhone && provider.source_provider_id) {
-        const { data: waIos } = await db
+    // ── First lead celebration ──
+    // Only when the lead is legible. Congratulating a provider on their first lead
+    // and then showing them an email address with nothing attached is worse than
+    // saying nothing.
+      if (
+      providerEmail &&
+      metadata.provider_notify_is_first_lead &&
+      !adBoostHandled &&
+      enriched &&
+      !(await alreadySent(db, "first_lead_celebration", connection.id))
+    ) {
+      const celebrationEmailLogId = await reserveEmailLogId({
+        to: providerEmail,
+        subject: "You got your first lead!",
+        emailType: "first_lead_celebration",
+        recipientType: "provider",
+        providerId: connection.to_profile_id,
+        metadata: { connection_id: connection.id },
+      });
+      let celebrationViewUrl: string;
+      try {
+        const { generateLeadClaimUrl } = await import("@/lib/claim-tokens");
+        celebrationViewUrl = appendTrackingParams(
+          generateLeadClaimUrl(providerSlug, providerEmail, connection.id, siteUrl),
+          celebrationEmailLogId,
+        );
+      } catch {
+        celebrationViewUrl = appendTrackingParams(
+          `${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${connection.id}`,
+          celebrationEmailLogId,
+        );
+      }
+      await sendEmail({
+        to: providerEmail,
+        subject: "You got your first lead!",
+        html: firstLeadCelebrationEmail({
+          providerName,
+          recipientName: providerName,
+          familyName: familyFirstName || "A family",
+          connectionId: connection.id,
+          viewUrl: celebrationViewUrl,
+        }),
+        emailType: "first_lead_celebration",
+        recipientType: "provider",
+        providerId: connection.to_profile_id,
+        emailLogId: celebrationEmailLogId ?? undefined,
+        recipientProfileId: connection.to_profile_id,
+      });
+    }
+
+    // ── SMS ──
+    try {
+      let providerPhone = provider.phone || null;
+      const lookupId = provider.source_provider_id;
+      if (!providerPhone && lookupId) {
+        const { data: iosPhone } = await db
           .from("olera-providers")
           .select("phone")
-          .eq("provider_id", provider.source_provider_id)
+          .eq("provider_id", lookupId)
           .maybeSingle();
-        waPhone = waIos?.phone || null;
+        providerPhone = iosPhone?.phone || null;
       }
-      const waNormalized = waPhone ? normalizeUSPhone(waPhone) : null;
-      if (waNormalized) {
-        const familyLabel = familyFirstName || "A family";
-        await sendWhatsApp({
-          to: waNormalized,
-          contentSid: process.env.TWILIO_WA_TEMPLATE_NEW_LEAD || "sandbox",
-          contentVariables: { "1": familyLabel, "2": providerName },
-          fallbackBody: `${familyLabel} reached out to ${providerName} through Olera.\n\nView inquiry: ${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${connection.id}`,
-          messageType: "connection_request",
-          recipientType: "provider",
-          profileId: connection.to_profile_id,
+      const normalized = providerPhone ? normalizeUSPhone(providerPhone) : null;
+      if (normalized) {
+        await sendSMS({
+          to: normalized,
+          body: newInquirySms({
+            familyName: familyFirstName || undefined,
+            url: `${siteUrl}/provider/connections`,
+          }),
+          recipientProfileId: connection.to_profile_id,
           notificationType: "new_leads",
+          // Directory landlines mostly. They still get the email above.
+          requireMobile: true,
         });
       }
+    } catch (smsErr) {
+      console.error("[lead-notify] sms failed:", smsErr);
     }
-  } catch (waErr) {
-    console.error("[lead-notify] whatsapp failed:", waErr);
+
+    // ── WhatsApp (opted-in providers only) ──
+    try {
+      if (providerMeta.whatsapp_opted_in) {
+        let waPhone = provider.phone || null;
+        if (!waPhone && provider.source_provider_id) {
+          const { data: waIos } = await db
+            .from("olera-providers")
+            .select("phone")
+            .eq("provider_id", provider.source_provider_id)
+            .maybeSingle();
+          waPhone = waIos?.phone || null;
+        }
+        const waNormalized = waPhone ? normalizeUSPhone(waPhone) : null;
+        if (waNormalized) {
+          const familyLabel = familyFirstName || "A family";
+          await sendWhatsApp({
+            to: waNormalized,
+            contentSid: process.env.TWILIO_WA_TEMPLATE_NEW_LEAD || "sandbox",
+            contentVariables: { "1": familyLabel, "2": providerName },
+            fallbackBody: `${familyLabel} reached out to ${providerName} through Olera.\n\nView inquiry: ${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${connection.id}`,
+            messageType: "connection_request",
+            recipientType: "provider",
+            profileId: connection.to_profile_id,
+            notificationType: "new_leads",
+          });
+        }
+      }
+    } catch (waErr) {
+      console.error("[lead-notify] whatsapp failed:", waErr);
+    }
+
+  } catch (err) {
+    await failAndRequeue(err);
+    return { sent: false, reason: "send_failed" };
   }
 
   await finish("sent");

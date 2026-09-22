@@ -117,12 +117,10 @@ export default function EditScheduleModal({
 
   return (
     <Modal isOpen onClose={onClose} title={headerContent} size="2xl" footer={footerContent}>
-      <div className="pt-4">
-        <div className="max-w-xl mx-auto">
-          <ScheduleBuilder value={schedule} onChange={setSchedule} />
-        </div>
+      <div className="pt-2">
+        <ScheduleBuilder value={schedule} onChange={setSchedule} />
         {error && (
-          <div className="mx-auto max-w-md mt-4 p-4 bg-red-50 border border-red-200 rounded-2xl">
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
             <p className="text-sm text-red-600 text-center" role="alert">{error}</p>
           </div>
         )}

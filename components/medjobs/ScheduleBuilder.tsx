@@ -3,16 +3,26 @@
 import { useState, useCallback } from "react";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+const FULL_DAYS: Record<string, string> = {
+  Mon: "Monday",
+  Tue: "Tuesday",
+  Wed: "Wednesday",
+  Thu: "Thursday",
+  Fri: "Friday",
+  Sat: "Saturday",
+  Sun: "Sunday",
+};
+
 type Day = (typeof DAYS)[number];
 
 interface TimeSlot {
   start: string; // "09:00"
-  end: string;   // "14:00"
+  end: string;   // "17:00"
 }
 
 export type AvailabilitySchedule = Record<string, TimeSlot[]>;
 
-// Time options in 30-min increments
+// Time options in 30-min increments (6am to midnight)
 const TIME_OPTIONS: string[] = [];
 for (let h = 6; h <= 23; h++) {
   for (const m of ["00", "30"]) {
@@ -57,7 +67,7 @@ interface ScheduleBuilderProps {
 }
 
 export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderProps) {
-  const [addingDay, setAddingDay] = useState<Day | null>(null);
+  const [expandedDay, setExpandedDay] = useState<Day | null>(null);
   const [newStart, setNewStart] = useState("09:00");
   const [newEnd, setNewEnd] = useState("17:00");
 
@@ -66,7 +76,7 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
     const updated = [...existing, { start: newStart, end: newEnd }]
       .sort((a, b) => a.start.localeCompare(b.start));
     onChange({ ...value, [day]: updated });
-    setAddingDay(null);
+    setExpandedDay(null);
     setNewStart("09:00");
     setNewEnd("17:00");
   }, [value, onChange, newStart, newEnd]);
@@ -82,141 +92,120 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
 
   return (
     <div>
-      {/* Vertical columns calendar */}
-      <div className="grid grid-cols-7 gap-0 rounded-2xl border border-gray-200 overflow-hidden bg-white">
-        {DAYS.map((day, dayIdx) => {
+      {/* Day list */}
+      <div className="divide-y divide-gray-100">
+        {DAYS.map((day) => {
           const slots = value[day] || [];
-          const dayHours = slots.reduce((sum, s) => sum + slotHours(s), 0);
-          const isAdding = addingDay === day;
-          const isLast = dayIdx === DAYS.length - 1;
+          const isExpanded = expandedDay === day;
+          const hasSlots = slots.length > 0;
 
           return (
-            <div
-              key={day}
-              className={`flex flex-col ${!isLast ? "border-r border-gray-100" : ""}`}
-            >
-              {/* Day header */}
-              <div className={`px-1.5 py-2.5 text-center border-b ${
-                slots.length > 0 ? "border-primary-100 bg-primary-50/40" : "border-gray-100 bg-gray-50"
-              }`}>
-                <span className={`text-xs font-semibold ${
-                  slots.length > 0 ? "text-primary-700" : "text-gray-500"
-                }`}>
-                  {day}
-                </span>
-                {dayHours > 0 && (
-                  <p className="text-[10px] text-primary-500 mt-0.5">{dayHours}h</p>
-                )}
-              </div>
+            <div key={day} className="py-3">
+              {/* Day row */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  {/* Day name */}
+                  <p className={`text-sm font-medium ${hasSlots ? "text-gray-900" : "text-gray-500"}`}>
+                    {FULL_DAYS[day]}
+                  </p>
 
-              {/* Time slots stacked vertically */}
-              <div className="flex-1 flex flex-col gap-1 p-1.5 min-h-[120px]">
-                {slots.map((slot, i) => (
-                  <div
-                    key={i}
-                    className="group relative bg-primary-50 border border-primary-100 rounded-lg px-1.5 py-1.5 text-center"
-                  >
-                    <p className="text-[11px] font-medium text-primary-700 leading-tight">
-                      {formatTime(slot.start)}
-                    </p>
-                    <p className="text-[9px] text-primary-400 leading-tight">to</p>
-                    <p className="text-[11px] font-medium text-primary-700 leading-tight">
-                      {formatTime(slot.end)}
-                    </p>
-                    {!readOnly && (
-                      <button
-                        type="button"
-                        onClick={() => removeSlot(day, i)}
-                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white border border-gray-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50 hover:border-red-200"
-                        aria-label="Remove"
-                      >
-                        <svg className="w-2.5 h-2.5 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {slots.length === 0 && !isAdding && (
-                  <div className="flex-1 flex items-center justify-center">
-                    <span className="text-[10px] text-gray-300">—</span>
-                  </div>
-                )}
+                  {/* Existing slots */}
+                  {hasSlots && (
+                    <div className="mt-1.5 space-y-1">
+                      {slots.map((slot, i) => (
+                        <div
+                          key={i}
+                          className="group flex items-center gap-2"
+                        >
+                          <span className="text-sm text-gray-600">
+                            {formatTime(slot.start)} – {formatTime(slot.end)}
+                          </span>
+                          {!readOnly && (
+                            <button
+                              type="button"
+                              onClick={() => removeSlot(day, i)}
+                              className="p-0.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Remove time slot"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {/* Add button */}
-                {!readOnly && (
+                {!readOnly && !isExpanded && (
                   <button
                     type="button"
-                    onClick={() => setAddingDay(isAdding ? null : day)}
-                    className={`mt-auto mx-auto w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
-                      isAdding
-                        ? "bg-primary-600 text-white shadow-sm"
-                        : "text-gray-300 hover:text-primary-600 hover:bg-primary-50"
-                    }`}
-                    aria-label={`Add time for ${day}`}
+                    onClick={() => setExpandedDay(day)}
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
+                    <span>Add</span>
                   </button>
                 )}
               </div>
+
+              {/* Inline add form */}
+              {isExpanded && !readOnly && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <select
+                    value={newStart}
+                    onChange={(e) => setNewStart(e.target.value)}
+                    className="text-sm bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
+                  >
+                    {TIME_OPTIONS.map((t) => (
+                      <option key={`s-${t}`} value={t}>{formatTime(t)}</option>
+                    ))}
+                  </select>
+
+                  <span className="text-xs text-gray-400">to</span>
+
+                  <select
+                    value={newEnd}
+                    onChange={(e) => setNewEnd(e.target.value)}
+                    className="text-sm bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
+                  >
+                    {TIME_OPTIONS.filter((t) => t > newStart || t === "00:00").map((t) => (
+                      <option key={`e-${t}`} value={t}>{formatTime(t)}</option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => addSlot(day)}
+                    className="px-3 py-1.5 text-xs font-semibold bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Add
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setExpandedDay(null)}
+                    className="px-2 py-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* Add time form — appears below the calendar */}
-      {addingDay && !readOnly && (
-        <div className="mt-3 bg-gray-50 rounded-xl border border-gray-200 px-4 py-3">
-          <p className="text-xs font-medium text-gray-600 mb-2">
-            Add time for <span className="font-semibold text-gray-900">{addingDay}</span>
-          </p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <select
-              value={newStart}
-              onChange={(e) => setNewStart(e.target.value)}
-              className="text-sm bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400"
-            >
-              {TIME_OPTIONS.map((t) => (
-                <option key={`s-${t}`} value={t}>{formatTime(t)}</option>
-              ))}
-            </select>
-            <span className="text-xs text-gray-400 font-medium">to</span>
-            <select
-              value={newEnd}
-              onChange={(e) => setNewEnd(e.target.value)}
-              className="text-sm bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400"
-            >
-              {TIME_OPTIONS.filter((t) => t > newStart || t === "00:00").map((t) => (
-                <option key={`e-${t}`} value={t}>{formatTime(t)}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => addSlot(addingDay)}
-              className="px-3.5 py-1.5 text-xs font-semibold bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
-            >
-              Add
-            </button>
-            <button
-              type="button"
-              onClick={() => setAddingDay(null)}
-              className="px-2 py-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Total hours footer */}
+      {/* Total hours */}
       {hasAnySlots && (
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary-500" />
-          <span className="text-sm font-semibold text-gray-900">{hours} hours/week</span>
-          <span className="text-xs text-gray-400">available</span>
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <p className="text-sm text-gray-500">
+            <span className="font-semibold text-gray-900">{hours} hours</span> per week
+          </p>
         </div>
       )}
     </div>

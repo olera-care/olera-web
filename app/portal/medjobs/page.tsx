@@ -1580,7 +1580,7 @@ function StudentPortalContent({
             <ScenariosCard meta={meta} onEdit={() => setEditingSection("scenarios")} />
             <BackgroundCard meta={meta} onEdit={() => setEditingSection("background")} />
             <CertificationsCard meta={meta} onEdit={() => setEditingSection("certifications")} />
-            <ResumeCard meta={meta} onEdit={() => setEditingSection("resume")} />
+            <ResumeCard meta={meta} profileId={profile.id} onEdit={() => setEditingSection("resume")} />
 
             {/* Verification Card — Final step to go live */}
             <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 p-6">

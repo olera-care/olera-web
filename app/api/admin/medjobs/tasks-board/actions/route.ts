@@ -70,6 +70,23 @@ type Body =
       website?: string;
       address?: string;
     }
+  | {
+      /**
+       * A sweep's found list, saved as it is typed.
+       *
+       * The sweep has no task row of its own — it is derived from the
+       * absence of a completed one — so what was typed into it lived on an
+       * object in the page and nowhere else. Five of the writes on that
+       * screen reload the board, which replaces that object, so a list built
+       * over a sitting could vanish without anybody touching it. It is
+       * written to a pending site_tasks row now, which is also what lets
+       * somebody add a few and come back.
+       */
+      op: "save_sweep_found";
+      recordId: string;
+      found?: Array<Record<string, unknown>>;
+      note?: string;
+    }
   | { op: "unarchive_record"; recordId: string }
   | { op: "clear_flag"; recordId: string }
   | { op: "delete_record"; recordId: string; reason?: string }
@@ -133,6 +150,35 @@ const stamp = (userId: string) => ({
  * handing somebody a research task for a record they have just researched is
  * asking them to do it twice.
  */
+/** What a sweep found, cleaned, however it arrived. */
+function cleanFound(raw: unknown): Array<{
+  name: string;
+  contact: string;
+  role: string;
+  phone: string;
+  email: string;
+  website: string;
+  address: string;
+}> {
+  if (!Array.isArray(raw)) return [];
+  const str = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
+  return raw
+    .slice(0, 100)
+    .map((f) => {
+      const r = (f ?? {}) as Record<string, unknown>;
+      return {
+        name: str(r.name, 200),
+        contact: str(r.contact, 200),
+        role: str(r.role, 200),
+        phone: str(r.phone, 50),
+        email: str(r.email, 200),
+        website: str(r.website, 500),
+        address: str(r.address, 500),
+      };
+    })
+    .filter((f) => f.name !== "");
+}
+
 async function createFound(
   db: ReturnType<typeof getServiceClient>,
   section: "providers" | "advisors",
@@ -304,6 +350,45 @@ export async function POST(req: Request) {
   const sweep = parseSweepId(body.recordId);
   if (sweep) {
     const { taskType, section } = SWEEPS[sweep.kind];
+
+    // Saving as you type. The row is pending until the sweep is finished, so
+    // the board still shows the task and what has been put in it so far.
+    if (body.op === "save_sweep_found") {
+      const list = cleanFound(body.found);
+      const { data: open } = await db
+        .from("site_tasks")
+        .select("id, status")
+        .eq("campus_id", sweep.campusId)
+        .eq("task_type", taskType)
+        .maybeSingle();
+
+      // A finished sweep is finished. Reopening it would let the same
+      // offices be created twice.
+      if (open?.status === "completed") {
+        return NextResponse.json({ error: "That sweep is already done" }, { status: 409 });
+      }
+
+      const row = {
+        campus_id: sweep.campusId,
+        task_type: taskType,
+        channel: null,
+        due_at: new Date().toISOString(),
+        status: "pending",
+        payload: { found: list },
+        notes: (body.note ?? "").trim() || null,
+        created_by: user.id,
+      };
+      const { error } = open
+        ? await db.from("site_tasks").update(row).eq("id", open.id)
+        : await db.from("site_tasks").insert(row);
+      // A unique violation means somebody else created the row between the
+      // read and the write, which is the row being there — not a failure.
+      if (error && error.code !== "23505") {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ ok: true, saved: list.length });
+    }
+
     if (body.op !== "complete_record_task") {
       return NextResponse.json(
         { error: "A sweep can only be logged, not deferred or reopened." },
@@ -314,18 +399,19 @@ export async function POST(req: Request) {
     // the sweep is marked done. The other order would let a failure halfway
     // leave a campus with its sweep closed and nothing to show for it, and a
     // sweep cannot be reopened.
-    const raw = Array.isArray(body.found) ? body.found.slice(0, 100) : [];
-    const found = raw
-      .map((f) => ({
-        name: String(f?.name ?? "").trim().slice(0, 200),
-        contact: String(f?.contact ?? "").trim().slice(0, 200),
-        role: String(f?.role ?? "").trim().slice(0, 200),
-        phone: String(f?.phone ?? "").trim().slice(0, 50),
-        email: String(f?.email ?? "").trim().slice(0, 200),
-        website: String(f?.website ?? "").trim().slice(0, 500),
-        address: String(f?.address ?? "").trim().slice(0, 500),
-      }))
-      .filter((f) => f.name !== "");
+    const sent = cleanFound(body.found);
+    // What the page sent wins, but what was saved along the way is the
+    // fallback: a board reloaded between the last save and the button press
+    // hands back a task with an empty list, and finishing then would create
+    // nothing out of a morning's work.
+    const { data: existingRow } = await db
+      .from("site_tasks")
+      .select("id, status, payload")
+      .eq("campus_id", sweep.campusId)
+      .eq("task_type", taskType)
+      .maybeSingle();
+    const saved = cleanFound((existingRow?.payload as { found?: unknown })?.found);
+    const found = sent.length > 0 ? sent : saved;
 
     let made = 0;
     if (found.length > 0) {
@@ -351,13 +437,13 @@ export async function POST(req: Request) {
       }
     }
 
-    // A plain insert, not an upsert. The unique index behind each sweep is
-    // partial, and a partial index cannot satisfy ON CONFLICT (campus_id) —
-    // Postgres answers "no unique or exclusion constraint matching the ON
-    // CONFLICT specification", which is a 500 to whoever pressed the button.
-    // So: insert, and treat the unique violation a double click causes as
-    // what it is, which is the row already being there.
-    const { error } = await db.from("site_tasks").insert({
+    // Update the row saving-as-you-type left behind, or insert one if the
+    // whole sweep was done without a save landing. Not an upsert: the unique
+    // index behind each sweep is partial, and a partial index cannot satisfy
+    // ON CONFLICT (campus_id) — Postgres answers "no unique or exclusion
+    // constraint matching the ON CONFLICT specification", which is a 500 to
+    // whoever pressed the button.
+    const done = {
       campus_id: sweep.campusId,
       task_type: taskType,
       channel: null,
@@ -368,7 +454,12 @@ export async function POST(req: Request) {
       created_by: user.id,
       payload: { found, added: made },
       notes: (body.note ?? "").trim() || null,
-    });
+    };
+    const { error } = existingRow
+      ? await db.from("site_tasks").update(done).eq("id", existingRow.id)
+      : await db.from("site_tasks").insert(done);
+    // A unique violation is the row already being there, which for a double
+    // click is what should happen — not a failure.
     if (error && error.code !== "23505") {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }

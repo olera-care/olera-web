@@ -529,6 +529,17 @@ export default function UniversityFlow({
           onFound={(next) => {
             task.found = next;
             force((n) => n + 1);
+            // Saved the moment it is typed, not held until the sweep is
+            // finished. It used to live on this object and nowhere else, and
+            // five of the writes on this screen reload the board and replace
+            // it — so a list built over a sitting could empty itself with
+            // nobody touching it. This is also what lets somebody add a few
+            // and come back tomorrow.
+            void send(
+              { op: "save_sweep_found", recordId: record.id, found: next, note: task.note },
+              "",
+              { keepBoard: true },
+            );
           }}
           onFieldValue={(key, value) => {
             task.fields = { ...(task.fields ?? {}), [key]: value };

@@ -598,10 +598,14 @@ export async function GET() {
     // row this ever reads is the completed one.
     for (const kind of ["map", "advisor"] as const) {
       const sweep = SWEEPS[kind];
-      const done = (siteTasksByCampus.get(campus.id) ?? []).some(
-        (t) => t.task_type === sweep.taskType && t.status === "completed",
+      const row = (siteTasksByCampus.get(campus.id) ?? []).find(
+        (t) => t.task_type === sweep.taskType,
       );
-      if (done) continue;
+      if (row?.status === "completed") continue;
+      // What has been typed into the sweep so far. It is saved as it is
+      // entered, onto a pending row, so a board reload does not empty it and
+      // somebody can add a few and come back.
+      const found = ((row?.payload as { found?: unknown })?.found ?? []) as unknown[];
       const step = LADDERS[sweep.section].steps.findIndex((r) => r.branch === sweep.branch);
       if (step < 0) continue;
       const id = sweepId(kind, campus.id);
@@ -629,10 +633,11 @@ export async function GET() {
             dueAt: day(new Date().toISOString()),
             done: false,
             outcome: null,
-            note: "",
+            note: (row?.notes as string) ?? "",
             loggedOn: null,
             spawned: [],
             spawnedRecords: [],
+            found: found as BoardTask["found"],
             // The rung renders this as its link. Building it here means the
             // operator does not retype the campus into a search box, and the
             // same search runs at every university.

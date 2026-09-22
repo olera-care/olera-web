@@ -350,7 +350,12 @@ function DashboardContent({
   }, [setEditingSection, guided, previewMode]);
 
   const handleSaved = useCallback(async () => {
-    await refreshAccountData();
+    // Move the UI first, refetch after. refreshAccountData re-reads accounts,
+    // every business_profile and membership, which measured 1.0–3.0s in the
+    // console on a real save. Awaiting it before closing the editor meant the
+    // modal sat open and the nudge arrived about three seconds late. None of
+    // the state below depends on the refetch: the editor has already written
+    // the change, so the cards re-render when it lands a moment later.
     editSavedRef.current = true;
     if (editingSection) setLastSavedSection(editingSection);
     let finishedEditing = false;
@@ -376,6 +381,7 @@ function DashboardContent({
       editNudgeShownRef.current = true;
       setShowEditNudge(true);
     }
+    await refreshAccountData();
   }, [refreshAccountData, guided, editingSection, setEditingSection, previewMode]);
 
   const handleGuidedBack = useCallback(() => {

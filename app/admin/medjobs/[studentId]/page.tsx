@@ -86,19 +86,28 @@ export default function AdminMedJobsDetailPage() {
   async function viewDocument(path: string, docType: string) {
     if (!path) return;
     setViewingDoc(docType);
+
+    // Open window synchronously to avoid popup blocker
+    // (async window.open calls may be blocked by browsers)
+    const newWindow = window.open("about:blank", "_blank");
+
     try {
       const res = await fetch("/api/admin/medjobs/view-document", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path, studentProfileId: studentId }),
+        body: JSON.stringify({ path }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.open(data.url, "_blank");
-      } else {
+      if (data.url && newWindow) {
+        newWindow.location.href = data.url;
+      } else if (newWindow) {
+        newWindow.close();
         alert(data.error || "Failed to load document");
+      } else {
+        alert(data.error || "Popup blocked - please allow popups for this site");
       }
     } catch {
+      if (newWindow) newWindow.close();
       alert("Failed to load document");
     } finally {
       setViewingDoc(null);

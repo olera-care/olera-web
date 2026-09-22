@@ -298,7 +298,11 @@ export async function GET() {
   const othersOf = new Map<string, ExtraContact[]>();
   for (const c of contactsRes.data ?? []) {
     const name = c.name || [c.first_name, c.last_name].filter(Boolean).join(" ");
-    if (!name && !c.email && !c.phone) continue;
+    // Role counts. A sweep often finds "Director of Health Professions
+    // Advising" before it finds who holds the post, and dropping the row for
+    // want of a name meant the role was typed in, saved, and never seen
+    // again — which reads as the research not persisting.
+    if (!name && !c.email && !c.phone && !c.role) continue;
     const person: Person = {
       contact: name ?? "",
       role: c.role ?? "",

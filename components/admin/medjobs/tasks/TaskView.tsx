@@ -70,6 +70,7 @@ export default function TaskView({
   onNote,
   onField,
   onFound,
+  saving,
   onFieldValue,
   onWebsite,
   onAddress,
@@ -88,8 +89,13 @@ export default function TaskView({
   onStop: (reason: string) => void;
   onNote: (text: string) => void;
   onField: (field: ContactField, value: string) => void;
-  /** Research rungs: the names found, which become records on finishing. */
+  /** Research rungs: each addition becomes a record straight away. */
   onFound: (found: FoundRecord[]) => void;
+  /** A write is in flight. The found list locks, because each of its
+   *  buttons creates, updates or archives a record, and pressing two
+   *  before the first has answered is how the same office gets added
+   *  twice. */
+  saving?: boolean;
   /** A typed value the rung asked for. */
   onFieldValue: (key: string, value: string) => void;
   /** The three record fields a confirming call also puts right. */
@@ -436,6 +442,7 @@ export default function TaskView({
               found={found}
               noun={rung.foundNoun ?? "one"}
               onChange={onFound}
+              saving={saving}
             />
           )}
 
@@ -760,16 +767,23 @@ const summarise = (f: FoundRecord) => {
  * the record's own labels. Somebody adding an agency is looking at its
  * website while they do it — giving them three boxes now and asking for the
  * rest on a later rung is asking them to find the same page twice.
+ *
+ * Every change here reaches a record. Add creates one, Edit updates it, and
+ * × archives it — the list is a receipt of what the sweep produced, not a
+ * holding pen that turns into records when the sweep is finished.
  */
 function FoundList({
   found,
   noun,
   onChange,
+  saving,
 }: {
   found: FoundRecord[];
   /** What one of these is called, for the empty form's first box. */
   noun: string;
   onChange: (next: FoundRecord[]) => void;
+  /** A write is in flight, so nothing that writes may be pressed. */
+  saving?: boolean;
 }) {
   const [draft, setDraft] = useState<FoundRecord>({ name: "" });
   /** Which row is being corrected, or null when adding a new one. */
@@ -806,7 +820,7 @@ function FoundList({
         <ul className="mt-1">
           {found.map((f, i) => (
             <li
-              key={`${f.name}-${i}`}
+              key={f.id ?? `${f.name}-${i}`}
               className="flex items-start gap-2 border-b border-gray-100 py-2 last:border-b-0"
             >
               <div className="min-w-0 flex-1">
@@ -817,22 +831,25 @@ function FoundList({
               </div>
               <button
                 type="button"
+                disabled={saving}
                 onClick={() => {
                   setDraft(f);
                   setEditing(i);
                 }}
-                className="shrink-0 text-[11.5px] text-gray-400 underline hover:text-gray-700"
+                className="shrink-0 text-[11.5px] text-gray-400 underline hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Edit
               </button>
               <button
                 type="button"
                 aria-label={`Remove ${f.name}`}
+                title={`Remove ${f.name}. It was created as a record when it was added, so removing it here archives that record.`}
+                disabled={saving}
                 onClick={() => {
                   onChange(found.filter((_, j) => j !== i));
                   if (editing === i) reset();
                 }}
-                className="shrink-0 px-1 text-[15px] leading-none text-gray-400 hover:text-error-700"
+                className="shrink-0 px-1 text-[15px] leading-none text-gray-400 hover:text-error-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 ×
               </button>
@@ -927,10 +944,10 @@ function FoundList({
           <button
             type="button"
             onClick={commit}
-            disabled={!draft.name.trim()}
-            className={draft.name.trim() ? BTN : `${BTN} cursor-not-allowed opacity-40`}
+            disabled={!draft.name.trim() || saving}
+            className={draft.name.trim() && !saving ? BTN : `${BTN} cursor-not-allowed opacity-40`}
           >
-            {editing === null ? "Add" : "Save"}
+            {saving ? "Saving…" : editing === null ? "Add" : "Save"}
           </button>
           {editing !== null && (
             <button

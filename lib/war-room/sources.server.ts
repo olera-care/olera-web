@@ -151,7 +151,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
   // number of channels.
   const deadline = Date.now() + 45_000;
   const threadBudget: ThreadBudget = { remaining: THREAD_FETCHES_PER_SCAN };
-  const results: Array<{ channel: string; imported?: number; error?: string; threadsRead?: number }> = [];
+  const results: Array<{ channel: string; imported?: number; error?: string; threadsRead?: number; replies?: number; threadError?: string }> = [];
   let imported = 0;
   let lastIndex = previousIndex;
 
@@ -277,7 +277,7 @@ async function backfillSlackChannel(
   oldest: string,
   deadline: number,
   budget: ThreadBudget,
-): Promise<{ imported?: number; error?: string; threadsRead?: number }> {
+): Promise<{ imported?: number; error?: string; threadsRead?: number; replies?: number; threadError?: string }> {
   try {
     // Slack's custom-app history limit is intentionally respected here: one
     // allowlisted channel, one bounded page, per discovery run. Fresh messages
@@ -305,6 +305,14 @@ async function backfillSlackChannel(
       : [];
 
     let threadsRead = 0;
+    let replies = 0;
+    // The first thread failure, kept rather than swallowed.
+    //
+    // The previous version caught and discarded it, so a scan that opened
+    // twenty threads and stored zero replies looked identical to a scan whose
+    // threads were genuinely empty. That is exactly what the first run after
+    // shipping thread reading produced, and there was nothing to read.
+    let threadError: string | undefined;
     for (const parent of threads) {
       if (Date.now() >= deadline || budget.remaining <= 0) break;
       budget.remaining -= 1;
@@ -318,14 +326,23 @@ async function backfillSlackChannel(
         // skipping it keeps the imported count honest.
         for (const reply of (thread.messages ?? []).filter(usable)) {
           if (reply.ts === parent.ts) continue;
+          replies += 1;
           items.push(slackItem(channel, reply));
         }
-      } catch {
-        // One unreadable thread must not cost the rest of the channel.
+      } catch (threadFailure) {
+        // One unreadable thread must not cost the rest of the channel -- but it
+        // must not vanish either. Only the first is kept: twenty copies of the
+        // same `ratelimited` says no more than one does.
+        threadError ??= threadFailure instanceof Error ? threadFailure.message : String(threadFailure);
       }
     }
 
-    return { imported: await upsertSourceItems(db, items), threadsRead };
+    return {
+      imported: await upsertSourceItems(db, items),
+      threadsRead,
+      replies,
+      ...(threadError ? { threadError } : {}),
+    };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }

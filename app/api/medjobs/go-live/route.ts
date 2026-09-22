@@ -44,6 +44,10 @@ function resolvePartnerUniversity(campus: string): PartnerUniversity | null {
  * on the FIRST time the student goes live — notifies providers being worked in
  * the student's campus catchment that a new candidate is ready to interview.
  *
+ * IMPORTANT: This endpoint now requires admin approval first. Students must
+ * use /api/medjobs/request-review, then an admin must approve via the admin
+ * panel. Only after approval can this endpoint be used to go live.
+ *
  * The catchment notification is fully isolated: any failure there never blocks
  * the go-live itself.
  */
@@ -72,6 +76,15 @@ export async function POST(_request: NextRequest) {
 
     const wasLive = !!student.is_active;
     const meta = (student.metadata ?? {}) as Record<string, unknown>;
+
+    // Require admin approval before allowing go-live
+    // The admin approve endpoint sets approved_by when approving
+    if (!meta.approved_by) {
+      return NextResponse.json(
+        { error: "Profile must be approved by an admin before going live. Please request a review first." },
+        { status: 403 }
+      );
+    }
 
     // Idempotent write — is_active + application_completed.
     const { error: updateError } = await admin

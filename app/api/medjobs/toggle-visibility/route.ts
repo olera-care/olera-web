@@ -64,6 +64,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // When going visible, verify video intro is still present (required to be live)
+    if (visible && !meta.video_intro_url) {
+      return NextResponse.json(
+        { error: "Video introduction is required to go live. Please upload a video first." },
+        { status: 400 }
+      );
+    }
+
     // Update visibility
     const { error: updateError } = await admin
       .from("business_profiles")

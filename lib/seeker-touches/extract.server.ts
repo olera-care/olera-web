@@ -184,12 +184,18 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
     fields[key] = next;
   }
 
-  // Defensive against a stored shape that predates or postdates this one:
-  // spreading an undefined throws, and the throw is swallowed upstream, which
-  // would silently kill the feature for that one family and nowhere else.
-  const also_noted = Array.from(
-    new Set([...(fresh.also_noted ?? []), ...(existing.also_noted ?? [])]),
-  ).slice(0, 4);
+  // FIELDS MERGE FORWARD, QUOTES DO NOT.
+  //
+  // A field is a durable fact about the case: last week's call established the
+  // payment type and this week's silence about it does not unestablish it. A
+  // quote is tied to one conversation. Unioning them across reads produced a
+  // strip that said "in your words" above three fragments, none of which were
+  // in the note the reader had just written — they came from two earlier calls
+  // about other things. That is precisely the failure the verbatim check was
+  // written to prevent, arriving one layer further down, and it is worse than
+  // paraphrase because each fragment is genuinely a real quote, just not of
+  // this note.
+  const also_noted = (fresh.also_noted ?? []).slice(0, 4);
   return {
     fields,
     also_noted,

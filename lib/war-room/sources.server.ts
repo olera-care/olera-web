@@ -135,10 +135,61 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
     .eq("source_key", "slack_history")
     .maybeSingle();
   const previousIndex = Number((state?.metadata as { channel_index?: number } | null)?.channel_index ?? -1);
-  const channelIndex = (previousIndex + 1) % channels.length;
-  const channel = channels[channelIndex];
   const oldest = String(Math.floor((Date.now() - 90 * 86_400_000) / 1_000));
 
+  // As many channels as fit in a budget, not one per scan.
+  //
+  // One channel per run was fine when the allowlist was expected to hold two or
+  // three. Asked to read everything, twelve channels on a daily scan meant a
+  // twelve-day wait before the last one was read even once, and a channel added
+  // today would be silently invisible for most of a fortnight. Live messages
+  // still arrive through the Events API; this is the backfill, and it should not
+  // be the thing that decides how long the system stays half-blind.
+  //
+  // Bounded by a deadline rather than a count, because the binding constraint is
+  // the 300-second route ceiling shared with Notion and the model calls, not the
+  // number of channels.
+  const deadline = Date.now() + 45_000;
+  const results: Array<{ channel: string; imported?: number; error?: string }> = [];
+  let imported = 0;
+  let lastIndex = previousIndex;
+
+  for (let step = 1; step <= channels.length; step++) {
+    if (Date.now() >= deadline) break;
+    const channelIndex = (previousIndex + step) % channels.length;
+    const channel = channels[channelIndex];
+    lastIndex = channelIndex;
+    const outcome = await backfillSlackChannel(db, token, channel, oldest);
+    results.push({ channel: channel.label, ...outcome });
+    imported += outcome.imported ?? 0;
+  }
+
+  // Every channel's outcome, not just the last one. A channel the bot has not
+  // been invited to fails with `not_in_channel` forever, and under the old
+  // one-at-a-time state that fact surfaced for a single channel per day and was
+  // overwritten before anyone saw the pattern.
+  const failures = results.filter((entry) => entry.error);
+  await writeSourceState(db, "slack_history", {
+    success: failures.length < results.length,
+    error: failures.length ? failures.map((f) => `#${f.channel}: ${f.error}`).join("; ").slice(0, 500) : undefined,
+    metadata: { channel_index: lastIndex, channels_read: results.length, results },
+  });
+  return {
+    configured: true,
+    imported,
+    detail: failures.length
+      ? `Read ${results.length} channel(s), ${failures.length} failed: ${failures.map((f) => `#${f.channel}`).join(", ")}`
+      : `Backfilled ${results.length} channel(s)`,
+  };
+}
+
+/** One channel's bounded page. Never throws: a channel the bot cannot read must not stop the rest. */
+async function backfillSlackChannel(
+  db: SupabaseClient,
+  token: string,
+  channel: SlackChannelConfig,
+  oldest: string,
+): Promise<{ imported?: number; error?: string }> {
   try {
     // Slack's custom-app history limit is intentionally respected here: one
     // allowlisted channel, one bounded page, per discovery run. Fresh messages
@@ -179,19 +230,9 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
           },
         };
       });
-    const imported = await upsertSourceItems(db, items);
-    await writeSourceState(db, "slack_history", {
-      success: true,
-      metadata: { channel_index: channelIndex, channel_id: channel.id, channel_label: channel.label },
-    });
-    return { configured: true, imported, detail: `Backfilled #${channel.label}` };
+    return { imported: await upsertSourceItems(db, items) };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await writeSourceState(db, "slack_history", {
-      error: message,
-      metadata: { channel_index: channelIndex, channel_id: channel.id, channel_label: channel.label },
-    });
-    return { configured: true, imported: 0, detail: `Slack backfill failed: ${message}` };
+    return { error: error instanceof Error ? error.message : String(error) };
   }
 }
 

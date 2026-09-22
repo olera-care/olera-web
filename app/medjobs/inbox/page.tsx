@@ -11,6 +11,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, ConnectionStatus, Profile } from "@/lib/types";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import { getPostings, setStoragePrefix, updatePosting } from "@/lib/medjobs/job-postings";
+import { getMajorLabel } from "@/lib/medjobs-helpers";
 import Modal from "@/components/ui/Modal";
 
 /* ─── Types ─────────────────────────────────────────────── */
@@ -1454,7 +1455,7 @@ function MedJobsInboxContent() {
             {/* Detail lines */}
             {(() => {
               const meta = (selected.otherProfile?.metadata || {}) as Record<string, unknown>;
-              const major = meta.major as string | undefined;
+              const major = getMajorLabel(meta.major as string | undefined);
               const school = meta.university as string | undefined;
               const gradYear = meta.graduation_year as number | undefined;
               const certs = (meta.certifications || []) as string[];

@@ -7,6 +7,7 @@ import {
   formatHoursPerWeek,
   formatDuration,
   formatAvailability,
+  getMajorLabel,
 } from "@/lib/medjobs-helpers";
 
 /**
@@ -188,8 +189,8 @@ export default function CandidateDetailPanel({
             <div className="space-y-2.5">
               {meta.major && (
                 <div>
-                  <p className="text-xs text-gray-500">Major</p>
-                  <p className="text-sm font-medium text-gray-900">{meta.major}</p>
+                  <p className="text-xs text-gray-500">Program</p>
+                  <p className="text-sm font-medium text-gray-900">{getMajorLabel(meta.major)}</p>
                 </div>
               )}
               {meta.years_caregiving != null && meta.years_caregiving > 0 && (

@@ -13,6 +13,7 @@ import {
   hasVideo,
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
+  getMajorLabel,
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
@@ -509,7 +510,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     <div>
                       <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
                       <dd className="text-base font-semibold text-gray-900">{meta.university}</dd>
-                      {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{meta.major}</dd>}
+                      {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{getMajorLabel(meta.major)}</dd>}
                     </div>
                   )}
                   <div>

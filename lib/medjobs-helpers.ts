@@ -52,6 +52,21 @@ export const PROGRAM_TRACK_LABELS: Record<StudentProgramTrack, string> = {
   other: "Other",
 };
 
+/** Display labels for major field program tracks */
+export const MAJOR_LABELS: Record<string, string> = {
+  pre_med: "Pre-Med",
+  pre_nursing: "Pre-Nursing",
+  pre_pa: "Pre-PA",
+  pre_pt: "Pre-PT",
+  other_health: "Other Health Professional",
+};
+
+/** Get display label for major field value */
+export function getMajorLabel(major: string | undefined | null): string | null {
+  if (!major) return null;
+  return MAJOR_LABELS[major] || major;
+}
+
 /** Get the best display label for a student's career track.
  *  Prefers intended_professional_school, falls back to program_track. */
 export function getTrackLabel(meta: StudentMetadata): string | null {

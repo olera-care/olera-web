@@ -7,6 +7,44 @@
 
 ## Current Focus
 
+### 2026-09-22 — Ad Boost full-book audit: delivery is closed, the instant form clears the $76 bar, and Ces is on twelve families (`fresh-joliot`, no code, production state + artifacts)
+
+**No code changed.** Outputs are 17 `ad_campaign_log` observations, all six `city_campaigns.admin_note` appended, `~/Desktop/adboost-state-of-play.md` rewritten, one new artifact, one existing artifact updated to v6, and two Slack messages sent.
+
+#### The three findings
+
+**1. Delivery is solved, and it was ramp, not price.** Franchil went from 15 impressions in 16 days to **376 / 30 clicks / $2.36 CPC** with *nothing touched since 4 Sep* (change history read at source: 9 changes lifetime, last one 4 Sep 06:00). Same $2.50 cap throughout. All five restored June keywords, at zero on both the 4 and 7 Sep reads, now fire. The 7 Sep "leading suspect: price" is dead. Google's build-time CPC estimate was **high on every 7 Sep build** — $3.68 vs realised $2.02, $3.61 vs $1.82, $2.94 vs $2.08 — so the "gate `/ad-boost-setup` on Google's estimate" fix, written up 7 Sep as the highest-leverage structural change, would have raised three caps that never needed raising. Do not build it. Miracle's "proven H2" is now *doubtful*: settled CPC $2.44, inside the $2.50 cap it was raised from.
+
+**2. The city gate is past and the Google arm fails it.** 281 clean paid visits against a ~130 pre-committed threshold. Engagement 11.7% pooled = the "half works, do not add budget" band. Google city: $492.26, 161 clicks, 91 instrumented visits, **zero submitted leads**; CPL interval $89–$2,787, entirely above the $76 bar.
+
+**3. The Meta instant form is the first arm ever to clear the bar on its whole interval.** 8 leads / $224.15 = **$28.02, CI $15.42–$54.07**. Hoop's Pascagoula form: 3 leads / $29.55 = $9.85. Link-click to lead: form 12.9%, Meta web 3.4%, Google 0.6% (form vs web Fisher p=0.0092). Programme city CPL $110.66 → **$61.88**, or $73.48 families-only. *Mechanism, new:* the form is the only arm that hands its platform a conversion signal. Pixel `803096730985728` still holds PageView only (774 events, no Lead lifetime, 6th consecutive audit), so both web arms optimise toward an event Meta has never observed. Better explanation than form friction, and testable.
+
+#### Where I was wrong, twice
+
+- **Told Ces a reply alone routes a request.** False since 21 Sep. `offers.server.ts:231` gates on `qualification_reply_at && qualification_verdict === "care_seeker"`; a null verdict holds too. I described behaviour TJ's own classifier had fixed the day before, and attributed the claim to him when I had written it myself in the 19 Sep artifact. TJ caught it by asking "is this in fact the case or are you making this up". **Verify the mechanism in the code before writing it into a message to a teammate.**
+- **Repeated SCRATCHPAD's "Hoop answered her first inquiry in 57 seconds by a human."** The 57-second event is the automated `quick_reply_request`. First human `read_by` is 21 Sep 16:18, 43 hours later, after an unread reminder fired. Corrected in the case log.
+
+#### Facts worth keeping
+
+- **Routing went live and has a delivery defect.** 12 of 14 `city_pool` rows enabled, first 10 `city_lead_offers` rows ever, **1 accepted** (Assisting Hands took Rudy in 17 minutes, 20 Sep). **4 of 10 reached nobody** — `reached_channels: []`, "both sends failed" for Cambridge Caregivers and Granny NANNIES on 20 Sep; the same two got email fine on 21 Sep. Unexplained.
+- **The three Nextdoor provider pilots never ran.** HomeWell, LumiWell, Rosemonte all Draft, 0 impressions, $0.00, windows elapsed, **rejected creatives = 0** so never a rejection. Third Nextdoor delivery failure running; it has never delivered a click for any *provider* campaign. SCRATCHPAD flagged this on 18 Sep and nothing was done.
+- **No admin action edits a lead's phone or email.** `/api/admin/city-ads` actions are archive/qualify/offer/accept/decline/note/text/pool only. Ces hit this on Jillanna, whose stored email `gracefulllyspeaking2@gmail.com` has three l's where the word has two and bounces. Recurs every time a family fat-fingers a digit.
+- Nextdoor city rows still `status='live'` at $7.76/$7.06 against PAUSED $38.08/$37.93, `metrics_updated_at` 11 Sep. **Ninth consecutive flag.** Neither instant-form campaign has a `city_campaigns` row, so the arm producing 11 of 19 leads is invisible to `buildChannelRollup`.
+- Four campaigns (Graceful, Miracle, Franchil, Edmonds) have **no end date in Google**. Graceful is $97.30 of its $150 authorisation at $4/day and crosses it around 5 Oct with nothing to stop it.
+
+#### Next up
+
+1. **Before Wed 24 Sep**: decline the second $300 per Google city arm; extend the Dallas instant form past 29 Sep and point one at a provider.
+2. **Share the Care Seeker Outreach artifact with Ces** — still owner-only, her access is `cchavez.olera@gmail.com` not her Slack address. Delete the mis-posted #provider-support message.
+3. **Patch Jillanna's email** (only TJ can; no admin path), and ticket the contact-edit gap.
+4. Register `olera-dallas-native-sep26` and `olera-pascagoula-native-sep26` as `city_campaigns` rows; fix Hoop's receipt, which shows her $16.50 of $46.05 real spend before a 15 Oct renewal.
+5. Decide Nextdoor: support ticket before re-dating the three pilots, or drop the channel.
+6. Next build: take `caregiver <city>` out of keyword sets. On Franchil it is the biggest spend line ($24.37 / 10 clicks) and carries both recorded conversions, both job seekers. The 21 jobseeker negatives cannot touch it because the intent is in the keyword.
+
+Artifacts: https://claude.ai/artifact/LEJWPnTRPU2oKbYNTMzGKa (The $76 Bar) · https://claude.ai/artifact/FBVS9tPDiXkt3pTGYbTsNq (Care Seeker Outreach, v6)
+
+---
+
 ### 2026-09-20 — Hoop Cares Meta instant-form arm is **LIVE**: ad published and in review, form rebuilt without the two friction gates, old traffic arm paused (`warm-swartz`, PRs #1971 #1975, promotions #1974 #1976, plus two prod env redeploys)
 
 **Where it stopped, and how it ended.** The ad publish was blocked by a Meta **account security checkpoint** (#3858385: *"Due to recent activity (e.g. login location), we think that someone may have tried to access your account without permission. To be safe, your ads won't run until you authenticate your account."*) — almost certainly this build being driven from Thailand. Nothing to do with the form, creative, audience or image. Campaign and ad set had published because neither serves anything; the ad is the only object that would run, so it was the only one held. Cleared by emailed confirmation code to `tfalohun@gmail.com` (TJ entered it). **Lesson: the ad-level "Fix error" panel is where the real text lives — the Ads table with `errors_quick_filter=AdGroup` shows nothing because a draft ad is not in that table.**

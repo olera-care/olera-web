@@ -26,7 +26,7 @@ import {
 import { deriveLeadSignals } from "@/lib/provider/lead-signals";
 import { QUICK_REPLY_CONFIG } from "@/lib/quick-reply-config";
 import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
-import { useHasActiveBoostRequest } from "@/hooks/useHasActiveBoostRequest";
+import { useBoostRequestSummary } from "@/hooks/useHasActiveBoostRequest";
 
 // ── Lead types (previously from mock file) ──
 
@@ -1909,7 +1909,7 @@ export default function ProviderLeadsPage() {
     if (typeof window === "undefined") return false;
     return sessionStorage.getItem("olera_ads_nudge_leads_dismissed") === "true";
   });
-  const hasActiveBoostRequest = useHasActiveBoostRequest();
+  const { hasActive: hasActiveBoostRequest, hasEver: hasEverRequestedBoost } = useBoostRequestSummary();
 
   // Verification state
   const { isVerified } = useProviderVerification();
@@ -2844,6 +2844,7 @@ export default function ProviderLeadsPage() {
               providerSlug={providerProfile.slug}
               providerName={providerProfile.display_name}
               hasActiveBoostRequest={hasActiveBoostRequest === true}
+              hasEverRequested={hasEverRequestedBoost}
               onDismiss={() => {
                 setShowAdsNudge(false);
                 setAdsNudgeDismissed(true);

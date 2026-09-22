@@ -9,7 +9,13 @@ import { getSiteUrl } from "@/lib/site-url";
 import { MANAGED_UTM_SOURCE, type ManagedUtm } from "./managed-utm";
 
 const EMAIL_TYPE = "ad_boost_lead_delivered";
-const SUBJECT = "Your Find Families campaign brought in a new family";
+/**
+ * Two subjects, because the old single one asserted a family had arrived on every
+ * lead including the ones that carried nothing. Franchil got it three times in
+ * September; two of those three were caregivers asking for work.
+ */
+const SUBJECT_ENRICHED = "Your Find Families campaign brought in a new family";
+const SUBJECT_UNENRICHED = "Someone asked you to get in touch";
 
 type SkipReason =
   | "not_managed"
@@ -31,7 +37,11 @@ export async function sendAdBoostLeadDeliveredEmail(opts: {
   careType: string | null;
   city?: string | null;
   careRecipient?: string | null;
+  /** False when the inquiry has no care details at all. */
+  enriched?: boolean;
 }): Promise<{ sent: boolean; skipped?: SkipReason; error?: string }> {
+  const enriched = opts.enriched !== false;
+  const SUBJECT = enriched ? SUBJECT_ENRICHED : SUBJECT_UNENRICHED;
   const campaignTag = opts.managedUtm.utmCampaign?.trim();
   if (opts.managedUtm.utmSource !== MANAGED_UTM_SOURCE) {
     return { sent: false, skipped: "not_managed" };
@@ -131,6 +141,7 @@ export async function sendAdBoostLeadDeliveredEmail(opts: {
       city: opts.city,
       careRecipient: opts.careRecipient,
       viewUrl,
+      enriched,
     }),
     emailType: EMAIL_TYPE,
     recipientType: "provider",

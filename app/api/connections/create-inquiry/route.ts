@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
 import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { readManagedUtmFromRequest, managedUtmMetadata } from "@/lib/ad-boost/managed-utm";
-import { sendAdBoostLeadDeliveredEmail } from "@/lib/ad-boost/lead-notifications.server";
+import { holdProviderLeadNotifications } from "@/lib/leads/provider-notifications.server";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -135,15 +135,8 @@ export async function POST(request: Request) {
       toProfileId = newProfile.id;
     }
 
-    const { data: providerProfileForEmail } = await db
-      .from("business_profiles")
-      .select("email, display_name, metadata")
-      .eq("id", toProfileId)
-      .maybeSingle();
-    const providerEmail = providerProfileForEmail?.email || provider.email || null;
-    const providerDisplayName = providerProfileForEmail?.display_name || provider.provider_name;
-    const providerMeta = (providerProfileForEmail?.metadata || {}) as Record<string, unknown>;
-    const providerLeadsUnsubscribed = !!providerMeta.leads_unsubscribed;
+    // Provider email, display name and unsubscribe state are read at SEND time
+    // now, inside lib/leads/provider-notifications.server.ts, not here.
 
     // Check for existing connection
     const { data: existingConnection } = await db
@@ -246,20 +239,14 @@ export async function POST(request: Request) {
       },
     });
 
-    if (managedUtm.utmCampaign && providerEmail && !providerLeadsUnsubscribed) {
-      void sendAdBoostLeadDeliveredEmail({
-        managedUtm,
-        connectionId: connection.id,
-        providerEmail,
-        providerName: providerDisplayName,
-        providerSlug: provider.slug || null,
-        providerProfileId: toProfileId as string,
-        familyName: firstName || "A family",
-        careType: null,
-        city: provider.city,
-        careRecipient: null,
-      });
-    }
+    // Held rather than sent, like the other inquiry paths. The previous `void`
+    // here also meant the send was never awaited, so on a serverless function it
+    // could be cut off when this response returned. Both are fixed by deferring
+    // to lib/leads/provider-notifications.server.ts.
+    await holdProviderLeadNotifications({
+      connectionId: connection.id,
+      managedUtm,
+    });
 
     return NextResponse.json({
       success: true,

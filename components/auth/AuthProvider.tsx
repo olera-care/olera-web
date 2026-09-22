@@ -557,9 +557,24 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         if (cancelled) return;
 
         if (data) {
-          // If account exists but no family profile, ensure one gets created
+          // Only call ensure-account when it can actually change something.
+          //
+          // The old guard was "no family profile", but /api/auth/ensure-account
+          // creates a family profile ONLY when the account has no profiles at all
+          // AND a claimToken is present, and this call site sends no claimToken.
+          // So for any provider-only account the route looked, found nothing to
+          // do, and returned — and we then refetched the whole account graph
+          // anyway. Measured on staging 2026-09-22: 1450ms fetch, a roundtrip to
+          // a route that no-ops, then a second 1357ms fetch, on EVERY page load,
+          // for every provider who has never used Olera as a family.
+          //
+          // The one thing the route still does for an existing account without a
+          // claimToken is backfill a null active_profile_id, so that case keeps
+          // its call.
           const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
-          if (!hasFamilyProfile) {
+          const hasAnyProfile = data.profiles.length > 0;
+          const needsActiveProfile = !data.account?.active_profile_id;
+          if (!hasFamilyProfile && (!hasAnyProfile || needsActiveProfile)) {
             try {
               await fetch("/api/auth/ensure-account", {
                 method: "POST",
@@ -712,9 +727,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           if (cancelled || versionRef.current !== version) return;
 
           if (data) {
-            // Check if account exists but no family profile
+            // Same guard as init above. supabase-js v2 re-emits SIGNED_IN when a
+            // tab regains focus, so without this the waste just moves from page
+            // load to tab focus, where it is harder to notice.
             const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
-            if (!hasFamilyProfile) {
+            const hasAnyProfile = data.profiles.length > 0;
+            const needsActiveProfile = !data.account?.active_profile_id;
+            if (!hasFamilyProfile && (!hasAnyProfile || needsActiveProfile)) {
               try {
                 await fetch("/api/auth/ensure-account", {
                   method: "POST",

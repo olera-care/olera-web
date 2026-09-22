@@ -3,6 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
+import { sendProviderLeadNotifications } from "@/lib/leads/provider-notifications.server";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -279,6 +280,17 @@ export async function PATCH(request: Request) {
         { error: "Failed to update care request" },
         { status: 500 }
       );
+    }
+
+    // The family has now answered (or skipped) the qualifying flow, so release
+    // the provider notifications that were held at inquiry creation. Awaited on
+    // purpose: a fire-and-forget send can be cut off when this response returns.
+    // A no-op when the connection was not held, or when the 10 minute cron
+    // ceiling already released it.
+    try {
+      await sendProviderLeadNotifications({ connectionId, releasedBy: "enrichment" });
+    } catch (notifyErr) {
+      console.error("[update-intent] provider notification release failed:", notifyErr);
     }
 
     // Sync updated intent back to the sender's profile

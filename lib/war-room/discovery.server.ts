@@ -70,15 +70,28 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
  * have to send the same tool array. Sending all five at once returns
  * "The compiled grammar is too large". That route is closed, not merely untried.
  *
- * Only triage moves by default. It is classification against a reduced context
- * and the cheapest thing to be wrong about. The dossier pass is where
- * conditions are actually formed, which is judgement, and it stays on Opus
- * until the cost ledger shows what it is really costing -- changing it is one
- * environment variable once that number exists.
+ * The ledger has since answered what each pass costs, and it changed the
+ * assignment. Measured on a real scan: the two sweep calls were $0.50 each and
+ * the largest single line on the bill; the dossier pass was $0.69 before it
+ * moved to Haiku and $0.12 after.
+ *
+ * The sweep could not move to Haiku, which I took to mean it had to stay on
+ * Opus. That was wrong and untested. Its schema compiles on Sonnet 5, verified
+ * against the live API, and Sonnet 5 is $2 per million input against Opus's $5.
+ *
+ * Two effects stack, and the second is easy to miss. Opus 5 uses a newer
+ * tokenizer that produces roughly thirty percent more tokens for identical
+ * text, which our own ledger confirms: the same operating pack measured 81,996
+ * tokens on Opus and 64,658 on Haiku in one scan. So moving a pass off Opus
+ * buys a lower rate on a smaller count.
+ *
+ * Drafting deliberately stays on Opus. It writes the artifact the founder
+ * actually reads, it only runs when something was nominated, and it is the one
+ * place where being slightly better is worth five times the price.
  */
 const PASS_MODELS: Record<string, string | undefined> = {
-  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP,
-  forming_candidates: process.env.WAR_ROOM_MODEL_DOSSIER,
+  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP || "claude-sonnet-5",
+  forming_candidates: process.env.WAR_ROOM_MODEL_DOSSIER || "claude-haiku-4-5-20251001",
   challenging_candidates: process.env.WAR_ROOM_MODEL_TRIAGE || "claude-haiku-4-5-20251001",
   drafting_decision: process.env.WAR_ROOM_MODEL_DRAFT,
 };

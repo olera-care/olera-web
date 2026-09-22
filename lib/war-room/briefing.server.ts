@@ -166,7 +166,10 @@ export async function loadWarRoomBriefing(db: SupabaseClient): Promise<WarRoomPr
 const MODEL_PRICE_PER_MTOK: Record<string, { input: number; output: number }> = {
   "claude-opus-5": { input: 5, output: 25 },
   "claude-opus-4-8": { input: 5, output: 25 },
-  "claude-sonnet-5": { input: 3, output: 15 },
+  // $2/$10, not $3/$15. The introductory price announced at launch became the
+  // standard price; the scheduled September increase never happened. The stale
+  // row overstated every Sonnet pass by half.
+  "claude-sonnet-5": { input: 2, output: 10 },
   "claude-haiku-4-5": { input: 1, output: 5 },
   // The dated id is what the API is actually called with, and it is what the
   // cost ledger records. Without this row a Haiku pass prices as unknown and

@@ -26,6 +26,69 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-haiku-4-5-20251001";
 const MAX_ANSWER_TOKENS = 700;
 
+/**
+ * How long an exchange stays "in progress".
+ *
+ * On 2026-09-22, the first real conversation with Cortex, the founder asked a
+ * question, got an answer, and typed a two-word correction to his own question
+ * seconds later: "Aging in America" (dictation had mangled it). Nothing in the
+ * system knew a conversation was happening, so that fragment was classified as
+ * a statement and filed as his answer to a question from the previous day's
+ * brief about data consistency. It would have been read as evidence on the next
+ * scan.
+ *
+ * The lexical classifier cannot catch that, and no amount of tuning it will: the
+ * fragment genuinely is not a question. What distinguishes it is that Cortex had
+ * just spoken. A message arriving moments after Cortex answered is the next turn
+ * of that exchange, not the answer to something asked eighteen hours ago.
+ */
+// Fifteen minutes, not thirty. The window has to be long enough for him to read
+// an answer and type a follow-up, and short enough that it does not swallow a
+// deliberate reply to the brief's question typed later in the same session.
+// That failure is the mirror of the one this fixes, and it is the less visible
+// of the two, so the window errs short.
+const CONVERSATION_WINDOW_MS = 15 * 60_000;
+const CONVERSATION_STATE_KEY = "founder_conversation";
+
+export type ConversationTurn = { question: string; answer: string; focusInvestigationId: string | null; at: string };
+
+/** The exchange still in progress, or null if the last one has gone cold. */
+export async function loadOpenExchange(db: SupabaseClient): Promise<ConversationTurn | null> {
+  const { data } = await db.from("war_room_source_state")
+    .select("metadata")
+    .eq("source_key", CONVERSATION_STATE_KEY)
+    .maybeSingle();
+  const turn = (data?.metadata ?? null) as ConversationTurn | null;
+  if (!turn?.at) return null;
+  return Date.now() - new Date(turn.at).getTime() < CONVERSATION_WINDOW_MS ? turn : null;
+}
+
+export async function recordExchange(db: SupabaseClient, turn: Omit<ConversationTurn, "at">): Promise<void> {
+  const now = new Date().toISOString();
+  await db.from("war_room_source_state").upsert({
+    source_key: CONVERSATION_STATE_KEY,
+    last_synced_at: now,
+    last_success_at: now,
+    last_error: null,
+    metadata: { ...turn, at: now },
+    updated_at: now,
+  }, { onConflict: "source_key" }).then(() => undefined, () => undefined);
+}
+
+/**
+ * Ends the exchange so the next message is read as evidence again.
+ *
+ * Called when a brief asks a new question: Cortex has changed the subject, so
+ * whatever he says next is far more likely to be about that than about a
+ * conversation from earlier.
+ */
+export async function closeExchange(db: SupabaseClient): Promise<void> {
+  await db.from("war_room_source_state")
+    .update({ metadata: {}, updated_at: new Date().toISOString() })
+    .eq("source_key", CONVERSATION_STATE_KEY)
+    .then(() => undefined, () => undefined);
+}
+
 export type MessageKind = "question" | "answer";
 
 const INTERROGATIVE = /^(what|why|how|when|who|where|which|can|could|should|would|is|are|was|were|do|does|did|tell me|show me|explain|give me|remind me|any|status)\b/i;
@@ -131,6 +194,7 @@ export async function answerFounderQuestion(
   db: SupabaseClient,
   question: string,
   focusInvestigationId?: string | null,
+  priorTurn?: ConversationTurn | null,
 ): Promise<{ answered: boolean; reply: string; costUsd?: number }> {
   if (!process.env.ANTHROPIC_API_KEY) {
     return { answered: false, reply: "I cannot answer questions right now: no model key is configured." };
@@ -142,7 +206,15 @@ export async function answerFounderQuestion(
       model: CONVERSATION_MODEL,
       max_tokens: MAX_ANSWER_TOKENS,
       system: CONVERSATION_SYSTEM,
-      messages: [{ role: "user", content: `RECORD:\n${context}\n\nFOUNDER ASKS:\n${question}` }],
+      messages: [{
+        role: "user",
+        content: priorTurn
+          // The previous turn is supplied verbatim so a correction reads as a
+          // correction. "Aging in America" after a question about "Asian in
+          // America" is a fix to the question, not a new topic.
+          ? `RECORD:\n${context}\n\nEARLIER IN THIS CONVERSATION\nHe asked: ${priorTurn.question}\nYou answered: ${priorTurn.answer}\n\nHE NOW SAYS:\n${question}\n\nIf this corrects or narrows what he just asked, treat it as the corrected question and answer that. Do not ask him to repeat himself.`
+          : `RECORD:\n${context}\n\nFOUNDER ASKS:\n${question}`,
+      }],
     });
     const reply = message.content
       .filter((block): block is Anthropic.TextBlock => block.type === "text")

@@ -206,6 +206,33 @@ export async function findAskByThread(
 }
 
 /**
+ * The question Cortex is still waiting on an answer to, if any.
+ *
+ * Used to warn, not to route. When a conversation is in progress a statement is
+ * treated as the next turn of it, which is correct for a correction and wrong
+ * for a verdict on the brief -- and the two are indistinguishable by wording.
+ * So the reply says plainly that nothing was recorded, and names what is still
+ * open, rather than choosing silently between them.
+ */
+export async function findOpenAsk(
+  db: SupabaseClient,
+): Promise<{ investigationId: string; title: string | null } | null> {
+  const { data } = await db.from("war_room_investigation_events")
+    .select("investigation_id, details, created_at, event_type")
+    .in("event_type", ["founder_asked", "founder_answered"])
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const rows = (data ?? []) as Array<{ investigation_id: string; details: Record<string, unknown> | null; event_type: string }>;
+  const answered = new Set(rows.filter((r) => r.event_type === "founder_answered").map((r) => r.investigation_id));
+  const open = rows.find((r) => r.event_type === "founder_asked" && !answered.has(r.investigation_id));
+  if (!open) return null;
+  return {
+    investigationId: open.investigation_id,
+    title: typeof open.details?.title === "string" ? open.details.title : null,
+  };
+}
+
+/**
  * Attach an inbound Slack reply to the most recent question asked.
  *
  * Two things this deliberately does NOT do, both learned on 2026-09-21.

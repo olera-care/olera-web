@@ -3,6 +3,7 @@ import { sendSlackAlert, sendSlackDirectMessage } from "@/lib/slack";
 import { getSiteUrl } from "@/lib/site-url";
 import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
 import { pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
+import { closeExchange } from "@/lib/war-room/conversation.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
 
 /**
@@ -210,6 +211,12 @@ export async function deliverWarRoomBrief(
     // answer falls back to "whatever was asked most recently", which is wrong
     // as soon as a newer brief lands in between.
     if (question) await recordFounderAsk(db, question, runId, result.ts ?? null).catch(() => false);
+
+    // A brief changes the subject, whether or not it carried a question. Any
+    // conversation still counted as "in progress" ends here, or the next thing
+    // he types is read as a follow-up to an older exchange -- the same
+    // misrouting in the opposite direction.
+    await closeExchange(db);
 
     await db.from("war_room_source_state").upsert({
       source_key: DELIVERY_STATE_KEY,

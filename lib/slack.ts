@@ -686,7 +686,10 @@ export function slackMarketDiagnosticNoLeads(opts: {
 
 const ADS_CTA_SOURCE_LABELS: Record<string, string> = {
   dashboard_card: "dashboard card",
+  hero: "dashboard banner",
   post_edit: "post-edit nudge",
+  post_question: "post-answer nudge",
+  leads_page: "leads page nudge",
   ff_pitch: "Find Families pitch",
   ff_banner: "Find Families banner",
   your_market_playbook: "Growth playbook",
@@ -718,6 +721,46 @@ export function slackManagedAdsCtaClicked(opts: {
         type: "context",
         elements: [
           { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=managed_ads_cta_clicked|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 🙅 Provider dismissed the managed-ads nudge.
+ *
+ *  Low volume by design — 18 dismissals in programme history — and it is the
+ *  one signal that separates "they are refusing the offer" from "they never
+ *  registered one was made". The old post-question strip was seen by 164
+ *  providers, clicked by 9 and dismissed by 2, which is what told us it was
+ *  being ignored rather than rejected. Worth a ping while the numbers are
+ *  small; revisit if dismissals ever become routine.
+ */
+export function slackManagedAdsDismissed(opts: {
+  providerName: string;
+  providerSlug: string;
+  source: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const sourceLabel = ADS_CTA_SOURCE_LABELS[opts.source] || opts.source;
+  return {
+    text: `Managed Ads dismissed: ${opts.providerName} — ${sourceLabel}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🙅 Provider Dismissed Managed Ads", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Dismissed:*\n${sourceLabel}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=ads_touchpoint_dismissed|Activity Center>` },
         ],
       },
     ],

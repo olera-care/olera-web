@@ -67,6 +67,20 @@ export function getMajorLabel(major: string | undefined | null): string | null {
   return MAJOR_LABELS[major] || major;
 }
 
+/** Marker used when student explicitly has no certifications */
+const NO_CERTS_MARKER = "__none__";
+
+/** Get actual certifications (filters out the "no certifications" marker) */
+export function getActualCertifications(certifications: string[] | undefined | null): string[] {
+  if (!certifications) return [];
+  return certifications.filter(c => c !== NO_CERTS_MARKER);
+}
+
+/** Check if student has explicitly marked "no certifications" */
+export function hasNoCertificationsMarker(certifications: string[] | undefined | null): boolean {
+  return certifications?.includes(NO_CERTS_MARKER) ?? false;
+}
+
 /** Get the best display label for a student's career track.
  *  Prefers intended_professional_school, falls back to program_track. */
 export function getTrackLabel(meta: StudentMetadata): string | null {

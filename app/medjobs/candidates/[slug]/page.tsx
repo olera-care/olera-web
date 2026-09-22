@@ -14,6 +14,7 @@ import {
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
   getMajorLabel,
+  getActualCertifications,
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
@@ -239,7 +240,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
   if (hoursLabel) highlights.push(hoursLabel);
   if (durationLabel) highlights.push(durationLabel);
   if (meta.years_caregiving && meta.years_caregiving > 0) highlights.push(`${meta.years_caregiving}+ yr experience`);
-  if ((meta.certifications?.length ?? 0) > 0) highlights.push(meta.certifications![0]);
+  const actualCerts = getActualCertifications(meta.certifications);
+  if (actualCerts.length > 0) highlights.push(actualCerts[0]);
   const displayHighlights = highlights.slice(0, 4);
 
   // Check if sections have content
@@ -550,11 +552,11 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 )}
 
                 {/* Certifications */}
-                {(meta.certifications?.length ?? 0) > 0 && (
+                {actualCerts.length > 0 && (
                   <div className="mt-6">
                     <dt className="text-sm font-medium text-gray-500 mb-2">Certifications</dt>
                     <dd className="flex flex-wrap gap-2">
-                      {meta.certifications!.map((cert) => (
+                      {actualCerts.map((cert) => (
                         <span key={cert} className="px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-sm font-semibold border border-primary-100">
                           {cert}
                         </span>

@@ -135,9 +135,12 @@ export function getSectionCompleteness(
   const backgroundDone = backgroundItems.filter((i) => i.done).length;
   const backgroundPercent = Math.round((backgroundDone / backgroundItems.length) * 100);
 
-  // 7b. Certifications (own section, optional but tracked)
+  // 7b. Certifications (optional section - doesn't affect overall completeness)
+  // Section is "done" if they have certifications OR explicitly marked "no certifications" (__none__)
+  const hasCerts = (meta.certifications?.length ?? 0) > 0;
+  const hasNoCertsMarker = meta.certifications?.includes("__none__") ?? false;
   const certItems = [
-    { key: "certifications", label: "Certifications", done: (meta.certifications?.length ?? 0) > 0 },
+    { key: "certifications", label: "Certifications", done: hasCerts || hasNoCertsMarker },
   ];
   const certsDone = certItems.filter((i) => i.done).length;
   const certsPercent = Math.round((certsDone / certItems.length) * 100);
@@ -166,17 +169,20 @@ export function getSectionCompleteness(
  * Section weights for overall completeness calculation.
  * Total adds up to 100%. Resume and Verification are weighted higher
  * as they are most important for provider visibility.
+ *
+ * Certifications is optional (0%) since not all students have them.
+ * The 10% was redistributed to: why(+3), scenarios(+2), resume(+2), verification(+3).
  */
 const SECTION_WEIGHTS: Record<SectionId, number> = {
   overview: 10,
   schedule: 10,
   availability: 10,
-  why: 10,
-  scenarios: 10,
+  why: 13,           // +3% (from certifications)
+  scenarios: 12,     // +2% (from certifications)
   background: 10,
-  certifications: 10,
-  resume: 15,        // +5% (was 10%)
-  verification: 15,  // +5% (was 10%)
+  certifications: 0, // Optional - doesn't affect completeness
+  resume: 17,        // +2% (from certifications)
+  verification: 18,  // +3% (from certifications)
 };
 
 /**

@@ -92,21 +92,22 @@ export default function EditVerificationModal({
   const [isEditingUrl, setIsEditingUrl] = useState(false); // Only true when actively typing a new URL
   const [originalVideoUrl] = useState(meta.video_intro_url || ""); // Store original for cancel
 
-  // Optional documents section - auto-expand if documents exist
-  const hasExistingDocs = !!(meta.drivers_license_url || meta.car_insurance_url);
-  const [showDocuments, setShowDocuments] = useState(hasExistingDocs);
+  // Optional documents section - collapsed by default
+  const [showDocuments, setShowDocuments] = useState(false);
 
   // Driver's license
   const [licenseUploaded, setLicenseUploaded] = useState(!!meta.drivers_license_url);
   const [licenseFile, setLicenseFile] = useState<UploadedFile | null>(null);
   const [licenseExpiration, setLicenseExpiration] = useState(meta.drivers_license_expiration || "");
   const [licenseUploading, setLicenseUploading] = useState(false);
+  const [licenseDeleting, setLicenseDeleting] = useState(false);
 
   // Car insurance
   const [insuranceUploaded, setInsuranceUploaded] = useState(!!meta.car_insurance_url);
   const [insuranceFile, setInsuranceFile] = useState<UploadedFile | null>(null);
   const [insuranceExpiration, setInsuranceExpiration] = useState(meta.car_insurance_expiration || "");
   const [insuranceUploading, setInsuranceUploading] = useState(false);
+  const [insuranceDeleting, setInsuranceDeleting] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -266,6 +267,44 @@ export default function EditVerificationModal({
     }
   }
 
+  async function handleDeleteDocument(type: "drivers_license" | "car_insurance") {
+    const isLicense = type === "drivers_license";
+    if (isLicense) setLicenseDeleting(true);
+    else setInsuranceDeleting(true);
+    setError(null);
+
+    try {
+      await saveStudentProfile({
+        profileId: profile.id,
+        metadataFields: {
+          [isLicense ? "drivers_license_url" : "car_insurance_url"]: null,
+          [isLicense ? "drivers_license_expiration" : "car_insurance_expiration"]: null,
+        },
+      });
+
+      if (isMountedRef.current) {
+        if (isLicense) {
+          setLicenseUploaded(false);
+          setLicenseFile(null);
+          setLicenseExpiration("");
+        } else {
+          setInsuranceUploaded(false);
+          setInsuranceFile(null);
+          setInsuranceExpiration("");
+        }
+      }
+    } catch (err) {
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : "Failed to delete document");
+      }
+    } finally {
+      if (isMountedRef.current) {
+        if (isLicense) setLicenseDeleting(false);
+        else setInsuranceDeleting(false);
+      }
+    }
+  }
+
   const handleDrag = useCallback((e: React.DragEvent, type: "license" | "insurance", active: boolean) => {
     e.preventDefault();
     e.stopPropagation();
@@ -329,7 +368,7 @@ export default function EditVerificationModal({
     }
   }
 
-  const isUploading = licenseUploading || insuranceUploading || videoSubmitting;
+  const isUploading = licenseUploading || insuranceUploading || licenseDeleting || insuranceDeleting || videoSubmitting;
 
   // Render video preview based on platform
   const renderVideoPreview = () => {
@@ -675,9 +714,18 @@ export default function EditVerificationModal({
                       <button
                         type="button"
                         onClick={() => licenseInputRef.current?.click()}
-                        className="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0"
+                        disabled={licenseDeleting}
+                        className="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0 disabled:opacity-50"
                       >
                         Replace
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocument("drivers_license")}
+                        disabled={licenseDeleting}
+                        className="text-xs text-red-500 hover:text-red-600 font-medium flex-shrink-0 disabled:opacity-50"
+                      >
+                        {licenseDeleting ? "..." : "Delete"}
                       </button>
                     </div>
                     <input
@@ -745,9 +793,18 @@ export default function EditVerificationModal({
                       <button
                         type="button"
                         onClick={() => insuranceInputRef.current?.click()}
-                        className="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0"
+                        disabled={insuranceDeleting}
+                        className="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0 disabled:opacity-50"
                       >
                         Replace
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocument("car_insurance")}
+                        disabled={insuranceDeleting}
+                        className="text-xs text-red-500 hover:text-red-600 font-medium flex-shrink-0 disabled:opacity-50"
+                      >
+                        {insuranceDeleting ? "..." : "Delete"}
                       </button>
                     </div>
                     <input

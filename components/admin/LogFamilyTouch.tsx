@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { FamilyTouchChannel } from "@/lib/seeker-touches/types";
+import {
+  HEARD_FIELDS,
+  HEARD_LABEL,
+  type FamilyTouchChannel,
+  type Heard,
+  type HeardField,
+} from "@/lib/seeker-touches/types";
 
 /**
  * Log what happened with a family.
@@ -15,6 +21,14 @@ import type { FamilyTouchChannel } from "@/lib/seeker-touches/types";
  * other control is the one thing nothing can infer and everything depends on —
  * whether you actually got hold of them. Calling someone and speaking to them
  * are different events, and only the second clears an owed call.
+ *
+ * WHAT THE SYSTEM HEARD. The box stays one box, and after the save the model
+ * shows what it read out of it. That ordering is the whole design. Fields shown
+ * BEFORE the save are the seven-field form quoted above; the same fields shown
+ * after, already filled, are the system reporting back, which is why they can be
+ * visible without being work. Nothing here gates the log: by the time a chip
+ * renders the touch is already written, and a reader who ignores every one of
+ * them has lost nothing, because the note itself is still the record.
  */
 
 const CHANNEL_GUESS: { channel: FamilyTouchChannel; words: RegExp }[] = [
@@ -76,6 +90,9 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
   const [showNext, setShowNext] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // What the last save was read to contain. Cleared when the next log starts,
+  // so it always describes the note above it and never an older one.
+  const [heard, setHeard] = useState<Heard | null>(null);
 
   const channel = guessChannel(text);
   const reached = reachedChoice === undefined ? guessReached(text) : reachedChoice;
@@ -85,6 +102,7 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
     if (!canSave) return;
     setSaving(true);
     setError(null);
+    setHeard(null);
     try {
       const res = await fetch("/api/admin/seeker-touches", {
         method: "POST",
@@ -107,6 +125,9 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
       setNextAction("");
       setDue("");
       setShowNext(false);
+      // Absent on an older deployment, or null when the note was too short to
+      // read or the model was unavailable. Either way the log already succeeded.
+      setHeard((data?.heard as Heard | null) ?? null);
       onLogged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save that");
@@ -212,6 +233,93 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
         </button>
         <span className="font-mono text-[10.5px] text-gray-400">⌘↵ to log · time defaults to now</span>
       </div>
+
+      {heard && <HeardStrip heard={heard} onDismiss={() => setHeard(null)} />}
+    </div>
+  );
+}
+
+/**
+ * What the model read out of the note that was just saved.
+ *
+ * Three states, because a guess that looks like a fact is how one invented
+ * value ends up in front of a provider:
+ *   teal   — read plainly from the words
+ *   amber  — inferred, and worth a glance
+ *   dashed — the note never mentioned it
+ *
+ * The dashed ones are the only thing here that reads as an invitation, and they
+ * are capped: listing every unmentioned field on a two-line voicemail note turns
+ * a receipt back into a form.
+ */
+function HeardStrip({ heard, onDismiss }: { heard: Heard; onDismiss: () => void }) {
+  // Same defence as mergeHeard: a stored shape missing either key must degrade
+  // to fewer chips, never to a blank page from a render throw.
+  const fields = heard.fields ?? {};
+  const alsoNoted = heard.also_noted ?? [];
+  const got = HEARD_FIELDS.filter((f) => fields[f]);
+  const missing = HEARD_FIELDS.filter((f) => !fields[f]);
+  const shownMissing = missing.slice(0, 3);
+  const unsure = got.filter((f) => fields[f]?.sure === false).length;
+
+  return (
+    <div className="mt-3 border-t border-dashed border-gray-200 pt-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-teal-700">What I got from that</p>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="font-mono text-[10.5px] text-gray-400 hover:text-gray-600"
+        >
+          {got.length} read{unsure > 0 ? ` · ${unsure} unsure` : ""} · dismiss
+        </button>
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {got.map((f) => {
+          const v = fields[f]!;
+          return (
+            <span
+              key={f}
+              className={`inline-flex items-baseline gap-1.5 rounded-md border px-2 py-1 text-[12.5px] ${
+                v.sure ? "border-teal-600 bg-teal-50 text-gray-900" : "border-amber-400 bg-amber-50 text-gray-900"
+              }`}
+            >
+              <span
+                className={`font-mono text-[9.5px] uppercase tracking-[0.06em] ${
+                  v.sure ? "text-teal-700" : "text-amber-700"
+                }`}
+              >
+                {HEARD_LABEL[f as HeardField]}
+              </span>
+              <span className={`font-medium ${v.sure ? "" : "underline decoration-dotted underline-offset-2"}`}>
+                {v.value}
+              </span>
+            </span>
+          );
+        })}
+        {shownMissing.map((f) => (
+          <span
+            key={f}
+            className="inline-flex items-baseline gap-1.5 rounded-md border border-dashed border-gray-300 px-2 py-1 text-[12.5px] text-gray-400"
+          >
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.06em]">{HEARD_LABEL[f as HeardField]}</span>
+            <span>not mentioned</span>
+          </span>
+        ))}
+      </div>
+
+      {alsoNoted.length > 0 && (
+        <p className="mt-2 border-l-2 border-teal-600 pl-2.5 text-[12.5px] leading-relaxed text-gray-600">
+          Also noted, in your words:{" "}
+          {alsoNoted.map((q, i) => (
+            <span key={i}>
+              {i > 0 && " · "}
+              <span className="bg-teal-50 px-0.5">&ldquo;{q}&rdquo;</span>
+            </span>
+          ))}
+        </p>
+      )}
     </div>
   );
 }

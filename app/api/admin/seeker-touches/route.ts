@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { getRoutingPlan } from "@/lib/city-ads/plan.server";
+import { extractHeard, saveHeard } from "@/lib/seeker-touches/extract.server";
 import { FAMILY_TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type FamilyTouchInput } from "@/lib/seeker-touches/types";
 import {
   loadSeekerRelationships,
@@ -36,6 +37,14 @@ import {
  *
  * Auth: admin only.
  */
+
+/**
+ * POST now makes one model call before it answers, so the default ceiling is
+ * too close to the worst case. A function killed mid-flight would return a
+ * failure for a touch that has ALREADY been inserted, and the obvious response
+ * to "Could not save that" is to press Log again, which writes it twice.
+ */
+export const maxDuration = 30;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -212,7 +221,26 @@ export async function POST(request: NextRequest) {
     if (closeErr) console.error("[seeker-touches] failed to close prior actions:", closeErr);
   }
 
-  return NextResponse.json({ touch: data }, { status: 201 });
+  // Read the note for the care details a provider would ask for.
+  //
+  // AFTER the insert and deliberately not awaited into the success of it: the
+  // touch is already saved and the log has already succeeded, so a slow or
+  // failing model must not turn a written record into an error on screen. It
+  // is awaited here only because Vercel kills pending promises once a response
+  // is returned, and `extractHeard` swallows everything and returns null.
+  let heard = null;
+  // `detail` already CONTAINS `summary` — the client stores the first 240
+  // characters as the summary and the whole thing as the detail once it is
+  // longer than that. Concatenating them fed the model the opening twice and
+  // put a duplicated passage in the verbatim haystack.
+  const noteForExtract = clean(body.detail) ?? summary;
+  const fresh = await extractHeard(noteForExtract, {
+    channel,
+    reached: typeof body.reached === "boolean" ? body.reached : null,
+  });
+  if (fresh) heard = await saveHeard(db, seeker_id, fresh);
+
+  return NextResponse.json({ touch: data, heard }, { status: 201 });
 }
 
 export async function PATCH(request: NextRequest) {

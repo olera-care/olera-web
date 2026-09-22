@@ -197,6 +197,13 @@ export interface LadderRung {
   email?: LadderEmail;
   /** Offers "They replied", which breaks out of a follow-up block. */
   reply?: boolean;
+  /**
+   * What one of the things a sweep finds is called, for the add form.
+   *
+   * "Agency name" and "Office name" rather than "Name": the box is the first
+   * thing somebody types into and it should say what it wants.
+   */
+  foundNoun?: string;
 
   /**
    * A value carried onto this task, shown as a link.
@@ -1014,7 +1021,7 @@ Dr. Logan DuBose's office · Olera`,
           "Open Google Maps at the campus, below.",
           "Search each of: home care, home health, senior care, caregiver agency.",
           "For each result near campus, check it against the provider list. Match on phone and street address, not name — franchises repeat names.",
-          "Add the ones that pass the test below with Add a provider, then come back here.",
+          "Add the ones that pass the test, filling in what the listing already shows you.",
         ],
         script: `Add an agency when all four are true:
 
@@ -1025,27 +1032,22 @@ Dr. Logan DuBose's office · Olera`,
 
 If you are unsure on any of the four, leave it out and say so in the note. A provider added wrongly costs somebody a research rung and a call.`,
         textarea: "Anything worth saying about the sweep",
-        scriptLabel: "what counts as one worth adding",
+        scriptLabel: "where to look, and what counts",
         // Built by the board from the campus name, so the same search runs
         // at every university and nobody retypes it.
         link: { key: "maps_url", label: "Google Maps near campus" },
         // Once per university, so there is nothing to defer to.
         defer: false,
-        inputs: [
-          {
-            key: "added",
-            label: "How many did you add (0 is an answer)",
-            type: "number",
-            required: true,
-            needs: "Put in how many you added",
-          },
-        ],
+        foundNoun: "Agency",
+        // The count used to be typed in by hand, and adding was done on
+        // another screen — "add them with Add a provider, then come back
+        // here". Two screens and a number to remember, for the same job the
+        // advisor sweep does in one place. The list is the count now.
         actions: [
           {
-            label: "Swept",
-            outcome: "goal",
+            label: "All providers added for this area",
+            outcome: "fanout",
             delay: 0,
-            hint: "Done for this university. Zero added means the directory already had them all, which is worth knowing.",
           },
         ],
       },
@@ -1317,13 +1319,26 @@ Dr. Logan DuBose's office · Olera`,
         steps: ["Pick the outcome.", "Write a line about it."],
         textarea: "How it went",
         actions: [
-          { label: "Held", outcome: "goal", delay: 0 },
+          {
+            // An advisor is never finished with. The meeting is the goal and
+            // the record says so, but a `goal` carrying a delay also queues
+            // the rung it names — so the relationship comes back round each
+            // term instead of going quiet the moment it is working.
+            label: "Held",
+            outcome: "goal",
+            goto: "recirculate",
+            delay: 90,
+            hint: "Marks them as a partner, and brings them back next term to circulate again.",
+          },
           { label: "No-show", outcome: "reschedule", delay: 0 },
           { label: "Needs reschedule", outcome: "reschedule", delay: 0 },
         ],
       },
       {
         seasonal: true,
+        // Named, because a goal that recurs has to say which rung comes
+        // back and `goto` addresses a rung by name.
+        name: "recirculate",
         title: `Recirculate the flyer — ${SEASON}`,
         what: "Ask the office to send the flyer out again.",
         why: "A flyer sent last term isn't reaching this term's students.",
@@ -1342,7 +1357,67 @@ Thank you,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Logged", outcome: "goal", delay: 0, ticks: ["flyer_sent"] }],
+        actions: [
+          {
+            label: "Logged",
+            outcome: "goal",
+            goto: "recirculate",
+            delay: 90,
+            ticks: ["flyer_sent"],
+            hint: "Circulated again. Comes back next term.",
+          },
+        ],
+      },
+      {
+        // A branch at the end of the ladder, and the only rung here that
+        // belongs to the university rather than to an office — the same
+        // shape as the providers' map sweep, and for the same reason: the
+        // end is the only place a rung can be added without renumbering the
+        // task rows already written against every step before it.
+        //
+        // It is also what makes this ladder start at all. Every other rung
+        // here acts on an advisor record, and until this ran there was no
+        // way for one to exist.
+        branch: "advisorsweep",
+        title: "Find career centers and advising offices",
+        what: "Search the university for the offices that can put this programme in front of pre-health students, and add each one.",
+        why: "Nobody at a university is going to find us. Every advisor record on this board starts here.",
+        steps: [
+          "Open the university site search, below.",
+          "Work through the list of places to look in the note.",
+          "For each one that passes the test, add it, filling in whatever the page already shows you.",
+          "The role matters — a career centre manager and a pre-health advisor are approached differently.",
+        ],
+        script: `Search the university site for each of these:
+
+  pre-health advising · pre-med advising · health professions
+  nursing student services · career center · career services
+  student success · college of arts and sciences advising
+
+Add an office when all three are true:
+
+  1. Somebody employed by the university works there. Not a student club — those are the Student orgs section.
+  2. They talk to pre-health or pre-nursing students as part of the job. An advisor, a career centre manager, a programme director, a dean, a department administrator all count.
+  3. There is a way to reach them — an email address, a contact form, or a phone number.
+
+Add the office, not the building. "Pre-Health Advising Office" is a record; "Student Services" on its own is not.
+
+If two names turn out to be the same office, add it once. If you are not sure whether somebody counts, add them and say why in the note — a wrong advisor costs one email, and a missed one costs a term.`,
+        scriptLabel: "where to look, and what counts",
+        textarea: "Anything worth saying about the sweep",
+        // Built by the board from the campus, so the same search runs at
+        // every university and nobody retypes it.
+        link: { key: "advisor_search_url", label: "Search the university site" },
+        // Once per university, so there is nothing to defer to.
+        defer: false,
+        foundNoun: "Office",
+        actions: [
+          {
+            label: "All advising offices added for this area",
+            outcome: "fanout",
+            delay: 0,
+          },
+        ],
       },
     ],
   },

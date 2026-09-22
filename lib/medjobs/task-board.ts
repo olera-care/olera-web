@@ -29,6 +29,61 @@ export const SKIPPED = "Not needed — they said yes first";
  */
 export const SWEEP_PREFIX = "sweep:";
 
+/**
+ * The sweeps: one-off jobs that belong to a campus rather than to any record.
+ *
+ * Both are derived, not seeded. A campus with no completed row for a sweep
+ * has it to do, which means a campus created tomorrow gets both with no
+ * backfill and nothing to remember in the campus-creation path.
+ */
+export type SweepKind = "map" | "advisor";
+
+export const SWEEPS: Record<
+  SweepKind,
+  { taskType: string; section: "providers" | "advisors"; branch: string }
+> = {
+  map: { taskType: "provider_map_sweep", section: "providers", branch: "mapsweep" },
+  advisor: { taskType: "advisor_sweep", section: "advisors", branch: "advisorsweep" },
+};
+
+export const sweepId = (kind: SweepKind, campusId: string) =>
+  `${SWEEP_PREFIX}${kind}:${campusId}`;
+
+/**
+ * Reads a synthetic sweep id back apart.
+ *
+ * Ids written before there were two sweeps carried no kind — `sweep:<uuid>`
+ * — and a board rendered by an older tab can still send one. Those are the
+ * map sweep, which is what they were.
+ */
+export function parseSweepId(id: string): { kind: SweepKind; campusId: string } | null {
+  if (!id.startsWith(SWEEP_PREFIX)) return null;
+  const rest = id.slice(SWEEP_PREFIX.length);
+  const cut = rest.indexOf(":");
+  if (cut < 0) return { kind: "map", campusId: rest };
+  const kind = rest.slice(0, cut);
+  if (kind !== "map" && kind !== "advisor") return { kind: "map", campusId: rest };
+  return { kind, campusId: rest.slice(cut + 1) };
+}
+
+/**
+ * One thing a sweep found, as the operator typed it.
+ *
+ * The same fields the record itself shows, in the same order, because the
+ * form that collects them is the record's own: somebody adding an agency
+ * while looking at its website should not be given a smaller set of boxes
+ * than the record will have, and then be asked for the rest later.
+ */
+export interface FoundRecord {
+  name: string;
+  contact?: string;
+  role?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+}
+
 export interface BoardTask {
   id: string;
   section: SectionKey;
@@ -51,7 +106,7 @@ export interface BoardTask {
   redo?: boolean;
   /** On a research rung: the names the operator actually found. Each one
    *  becomes its own record when the task is finished. */
-  found?: string[];
+  found?: FoundRecord[];
   /** Typed values the rung asked for, keyed by LadderInput.key — a meeting
    *  time, a posting link, hours worked. Read back in the record history. */
   fields?: Record<string, string>;
@@ -626,11 +681,17 @@ export function complete(
         break;
       }
       case "fanout": {
-        const after = task.step + 1;
+        // Rung 1, not task.step + 1. This was written when the fan-out was
+        // rung 0 and the next rung was genuinely the one after it; the sweep
+        // that replaced it is a branch at the end of the ladder, where
+        // step + 1 is off the end. Rung 1 is where a found record starts on
+        // every one of these ladders — rung 0 is the research that found it
+        // — and it is the same step the server queues.
+        const after = 1;
         const startRound = ladder.steps[after]?.rounds ? 1 : 0;
-        // What the operator typed, not the examples on the rung. A research
-        // task that found nothing should create nothing.
-        const names = (task.found ?? []).map((n) => n.trim()).filter(Boolean);
+        // What the operator typed, not the examples on the rung. A sweep
+        // that found nothing should create nothing.
+        const names = (task.found ?? []).map((f) => f.name.trim()).filter(Boolean);
         const born = names.map((name) => {
           const r = makeRecord(record.section, name, after, startRound, 0);
           (u.records[record.section] ??= []).push(r);
@@ -796,6 +857,10 @@ export function resolveNext(
 
   const rung = rungAt(section, step, round);
   switch (action.outcome) {
+    // A fan-out leads nowhere on its own ladder: what it produces is other
+    // records, each starting their own. The sweep that ran it is done.
+    case "fanout":
+      return null;
     case "repeat":
     // A no-show is the same rung again, from the record's point of view.
     // It was missing here, so the server closed the meeting task and

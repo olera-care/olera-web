@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Collateral from "./Collateral";
+import type { AttachmentRow } from "@/app/api/admin/medjobs/attachments/route";
 import { LADDERS, rungAt, type ContactField } from "@/lib/medjobs/ladders";
 import { Attachment } from "./TaskView";
 import {
   dueLabel,
   formatPhone,
+  SWEEP_PREFIX,
   isCheck,
   isReady,
   longDate,
@@ -142,6 +145,9 @@ export default function RecordView({
   const ready = record.tasks.filter(isReady);
   const scheduled = record.tasks.filter((t) => !t.done && !isReady(t));
   const history = record.tasks.filter((t) => t.done).slice().reverse();
+  // Read once by the files band below and shared with the history, so a
+  // finished task can show what arrived with it without asking again.
+  const [files, setFiles] = useState<AttachmentRow[]>([]);
   const ahead = stillToCome(record);
   const [editingName, setEditingName] = useState(false);
   const site = record.website ?? "";
@@ -284,9 +290,24 @@ export default function RecordView({
         ))}
       </Band>
       <SystemBand record={record} />
+      {/* Everything on the record, whichever task it arrived with. A sweep's
+          synthetic id is not a record, so it gets no files band. */}
+      {!record.id.startsWith(SWEEP_PREFIX) && (
+        <div className="mt-4 border-t border-gray-100 pt-3">
+          <Collateral outreachId={record.id} label="Files on this record" onLoaded={setFiles} />
+        </div>
+      )}
       <Band label="History">
         {history.map((t) => (
-          <AnyRow key={t.id} task={t} done busy={busy} onOpen={onOpenTask} onCheck={onCheck} />
+          <AnyRow
+            key={t.id}
+            task={t}
+            done
+            busy={busy}
+            onOpen={onOpenTask}
+            onCheck={onCheck}
+            files={files.filter((f) => f.taskId === t.id)}
+          />
         ))}
       </Band>
 
@@ -560,17 +581,20 @@ function AnyRow({
   busy,
   onOpen,
   onCheck,
+  files,
 }: {
   task: BoardTask;
   done?: boolean;
   busy?: boolean;
   onOpen: (task: BoardTask) => void;
   onCheck: (task: BoardTask, done: boolean) => void;
+  /** What was uploaded during this task, on a finished one. */
+  files?: AttachmentRow[];
 }) {
   if (isCheck(task)) {
     return <CheckRow task={task} done={done} busy={busy} onCheck={onCheck} />;
   }
-  return <Row task={task} done={done} onOpen={() => onOpen(task)} />;
+  return <Row task={task} done={done} onOpen={() => onOpen(task)} files={files} />;
 }
 
 /**
@@ -687,7 +711,17 @@ function Band({ label, children }: { label: string; children: React.ReactNode[] 
   );
 }
 
-function Row({ task, done, onOpen }: { task: BoardTask; done?: boolean; onOpen: () => void }) {
+function Row({
+  task,
+  done,
+  onOpen,
+  files,
+}: {
+  task: BoardTask;
+  done?: boolean;
+  onOpen: () => void;
+  files?: AttachmentRow[];
+}) {
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       <button
@@ -718,6 +752,30 @@ function Row({ task, done, onOpen }: { task: BoardTask; done?: boolean; onOpen: 
         </p>
       ))}
       {task.note && <p className="-mt-0.5 pb-2 pl-6 text-[12px] leading-snug text-gray-500">{task.note}</p>}
+      {/* What arrived with this task, under the note it was written beside.
+          The link is signed and expires, which is why it is read with the
+          drawer rather than held. */}
+      {files && files.length > 0 && (
+        <p className="-mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 pb-2 pl-6 text-[12px]">
+          {files.map((f) =>
+            f.url ? (
+              <a
+                key={f.id}
+                href={f.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary-700 underline hover:no-underline"
+              >
+                {f.filename}
+              </a>
+            ) : (
+              <span key={f.id} className="text-gray-400">
+                {f.filename}
+              </span>
+            ),
+          )}
+        </p>
+      )}
     </div>
   );
 }

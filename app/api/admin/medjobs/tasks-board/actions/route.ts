@@ -3,7 +3,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   SKIPPED,
-  SWEEP_PREFIX,
+  SWEEPS,
+  parseSweepId,
   carryFrom,
   dueFor,
   dueIn,
@@ -53,6 +54,8 @@ type Body =
       note?: string;
       /** Typed values the outcome asked for — a link, a date, a choice. */
       fields?: Record<string, string>;
+      /** What a sweep found. Each becomes its own record. */
+      found?: Array<Record<string, unknown>>;
     }
   | { op: "defer_record_task"; recordId: string; step: number; round: number; days: number }
   | {
@@ -119,6 +122,108 @@ const stamp = (userId: string) => ({
   last_edited_at: new Date().toISOString(),
 });
 
+/**
+ * A record created by a sweep, provider or advisor.
+ *
+ * One function for both, because the two sweeps are meant to be the same
+ * operation on different things — the moment there are two of these they
+ * start drifting, which is the drift the sweeps were converged to remove.
+ *
+ * Starts at rung 1, not rung 0: rung 0 is the research that found it, and
+ * handing somebody a research task for a record they have just researched is
+ * asking them to do it twice.
+ */
+async function createFound(
+  db: ReturnType<typeof getServiceClient>,
+  section: "providers" | "advisors",
+  campusId: string,
+  found: {
+    name: string;
+    contact?: string;
+    role?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    address?: string;
+  },
+  userId: string,
+): Promise<{ id?: string; error?: string }> {
+  const provider = section === "providers";
+
+  const research: Record<string, unknown> = {
+    found_by: provider ? "provider_map_sweep" : "advisor_sweep",
+    added_by: userId,
+    added_at: new Date().toISOString(),
+  };
+  // Migration 074 requires a provider row to say where it came from, and a
+  // swept one has no directory behind it. 235 accepts manual_entry for
+  // exactly this.
+  if (provider) research.manual_entry = true;
+  if (found.website?.trim()) research.website = found.website.trim();
+  if (found.address?.trim()) research.address = found.address.trim();
+
+  const { data, error } = await db
+    .from("student_outreach")
+    .insert({
+      campus_id: campusId,
+      kind: provider ? "provider" : "advisor",
+      stakeholder_type: provider ? null : "advisor",
+      organization_name: found.name.slice(0, 200),
+      status: "researched",
+      cadence_day: 0,
+      research_data: research,
+      ...stamp(userId),
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { error: error?.message ?? "Could not create the record" };
+
+  // The person, when the sweep found one. A row of empty strings would show
+  // on the record as a contact nobody can reach, so it is only written when
+  // something was actually typed.
+  const person: Record<string, string> = {};
+  if (found.contact?.trim()) person.name = found.contact.trim();
+  if (found.role?.trim()) person.role = found.role.trim();
+  if (found.email?.trim()) person.email = found.email.trim();
+  if (found.phone?.trim()) person.phone = formatPhone(found.phone);
+  if (Object.keys(person).length > 0) {
+    const { error: contactError } = await db
+      .from("student_outreach_contacts")
+      .insert({ outreach_id: data.id, is_primary: true, name: "", ...person });
+    if (contactError) return { error: contactError.message };
+  }
+
+  // Where a new record starts, which is the one place the two sections
+  // genuinely differ — and differ because their ladders do, not by accident.
+  //
+  // A provider starts at rung 0, Research, and opens the block of three that
+  // are one sitting's work: the sweep captured what the listing showed, not
+  // whether the address is within range or the website says what it should.
+  //
+  // An advisor starts at rung 1. Rung 0 on that ladder is "Research the
+  // advising offices", the discovery step the sweep has just done for the
+  // whole campus — handing it back for one office would be asking for the
+  // work twice.
+  const start = provider ? 0 : 1;
+  const block = provider ? Math.max(1, LADDERS.providers.openTogether ?? 1) : 1;
+  const today = new Date().toISOString().slice(0, 10);
+  const { error: taskError } = await db.from("student_outreach_tasks").insert(
+    Array.from({ length: block }, (_, k) => ({
+      outreach_id: data.id,
+      task_type: taskTypeFor(section, start + k),
+      status: "pending",
+      due_at: today,
+      payload: {
+        step: start + k,
+        round: LADDERS[section].steps[start + k]?.rounds ? 1 : 0,
+      },
+    })),
+  );
+  if (taskError) return { error: taskError.message };
+
+  return { id: data.id };
+}
+
 export async function POST(req: Request) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -143,75 +248,38 @@ export async function POST(req: Request) {
   if (body.op === "create_record") {
     const name = (body.name ?? "").trim();
     if (!name) return NextResponse.json({ error: "A record needs a name" }, { status: 400 });
-    if (body.section !== "providers") {
-      // Everything else on the board is found by a rung or arrives from a
-      // system, and a hand-typed row would sit outside the count those are
-      // measured on. Refused rather than half-supported.
+    // Providers and advising offices only. Both have a sweep that fills them
+    // and both carry on needing additions after it — a student org or a
+    // professor arrives from its own rung, and a hand-typed one would sit
+    // outside the count those are measured on.
+    if (body.section !== "providers" && body.section !== "advisors") {
       return NextResponse.json(
-        { error: "Only providers can be added by hand" },
+        { error: "Only providers and advising offices can be added by hand" },
         { status: 400 },
       );
     }
 
-    const research: Record<string, unknown> = {
-      // No directory row behind this one, which is why migration 235 exists:
-      // the provider-link constraint accepts a record that says so.
-      manual_entry: true,
-      added_by: user.id,
-      added_at: new Date().toISOString(),
-      source: "typed_by_admin",
-    };
-    for (const key of ["website", "address"] as const) {
-      const v = (body[key] ?? "").trim();
-      if (v) research[key] = v;
-    }
-
-    const { data: created, error: createError } = await db
-      .from("student_outreach")
-      .insert({
-        campus_id: body.campusId,
-        kind: "provider",
-        stakeholder_type: null,
-        organization_name: name,
-        status: "researched",
-        cadence_day: 0,
-        research_data: research,
-        ...stamp(user.id),
-      })
-      .select("id")
-      .single();
-    if (createError || !created) {
-      return NextResponse.json(
-        { error: createError?.message ?? "Could not create the record" },
-        { status: 500 },
-      );
-    }
-
-    const person: Record<string, string> = {};
-    if ((body.contact ?? "").trim()) person.name = body.contact!.trim();
-    if ((body.role ?? "").trim()) person.role = body.role!.trim();
-    if ((body.email ?? "").trim()) person.email = body.email!.trim();
-    if ((body.phone ?? "").trim()) person.phone = formatPhone(body.phone!);
-    if (Object.keys(person).length > 0) {
-      await db
-        .from("student_outreach_contacts")
-        .insert({ outreach_id: created.id, is_primary: true, name: "", ...person });
-    }
-
-    // The opening rungs, the same as every record the catchment creates.
-    // Providers open three at once: look them up, ring them, send them the
-    // programme. They are one sitting's work.
-    const block = Math.max(1, LADDERS[body.section].openTogether ?? 1);
-    const today = new Date().toISOString().slice(0, 10);
-    await db.from("student_outreach_tasks").insert(
-      Array.from({ length: block }, (_, k) => ({
-        outreach_id: created.id,
-        task_type: taskTypeFor(body.section, k),
-        status: "pending",
-        due_at: today,
-        payload: { step: k, round: LADDERS[body.section].steps[k]?.rounds ? 1 : 0 },
-      })),
+    // The same creator the sweeps use. Two functions that both make a record
+    // is how the add form and the sweep drift apart, which is the thing this
+    // pass exists to stop.
+    const created = await createFound(
+      db,
+      body.section,
+      body.campusId,
+      {
+        name,
+        contact: body.contact,
+        role: body.role,
+        phone: body.phone,
+        email: body.email,
+        website: body.website,
+        address: body.address,
+      },
+      user.id,
     );
+    if (created.error) {
+      return NextResponse.json({ error: created.error }, { status: 500 });
+    }
 
     return NextResponse.json({ ok: true, id: created.id, name });
   }
@@ -233,40 +301,78 @@ export async function POST(req: Request) {
   //
   // The sweep goes first because its id is synthetic — there is nothing to
   // look up, and every other lookup would miss it and cost a round trip.
-  if (body.recordId.startsWith(SWEEP_PREFIX)) {
-    const campusId = body.recordId.slice(SWEEP_PREFIX.length);
+  const sweep = parseSweepId(body.recordId);
+  if (sweep) {
+    const { taskType, section } = SWEEPS[sweep.kind];
     if (body.op !== "complete_record_task") {
       return NextResponse.json(
-        { error: "The sweep can only be logged, not deferred or reopened." },
+        { error: "A sweep can only be logged, not deferred or reopened." },
         { status: 400 },
       );
     }
-    const fields =
-      body.fields && typeof body.fields === "object"
-        ? (body.fields as Record<string, string>)
-        : {};
-    // Upsert, not insert. The unique index makes a second row impossible, so
-    // without this a double click returns an error rather than a no-op — and
-    // to the operator a double click is one click that did not seem to work.
-    const { error } = await db
-      .from("site_tasks")
-      .upsert(
-        {
-          campus_id: campusId,
-          task_type: "provider_map_sweep",
-          channel: null,
-          due_at: new Date().toISOString(),
-          status: "completed",
-          completed_at: new Date().toISOString(),
-          completed_by: user.id,
-          created_by: user.id,
-          payload: { added: Number(fields.added ?? 0) },
-          notes: (body.note ?? "").trim() || null,
-        },
-        { onConflict: "campus_id", ignoreDuplicates: true },
+    // A sweep's whole output is what it found, so those are created before
+    // the sweep is marked done. The other order would let a failure halfway
+    // leave a campus with its sweep closed and nothing to show for it, and a
+    // sweep cannot be reopened.
+    const raw = Array.isArray(body.found) ? body.found.slice(0, 100) : [];
+    const found = raw
+      .map((f) => ({
+        name: String(f?.name ?? "").trim().slice(0, 200),
+        contact: String(f?.contact ?? "").trim().slice(0, 200),
+        role: String(f?.role ?? "").trim().slice(0, 200),
+        phone: String(f?.phone ?? "").trim().slice(0, 50),
+        email: String(f?.email ?? "").trim().slice(0, 200),
+        website: String(f?.website ?? "").trim().slice(0, 500),
+        address: String(f?.address ?? "").trim().slice(0, 500),
+      }))
+      .filter((f) => f.name !== "");
+
+    let made = 0;
+    if (found.length > 0) {
+      // Two operators sweeping the same campus, or one pressing the button
+      // twice, must not double the list. Matched on name because that is
+      // the only field a sweep is guaranteed to have.
+      const { data: existing } = await db
+        .from("student_outreach")
+        .select("organization_name")
+        .eq("campus_id", sweep.campusId)
+        .eq("kind", sweep.kind === "map" ? "provider" : "advisor");
+      const already = new Set(
+        (existing ?? []).map((r) => (r.organization_name ?? "").trim().toLowerCase()),
       );
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ ok: true, swept: campusId });
+      for (const f of found) {
+        if (already.has(f.name.toLowerCase())) continue;
+        const created = await createFound(db, section, sweep.campusId, f, user.id);
+        if (created.error) {
+          return NextResponse.json({ error: created.error }, { status: 500 });
+        }
+        already.add(f.name.toLowerCase());
+        made += 1;
+      }
+    }
+
+    // A plain insert, not an upsert. The unique index behind each sweep is
+    // partial, and a partial index cannot satisfy ON CONFLICT (campus_id) —
+    // Postgres answers "no unique or exclusion constraint matching the ON
+    // CONFLICT specification", which is a 500 to whoever pressed the button.
+    // So: insert, and treat the unique violation a double click causes as
+    // what it is, which is the row already being there.
+    const { error } = await db.from("site_tasks").insert({
+      campus_id: sweep.campusId,
+      task_type: taskType,
+      channel: null,
+      due_at: new Date().toISOString(),
+      status: "completed",
+      completed_at: new Date().toISOString(),
+      completed_by: user.id,
+      created_by: user.id,
+      payload: { found, added: made },
+      notes: (body.note ?? "").trim() || null,
+    });
+    if (error && error.code !== "23505") {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, swept: sweep.campusId, section, added: made });
   }
 
   if (!outreach) {
@@ -416,6 +522,27 @@ export async function POST(req: Request) {
           { error: `Could not record the exclusion, so nothing was deleted: ${logError.message}` },
           { status: 500 },
         );
+      }
+
+      // Files next. The rows cascade with the record but the objects in the
+      // bucket do not — storage has no foreign keys — so deleting the record
+      // without this leaves collateral nobody can see and nobody can remove.
+      // Before the cascade, because after it there is nothing left to read
+      // the paths from.
+      const { data: files } = await db
+        .from("medjobs_attachments")
+        .select("path")
+        .eq("outreach_id", outreach.id);
+      if (files && files.length > 0) {
+        const { error: filesError } = await db.storage
+          .from("medjobs-collateral")
+          .remove(files.map((f) => f.path as string));
+        if (filesError) {
+          return NextResponse.json(
+            { error: `Could not remove the files, so nothing was deleted: ${filesError.message}` },
+            { status: 500 },
+          );
+        }
       }
 
       // student_outreach_touchpoints is append-only and its guard fires on a

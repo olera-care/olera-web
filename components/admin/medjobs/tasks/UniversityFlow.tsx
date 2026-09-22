@@ -355,6 +355,11 @@ export default function UniversityFlow({
           // its time only until the page reloaded, and the checkbox that
           // opens the meeting branch never reached the server at all.
           fields: task.fields ?? {},
+          // The names typed into a fan-out rung. These were held in the
+          // page and nowhere else: every office somebody found on the
+          // advisor sweep was lost on the next reload, and none of them
+          // ever became a record.
+          found: task.found ?? [],
         },
         // Say so. Finishing a task was the one write that confirmed
         // nothing, which is a strange thing for the action somebody
@@ -521,8 +526,8 @@ export default function UniversityFlow({
             record[f] = v;
             force((n) => n + 1);
           }}
-          onFound={(names) => {
-            task.found = names;
+          onFound={(next) => {
+            task.found = next;
             force((n) => n + 1);
           }}
           onFieldValue={(key, value) => {

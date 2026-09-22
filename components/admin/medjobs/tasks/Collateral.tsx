@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AttachmentRow } from "@/app/api/admin/medjobs/attachments/route";
+import type { AttachmentRow, RecordKind } from "@/app/api/admin/medjobs/attachments/route";
 
 /**
  * Collateral on a record.
@@ -26,13 +26,19 @@ const icon = (mime: string) =>
   mime.startsWith("image/") ? "🖼" : mime === "application/pdf" ? "📄" : "📎";
 
 export default function Collateral({
-  outreachId,
+  recordId,
+  recordKind,
   taskId,
   label = "Files",
   compact = false,
   onLoaded,
 }: {
-  outreachId: string;
+  recordId: string;
+  /**
+   * Which kind of record this is. Only two of the four board sections are
+   * student_outreach rows, so the id alone does not identify a record.
+   */
+  recordKind: RecordKind;
   /** Set on a task: filters to that task's files and files new ones to it. */
   taskId?: string;
   label?: string;
@@ -53,7 +59,8 @@ export default function Collateral({
   const load = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/admin/medjobs/attachments?outreachId=${encodeURIComponent(outreachId)}`,
+        `/api/admin/medjobs/attachments?recordKind=${recordKind}` +
+          `&recordId=${encodeURIComponent(recordId)}`,
         { cache: "no-store" },
       );
       const json = (await res.json()) as { rows?: AttachmentRow[]; error?: string };
@@ -70,7 +77,7 @@ export default function Collateral({
     // onLoaded is left out on purpose: a caller passing an inline function
     // would make this reload on every render of theirs, forever.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outreachId]);
+  }, [recordId, recordKind]);
 
   useEffect(() => {
     void load();
@@ -84,7 +91,8 @@ export default function Collateral({
       for (const file of Array.from(files)) {
         const form = new FormData();
         form.append("file", file);
-        form.append("outreachId", outreachId);
+        form.append("recordId", recordId);
+        form.append("recordKind", recordKind);
         if (taskId) form.append("taskId", taskId);
         const res = await fetch("/api/admin/medjobs/attachments", { method: "POST", body: form });
         const json = (await res.json()) as { error?: string };

@@ -1477,11 +1477,21 @@ async function saveInvestigations(
   }
   const existing = new Map(((data ?? []) as WarRoomInvestigation[]).map((row) => [row.fingerprint, row]));
   const dispositions = new Map(assessments.map((assessment) => [assessment.fingerprint, assessment]));
+  // Proposals now outlive the scan that drafted them. An investigation whose
+  // proposal is still waiting stays decision_ready even when this scan did not
+  // re-draft it; otherwise it flips back to investigating every morning, which
+  // counts as progress and invites a second proposal for the same condition.
+  const { data: waitingProposals, error: waitingError } = await db.from("war_room_proposals")
+    .select("id")
+    .eq("status", "proposed");
+  if (waitingError) throw waitingError;
+  const waitingProposalIds = new Set((waitingProposals ?? []).map((row) => (row as { id: string }).id));
   let saved = 0;
   for (const draft of drafts) {
     const prior = existing.get(draft.fingerprint);
     const assessment = dispositions.get(draft.fingerprint);
-    const selected = selectedProposalFingerprints.has(draft.fingerprint);
+    const selected = selectedProposalFingerprints.has(draft.fingerprint)
+      || Boolean(prior?.proposal_id && waitingProposalIds.has(prior.proposal_id) && assessment?.disposition !== "drop");
     const droppedStatus = assessment?.reasonCode === "resolved"
       ? "resolved"
       : assessment?.reasonCode === "contradicted"
@@ -1709,12 +1719,13 @@ async function saveProposals(
   // every scan: the 2026-09-22 10:30 proposal was superseded three and a half
   // hours later by a manual scan, before anyone had decided it. A proposal the
   // founder never got to decide is the loop failing to close, not a retirement.
-  // It now waits a week for a decision; after that, silence is the answer.
+  // It now waits a week from when a scan last drafted it; after that, silence is
+  // the answer.
   const waitCutoff = new Date(Date.now() - PROPOSAL_WAIT_DAYS * 86_400_000).toISOString();
   const { data: waitingRows, error: waitingError } = await db.from("war_room_proposals")
     .select("id, fingerprint")
     .eq("status", "proposed")
-    .lt("created_at", waitCutoff);
+    .lt("last_seen_at", waitCutoff);
   if (waitingError) throw waitingError;
   for (const waiting of (waitingRows ?? []) as Array<{ id: string; fingerprint: string }>) {
     if (draftFingerprints.has(waiting.fingerprint)) continue;

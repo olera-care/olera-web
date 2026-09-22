@@ -52,7 +52,7 @@ function readingLine(reading: WarRoomProbeReading, scanDate: string) {
   return `• *${reading.label}* ${reading.headline}${age}${from}`;
 }
 
-type ProposalRow = { title: string; why_now: string; decision_required: string; created_at?: string; discovery_run_id?: string };
+type ProposalRow = { title: string; why_now: string; decision_required: string; created_at?: string };
 type ApprovedRow = { title: string; approved_at: string | null; assigned_owner: string | null };
 
 /**
@@ -77,7 +77,6 @@ type InvestigationRow = { status: string };
  */
 export function buildWarRoomBriefText(input: {
   run: Pick<WarRoomDiscoveryRun, "status" | "created_at" | "error_message" | "source_summary">;
-  runId?: string;
   siteUrl: string;
   readings: WarRoomProbeReading[];
   proposals: ProposalRow[];
@@ -129,7 +128,8 @@ export function buildWarRoomBriefText(input: {
     for (const proposal of input.proposals) {
       // A proposal carried over from an earlier scan says so. Otherwise a
       // week-old decision reads as this morning's news.
-      const waiting = proposal.created_at && proposal.discovery_run_id && proposal.discovery_run_id !== input.runId
+      // Keyed on age, not run id: a re-drafted proposal takes the new run's id.
+      const waiting = proposal.created_at && proposal.created_at.slice(0, 10) < run.created_at.slice(0, 10)
         ? ` _(waiting since ${shortDate(proposal.created_at)})_`
         : "";
       lines.push(`*${proposal.title}*${waiting}`, proposal.why_now || proposal.decision_required);
@@ -205,7 +205,7 @@ export async function deliverWarRoomBrief(
         // outlive the scan that drafted them, and one that is waiting but
         // absent from the brief is waiting where nobody looks.
         db.from("war_room_proposals")
-          .select("title, why_now, decision_required, created_at, discovery_run_id")
+          .select("title, why_now, decision_required, created_at")
           .eq("status", "proposed")
           .order("created_at", { ascending: false })
           .limit(3),
@@ -228,7 +228,6 @@ export async function deliverWarRoomBrief(
 
     const text = buildWarRoomBriefText({
       run,
-      runId,
       siteUrl: getSiteUrl(),
       readings,
       proposals,

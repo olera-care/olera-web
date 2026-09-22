@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import type { StudentMetadata } from "@/lib/types";
-import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel, hasVideo, getYouTubeId } from "@/lib/medjobs-helpers";
+import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel, hasVideo, getYouTubeId, getVideoPlatform } from "@/lib/medjobs-helpers";
 import { ScheduleBuilder, parseSchedule, serializeSchedule } from "@/components/medjobs/ScheduleBuilder";
 import {
   SCENARIO_QUESTIONS,
@@ -1158,8 +1158,8 @@ function StudentPortalContent({
 
   const meta = profile.metadata || {} as StudentMetadata;
   const hasPhoto = !!profile.image_url;
+  // Get verification items for optional document display (video is required, license/insurance optional)
   const verificationItems = getVerificationItems(meta);
-  const verificationDone = verificationItems.every((v) => v.done);
 
   // Check if profile has ever gone live (application_completed = true means they went through Go Live at least once)
   const hasCompletedApplication = !!meta.application_completed;
@@ -1169,7 +1169,8 @@ function StudentPortalContent({
 
   // Video verification
   const videoAvailable = hasVideo(meta);
-  const youtubeId = videoAvailable && meta.video_intro_url ? getYouTubeId(meta.video_intro_url) : null;
+  const videoInfo = videoAvailable && meta.video_intro_url ? getVideoPlatform(meta.video_intro_url) : { platform: null, id: null };
+  const youtubeId = videoInfo.platform === "youtube" ? videoInfo.id : null;
 
   // Basic info from onboarding - these are typically already complete
   const hasBasicInfo = {
@@ -1306,9 +1307,6 @@ function StudentPortalContent({
   };
   const trackLabel = getTrackLabel(meta);
   const currentSemester = getCurrentSemester();
-
-  // Find the first incomplete verification item to auto-open
-  const nextVerification = verificationItems.find((v) => !v.done);
 
   // Show banner when profile is 100% complete but hasn't requested review yet
   const showReviewBanner = completenessPercent === 100 && !isPendingReview && !hasCompletedApplication;
@@ -1590,7 +1588,7 @@ function StudentPortalContent({
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <h2 className="text-lg font-semibold text-gray-900">Verification</h2>
-                  {verificationDone ? (
+                  {videoAvailable ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -1598,8 +1596,8 @@ function StudentPortalContent({
                       Complete
                     </span>
                   ) : (
-                    <span className="text-xs text-gray-400">
-                      {verificationItems.filter((v) => v.done).length} of {verificationItems.length}
+                    <span className="text-xs text-amber-600 font-medium">
+                      Video required
                     </span>
                   )}
                 </div>
@@ -1615,139 +1613,114 @@ function StudentPortalContent({
                 </button>
               </div>
 
-              {/* Empty State - No verifications yet */}
-              {verificationItems.every((v) => !v.done) ? (
+              {/* Video Content */}
+              {videoAvailable ? (
+                <div className="space-y-4">
+                  {/* Hero video preview - large 16:9 thumbnail */}
+                  <a
+                    href={meta.video_intro_url || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative block w-full aspect-video rounded-xl overflow-hidden bg-gray-900 group"
+                  >
+                    {/* YouTube thumbnail */}
+                    {videoInfo.platform === "youtube" && videoInfo.id && (
+                      <img
+                        src={`https://img.youtube.com/vi/${videoInfo.id}/maxresdefault.jpg`}
+                        alt="Video thumbnail"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoInfo.id}/mqdefault.jpg`;
+                        }}
+                      />
+                    )}
+                    {/* Loom thumbnail */}
+                    {videoInfo.platform === "loom" && videoInfo.id && (
+                      <img
+                        src={`https://cdn.loom.com/sessions/thumbnails/${videoInfo.id}-with-play.gif`}
+                        alt="Video thumbnail"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    )}
+                    {/* Vimeo or fallback - gradient with platform label */}
+                    {(videoInfo.platform === "vimeo" || !videoInfo.platform) && (
+                      <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex flex-col items-center justify-center">
+                        <svg className="w-10 h-10 text-white/70 mb-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        {videoInfo.platform === "vimeo" && (
+                          <span className="text-xs text-white/60 font-medium">Vimeo</span>
+                        )}
+                      </div>
+                    )}
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+                      <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                        <svg className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+
+                  {/* Video status */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="text-sm text-gray-600">Intro video saved</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleOpenVerificationModal}
+                      className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Empty State - No video yet */
                 <button
                   type="button"
                   onClick={handleOpenVerificationModal}
                   className="w-full group"
                 >
-                  <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50/50 transition-all">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-100/50 transition-all flex flex-col items-center justify-center">
+                    <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3 group-hover:shadow transition-shadow">
+                      <svg className="w-7 h-7 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
                       </svg>
                     </div>
-                    <div className="flex-1 text-left">
-                      <p className="text-sm font-medium text-gray-900">Get verified to go live</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Add intro video, license, and insurance</p>
-                    </div>
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <p className="text-sm font-medium text-gray-900 mb-0.5">Add your intro video</p>
+                    <p className="text-xs text-gray-500">Required to go live</p>
                   </div>
                 </button>
-              ) : (
-                <div className="space-y-3">
-                  {/* Video row - compact thumbnail when available */}
-                  {videoAvailable && (
-                    <div className="flex items-center gap-3">
-                      {/* Compact video thumbnail */}
-                      <a
-                        href={meta.video_intro_url || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative w-20 h-14 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0 group"
-                      >
-                        {youtubeId ? (
-                          <img
-                            src={`https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`}
-                            alt="Video thumbnail"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary-600 to-primary-800" />
-                        )}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-                          <div className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center">
-                            <svg className="w-3 h-3 text-gray-900 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
-                          </div>
-                        </div>
-                      </a>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">Intro video</p>
-                        <p className="text-xs text-primary-600">Uploaded</p>
-                      </div>
-                      <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
+              )}
 
-                  {/* Document verification items - compact horizontal rows */}
-                  {verificationItems.filter(item => item.key !== "video").map((item) => {
-                    const isDone = item.done;
-                    const expiration = item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration;
-
-                    return (
-                      <button
+              {/* Optional Documents - Show even without video */}
+              {verificationItems.some(item => item.key !== "video" && item.done) && (
+                <div className={`${videoAvailable ? "pt-4 mt-4 border-t border-gray-100" : "mt-4"}`}>
+                  <p className="text-xs text-gray-400 mb-2">Optional documents</p>
+                  <div className="flex flex-wrap gap-2">
+                    {verificationItems.filter(item => item.key !== "video" && item.done).map((item) => (
+                      <span
                         key={item.key}
-                        type="button"
-                        onClick={handleOpenVerificationModal}
-                        className="w-full flex items-center gap-3 text-left group"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-600 text-xs rounded-lg"
                       >
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                          isDone ? "bg-primary-50" : "bg-gray-100 group-hover:bg-gray-200"
-                        }`}>
-                          {item.key === "drivers_license" ? (
-                            <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
-                            </svg>
-                          ) : (
-                            <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                          <p className={`text-xs ${isDone ? "text-primary-600" : "text-gray-400"}`}>
-                            {isDone ? (expiration ? `Expires ${expiration}` : "Uploaded") : "Not uploaded"}
-                          </p>
-                        </div>
-                        {isDone ? (
-                          <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
-                        )}
-                      </button>
-                    );
-                  })}
-
-                  {/* Show video row if not available (need to add it) */}
-                  {!videoAvailable && (
-                    <button
-                      type="button"
-                      onClick={handleOpenVerificationModal}
-                      className="w-full flex items-center gap-3 text-left group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center flex-shrink-0 transition-colors">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                        <svg className="w-3.5 h-3.5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">Intro video</p>
-                        <p className="text-xs text-gray-400">Not uploaded</p>
-                      </div>
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
-                    </button>
-                  )}
-
-                  {/* CTA if not complete */}
-                  {!verificationDone && (
-                    <button
-                      type="button"
-                      onClick={handleOpenVerificationModal}
-                      className="w-full mt-2 py-2.5 px-4 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors"
-                    >
-                      Continue verification
-                    </button>
-                  )}
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

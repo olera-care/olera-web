@@ -83,11 +83,9 @@ export function getSectionCompleteness(
   const overviewDone = overviewItems.filter((i) => i.done).length;
   const overviewPercent = Math.round((overviewDone / overviewItems.length) * 100);
 
-  // 2. Verification
+  // 2. Verification (only intro video counts toward completeness; license/insurance are optional)
   const verificationItems = [
     { key: "video", label: "Intro video", done: !!meta.video_intro_url },
-    { key: "license", label: "Driver's license", done: !!(meta.drivers_license_url && meta.drivers_license_expiration) },
-    { key: "insurance", label: "Car insurance", done: !!(meta.car_insurance_url && meta.car_insurance_expiration) },
   ];
   const verificationDone = verificationItems.filter((i) => i.done).length;
   const verificationPercent = Math.round((verificationDone / verificationItems.length) * 100);

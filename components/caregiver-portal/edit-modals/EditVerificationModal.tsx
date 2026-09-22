@@ -12,7 +12,58 @@ interface UploadedFile {
   size: number;
 }
 
-type Step = 1 | 2 | 3;
+// Helper to extract YouTube video ID
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/,
+    /youtube\.com\/shorts\/([^&\s?]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+// Helper to extract Loom video ID
+function getLoomId(url: string): string | null {
+  const match = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
+}
+
+// Helper to extract Vimeo video ID
+function getVimeoId(url: string): string | null {
+  const match = url.match(/vimeo\.com\/(\d+)/);
+  return match ? match[1] : null;
+}
+
+// Get video platform info
+function getVideoInfo(url: string): { platform: "youtube" | "loom" | "vimeo" | null; id: string | null } {
+  if (!url.trim()) return { platform: null, id: null };
+
+  const youtubeId = getYouTubeId(url);
+  if (youtubeId) return { platform: "youtube", id: youtubeId };
+
+  const loomId = getLoomId(url);
+  if (loomId) return { platform: "loom", id: loomId };
+
+  const vimeoId = getVimeoId(url);
+  if (vimeoId) return { platform: "vimeo", id: vimeoId };
+
+  return { platform: null, id: null };
+}
+
+// Check if URL looks like a video URL but isn't supported
+function looksLikeVideoUrl(url: string): boolean {
+  if (!url.trim()) return false;
+  const videoPatterns = [
+    /^https?:\/\//,
+    /\.(mp4|mov|avi|webm|mkv)$/i,
+    /video/i,
+    /watch/i,
+  ];
+  return videoPatterns.some(p => p.test(url));
+}
 
 export default function EditVerificationModal({
   profile,
@@ -34,15 +85,16 @@ export default function EditVerificationModal({
     };
   }, []);
 
-  // Wizard step
-  const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">("right");
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Video
+  // Video state
   const [videoUrl, setVideoUrl] = useState(meta.video_intro_url || "");
   const [videoSubmitting, setVideoSubmitting] = useState(false);
-  const [videoSubmitted, setVideoSubmitted] = useState(!!meta.video_intro_url);
+  const [videoSaved, setVideoSaved] = useState(!!meta.video_intro_url);
+  const [isEditingUrl, setIsEditingUrl] = useState(false); // Only true when actively typing a new URL
+  const [originalVideoUrl] = useState(meta.video_intro_url || ""); // Store original for cancel
+
+  // Optional documents section - auto-expand if documents exist
+  const hasExistingDocs = !!(meta.drivers_license_url || meta.car_insurance_url);
+  const [showDocuments, setShowDocuments] = useState(hasExistingDocs);
 
   // Driver's license
   const [licenseUploaded, setLicenseUploaded] = useState(!!meta.drivers_license_url);
@@ -66,41 +118,15 @@ export default function EditVerificationModal({
   const licenseInputRef = useRef<HTMLInputElement>(null);
   const insuranceInputRef = useRef<HTMLInputElement>(null);
 
-  // Track if any verification item is complete (only count as complete if actually saved)
-  const hasVideo = videoSubmitted;
-  const hasLicense = licenseUploaded && !!licenseExpiration;
-  const hasInsurance = insuranceUploaded && !!insuranceExpiration;
+  // Get video info for preview
+  const videoInfo = getVideoInfo(videoUrl);
+  const hasValidVideo = !!(videoInfo.platform && videoInfo.id);
 
-  // For UI display - show as "in progress" if URL entered but not saved
-  const hasVideoInProgress = !!videoUrl.trim();
+  // Check if URL looks like a video but isn't supported
+  const showInvalidUrlHint = !hasValidVideo && looksLikeVideoUrl(videoUrl) && videoUrl.trim().length > 10;
 
-  // Check if there's a new video URL to submit
-  const hasNewVideo = videoUrl.trim() && videoUrl !== (meta.video_intro_url || "") && !videoSubmitted;
-
-  // Step labels
-  const stepLabels: Record<Step, string> = {
-    1: "Intro Video",
-    2: "Driver's License",
-    3: "Car Insurance",
-  };
-
-  // Navigate with animation (using mounted check to prevent memory leak)
-  const navigateToStep = useCallback((step: Step) => {
-    if (step === currentStep || isTransitioning) return;
-    setSlideDirection(step > currentStep ? "right" : "left");
-    setIsTransitioning(true);
-    setTimeout(() => {
-      if (isMountedRef.current) {
-        setCurrentStep(step);
-        setIsTransitioning(false);
-      }
-    }, 150);
-  }, [currentStep, isTransitioning]);
-
-  const submitVideo = useCallback(async () => {
-    if (!videoUrl.trim()) return true;
-    if (videoSubmitted && videoUrl === meta.video_intro_url) return true;
-
+  // Submit video to API
+  const submitVideo = useCallback(async (url: string) => {
     setVideoSubmitting(true);
     setError(null);
 
@@ -108,61 +134,25 @@ export default function EditVerificationModal({
       const res = await fetch("/api/medjobs/submit-video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: profile.slug, videoUrl: videoUrl.trim() }),
+        body: JSON.stringify({ slug: profile.slug, videoUrl: url.trim() }),
       });
 
       const data = await res.json();
       if (!res.ok) {
         if (isMountedRef.current) {
-          setError(data.error || "Failed to submit video");
+          setError(data.error || "Failed to save video");
         }
         return false;
       }
 
       if (isMountedRef.current) {
-        setVideoSubmitted(true);
+        setVideoSaved(!!url.trim());
+        setIsEditingUrl(false);
       }
       return true;
     } catch {
       if (isMountedRef.current) {
-        setError("Network error");
-      }
-      return false;
-    } finally {
-      if (isMountedRef.current) {
-        setVideoSubmitting(false);
-      }
-    }
-  }, [videoUrl, videoSubmitted, meta.video_intro_url, profile.slug]);
-
-  // Delete video and deactivate profile
-  const deleteVideo = useCallback(async () => {
-    setVideoSubmitting(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/medjobs/submit-video", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: profile.slug, videoUrl: "" }), // Empty URL triggers deletion
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        if (isMountedRef.current) {
-          setError(data.error || "Failed to remove video");
-        }
-        return false;
-      }
-
-      if (isMountedRef.current) {
-        setVideoUrl("");
-        setVideoSubmitted(false);
-      }
-      return true;
-    } catch {
-      if (isMountedRef.current) {
-        setError("Network error");
+        setError("Network error. Please try again.");
       }
       return false;
     } finally {
@@ -172,12 +162,45 @@ export default function EditVerificationModal({
     }
   }, [profile.slug]);
 
-  // Save video on blur (matches immediate-save behavior of documents)
+  // Auto-save when valid URL is entered (on blur)
   const handleVideoBlur = useCallback(async () => {
-    if (hasNewVideo) {
-      await submitVideo();
+    // Only auto-save if URL changed and is valid
+    if (videoUrl.trim() !== originalVideoUrl && hasValidVideo) {
+      await submitVideo(videoUrl);
     }
-  }, [hasNewVideo, submitVideo]);
+  }, [videoUrl, originalVideoUrl, hasValidVideo, submitVideo]);
+
+  // Delete video (empty URL)
+  const deleteVideo = useCallback(async () => {
+    const success = await submitVideo("");
+    if (success && isMountedRef.current) {
+      setVideoUrl("");
+      setVideoSaved(false);
+      setIsEditingUrl(false);
+    }
+  }, [submitVideo]);
+
+  // Cancel editing and revert to original URL
+  const cancelEditUrl = useCallback(() => {
+    setVideoUrl(originalVideoUrl);
+    setIsEditingUrl(false);
+    setError(null);
+  }, [originalVideoUrl]);
+
+  // Start editing the URL
+  const startEditingUrl = useCallback(() => {
+    setIsEditingUrl(true);
+    setError(null);
+  }, []);
+
+  // Save the new URL explicitly
+  const saveNewUrl = useCallback(async () => {
+    if (!hasValidVideo) {
+      setError("Please enter a valid YouTube, Loom, or Vimeo URL");
+      return;
+    }
+    await submitVideo(videoUrl);
+  }, [hasValidVideo, videoUrl, submitVideo]);
 
   const handleDocumentUpload = useCallback(async (type: "drivers_license" | "car_insurance", file: File) => {
     const isLicense = type === "drivers_license";
@@ -198,23 +221,31 @@ export default function EditVerificationModal({
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Upload failed");
+        if (isMountedRef.current) {
+          setError(data.error || "Upload failed");
+        }
         return;
       }
 
-      const fileInfo = { name: file.name, type: file.type, size: file.size };
-      if (isLicense) {
-        setLicenseUploaded(true);
-        setLicenseFile(fileInfo);
-      } else {
-        setInsuranceUploaded(true);
-        setInsuranceFile(fileInfo);
+      if (isMountedRef.current) {
+        const fileInfo = { name: file.name, type: file.type, size: file.size };
+        if (isLicense) {
+          setLicenseUploaded(true);
+          setLicenseFile(fileInfo);
+        } else {
+          setInsuranceUploaded(true);
+          setInsuranceFile(fileInfo);
+        }
       }
     } catch {
-      setError("Network error");
+      if (isMountedRef.current) {
+        setError("Network error. Please try again.");
+      }
     } finally {
-      if (isLicense) setLicenseUploading(false);
-      else setInsuranceUploading(false);
+      if (isMountedRef.current) {
+        if (isLicense) setLicenseUploading(false);
+        else setInsuranceUploading(false);
+      }
     }
   }, [profile.id]);
 
@@ -231,7 +262,7 @@ export default function EditVerificationModal({
         },
       });
     } catch {
-      // Ignore save errors for expiration dates
+      // Ignore save errors for expiration dates - they're not critical
     }
   }
 
@@ -254,33 +285,23 @@ export default function EditVerificationModal({
     }
   }, [handleDocumentUpload]);
 
-  async function handleContinue() {
-    setError(null);
-
-    // Save current step data before moving on
-    if (currentStep === 1 && hasNewVideo) {
-      const success = await submitVideo();
-      if (!success) return;
+  async function handleDone() {
+    // If user is editing URL but it's invalid, show error
+    if (isEditingUrl && videoUrl.trim() && !hasValidVideo) {
+      setError("Please enter a valid YouTube, Loom, or Vimeo URL, or click Cancel to keep your current video");
+      return;
     }
 
-    if (currentStep < 3) {
-      navigateToStep((currentStep + 1) as Step);
-    } else {
-      // Final step - save and close
-      await handleFinish();
-    }
-  }
-
-  async function handleFinish() {
     setSaving(true);
     setError(null);
 
     try {
-      // Submit video if there's a new one (shouldn't happen since we save on blur, but just in case)
-      if (hasNewVideo) {
-        const videoSuccess = await submitVideo();
+      // If user is editing URL and it's valid, save it first
+      if (isEditingUrl && hasValidVideo && videoUrl !== originalVideoUrl) {
+        const videoSuccess = await submitVideo(videoUrl);
         if (!videoSuccess) {
-          return; // Error already set by submitVideo, finally will reset saving
+          setSaving(false);
+          return;
         }
       }
 
@@ -298,7 +319,9 @@ export default function EditVerificationModal({
 
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       if (isMountedRef.current) {
         setSaving(false);
@@ -306,362 +329,49 @@ export default function EditVerificationModal({
     }
   }
 
-  // Handle back button - in guided mode on step 1, go back in guided flow
-  function handleBack() {
-    if (currentStep === 1) {
-      if (guidedMode && onGuidedBack) {
-        onGuidedBack();
-      } else {
-        onClose();
-      }
-    } else {
-      navigateToStep((currentStep - 1) as Step);
-    }
-  }
-
   const isUploading = licenseUploading || insuranceUploading || videoSubmitting;
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  // Render video preview based on platform
+  const renderVideoPreview = () => {
+    if (!hasValidVideo) return null;
 
-  // Check if current step is complete (for button state)
-  const isCurrentStepComplete = () => {
-    switch (currentStep) {
-      case 1: return hasVideo || hasVideoInProgress;
-      case 2: return hasLicense;
-      case 3: return hasInsurance;
-    }
-  };
-
-  // Get button text
-  const getButtonText = () => {
-    if (currentStep === 3) {
-      return saving ? "Saving..." : guidedMode ? "Save & Next" : "Done";
-    }
-    if (isCurrentStepComplete()) {
-      return "Continue";
-    }
-    return "Skip for now";
-  };
-
-  // Get back button text
-  const getBackButtonText = () => {
-    if (currentStep === 1) {
-      if (guidedMode && onGuidedBack) {
-        return "Back";
-      }
-      return "Cancel";
-    }
-    return "Back";
-  };
-
-  // Render step content
-  const renderStepContent = () => {
-    const transitionClass = isTransitioning
-      ? slideDirection === "right"
-        ? "opacity-0 translate-x-4"
-        : "opacity-0 -translate-x-4"
-      : "opacity-100 translate-x-0";
+    const { platform, id } = videoInfo;
 
     return (
-      <div className={`transition-all duration-150 ease-out ${transitionClass}`}>
-        {currentStep === 1 && (
-          <div className="text-center">
-            {/* Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-
-            {/* Title & Description */}
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Share your intro video</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Paste a YouTube or Loom link. Share your background, why you care about this work, and what makes you reliable.
-            </p>
-
-            {/* Input or Success State */}
-            {videoSubmitted ? (
-              <div className="max-w-sm mx-auto">
-                <div className="flex items-center gap-3 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-primary-700">Video saved</p>
-                    <p className="text-xs text-primary-600/70 truncate">{videoUrl || meta.video_intro_url}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => { setVideoSubmitted(false); setVideoUrl(meta.video_intro_url || ""); }}
-                      disabled={videoSubmitting}
-                      className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors disabled:opacity-50"
-                    >
-                      Change
-                    </button>
-                    <button
-                      type="button"
-                      onClick={deleteVideo}
-                      disabled={videoSubmitting}
-                      className="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-                    >
-                      {videoSubmitting ? "..." : "Remove"}
-                    </button>
-                  </div>
-                </div>
-                <p className="text-xs text-amber-600 mt-3 text-center">
-                  Removing your video will take your profile offline
-                </p>
-              </div>
-            ) : (
-              <div className="max-w-sm mx-auto">
-                <div className="relative">
-                  <input
-                    type="url"
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    onBlur={handleVideoBlur}
-                    placeholder="https://youtube.com/watch?v=..."
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-center focus:border-primary-600 focus:ring-2 focus:ring-primary-100 focus:bg-white outline-none transition-all placeholder:text-gray-400"
-                    autoFocus
-                  />
-                  {videoSubmitting && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-gray-400 mt-3">
-                  {videoSubmitting ? "Saving..." : "YouTube, Loom, or Vimeo links work great"}
-                </p>
-              </div>
-            )}
-          </div>
+      <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-900 shadow-sm">
+        {platform === "youtube" && (
+          <iframe
+            src={`https://www.youtube.com/embed/${id}`}
+            title="Video preview"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+          />
         )}
-
-        {currentStep === 2 && (
-          <div className="text-center">
-            {/* Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-              </svg>
-            </div>
-
-            {/* Title & Description */}
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload driver&apos;s license</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Verifies your identity. We keep it secure and never share it with families.
-            </p>
-
-            {/* Upload Area or Success State */}
-            {licenseUploaded ? (
-              <div className="max-w-sm mx-auto space-y-4">
-                <div className="flex items-center gap-3 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-primary-700">
-                      {licenseFile ? licenseFile.name : "Document uploaded"}
-                    </p>
-                    {licenseFile && (
-                      <p className="text-xs text-primary-600/70">{formatFileSize(licenseFile.size)}</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => licenseInputRef.current?.click()}
-                    disabled={licenseUploading}
-                    className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors"
-                  >
-                    Replace
-                  </button>
-                </div>
-
-                <div className="text-left">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Expiration date
-                  </label>
-                  <input
-                    type="date"
-                    value={licenseExpiration}
-                    onChange={(e) => handleExpirationChange("drivers_license", e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 focus:bg-white outline-none transition-all"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="max-w-sm mx-auto">
-                <div
-                  onDragEnter={(e) => handleDrag(e, "license", true)}
-                  onDragLeave={(e) => handleDrag(e, "license", false)}
-                  onDragOver={(e) => handleDrag(e, "license", true)}
-                  onDrop={(e) => handleDrop(e, "drivers_license")}
-                  onClick={() => licenseInputRef.current?.click()}
-                  className={`relative flex flex-col items-center justify-center py-12 px-8 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 ${
-                    licenseDragActive
-                      ? "border-primary-600 bg-primary-50 scale-[1.02]"
-                      : licenseUploading
-                      ? "border-gray-200 bg-gray-100"
-                      : "border-gray-200 hover:border-primary-400 hover:bg-gray-100"
-                  }`}
-                >
-                  {licenseUploading ? (
-                    <>
-                      <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary-600 rounded-full animate-spin mb-3" />
-                      <p className="text-sm font-medium text-gray-600">Uploading...</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-4">
-                        <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                      </div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">
-                        {licenseDragActive ? "Drop to upload" : "Click or drag to upload"}
-                      </p>
-                      <p className="text-xs text-gray-400">JPEG, PNG, or PDF up to 10MB</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <input
-              ref={licenseInputRef}
-              type="file"
-              accept="image/*,application/pdf"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleDocumentUpload("drivers_license", file);
-              }}
-            />
-          </div>
+        {platform === "loom" && (
+          <iframe
+            src={`https://www.loom.com/embed/${id}`}
+            title="Video preview"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+          />
         )}
-
-        {currentStep === 3 && (
-          <div className="text-center">
-            {/* Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-
-            {/* Title & Description */}
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload car insurance</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Confirms you can get to assignments safely. Upload your insurance card or declaration page.
-            </p>
-
-            {/* Upload Area or Success State */}
-            {insuranceUploaded ? (
-              <div className="max-w-sm mx-auto space-y-4">
-                <div className="flex items-center gap-3 p-4 bg-primary-50 border border-primary-100 rounded-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-primary-700">
-                      {insuranceFile ? insuranceFile.name : "Document uploaded"}
-                    </p>
-                    {insuranceFile && (
-                      <p className="text-xs text-primary-600/70">{formatFileSize(insuranceFile.size)}</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => insuranceInputRef.current?.click()}
-                    disabled={insuranceUploading}
-                    className="text-sm font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors"
-                  >
-                    Replace
-                  </button>
-                </div>
-
-                <div className="text-left">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Expiration date
-                  </label>
-                  <input
-                    type="date"
-                    value={insuranceExpiration}
-                    onChange={(e) => handleExpirationChange("car_insurance", e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 focus:bg-white outline-none transition-all"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="max-w-sm mx-auto">
-                <div
-                  onDragEnter={(e) => handleDrag(e, "insurance", true)}
-                  onDragLeave={(e) => handleDrag(e, "insurance", false)}
-                  onDragOver={(e) => handleDrag(e, "insurance", true)}
-                  onDrop={(e) => handleDrop(e, "car_insurance")}
-                  onClick={() => insuranceInputRef.current?.click()}
-                  className={`relative flex flex-col items-center justify-center py-12 px-8 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 ${
-                    insuranceDragActive
-                      ? "border-primary-600 bg-primary-50 scale-[1.02]"
-                      : insuranceUploading
-                      ? "border-gray-200 bg-gray-100"
-                      : "border-gray-200 hover:border-primary-400 hover:bg-gray-100"
-                  }`}
-                >
-                  {insuranceUploading ? (
-                    <>
-                      <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary-600 rounded-full animate-spin mb-3" />
-                      <p className="text-sm font-medium text-gray-600">Uploading...</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-4">
-                        <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                      </div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">
-                        {insuranceDragActive ? "Drop to upload" : "Click or drag to upload"}
-                      </p>
-                      <p className="text-xs text-gray-400">JPEG, PNG, or PDF up to 10MB</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <input
-              ref={insuranceInputRef}
-              type="file"
-              accept="image/*,application/pdf"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleDocumentUpload("car_insurance", file);
-              }}
-            />
-          </div>
+        {platform === "vimeo" && (
+          <iframe
+            src={`https://player.vimeo.com/video/${id}`}
+            title="Video preview"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+          />
         )}
       </div>
     );
   };
 
-  // Footer component for sticky positioning
+  // Footer
   const footerContent = (
     <div className="pt-4 border-t border-gray-100">
-      {/* Guided mode progress bar */}
       {guidedMode && guidedStep && guidedTotal && (
         <div className="flex gap-0.5 px-1 mb-4">
           {Array.from({ length: guidedTotal }, (_, i) => (
@@ -678,42 +388,32 @@ export default function EditVerificationModal({
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={handleBack}
-          disabled={isTransitioning || saving}
+          onClick={guidedMode && onGuidedBack ? onGuidedBack : onClose}
+          disabled={saving || videoSubmitting}
           className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
         >
-          {getBackButtonText()}
+          {guidedMode && onGuidedBack ? "Back" : "Cancel"}
         </button>
 
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
-          {guidedMode && guidedStep && guidedTotal ? (
-            <span>Step {guidedStep} of {guidedTotal}</span>
-          ) : (
-            <>
-              <span className="text-gray-500 font-medium">{stepLabels[currentStep]}</span>
-              <span>·</span>
-              <span>Step {currentStep} of 3</span>
-            </>
-          )}
-        </div>
+        {guidedMode && guidedStep && guidedTotal && (
+          <span className="text-xs text-gray-400">
+            Step {guidedStep} of {guidedTotal}
+          </span>
+        )}
 
         <button
           type="button"
-          onClick={handleContinue}
-          disabled={isUploading || saving || isTransitioning}
-          className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-            isCurrentStepComplete()
-              ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
+          onClick={handleDone}
+          disabled={isUploading || saving}
+          className="px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
         >
-          {isUploading ? (
+          {saving ? (
             <span className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Processing...
+              Saving...
             </span>
           ) : (
-            getButtonText()
+            guidedMode ? "Save & Next" : "Done"
           )}
         </button>
       </div>
@@ -728,15 +428,365 @@ export default function EditVerificationModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="px-2">
-        {/* Step Content */}
-        <div className="min-h-[320px] flex items-start justify-center pt-4">
-          {renderStepContent()}
+      <div className="space-y-6">
+        {/* Video Section - Primary Focus */}
+        <div className="px-2">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary-50 flex items-center justify-center">
+              <svg className="w-7 h-7 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-1">Share Your Intro Video</h2>
+            <p className="text-gray-500 text-sm max-w-sm mx-auto">
+              Help families get to know you — share your background and what makes you reliable.
+            </p>
+          </div>
+
+          {/* Video Content */}
+          {videoSaved && !isEditingUrl ? (
+            // Saved video state - show preview with actions
+            <div className="space-y-4">
+              {renderVideoPreview()}
+
+              {/* Status and actions */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center">
+                    <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-gray-600">Video saved</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={startEditingUrl}
+                    disabled={videoSubmitting}
+                    className="text-sm font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deleteVideo}
+                    disabled={videoSubmitting}
+                    className="text-sm font-medium text-red-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    {videoSubmitting ? "..." : "Remove"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Warning about removing */}
+              <p className="text-xs text-center text-amber-600 bg-amber-50 rounded-lg py-2 px-3">
+                Removing your video will take your profile offline
+              </p>
+            </div>
+          ) : (
+            // Input state - entering or editing URL
+            <div className="space-y-4">
+              {/* Show preview above input if valid */}
+              {hasValidVideo && (
+                <div className="space-y-3">
+                  {renderVideoPreview()}
+                  <div className="flex items-center justify-center gap-2 text-sm text-primary-600">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">Preview looks good</span>
+                  </div>
+                </div>
+              )}
+
+              {/* URL Input - always show so user can edit */}
+              <div className="max-w-md mx-auto space-y-3">
+                <div className="relative">
+                  <input
+                    type="url"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    onBlur={handleVideoBlur}
+                    placeholder="Paste YouTube, Loom, or Vimeo link..."
+                    className={`w-full px-4 py-3.5 bg-gray-50 border rounded-xl text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 focus:bg-white outline-none transition-all placeholder:text-gray-400 ${
+                      showInvalidUrlHint ? "border-amber-300" : "border-gray-200"
+                    }`}
+                    autoFocus={!hasValidVideo}
+                  />
+                  {videoSubmitting && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Hint text or validation error */}
+                {showInvalidUrlHint ? (
+                  <p className="text-xs text-amber-600 text-center">
+                    Please use a YouTube, Loom, or Vimeo link
+                  </p>
+                ) : !hasValidVideo ? (
+                  <p className="text-xs text-gray-400 text-center">
+                    Supported: YouTube, Loom, Vimeo
+                  </p>
+                ) : null}
+              </div>
+
+              {/* Action buttons when editing existing video */}
+              {isEditingUrl && originalVideoUrl && (
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={cancelEditUrl}
+                    disabled={videoSubmitting}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  {hasValidVideo && videoUrl !== originalVideoUrl && (
+                    <button
+                      type="button"
+                      onClick={saveNewUrl}
+                      disabled={videoSubmitting}
+                      className="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                    >
+                      {videoSubmitting ? "Saving..." : "Save"}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Save button for new video (not editing existing) */}
+              {!isEditingUrl && !originalVideoUrl && hasValidVideo && (
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={saveNewUrl}
+                    disabled={videoSubmitting}
+                    className="px-5 py-2.5 text-sm font-medium bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  >
+                    {videoSubmitting ? "Saving..." : "Save video"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Optional Documents Section */}
+        <div className="border-t border-gray-100 pt-5 px-2">
+          <button
+            type="button"
+            onClick={() => setShowDocuments(!showDocuments)}
+            className="w-full flex items-center justify-between py-2 px-1 rounded-lg hover:bg-gray-50 transition-colors -mx-1"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-600">Optional Documents</span>
+              {(licenseUploaded || insuranceUploaded) && (
+                <div className="flex items-center gap-1.5">
+                  {licenseUploaded && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      License
+                    </span>
+                  )}
+                  {insuranceUploaded && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Insurance
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${showDocuments ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showDocuments && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Driver's License */}
+              <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
+                    </svg>
+                    <span className="text-sm font-medium text-gray-700">Driver&apos;s License</span>
+                  </div>
+                  {licenseUploaded && (
+                    <svg className="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+
+                {licenseUploaded ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2.5 bg-white rounded-lg border border-gray-200">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-sm text-gray-600 flex-1 truncate">
+                        {licenseFile?.name || "Uploaded"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => licenseInputRef.current?.click()}
+                        className="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0"
+                      >
+                        Replace
+                      </button>
+                    </div>
+                    <input
+                      type="date"
+                      value={licenseExpiration}
+                      onChange={(e) => handleExpirationChange("drivers_license", e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-100 outline-none transition-all"
+                      placeholder="Expiration"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    onDragEnter={(e) => handleDrag(e, "license", true)}
+                    onDragLeave={(e) => handleDrag(e, "license", false)}
+                    onDragOver={(e) => handleDrag(e, "license", true)}
+                    onDrop={(e) => handleDrop(e, "drivers_license")}
+                    onClick={() => licenseInputRef.current?.click()}
+                    className={`flex flex-col items-center justify-center py-6 px-4 bg-white border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+                      licenseDragActive
+                        ? "border-primary-500 bg-primary-50"
+                        : licenseUploading
+                        ? "border-gray-200 bg-gray-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {licenseUploading ? (
+                      <div className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <svg className="w-6 h-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span className="text-xs text-gray-500">Upload</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Car Insurance */}
+              <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span className="text-sm font-medium text-gray-700">Car Insurance</span>
+                  </div>
+                  {insuranceUploaded && (
+                    <svg className="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+
+                {insuranceUploaded ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2.5 bg-white rounded-lg border border-gray-200">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-sm text-gray-600 flex-1 truncate">
+                        {insuranceFile?.name || "Uploaded"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => insuranceInputRef.current?.click()}
+                        className="text-xs text-primary-600 hover:text-primary-700 font-medium flex-shrink-0"
+                      >
+                        Replace
+                      </button>
+                    </div>
+                    <input
+                      type="date"
+                      value={insuranceExpiration}
+                      onChange={(e) => handleExpirationChange("car_insurance", e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-100 outline-none transition-all"
+                      placeholder="Expiration"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    onDragEnter={(e) => handleDrag(e, "insurance", true)}
+                    onDragLeave={(e) => handleDrag(e, "insurance", false)}
+                    onDragOver={(e) => handleDrag(e, "insurance", true)}
+                    onDrop={(e) => handleDrop(e, "car_insurance")}
+                    onClick={() => insuranceInputRef.current?.click()}
+                    className={`flex flex-col items-center justify-center py-6 px-4 bg-white border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+                      insuranceDragActive
+                        ? "border-primary-500 bg-primary-50"
+                        : insuranceUploading
+                        ? "border-gray-200 bg-gray-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    {insuranceUploading ? (
+                      <div className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <svg className="w-6 h-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span className="text-xs text-gray-500">Upload</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Hidden file inputs */}
+              <input
+                ref={licenseInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleDocumentUpload("drivers_license", file);
+                  e.target.value = ""; // Reset to allow re-upload of same file
+                }}
+              />
+              <input
+                ref={insuranceInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleDocumentUpload("car_insurance", file);
+                  e.target.value = ""; // Reset to allow re-upload of same file
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mx-auto max-w-sm mt-4 p-4 bg-red-50 border border-red-200 rounded-2xl">
+          <div className="mx-2 p-3 bg-red-50 border border-red-100 rounded-xl">
             <p className="text-sm text-red-600 text-center" role="alert">{error}</p>
           </div>
         )}

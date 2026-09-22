@@ -16,6 +16,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import QRCode from "qrcode";
+import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import React, { type ReactElement } from "react";
 import { ProgramPdfTemplate, type ProgramPdfAssets } from "./Template";
 import { getProgramPdfConfig, type PdfAudience, type ProgramPdfConfig } from "./configs";
@@ -55,6 +56,7 @@ async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
     saraPhotoDataUri,
     oleraLogoDataUri,
     qrDataUri,
+    recruitQrDataUri,
   ] = await Promise.all([
     publicAssetDataUri("images/for-providers/team/logan-sq.png", "image/png"),
     publicAssetDataUri("images/for-providers/team/grazie-sq.png", "image/png"),
@@ -66,6 +68,14 @@ async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
       width: 280,
       color: { dark: "#111827", light: "#FFFFFF" },
     }),
+    // The recruitment flyer's own QR. It always points at the student
+    // application, whatever the document around it is for — the advising
+    // document's CTA is the advising page, and a student scanning the flyer
+    // would land somewhere written for their advisor.
+    QRCode.toDataURL(
+      studentApplyUrl({ source: "flyer", siteUrl: "https://olera.care" }),
+      { margin: 1, width: 360, color: { dark: "#111827", light: "#FFFFFF" } },
+    ),
   ]);
   return {
     loganPhotoDataUri,
@@ -74,6 +84,7 @@ async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
     saraPhotoDataUri,
     oleraLogoDataUri,
     qrDataUri,
+    recruitQrDataUri,
   };
 }
 

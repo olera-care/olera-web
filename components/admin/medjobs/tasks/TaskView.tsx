@@ -187,19 +187,16 @@ export default function TaskView({
   const found = task.found ?? [];
   const needsNames = fansOut && found.length === 0;
 
-  const contactLine = [
-    record.contact,
-    record.phone ? (
-      <a key="p" href={`tel:${record.phone.replace(/[^\d+]/g, "")}`} className="text-primary-700 hover:underline">
-        {record.phone}
-      </a>
-    ) : null,
-    record.email ? (
-      <a key="e" href={`mailto:${record.email}`} className="text-primary-700 hover:underline">
-        {record.email}
-      </a>
-    ) : null,
-  ].filter(Boolean);
+  // Everyone on the record, not just the first. An advising office names
+  // four people as often as one, and the rung that says "send the program
+  // info" is exactly where you need to see all of them — the head of
+  // advising, the person who runs the newsletter and the one who answers
+  // the inbox are rarely the same person. Showing one and hiding the rest
+  // meant opening the record to find out who else you could write to.
+  const people = [
+    { contact: record.contact, role: record.role, phone: record.phone, email: record.email },
+    ...(record.others ?? []),
+  ].filter((p) => p.contact || p.role || p.phone || p.email);
 
   return (
     <div className="px-5 py-4">
@@ -216,15 +213,12 @@ export default function TaskView({
           {record.name} <span className="font-normal text-gray-400">›</span>
         </button>
       )}
-      {contactLine.length > 0 && (
-        <p className="mt-0.5 text-[12.5px] text-gray-500">
-          {contactLine.map((bit, i) => (
-            <span key={i}>
-              {i > 0 && <span className="px-1">·</span>}
-              {bit}
-            </span>
+      {people.length > 0 && (
+        <div className="mt-0.5 space-y-0.5">
+          {people.map((p, i) => (
+            <PersonLine key={i} person={p} />
           ))}
-        </p>
+        </div>
       )}
 
       {task.done ? (
@@ -416,7 +410,9 @@ export default function TaskView({
                   rel="noreferrer"
                   className="text-[12.5px] font-medium text-primary-700 underline hover:no-underline"
                 >
-                  {rung.scriptLabel ? `Read ${rung.scriptLabel} ↗` : "Scripts and email copy ↗"}
+                  {rung.scriptLabel
+                    ? `Read ${rung.scriptLabel} ↗`
+                    : "Instructions, scripts, and email copy ↗"}
                 </a>
               )}
               {rung.email && (
@@ -759,6 +755,51 @@ const summarise = (f: FoundRecord) => {
   const more = (f.others ?? []).length;
   return more > 0 ? `${line}${line ? " · " : ""}+${more} more` : line;
 };
+
+/**
+ * One person on the record: who they are, what they do there, and the two
+ * ways to reach them.
+ *
+ * The role earns its place here. On an advising office it is the whole
+ * reason you picked this person out of four — "Director" and "Program
+ * Coordinator" want different emails — and it was the one field the task
+ * screen never showed.
+ */
+function PersonLine({
+  person,
+}: {
+  person: { contact?: string; role?: string; phone?: string; email?: string };
+}) {
+  const bits = [
+    person.contact ? <span key="n" className="text-gray-700">{person.contact}</span> : null,
+    person.role ? <span key="r">{person.role}</span> : null,
+    person.phone ? (
+      <a
+        key="p"
+        href={`tel:${person.phone.replace(/[^\d+]/g, "")}`}
+        className="text-primary-700 hover:underline"
+      >
+        {person.phone}
+      </a>
+    ) : null,
+    person.email ? (
+      <a key="e" href={`mailto:${person.email}`} className="text-primary-700 hover:underline">
+        {person.email}
+      </a>
+    ) : null,
+  ].filter(Boolean);
+  if (bits.length === 0) return null;
+  return (
+    <p className="text-[12.5px] text-gray-500">
+      {bits.map((bit, i) => (
+        <span key={i}>
+          {i > 0 && <span className="px-1 text-gray-300">·</span>}
+          {bit}
+        </span>
+      ))}
+    </p>
+  );
+}
 
 /**
  * What a sweep found, and the form for adding one more.

@@ -8,6 +8,7 @@ import {
   DEFERRALS,
   STOP_REASONS,
   SWEEP_PREFIX,
+  attachmentKind,
   canReopen,
   formatPhone,
   scriptSlug,
@@ -227,11 +228,14 @@ export default function TaskView({
           <div className="mt-4 border-t border-gray-100 pt-4">
             <Note value={task.note} onChange={onNote} />
           </div>
-          {/* A screenshot of what they sent back belongs with the task it
-              came from, not loose on the record. The sweeps have synthetic
-              ids and are not records, so they get nothing to attach to. */}
           {!record.id.startsWith(SWEEP_PREFIX) && (
-            <Collateral outreachId={record.id} taskId={task.id} label="Attached" compact />
+            <Collateral
+              recordId={record.id}
+              recordKind={attachmentKind(record.section)}
+              taskId={task.id}
+              label="Attached"
+              compact
+            />
           )}
           <div className="mt-3 flex flex-wrap gap-2">
             {canReopen(record, task) && (
@@ -439,6 +443,21 @@ export default function TaskView({
 
           <div className="mt-4 border-t border-gray-100 pt-4">
             {!replying && <Note value={task.note} label={rung.textarea} onChange={onNote} />}
+            {/* Beside the note, on the task being worked — a screenshot of
+                the reply belongs with the call it came from, and attaching
+                it afterwards means finding the task again. This sat in the
+                finished-task branch by mistake, so it only ever appeared on
+                work already done. The sweeps have synthetic ids and are not
+                records, so they get nothing to attach to. */}
+            {!replying && !record.id.startsWith(SWEEP_PREFIX) && (
+              <Collateral
+                recordId={record.id}
+                recordKind={attachmentKind(record.section)}
+                taskId={task.id}
+                label="Attached"
+                compact
+              />
+            )}
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">

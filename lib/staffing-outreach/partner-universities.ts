@@ -551,15 +551,6 @@ export const PARTNER_UNIVERSITIES: PartnerUniversity[] = [
       { city: "Taylorsville", state: "UT" },
     ],
   },
-  {
-    // Not a real university. See isDemo above.
-    slug: "dubose-university-of-olera",
-    name: "DuBose University of Olera",
-    city: "Austin",
-    state: "TX",
-    isDemo: true,
-    catchment: [],
-  },
 ];
 
 /** The universities that are real, which is every report's default. */

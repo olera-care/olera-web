@@ -998,6 +998,20 @@ export function scriptSlug(section: SectionKey, step: number): string | null {
   return `${section}-${key}`;
 }
 
+/**
+ * Which kind of record a section's rows are, for attachments.
+ *
+ * The board shows four kinds of thing on one screen and only two of them are
+ * student_outreach rows. A student is a business_profiles row and a job board
+ * is a campus_channels row, so a file cannot be filed against an outreach id
+ * for either — hence the pair the attachment carries.
+ */
+export function attachmentKind(section: SectionKey): "outreach" | "student" | "jobboard" {
+  if (section === "students") return "student";
+  if (section === "jobboard") return "jobboard";
+  return "outreach";
+}
+
 /** The title shown for a task, follow-up numbering and all. */
 export function taskTitle(task: BoardTask): string {
   if (task.resched) return `Reschedule round ${task.resched}`;

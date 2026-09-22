@@ -123,6 +123,8 @@ Write for a phone screen. No markdown headers, no bullet lists, no tables. Two o
 
 Lead with the answer. Do not restate the question. Do not offer to help further.
 
+Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
+
 If the record shows something the founder appears to have wrong, say so directly in one sentence.`;
 
 export async function answerFounderQuestion(
@@ -147,7 +149,11 @@ export async function answerFounderQuestion(
       .map((block) => block.text)
       .join("\n")
       .trim();
-    if (!reply) return { answered: false, reply: "I could not put an answer together. Ask me again?" };
+    // Deliberately not phrased as a question. Cortex's own replies land in this
+    // same DM, and a reply ending in a question mark classifies as a question,
+    // so this string -- the FAILURE path, the one most likely to recur -- would
+    // have been self-sustaining loop fuel if the app-message filter ever missed.
+    if (!reply) return { answered: false, reply: "I could not put an answer together. Send it again and I will retry." };
     return { answered: true, reply };
   } catch (error) {
     // Never silent. A question that vanishes is the defect this replaces.

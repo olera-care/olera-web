@@ -20,6 +20,7 @@ type SlackEventsEnvelope = {
     text?: string;
     user?: string;
     bot_id?: string;
+    app_id?: string;
     subtype?: string;
   };
 };
@@ -58,7 +59,15 @@ export async function POST(request: NextRequest) {
     //
     // Channel messages still go to the evidence reader below — an answer is a
     // reply in the DM, not a remark in a channel.
-    if (payload.event.channel_type === "im" && !payload.event.bot_id && !payload.event.subtype && payload.event.text) {
+    // `app_id` is checked alongside `bot_id` and `subtype` because this branch
+    // now REPLIES, and a reply is itself a message in this DM. If Cortex ever
+    // read one of its own messages as founder input, an answer ending in a
+    // question mark would be classified as a question, answered, and that
+    // answer read again -- a loop that costs money on every turn. Three
+    // independent signals mark an app-posted message; any one of them is
+    // enough, and needing all three to fail at once is the point.
+    const fromThisApp = Boolean(payload.event.bot_id || payload.event.app_id || payload.event.subtype);
+    if (payload.event.channel_type === "im" && !fromThisApp && payload.event.text) {
       // Slack retries anything it does not see answered within three seconds,
       // up to three times. Every branch below can exceed that: starting a scan
       // plus confirming it, and answering a question, which measured 2.5 to 6.4

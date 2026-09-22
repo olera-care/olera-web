@@ -97,28 +97,29 @@ export default function AvailabilityCard({ meta, onEdit }: AvailabilityCardProps
             </div>
           )}
 
-          {/* Year-round availability - neutral with subtle current season accent */}
+          {/* Year-round availability */}
           {hasSeasonalAvailability && (
             <div className="pt-3 border-t border-gray-100">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Seasonal Availability</p>
-              <div className="grid grid-cols-4 gap-2">
+              <p className="text-xs font-medium text-gray-500 mb-2.5">Seasonal availability</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {SEASONS.map((season) => {
                   const data = meta.year_round_availability?.[season] as { status?: string; year?: number } | undefined;
                   const isCurrent = season === currentSeason;
                   return (
                     <div
                       key={season}
-                      className={`rounded-lg p-2 text-center ${
+                      className={`rounded-lg px-3 py-2 ${
                         isCurrent ? "bg-gray-100 ring-1 ring-gray-300" : "bg-gray-50"
                       }`}
                     >
-                      <p className={`text-[10px] font-semibold uppercase tracking-wider ${
-                        isCurrent ? "text-gray-700" : "text-gray-400"
+                      <p className={`text-[11px] font-medium ${
+                        isCurrent ? "text-gray-700" : "text-gray-500"
                       }`}>
                         {SEASON_LABELS[season]}
+                        {isCurrent && <span className="text-primary-600 ml-1">(now)</span>}
                       </p>
-                      <p className={`text-xs font-medium mt-0.5 ${
-                        data?.status ? "text-gray-700" : "text-gray-400"
+                      <p className={`text-sm font-semibold mt-0.5 ${
+                        data?.status ? "text-gray-900" : "text-gray-400"
                       }`}>
                         {data?.status ? getShortStatus(data.status) : "—"}
                       </p>
@@ -129,14 +130,14 @@ export default function AvailabilityCard({ meta, onEdit }: AvailabilityCardProps
             </div>
           )}
 
-          {/* Pledges - neutral chips */}
+          {/* Pledges */}
           {hasPledges && (
             <div className="flex flex-wrap gap-2 pt-2">
               {meta.prn_willing && (
-                <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">PRN willing</span>
+                <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">On-call available</span>
               )}
               {meta.advance_notice_pledge && (
-                <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">Schedule pledge</span>
+                <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">Keeps schedule updated</span>
               )}
             </div>
           )}
@@ -144,8 +145,8 @@ export default function AvailabilityCard({ meta, onEdit }: AvailabilityCardProps
           {/* Additional notes */}
           {hasNotes && (
             <div className="pt-3 border-t border-gray-100">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Notes</p>
-              <p className="text-sm text-gray-500 italic line-clamp-2">
+              <p className="text-xs font-medium text-gray-500 mb-1">Notes</p>
+              <p className="text-sm text-gray-600 line-clamp-2">
                 {meta.availability_notes}
               </p>
             </div>

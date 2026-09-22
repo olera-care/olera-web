@@ -59,13 +59,6 @@ export default function EditAvailabilityModal({
     4: "Notes",
   };
 
-  const hasChanges =
-    commitmentStatement !== (meta.commitment_statement || "") ||
-    prnWilling !== !!meta.prn_willing ||
-    advanceNoticePledge !== !!meta.advance_notice_pledge ||
-    JSON.stringify(yearRoundAvailability) !== JSON.stringify(meta.year_round_availability || {}) ||
-    availabilityNotes !== (meta.availability_notes || "");
-
   const isCommitmentValid = commitmentStatement.trim().length >= 50;
 
   // Navigate with animation
@@ -82,10 +75,18 @@ export default function EditAvailabilityModal({
   }, [currentStep, isTransitioning]);
 
   const handleSeasonChange = (season: string, status: string) => {
-    setYearRoundAvailability((prev) => ({
-      ...prev,
-      [season]: { status, year: currentYear },
-    }));
+    setYearRoundAvailability((prev) => {
+      // If clearing the selection, remove the entry entirely
+      if (!status) {
+        return Object.fromEntries(
+          Object.entries(prev).filter(([key]) => key !== season)
+        ) as typeof prev;
+      }
+      return {
+        ...prev,
+        [season]: { status, year: currentYear },
+      };
+    });
   };
 
   async function handleSave() {
@@ -151,7 +152,13 @@ export default function EditAvailabilityModal({
     switch (currentStep) {
       case 1: return isCommitmentValid;
       case 2: return true; // Optional
-      case 3: return Object.keys(yearRoundAvailability).length > 0;
+      case 3: {
+        // Check for at least one season with a valid (non-empty) status
+        const validEntries = Object.values(yearRoundAvailability).filter(
+          (entry) => entry && typeof entry === "object" && "status" in entry && entry.status
+        );
+        return validEntries.length > 0;
+      }
       case 4: return true; // Optional
     }
   };
@@ -170,12 +177,9 @@ export default function EditAvailabilityModal({
     return "Back";
   };
 
-  // Custom header with title and subtitle
+  // Custom header - just title, steps provide their own context
   const headerContent = (
-    <div>
-      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Availability & Commitment</h2>
-      <p className="text-sm text-gray-500 mt-0.5">Tell providers about your schedule</p>
-    </div>
+    <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Availability & Commitment</h2>
   );
 
   // Render step content
@@ -190,170 +194,142 @@ export default function EditAvailabilityModal({
       <div className={`transition-all duration-150 ease-out ${transitionClass}`}>
         {/* Step 1: Commitment Statement */}
         {currentStep === 1 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Your commitment to caregiving</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-              This is the #1 thing providers look at.
+          <div>
+            <p className="text-sm text-gray-600 mb-4">
+              This is the #1 thing providers look at. Describe your availability and how long you plan to work.
             </p>
 
-            <div className="w-full max-w-xl mx-auto">
-              {!commitmentStatement && (
-                <div className="mb-4 space-y-2">
-                  <p className="text-xs text-gray-400 font-medium text-left">Quick start templates:</p>
+            {/* Templates - show only when empty */}
+            {!commitmentStatement && (
+              <div className="mb-4">
+                <p className="text-xs text-gray-400 mb-2">Start with a template:</p>
+                <div className="flex flex-wrap gap-2">
                   {COMMITMENT_SUGGESTIONS.map((s, i) => (
                     <button
                       key={i}
                       type="button"
                       onClick={() => setCommitmentStatement(s)}
-                      className="w-full text-left px-4 py-3 bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 rounded-xl text-sm text-gray-600 transition-all leading-relaxed"
+                      className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                     >
-                      {s.slice(0, 80)}...
+                      Template {i + 1}
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              <textarea
-                value={commitmentStatement}
-                onChange={(e) => setCommitmentStatement(e.target.value)}
-                placeholder="Describe your commitment to taking shifts, your availability outside of class, and how long you plan to work..."
-                rows={7}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[160px]"
-                autoFocus
-              />
-              <div className="flex items-center justify-between mt-2">
-                <span className={`text-xs ${commitmentStatement.trim().length < 50 ? "text-amber-600" : "text-gray-400"}`}>
-                  {commitmentStatement.trim().length < 50
-                    ? `${50 - commitmentStatement.trim().length} more characters needed`
-                    : `${commitmentStatement.trim().length} characters`
-                  }
-                </span>
-                {commitmentStatement.trim().length >= 50 && (
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <textarea
+              id="commitment-statement"
+              aria-label="Your commitment to caregiving"
+              value={commitmentStatement}
+              onChange={(e) => setCommitmentStatement(e.target.value)}
+              placeholder="I am committed to working caregiving shifts around my class schedule for at least 6 months. Outside of class and exam periods, I am available for shifts including evenings, weekends, and overnights..."
+              rows={8}
+              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[200px]"
+              autoFocus
+            />
+
+            <div className="flex items-center justify-between mt-2">
+              <span className={`text-xs ${commitmentStatement.trim().length < 50 ? "text-amber-600" : "text-gray-400"}`}>
+                {commitmentStatement.trim().length < 50
+                  ? `${50 - commitmentStatement.trim().length} more characters needed`
+                  : `${commitmentStatement.trim().length} characters`
+                }
+              </span>
+              {commitmentStatement.trim().length >= 50 && (
+                <span className="flex items-center gap-1 text-xs text-primary-600">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                )}
-              </div>
+                  Good
+                </span>
+              )}
             </div>
           </div>
         )}
 
         {/* Step 2: Additional Pledges */}
         {currentStep === 2 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Additional commitments</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-              Show providers you understand the responsibility.
+          <div role="group" aria-label="Additional commitments">
+            <p className="text-sm text-gray-600 mb-5">
+              These are optional, but help providers understand your flexibility.
             </p>
 
-            <div className="max-w-md mx-auto space-y-3">
-              <button
-                type="button"
-                onClick={() => setPrnWilling(!prnWilling)}
-                className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${
-                  prnWilling
-                    ? "bg-primary-50 border-2 border-primary-600"
-                    : "bg-white border border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-md shrink-0 mt-0.5 transition-all ${
-                  prnWilling ? "bg-primary-600 text-white" : "border-2 border-gray-300"
-                }`}>
-                  {prnWilling && (
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </span>
-                <span className={`text-sm ${prnWilling ? "text-gray-900" : "text-gray-600"}`}>
-                  I am okay to be on-call / PRN until a client needs shifts that fit my schedule
-                </span>
-              </button>
+            <div className="space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={prnWilling}
+                  onChange={() => setPrnWilling(!prnWilling)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                    On-call / PRN available
+                  </span>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    I can be on-call until a client needs shifts that fit my schedule
+                  </p>
+                </div>
+              </label>
 
-              <button
-                type="button"
-                onClick={() => setAdvanceNoticePledge(!advanceNoticePledge)}
-                className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${
-                  advanceNoticePledge
-                    ? "bg-primary-50 border-2 border-primary-600"
-                    : "bg-white border border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-md shrink-0 mt-0.5 transition-all ${
-                  advanceNoticePledge ? "bg-primary-600 text-white" : "border-2 border-gray-300"
-                }`}>
-                  {advanceNoticePledge && (
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </span>
-                <span className={`text-sm ${advanceNoticePledge ? "text-gray-900" : "text-gray-600"}`}>
-                  I commit to keeping my availability and course schedule updated regularly
-                </span>
-              </button>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={advanceNoticePledge}
+                  onChange={() => setAdvanceNoticePledge(!advanceNoticePledge)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                    Regular schedule updates
+                  </span>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    I commit to keeping my availability and course schedule updated
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
         )}
 
         {/* Step 3: Seasonal Availability */}
         {currentStep === 3 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Year-round availability</h3>
-            <p className="text-gray-500 text-sm mb-5 max-w-sm mx-auto">
+          <div role="group" aria-label="Seasonal availability">
+            <p className="text-sm text-gray-600 mb-5">
               Let providers know your plans for each season.
             </p>
 
-            <div className="max-w-lg mx-auto space-y-4 text-left">
+            <div className="space-y-4">
               {SEASONS.map((season) => {
                 const data = yearRoundAvailability[season] as { status?: string; year?: number } | undefined;
                 const isCurrent = season === currentSeason;
+                const selectId = `season-${season}`;
                 return (
-                  <div key={season}>
-                    <div className="flex items-center gap-2 mb-2">
+                  <div key={season} className="flex items-center gap-3">
+                    <label htmlFor={selectId} className="w-24 shrink-0">
                       <span className="text-sm font-medium text-gray-900">
                         {SEASON_LABELS[season]}
                       </span>
                       {isCurrent && (
-                        <span className="px-2 py-0.5 bg-primary-600 text-white text-[10px] font-medium rounded-full">
-                          Now
+                        <span className="ml-1.5 text-[10px] font-medium text-primary-600">
+                          (now)
                         </span>
                       )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    </label>
+                    <select
+                      id={selectId}
+                      value={data?.status || ""}
+                      onChange={(e) => handleSeasonChange(season, e.target.value)}
+                      className="flex-1 text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
+                    >
+                      <option value="">Select...</option>
                       {SEASONAL_STATUS_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => handleSeasonChange(season, opt.value)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                            data?.status === opt.value
-                              ? "bg-gray-900 text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
-                        >
+                        <option key={opt.value} value={opt.value}>
                           {opt.label}
-                        </button>
+                        </option>
                       ))}
-                    </div>
+                    </select>
                   </div>
                 );
               })}
@@ -363,31 +339,20 @@ export default function EditAvailabilityModal({
 
         {/* Step 4: Additional Notes */}
         {currentStep === 4 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Anything else?</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-              Optional: Finals, spring break, planned travel, etc.
+          <div>
+            <p className="text-sm text-gray-600 mb-4">
+              Optional: finals, spring break, planned travel, or anything else providers should know.
             </p>
 
-            <div className="w-full max-w-xl mx-auto">
-              <textarea
-                value={availabilityNotes}
-                onChange={(e) => setAvailabilityNotes(e.target.value)}
-                placeholder="Any specific dates or circumstances providers should know about..."
-                rows={7}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[160px]"
-                autoFocus
-              />
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                This field is optional
-              </p>
-            </div>
+            <textarea
+              id="availability-notes"
+              aria-label="Additional notes"
+              value={availabilityNotes}
+              onChange={(e) => setAvailabilityNotes(e.target.value)}
+              placeholder="Any specific dates or circumstances providers should know about..."
+              rows={8}
+              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[200px]"
+            />
           </div>
         )}
       </div>
@@ -464,11 +429,8 @@ export default function EditAvailabilityModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="pt-4">
-        {/* Step Content - now centered without progress dots taking space */}
-        <div className="min-h-[340px] flex items-start justify-center">
-          {renderStepContent()}
-        </div>
+      <div className="pt-2">
+        {renderStepContent()}
 
         {/* Error Message */}
         {error && (

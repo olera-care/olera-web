@@ -88,9 +88,25 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
  * Drafting deliberately stays on Opus. It writes the artifact the founder
  * actually reads, it only runs when something was nominated, and it is the one
  * place where being slightly better is worth five times the price.
+ *
+ * And the sweep stays on Opus too, which reverses what this comment said an
+ * hour ago. Sonnet compiles the schema and clears the contract check, so the
+ * structural test passed. Then I ran a real sweep against a live pack and
+ * compared the output: Opus writes about 520 tokens per lens review across
+ * eleven fields, Sonnet wrote about 125. Four times thinner, at the top of the
+ * funnel, where conditions are found in the first place and every later pass
+ * reads what it produced.
+ *
+ * The contract check cannot see this. It verifies that each lens came back
+ * with a status, not that the finding underneath it is worth anything, so a
+ * thin sweep passes every automated gate and quietly degrades the scan.
+ *
+ * Switching remains one environment variable, and the saving is real -- about
+ * sixty-seven cents a scan. It is a quality trade, and it should be made
+ * deliberately rather than inherited from a default.
  */
 const PASS_MODELS: Record<string, string | undefined> = {
-  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP || "claude-sonnet-5",
+  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP,
   forming_candidates: process.env.WAR_ROOM_MODEL_DOSSIER || "claude-haiku-4-5-20251001",
   challenging_candidates: process.env.WAR_ROOM_MODEL_TRIAGE || "claude-haiku-4-5-20251001",
   drafting_decision: process.env.WAR_ROOM_MODEL_DRAFT,

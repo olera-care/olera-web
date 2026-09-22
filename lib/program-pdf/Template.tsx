@@ -409,15 +409,6 @@ export function ProgramPdfTemplate({
           <Band right="the team" />
 
           <View style={styles.body}>
-            {/* Page two says who it is for, the same way page one does. A
-                page forwarded on its own, or printed and left on a desk,
-                otherwise says only "the team". It goes here rather than in
-                the band beside "STUDENT CAREGIVER PROGRAM", where the two
-                labels ran into each other. */}
-            {advisor && config.eyebrow ? (
-              <Text style={[styles.eyebrow, { marginBottom: 12 }]}>{config.eyebrow}</Text>
-            ) : null}
-
             <SectionHead>WHO YOU WILL BE WORKING WITH</SectionHead>
             <View style={styles.teamRow}>
               {rest.map((m, i) => (

@@ -226,12 +226,71 @@ async function ingestedCounts(db: SupabaseClient): Promise<Record<string, number
   return Object.fromEntries(sources.map((source, i) => [source, counts[i].count ?? 0]));
 }
 
+/**
+ * The Managed Ads ledger, read live.
+ *
+ * On 2026-09-23 the founder asked "have any providers subscribed to managed ads
+ * in the past week besides Hoop Cares?" Cortex answered from Slack: it said a
+ * subscription notification would land in a DM it cannot read, then reported
+ * that none of 93 channel messages mentioned one. The answer happened to be
+ * right, and the reasoning was wrong: a subscription is a row in
+ * `ad_campaign_requests`, not a message. This context carried no product data
+ * at all, so the one number the north star counts could only be guessed at from
+ * chatter.
+ *
+ * Small on purpose: every paying provider, and every request, subscription or
+ * ending in the last thirty days. Enough to answer "who pays" and "what changed
+ * this week" without sending the scan's operating pack.
+ */
+const LEDGER_WINDOW_DAYS = 30;
+
+async function loadManagedAdsLedger(db: SupabaseClient) {
+  const since = new Date(Date.now() - LEDGER_WINDOW_DAYS * 86_400_000).toISOString();
+  const { data, error } = await db.from("ad_campaign_requests")
+    .select("display_name, status, plan_status, created_at, subscribed_at, ended_at")
+    .is("deleted_at", null)
+    .or(`plan_status.eq.active,created_at.gte.${since},subscribed_at.gte.${since},ended_at.gte.${since}`)
+    .order("created_at", { ascending: false })
+    .limit(40);
+  // A failed read must say so. Returning an empty ledger would read as "nobody
+  // pays", which is the confident wrong answer this block exists to replace.
+  if (error) return { readFailed: `Could not read the Managed Ads ledger: ${error.message}` };
+  type LedgerRow = { display_name: string | null; status: string; plan_status: string | null; created_at: string; subscribed_at: string | null; ended_at: string | null };
+  const rows = (data ?? []) as LedgerRow[];
+  const day = (iso: string | null) => (iso ? iso.slice(0, 10) : null);
+  // Counted here, not by the model. Given only the rows it said "three
+  // providers requested" and then listed four, and called a subscription eight
+  // days old "in the past week".
+  const within = (iso: string | null, days: number) =>
+    Boolean(iso && Date.now() - new Date(iso).getTime() <= days * 86_400_000);
+  const counts = (days: number) => ({
+    requested: rows.filter((row) => within(row.created_at, days)).length,
+    subscribed: rows.filter((row) => within(row.subscribed_at, days)).length,
+    ended: rows.filter((row) => within(row.ended_at, days)).length,
+  });
+  return {
+    asOf: new Date().toISOString(),
+    windowDays: LEDGER_WINDOW_DAYS,
+    counts: { last7Days: counts(7), last30Days: counts(LEDGER_WINDOW_DAYS) },
+    payingProviders: rows.filter((row) => row.plan_status === "active")
+      .map((row) => ({ name: row.display_name, subscribedOn: day(row.subscribed_at) })),
+    recentActivity: rows.map((row) => ({
+      name: row.display_name,
+      status: row.status,
+      paying: row.plan_status === "active",
+      requestedOn: day(row.created_at),
+      subscribedOn: day(row.subscribed_at),
+      endedOn: day(row.ended_at),
+    })),
+  };
+}
+
 async function buildConversationContext(
   db: SupabaseClient,
   focusInvestigationId?: string | null,
   question?: string,
 ): Promise<string> {
-  const [investigations, proposals, model, matches, sources] = await Promise.all([
+  const [investigations, proposals, model, matches, sources, managedAds] = await Promise.all([
     db.from("war_room_investigations")
       .select("id, title, status, domain, impact, likely_cause, unknowns, occurrence_count")
       .in("status", ["investigating", "watchlist", "decision_ready"])
@@ -244,6 +303,7 @@ async function buildConversationContext(
     db.from("war_room_company_models").select("north_star, targets, constraints").eq("key", "olera").maybeSingle(),
     question ? searchRecord(db, question) : Promise.resolve([] as SourceItemRow[]),
     ingestedCounts(db),
+    loadManagedAdsLedger(db),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
@@ -263,7 +323,9 @@ async function buildConversationContext(
       oleraWrittenRecord: `${sources.archive} stored`,
       directMessages: "NEVER ingested, and never can be. A Slack bot cannot read direct messages between two people; no permission grants it. This includes the founder's own DMs.",
       email: "NEVER ingested.",
+      managedAdsSubscriptions: "LIVE. Read from the database at the moment of this question; see managedAds.",
     },
+    managedAds,
     recordMatches: matches.map((row) => ({
       source: row.source,
       title: row.title,
@@ -306,6 +368,8 @@ Write for a phone screen. No markdown headers, no bullet lists, no tables. Two o
 Lead with the answer. Do not restate the question. Do not offer to help further.
 
 Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
+
+Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from managedAds. It is read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. Use managedAds.counts for any count or "this week" question rather than counting rows yourself, and give the dates. If managedAds.readFailed is set, say you could not read it.
 
 If the record shows something the founder appears to have wrong, say so directly in one sentence.`;
 

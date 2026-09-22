@@ -7,6 +7,54 @@
 
 ## Current Focus
 
+### 2026-09-22 (night) — Managed Ads: the pitch that works reaches 8 providers, the one that doesn't reaches 158 (`ads-pitch-surfaces` #2057, 6 commits, NOT merged)
+
+**The finding that started it.** Trial signups for Managed Ads are entirely in-product. 20 of 23 requests in company history came from a pitch surface inside the app; 6 came from an email sent to 2,055 providers. Measured from `provider_activity`, 120 days:
+
+| Surface | Saw it | Requested | Rate |
+|---|---:|---:|---:|
+| `ff_pitch` (Find Families, no-leads state) | 51 | 5 | **9.8%** |
+| `post_edit` | 97 | 4 | 4.1% |
+| `hero` | 270 | 9 | 3.3% |
+| `post_question` | 164 | 2 | **1.2%** |
+| managed-ads digest email | 2,055 | 6 | **0.3%** |
+
+**Exposure runs backwards to performance, about 20 to 1.** Question emails are the biggest real-arrival engine we have: `one_click_access` action=`question` = **680 providers** in 180 days, against 128 for `matches` and 26 for `ads`. Of those 680, **431 saw no Managed Ads pitch at all**, 158 saw `post_question` (the 1.2% one), and **8 ever saw `ff_pitch`** (the 9.8% one). Arrival→request is 20–23%, which is healthy — the constraint is arrivals and which pitch meets them, not pitch quality. Full detail in memory `project_managed_ads_surface_exposure`; the artifact is "The Pitch Nobody Sees" `3yGnrdiHiMJjDmmNdpgdPR`.
+
+**Do not quote provider-email click rates.** Resend recorded 669 providers clicking the managed-ads digest. `one_click_access` fires for **26**. Mailbox scanners fetch the links. Same artifact class as the Q&A open-rate one.
+
+#### What shipped to the branch
+
+Both in-product nudges now render one shared card (`components/provider/ManagedAdsNudgeCard.tsx`), and `PostEditAdsNudge` / `ContextualAdsNudge` are thin wrappers that differ only in an opening line.
+
+**The copy went 60 words → 36 → 19, and only the last cut was the right one.** The first two rounds shortened a paragraph explaining who Olera is. TJ's question settled it: *"Would Airbnb ship this?"* No — Airbnb's in-context card is an icon, "Have a question?", and one button, and they never explain what Airbnb is inside a nudge. Their trust signal is "Free cancellation": two words, accent colour, beside the price. So the grant story became one teal 13px line, the headline became what the provider *gets*, and the explanation moved to `/provider/boost` where the button already went. Also: no border (surfaces are for objects, messages sit on plain ground), 19px/15px near-black type instead of 14px grey.
+
+**Placement was the real bug, twice.** TJ edited Care Services, which sits well down the page, and the nudge rendered under the hero at the top — he found it by scrolling up. Moved inline: the dashboard card list now carries a section id and the nudge slots in after the one just saved. Then he hit it again from a scroll position where that section ended near the fold, so the card now measures itself on mount and scrolls into view (`block: "center"`, skipped when already fully visible, deferred a frame so it doesn't race the modal's scroll lock).
+
+**Four defects found by `/pre-test` and the console, all mine:**
+1. **`hasActiveBoostRequest` does not include `ended`.** The card would have told providers whose flight already finished that "your first campaign is on us" — Impact, Legacy Haven and Abode, the exact accounts Sales is re-approaching. Fixed with `useBoostRequestSummary()` returning `{ hasActive, hasEver }`; unknown is treated as "already had one". See memory `reference_boost_request_active_excludes_ended`.
+2. **`handleSaved` awaited a full account refetch before doing anything.** `fetchAccountData` measured 1.0–3.0s in TJ's console (it re-reads accounts + every business_profile + membership), so the editor sat open and the nudge arrived ~3s late. UI moves first now, refetch trails.
+3. **Off-by-8 at the one boundary the scroll code keys on.** `card-enter` opens at `translateY(8px)`, and the visibility check measured one frame after mount with no slack — so a card that was genuinely fully visible could measure as off-screen and scroll for nothing. Now keeps a 32px margin, which absorbs the transform and states the real rule: flush against the bottom edge is technically visible and still missed.
+4. **`hasEverRequested` was optional, and the card returns null until it resolves.** An omitted prop is `undefined`, which never resolves, so a future caller that forgot it would get a nudge that silently never renders. Required in all three components now; tsc still passing is the proof every existing call site was passing a real value.
+
+#### Open
+
+- **`fetchAccountData` is slow and fires a lot** — seven distinct calls in one session, several over 2s. Deduped per user id, so those are separate triggers. Not touched; it is why the dashboard feels heavy.
+- **Stale-card window**, the trade from the fix above: a section card can show its previous values for a beat after save. If it reads as "my save didn't take", merge saved values into local state rather than re-awaiting.
+- **`ff_pitch` still only renders on `/provider/matches`** — the 9.8% surface, gated behind navigating to a page almost nobody visits. Biggest remaining win and not in this PR.
+- **The `direct_reach` / `local_plan` A/B variants return identical copy**, so that test has measured nothing since June.
+- **The managed-ads digest still says "You fund a small local campaign"**; the product has said the first campaign is on Olera since 10 July.
+- **The apply flow loses 56% on step one** (which asks what week to start), and 45 of 68 entrants fail the 70% completeness gate.
+- **Should the scroll fire on Q&A and connections?** There the nudge is a top-of-content element rather than adjacent to the action, so answering a question while scrolled deep in the list pulls you to the top. On the dashboard the jump is small and obviously right. Open question, not guessed: leave it, or scope the scroll to `post_edit` only.
+- **The `hasEverRequested === true` branch has never been run**, only type-checked — see the test-profile gap below.
+- **Cannot test the returning-provider copy** — all 8 of TJ's test profiles have zero campaign rows. Offer open to add an `ended` row to `test-manila-assisted-living-college-station-tx-1j6t`.
+
+**Not merged.** PR #2057 is against staging, 7 commits, head `561392a9`.
+
+**Also this session:** `~/.claude/skills/test-instructions/SKILL.md` gained a rule that every destination in a checklist must be a full clickable URL — a bare path or anything in backticks is not clickable in TJ's client — plus a step 0 that resolves and curls the base URL first and records that the branch preview alias is `olera-web-git-…`, not `olera2-web-git-…`, which 404s.
+
+---
+
 ### 2026-09-22 (evening) — The care-seeker call log reads itself, both halves in production (`touch-log-heard` #2048, `touch-log-details` #2051, promoted #2052 and #2053)
 
 Ces called Helen on 21 Sep and came away with the diagnosis, the transfers, the hours, the payment type and the care address. All of it went into one free-text box, and the lead still read `care_type: unsure` with Helen's own ZIP rather than Geraldine's. **Everything the router acts on was known and none of it was readable.** That gap is what these two PRs close.

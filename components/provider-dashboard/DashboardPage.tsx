@@ -292,6 +292,11 @@ function DashboardContent({
   // visit, so the two managed-ads prompts never stack on one screen.
   const [showEditNudge, setShowEditNudge] = useState(false);
   const editNudgeShownRef = useRef(false);
+  /** Whether the provider has saved at least one section this session. A guided
+   *  run that the provider quits part-way still counts: they edited, so the
+   *  nudge is earned. Without this, closing the modal mid-run lost the moment
+   *  entirely — one of two reasons only 97 of 255 editors were ever pitched. */
+  const editSavedRef = useRef(false);
   const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
   // Just-answered-a-question moment: mirror the /provider/qna ContextualAdsNudge
   // for providers who answered via the onboard card and were redirected here with
@@ -325,10 +330,18 @@ function DashboardContent({
     if (guided.isGuidedActive) {
       guided.stopGuided();
     }
-  }, [setEditingSection, guided]);
+    // Quitting a guided run after saving something is still "I just worked on
+    // my page". The editor is closing either way, so the nudge has a clear
+    // screen to land on.
+    if (editSavedRef.current && !editNudgeShownRef.current && !previewMode) {
+      editNudgeShownRef.current = true;
+      setShowEditNudge(true);
+    }
+  }, [setEditingSection, guided, previewMode]);
 
   const handleSaved = useCallback(async () => {
     await refreshAccountData();
+    editSavedRef.current = true;
     let finishedEditing = false;
     if (guided.isGuidedActive && editingSection) {
       const next = guided.getNextSection(editingSection);

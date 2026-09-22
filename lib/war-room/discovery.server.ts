@@ -159,6 +159,8 @@ function isTruncationError(error: unknown, toolName: string) {
     && error.message === `war_room_truncated_tool_output:${toolName}`;
 }
 const ACTIVE_PROPOSAL_STATUSES = ["proposed", "approved", "dispatching", "executing", "review_ready"];
+/** How long a proposal waits for a founder decision before a later scan may retire it. */
+const PROPOSAL_WAIT_DAYS = 7;
 
 const INVESTIGATOR_SYSTEM = `You are Olera's autonomous chief-of-staff investigator. Your objective is not to produce work. Your objective is to improve Olera's odds of surviving and thriving while protecting founder attention.
 
@@ -1702,9 +1704,17 @@ async function saveProposals(
 ) {
   const acceptedDrafts: typeof drafts = [];
   const draftFingerprints = new Set(drafts.map((draft) => draft.fingerprint));
+  // A waiting proposal used to be retired by the very next scan that did not
+  // re-draft its exact fingerprint. Drafting is stochastic, so that was nearly
+  // every scan: the 2026-09-22 10:30 proposal was superseded three and a half
+  // hours later by a manual scan, before anyone had decided it. A proposal the
+  // founder never got to decide is the loop failing to close, not a retirement.
+  // It now waits a week for a decision; after that, silence is the answer.
+  const waitCutoff = new Date(Date.now() - PROPOSAL_WAIT_DAYS * 86_400_000).toISOString();
   const { data: waitingRows, error: waitingError } = await db.from("war_room_proposals")
     .select("id, fingerprint")
-    .eq("status", "proposed");
+    .eq("status", "proposed")
+    .lt("created_at", waitCutoff);
   if (waitingError) throw waitingError;
   for (const waiting of (waitingRows ?? []) as Array<{ id: string; fingerprint: string }>) {
     if (draftFingerprints.has(waiting.fingerprint)) continue;

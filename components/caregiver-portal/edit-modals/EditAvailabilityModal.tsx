@@ -190,56 +190,57 @@ export default function EditAvailabilityModal({
       <div className={`transition-all duration-150 ease-out ${transitionClass}`}>
         {/* Step 1: Commitment Statement */}
         {currentStep === 1 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Your commitment to caregiving</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-              This is the #1 thing providers look at.
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Your commitment to caregiving
+            </label>
+            <p className="text-sm text-gray-500 mb-4">
+              This is the #1 thing providers look at. Describe your availability and how long you plan to work.
             </p>
 
-            <div className="w-full max-w-xl mx-auto">
-              {!commitmentStatement && (
-                <div className="mb-4 space-y-2">
-                  <p className="text-xs text-gray-400 font-medium text-left">Quick start templates:</p>
+            {/* Templates - show only when empty */}
+            {!commitmentStatement && (
+              <div className="mb-4">
+                <p className="text-xs text-gray-400 mb-2">Start with a template:</p>
+                <div className="flex flex-wrap gap-2">
                   {COMMITMENT_SUGGESTIONS.map((s, i) => (
                     <button
                       key={i}
                       type="button"
                       onClick={() => setCommitmentStatement(s)}
-                      className="w-full text-left px-4 py-3 bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 rounded-xl text-sm text-gray-600 transition-all leading-relaxed"
+                      className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                     >
-                      {s.slice(0, 80)}...
+                      Template {i + 1}
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              <textarea
-                value={commitmentStatement}
-                onChange={(e) => setCommitmentStatement(e.target.value)}
-                placeholder="Describe your commitment to taking shifts, your availability outside of class, and how long you plan to work..."
-                rows={7}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[160px]"
-                autoFocus
-              />
-              <div className="flex items-center justify-between mt-2">
-                <span className={`text-xs ${commitmentStatement.trim().length < 50 ? "text-amber-600" : "text-gray-400"}`}>
-                  {commitmentStatement.trim().length < 50
-                    ? `${50 - commitmentStatement.trim().length} more characters needed`
-                    : `${commitmentStatement.trim().length} characters`
-                  }
-                </span>
-                {commitmentStatement.trim().length >= 50 && (
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <textarea
+              value={commitmentStatement}
+              onChange={(e) => setCommitmentStatement(e.target.value)}
+              placeholder="I am committed to working caregiving shifts around my class schedule for at least 6 months. Outside of class and exam periods, I am available for shifts including evenings, weekends, and overnights..."
+              rows={8}
+              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[200px]"
+              autoFocus
+            />
+
+            <div className="flex items-center justify-between mt-2">
+              <span className={`text-xs ${commitmentStatement.trim().length < 50 ? "text-amber-600" : "text-gray-400"}`}>
+                {commitmentStatement.trim().length < 50
+                  ? `${50 - commitmentStatement.trim().length} more characters needed`
+                  : `${commitmentStatement.trim().length} characters`
+                }
+              </span>
+              {commitmentStatement.trim().length >= 50 && (
+                <span className="flex items-center gap-1 text-xs text-primary-600">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                )}
-              </div>
+                  Good
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -464,11 +465,8 @@ export default function EditAvailabilityModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="pt-4">
-        {/* Step Content - now centered without progress dots taking space */}
-        <div className="min-h-[340px] flex items-start justify-center">
-          {renderStepContent()}
-        </div>
+      <div className="pt-2">
+        {renderStepContent()}
 
         {/* Error Message */}
         {error && (

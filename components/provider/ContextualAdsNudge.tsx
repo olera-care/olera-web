@@ -29,6 +29,7 @@ export default function ContextualAdsNudge({
   providerSlug,
   providerName,
   hasActiveBoostRequest,
+  hasEverRequested,
   onDismiss,
 }: {
   context: NudgeContext;
@@ -36,6 +37,8 @@ export default function ContextualAdsNudge({
   providerName?: string;
   /** If true, the nudge won't render (provider already has ads). */
   hasActiveBoostRequest?: boolean;
+  /** Whether they have EVER had a campaign. Gates the free-intro claim. */
+  hasEverRequested?: boolean | null;
   onDismiss: () => void;
 }) {
   if (hasActiveBoostRequest) {
@@ -46,6 +49,7 @@ export default function ContextualAdsNudge({
     <ManagedAdsNudgeCard
       source={SOURCE[context]}
       opener={OPENER[context]}
+      hasEverRequested={hasEverRequested}
       providerSlug={providerSlug}
       providerName={providerName}
       onDismiss={onDismiss}

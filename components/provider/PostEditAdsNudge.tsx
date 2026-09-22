@@ -16,16 +16,20 @@ import ManagedAdsNudgeCard from "@/components/provider/ManagedAdsNudgeCard";
 export default function PostEditAdsNudge({
   providerSlug,
   providerName,
+  hasEverRequested,
   onDismiss,
 }: {
   providerSlug: string;
   providerName?: string;
+  /** Whether they have EVER had a campaign. Gates the free-intro claim. */
+  hasEverRequested?: boolean | null;
   onDismiss: () => void;
 }) {
   return (
     <ManagedAdsNudgeCard
       source="post_edit"
       opener="Looking sharp. Now let's get that page in front of families."
+      hasEverRequested={hasEverRequested}
       providerSlug={providerSlug}
       providerName={providerName}
       onDismiss={onDismiss}

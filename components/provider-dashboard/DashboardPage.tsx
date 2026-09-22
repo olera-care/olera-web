@@ -27,6 +27,7 @@ import HireCaregiversCard from "./HireCaregiversCard";
 import VerificationStatusCard from "./VerificationStatusCard";
 import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
 import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
+import { useBoostRequestSummary } from "@/hooks/useHasActiveBoostRequest";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -297,6 +298,9 @@ function DashboardContent({
    *  nudge is earned. Without this, closing the modal mid-run lost the moment
    *  entirely — one of two reasons only 97 of 255 editors were ever pitched. */
   const editSavedRef = useRef(false);
+  // Whether this provider has EVER had a campaign. Gates the free-intro claim
+  // in both nudges below; v2Data.hasActiveBoostRequest only covers live ones.
+  const { hasEver: hasEverRequestedBoost } = useBoostRequestSummary();
   const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
   // Just-answered-a-question moment: mirror the /provider/qna ContextualAdsNudge
   // for providers who answered via the onboard card and were redirected here with
@@ -499,6 +503,7 @@ function DashboardContent({
             <PostEditAdsNudge
               providerSlug={profile.slug}
               providerName={profile.display_name}
+              hasEverRequested={hasEverRequestedBoost}
               onDismiss={() => setShowEditNudge(false)}
             />
           )}
@@ -521,6 +526,7 @@ function DashboardContent({
               providerSlug={profile.slug}
               providerName={profile.display_name}
               hasActiveBoostRequest={v2Data?.hasActiveBoostRequest}
+              hasEverRequested={hasEverRequestedBoost}
               onDismiss={() => setShowQaNudge(false)}
             />
           )}

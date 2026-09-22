@@ -35,6 +35,7 @@ export type ManagedAdsNudgeSource = "post_edit" | "post_question" | "leads_page"
 export default function ManagedAdsNudgeCard({
   source,
   opener,
+  hasEverRequested,
   providerSlug,
   providerName,
   onDismiss,
@@ -44,6 +45,13 @@ export default function ManagedAdsNudgeCard({
   source: ManagedAdsNudgeSource;
   /** The one context-specific line: what they just did. */
   opener: string;
+  /** Whether this provider has EVER had a campaign, including ended ones. The
+   *  free-intro line renders only when this is explicitly false. Telling a
+   *  provider whose flight already ended that "the first campaign is on us" is
+   *  false, and it lands on exactly the people the team is re-approaching. When
+   *  the answer is unknown (still loading, or the lookup failed) the line is
+   *  omitted rather than guessed. */
+  hasEverRequested?: boolean | null;
   providerSlug: string;
   providerName?: string;
   onDismiss: () => void;
@@ -100,13 +108,15 @@ export default function ManagedAdsNudgeCard({
         ))}
       </div>
 
-      <p className="mt-4 flex items-center gap-2 text-sm text-gray-700">
-        <span className="text-primary-600" aria-hidden="true">&#10038;</span>
-        <span>
-          So the first campaign is on us:{" "}
-          <span className="font-medium text-primary-600">$50 of ads, free</span>
-        </span>
-      </p>
+      {hasEverRequested === false && (
+        <p className="mt-4 flex items-center gap-2 text-sm text-gray-700">
+          <span className="text-primary-600" aria-hidden="true">&#10038;</span>
+          <span>
+            So the first campaign is on us:{" "}
+            <span className="font-medium text-primary-600">$50 of ads, free</span>
+          </span>
+        </p>
+      )}
 
       <Link
         href="/provider/boost"
@@ -125,7 +135,7 @@ export default function ManagedAdsNudgeCard({
         }}
         className="mt-4 inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-transform hover:gap-2.5 active:scale-[0.98]"
       >
-        Start my free campaign
+        {hasEverRequested === false ? "Start my free campaign" : "See what we'd run for you"}
         <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
         </svg>

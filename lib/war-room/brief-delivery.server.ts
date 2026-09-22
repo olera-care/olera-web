@@ -189,7 +189,11 @@ export async function deliverWarRoomBrief(
     let channel: "dm" | "webhook" = "webhook";
     let dmError: string | null = null;
 
-    let result: { success: boolean; error?: string } = { success: false, error: "not attempted" };
+    // `ts` only comes back from the DM path. The webhook fallback posts into a
+    // channel and returns none, so an ask delivered that way records a null and
+    // falls back to latest-ask on reply -- which is right, because there is no
+    // thread of his to reply in.
+    let result: { success: boolean; error?: string; ts?: string } = { success: false, error: "not attempted" };
     if (dmUserId) {
       result = await sendSlackDirectMessage(dmUserId, text);
       if (result.success) channel = "dm";
@@ -201,7 +205,11 @@ export async function deliverWarRoomBrief(
     // Only after the message is out. Recording an ask nobody received would
     // leave an open question that can never be answered, and the next reply
     // would attach to it instead of to the real one.
-    if (question) await recordFounderAsk(db, question, runId).catch(() => false);
+    // The Slack `ts` of the message that carried the question. A reply typed in
+    // this message's thread resolves to this exact condition; without it every
+    // answer falls back to "whatever was asked most recently", which is wrong
+    // as soon as a newer brief lands in between.
+    if (question) await recordFounderAsk(db, question, runId, result.ts ?? null).catch(() => false);
 
     await db.from("war_room_source_state").upsert({
       source_key: DELIVERY_STATE_KEY,

@@ -503,6 +503,27 @@ export async function POST(req: Request) {
         );
       }
 
+      // Files next. The rows cascade with the record but the objects in the
+      // bucket do not — storage has no foreign keys — so deleting the record
+      // without this leaves collateral nobody can see and nobody can remove.
+      // Before the cascade, because after it there is nothing left to read
+      // the paths from.
+      const { data: files } = await db
+        .from("medjobs_attachments")
+        .select("path")
+        .eq("outreach_id", outreach.id);
+      if (files && files.length > 0) {
+        const { error: filesError } = await db.storage
+          .from("medjobs-collateral")
+          .remove(files.map((f) => f.path as string));
+        if (filesError) {
+          return NextResponse.json(
+            { error: `Could not remove the files, so nothing was deleted: ${filesError.message}` },
+            { status: 500 },
+          );
+        }
+      }
+
       // student_outreach_touchpoints is append-only and its guard fires on a
       // cascade delete too, so those rows go first through a function that
       // is allowed to remove them.

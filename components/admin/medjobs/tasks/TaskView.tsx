@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LADDERS, rungAt, type ContactField, type LadderInput } from "@/lib/medjobs/ladders";
+import Collateral from "./Collateral";
 import { ContactFields } from "./RecordView";
 import {
   DEFERRALS,
@@ -230,6 +231,12 @@ export default function TaskView({
           <div className="mt-4 border-t border-gray-100 pt-4">
             <Note value={task.note} onChange={onNote} />
           </div>
+          {/* A screenshot of what they sent back belongs with the task it
+              came from, not loose on the record. The sweeps have synthetic
+              ids and are not records, so they get nothing to attach to. */}
+          {!record.id.startsWith(SWEEP_PREFIX) && (
+            <Collateral outreachId={record.id} taskId={task.id} label="Attached" compact />
+          )}
           <div className="mt-3 flex flex-wrap gap-2">
             {canReopen(record, task) && (
               <button type="button" onClick={onReopen} className={BTN_GO}>

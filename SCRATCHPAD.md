@@ -31,9 +31,11 @@ Both in-product nudges now render one shared card (`components/provider/ManagedA
 
 **Placement was the real bug, twice.** TJ edited Care Services, which sits well down the page, and the nudge rendered under the hero at the top — he found it by scrolling up. Moved inline: the dashboard card list now carries a section id and the nudge slots in after the one just saved. Then he hit it again from a scroll position where that section ended near the fold, so the card now measures itself on mount and scrolls into view (`block: "center"`, skipped when already fully visible, deferred a frame so it doesn't race the modal's scroll lock).
 
-**Two defects found by `/pre-test` and the console, both mine:**
+**Four defects found by `/pre-test` and the console, all mine:**
 1. **`hasActiveBoostRequest` does not include `ended`.** The card would have told providers whose flight already finished that "your first campaign is on us" — Impact, Legacy Haven and Abode, the exact accounts Sales is re-approaching. Fixed with `useBoostRequestSummary()` returning `{ hasActive, hasEver }`; unknown is treated as "already had one". See memory `reference_boost_request_active_excludes_ended`.
 2. **`handleSaved` awaited a full account refetch before doing anything.** `fetchAccountData` measured 1.0–3.0s in TJ's console (it re-reads accounts + every business_profile + membership), so the editor sat open and the nudge arrived ~3s late. UI moves first now, refetch trails.
+3. **Off-by-8 at the one boundary the scroll code keys on.** `card-enter` opens at `translateY(8px)`, and the visibility check measured one frame after mount with no slack — so a card that was genuinely fully visible could measure as off-screen and scroll for nothing. Now keeps a 32px margin, which absorbs the transform and states the real rule: flush against the bottom edge is technically visible and still missed.
+4. **`hasEverRequested` was optional, and the card returns null until it resolves.** An omitted prop is `undefined`, which never resolves, so a future caller that forgot it would get a nudge that silently never renders. Required in all three components now; tsc still passing is the proof every existing call site was passing a real value.
 
 #### Open
 
@@ -43,9 +45,13 @@ Both in-product nudges now render one shared card (`components/provider/ManagedA
 - **The `direct_reach` / `local_plan` A/B variants return identical copy**, so that test has measured nothing since June.
 - **The managed-ads digest still says "You fund a small local campaign"**; the product has said the first campaign is on Olera since 10 July.
 - **The apply flow loses 56% on step one** (which asks what week to start), and 45 of 68 entrants fail the 70% completeness gate.
+- **Should the scroll fire on Q&A and connections?** There the nudge is a top-of-content element rather than adjacent to the action, so answering a question while scrolled deep in the list pulls you to the top. On the dashboard the jump is small and obviously right. Open question, not guessed: leave it, or scope the scroll to `post_edit` only.
+- **The `hasEverRequested === true` branch has never been run**, only type-checked — see the test-profile gap below.
 - **Cannot test the returning-provider copy** — all 8 of TJ's test profiles have zero campaign rows. Offer open to add an `ended` row to `test-manila-assisted-living-college-station-tx-1j6t`.
 
-**Not merged.** PR #2057 is against staging, 6 commits, Vercel green on `e39e7200`.
+**Not merged.** PR #2057 is against staging, 7 commits, head `561392a9`.
+
+**Also this session:** `~/.claude/skills/test-instructions/SKILL.md` gained a rule that every destination in a checklist must be a full clickable URL — a bare path or anything in backticks is not clickable in TJ's client — plus a step 0 that resolves and curls the base URL first and records that the branch preview alias is `olera-web-git-…`, not `olera2-web-git-…`, which 404s.
 
 ---
 

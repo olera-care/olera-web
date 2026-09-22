@@ -137,6 +137,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
   },
+  // The advising flyer's page one clears the panel by about three points,
+  // which is not a margin — one extra wrapped line anywhere above it and the
+  // panel lands on a page of its own. This buys back twenty-four: eight from
+  // the padding and sixteen from a bottom margin that is doing nothing,
+  // because on that page the panel is the last thing before the page break.
+  offerBoxTight: { paddingVertical: 11, marginBottom: 0 },
   offerHead: { fontSize: 14, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 6 },
   offerAsk: { fontSize: 10.5, color: EMERALD_DARK, fontFamily: "Helvetica-Bold", marginBottom: 7 },
   offerBody: { fontSize: 8.5, color: GRAY_600, lineHeight: 1.5 },
@@ -286,11 +292,6 @@ export function ProgramPdfTemplate({
     chantel: assets.chantelPhotoDataUri,
     sara: assets.saraPhotoDataUri,
   };
-  // The advising flyer differs from the agency brochure in one structural
-  // way: its call to action is "reply to this email", which lives on page
-  // two. The panel that closes page one for an agency is that agency's ask;
-  // here it is a description, so it opens page two instead — which is also
-  // the only place it fits, page one being the longer of the two.
   const advisor = config.audience === "advisor";
   const team = config.team ?? [];
   const lead = team[0];
@@ -391,8 +392,8 @@ export function ProgramPdfTemplate({
           <SectionHead>HOW IT WORKS</SectionHead>
           <Steps items={config.steps.map(stepOf)} />
 
-          {config.offer && !advisor ? (
-            <View style={styles.offerBox}>
+          {config.offer ? (
+            <View style={advisor ? [styles.offerBox, styles.offerBoxTight] : styles.offerBox}>
               <Text style={styles.offerHead}>{config.offer.headline}</Text>
               <Text style={styles.offerAsk}>{config.offer.ask}</Text>
               <Text style={styles.offerBody}>{config.offer.body}</Text>
@@ -415,14 +416,6 @@ export function ProgramPdfTemplate({
                 labels ran into each other. */}
             {advisor && config.eyebrow ? (
               <Text style={[styles.eyebrow, { marginBottom: 12 }]}>{config.eyebrow}</Text>
-            ) : null}
-
-            {config.offer && advisor ? (
-              <View style={styles.offerBox}>
-                <Text style={styles.offerHead}>{config.offer.headline}</Text>
-                <Text style={styles.offerAsk}>{config.offer.ask}</Text>
-                <Text style={styles.offerBody}>{config.offer.body}</Text>
-              </View>
             ) : null}
 
             <SectionHead>WHO YOU WILL BE WORKING WITH</SectionHead>
@@ -453,10 +446,20 @@ export function ProgramPdfTemplate({
                 {config.nextStep.kicker ? (
                   <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
                 ) : null}
-                <Text style={[styles.offerAsk, { color: GRAY_900 }]}>
+                <Text
+                  style={[
+                    styles.offerAsk,
+                    { color: GRAY_900 },
+                    // Nothing follows it, so the gap under it is a gap at the
+                    // bottom of the box rather than space between two lines.
+                    config.nextStep.body ? {} : { marginBottom: 0 },
+                  ]}
+                >
                   {config.nextStep.ask}
                 </Text>
-                <Text style={styles.offerBody}>{config.nextStep.body}</Text>
+                {config.nextStep.body ? (
+                  <Text style={styles.offerBody}>{config.nextStep.body}</Text>
+                ) : null}
               </View>
             ) : null}
 

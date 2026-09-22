@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 1.35,
     marginTop: 8,
-    marginHorizontal: 30,
+    marginHorizontal: 16,
   },
   pillWrap: { alignItems: "center", marginTop: 12 },
   pill: {
@@ -245,8 +245,7 @@ export function RecruitFlyerPage({ assets }: { assets: ProgramPdfAssets }) {
         </View>
         <Text style={styles.hero}>Open Caregiving Jobs</Text>
         <Text style={styles.heroSub}>
-          Get paid to gain hands-on caregiving experience and build your future career in
-          healthcare.
+          Get paid, hands-on caregiving experience, and build your future career in healthcare.
         </Text>
         <View style={styles.pillWrap}>
           <View style={styles.pill}>
@@ -264,7 +263,7 @@ export function RecruitFlyerPage({ assets }: { assets: ProgramPdfAssets }) {
 
         <View style={styles.cols}>
           <View style={styles.colLeft}>
-            <Text style={styles.h2}>Why Join Olera:</Text>
+            <Text style={styles.h2}>Why Join the Program:</Text>
             {WHY.map((b) => (
               <Bullet key={b}>{b}</Bullet>
             ))}

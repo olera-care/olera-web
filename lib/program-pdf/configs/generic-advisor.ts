@@ -27,13 +27,13 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
   heroHeadline:
     "Paid, hands-on bedside experience for your pre-health students — around their class schedule.",
   heroSubhead:
-    "Olera places pre-health students into paid caregiving shifts with licensed local agencies: bedside experience, references and hours admissions committees value. Your office can help us spread the word.",
+    "Olera places pre-health students into paid caregiving shifts with licensed local home care agencies: bedside experience with older adults who need personal care support, references and hours admissions committees value.",
 
   benefitsHeading: "WHY OFFICES SHARE THIS",
   benefits: [
     {
       title: "A specific answer to \u201cHow do I get experience?\u201d",
-      body: "Not a suggestion to go and look. A program they can apply to this week.",
+      body: "A program they can apply to this week: paid, hands-on direct care with older adults.",
     },
     {
       title: "Paid, and no cost to anyone here",
@@ -41,11 +41,11 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
     },
     {
       title: "Built around coursework",
-      body: "Shifts are arranged around a class schedule, and our partnering agencies are vetted to be student-friendly.",
+      body: "Shifts work around a class schedule, and our partnering home care agencies are vetted to be student-friendly.",
     },
     {
-      title: "Easy to share",
-      body: "We provide the flyer and an approved job-board posting, ready for a newsletter or listserv.",
+      title: "Easy to share with students",
+      body: "A flyer and an approved job-board posting — for your newsletter, your listserv, or to point students to.",
     },
   ],
 
@@ -60,7 +60,7 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
     },
     {
       title: "They are hired and paid.",
-      body: "The local agency employs them. We stay with the student.",
+      body: "The local agency employs them. We help them use it on applications.",
     },
   ],
 
@@ -74,7 +74,7 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
   offer: {
     headline: "What a student gets",
     ask: "Paid bedside care, references and letters, hours for their application, and mentorship from our team.",
-    body: "Students work for a licensed partnering agency — supervision, medication reminders, transfers, companionship. Afterwards we help them write it up, ask for a letter and document their hours.",
+    body: "Students work for licensed home care agencies: supervision, medication reminders, transfers, companionship, personal care. We mentor them on positioning it in an application, asking for letters, documenting hours and interviewing.",
   },
 
   team: [
@@ -114,7 +114,7 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
     },
     {
       title: "You share our recruitment flyer.",
-      body: "The last page of this document, with the link and posting.",
+      body: "The last page, in a listserv, newsletter or advising session.",
     },
     {
       title: "Repeat every semester.",
@@ -124,8 +124,11 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
 
   nextStep: {
     heading: "The easiest next step",
+    // One line, and the whole ask. What used to follow it — that we answer
+    // questions first so the office is confident sharing the flyer — is the
+    // three numbered steps directly beneath, said once instead of twice.
     ask: "Reply to this email.",
-    body: "We will answer your questions so you are confident sharing our recruitment flyer (the last page of this document) with your students.",
+    body: "",
   },
 
   replyBlock: {

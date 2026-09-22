@@ -680,15 +680,11 @@ export function invitationReceivedEmail({
   studentName,
   providerName,
   jobTitle,
-  hoursLabel,
-  payRange,
   unsubscribeId,
 }: {
   studentName: string;
   providerName: string;
   jobTitle: string;
-  hoursLabel: string;
-  payRange: string;
   unsubscribeId?: string;
 }): string {
   const safeStudentName = escapeHtml(firstName(studentName, "there"));
@@ -702,8 +698,7 @@ export function invitationReceivedEmail({
     </p>
     <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;width:100%;margin:0 0 16px;">
       <tr><td style="padding:16px;">
-        <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 4px;">${safeJobTitle}</p>
-        <p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(hoursLabel)} &middot; ${escapeHtml(payRange)}</p>
+        <p style="font-size:15px;color:#111827;font-weight:600;margin:0;">${safeJobTitle}</p>
       </td></tr>
     </table>
     <p style="margin:0 0 16px;">

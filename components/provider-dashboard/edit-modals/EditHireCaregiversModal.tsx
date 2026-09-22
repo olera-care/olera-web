@@ -12,7 +12,6 @@ import {
 } from "@/lib/medjobs/eligibility";
 import {
   COVERAGE_OPTIONS,
-  DEMAND_SHAPE_OPTIONS,
   PRN_OPTIONS,
   REQUIREMENT_OPTIONS,
   REQUIREMENTS_KEY,
@@ -20,7 +19,6 @@ import {
   type MedjobsRequirements,
 } from "@/lib/medjobs/hiring-needs-questions";
 
-type Shape = DemandProfile["demand_shape"];
 type Prn = DemandProfile["prn_open"];
 type Bucket = DemandProfile["coverage_buckets"][number];
 
@@ -47,20 +45,18 @@ export default function EditHireCaregiversModal({
   const initialDemand = (meta[DEMAND_PROFILE_KEY] ?? {}) as Partial<DemandProfile>;
   const initialReq = readRequirements(meta);
 
-  const [shape, setShape] = useState<Shape | undefined>(initialDemand.demand_shape);
   const [prn, setPrn] = useState<Prn | undefined>(initialDemand.prn_open);
   const [buckets, setBuckets] = useState<Bucket[]>(initialDemand.coverage_buckets ?? []);
-  const [hourlyRate, setHourlyRate] = useState<number | undefined>(initialDemand.hourly_rate);
   const [jobDescription, setJobDescription] = useState(initialDemand.job_description ?? "");
   const [req, setReq] = useState<MedjobsRequirements>(initialReq);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const snapshot = (s?: Shape, p?: Prn, b?: Bucket[], r?: MedjobsRequirements, hr?: number, jd?: string) =>
-    JSON.stringify({ s: s ?? null, p: p ?? null, b: [...(b ?? [])].sort(), r: r ?? {}, hr: hr ?? null, jd: jd ?? "" });
+  const snapshot = (p?: Prn, b?: Bucket[], r?: MedjobsRequirements, jd?: string) =>
+    JSON.stringify({ p: p ?? null, b: [...(b ?? [])].sort(), r: r ?? {}, jd: jd ?? "" });
   const hasChanges =
-    snapshot(shape, prn, buckets, req, hourlyRate, jobDescription) !==
-    snapshot(initialDemand.demand_shape, initialDemand.prn_open, initialDemand.coverage_buckets, initialReq, initialDemand.hourly_rate, initialDemand.job_description ?? "");
+    snapshot(prn, buckets, req, jobDescription) !==
+    snapshot(initialDemand.prn_open, initialDemand.coverage_buckets, initialReq, initialDemand.job_description ?? "");
 
   const toggleBucket = (v: Bucket) =>
     setBuckets((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
@@ -76,10 +72,8 @@ export default function EditHireCaregiversModal({
     setError(null);
     try {
       const demand: Record<string, unknown> = {
-        demand_shape: shape,
         prn_open: prn,
         coverage_buckets: buckets,
-        hourly_rate: hourlyRate, // Don't use || - 0 is a valid rate
         job_description: jobDescription.trim() || undefined,
       };
       const metadataFields: Record<string, unknown> = {
@@ -140,16 +134,6 @@ export default function EditHireCaregiversModal({
           </div>
         </Field>
 
-        <Field label="How steady are your staffing needs?">
-          <div className="flex flex-wrap gap-2">
-            {DEMAND_SHAPE_OPTIONS.map((o) => (
-              <button key={o.value} type="button" onClick={() => setShape(o.value)} className={pill(shape === o.value)}>
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </Field>
-
         <Field label="Open to PRN (on-call) students?">
           <div className="flex flex-wrap gap-2">
             {PRN_OPTIONS.map((o) => (
@@ -158,23 +142,6 @@ export default function EditHireCaregiversModal({
               </button>
             ))}
           </div>
-        </Field>
-
-        <Field label="Hourly rate">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">$</span>
-            <input
-              type="number"
-              min={0}
-              step={0.5}
-              value={hourlyRate ?? ""}
-              onChange={(e) => setHourlyRate(e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="e.g. 22"
-              className="w-24 px-3 py-2 border border-warm-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-            <span className="text-gray-500 text-sm">/hr</span>
-          </div>
-          <p className="text-xs text-gray-400 mt-1">Shown to students when you schedule interviews</p>
         </Field>
 
         <Field label="Job description">

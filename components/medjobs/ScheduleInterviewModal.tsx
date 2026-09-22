@@ -19,10 +19,8 @@ export interface ScheduleFormData {
 
 /** Job details snapshot sent with interview and stored in interviews.metadata. */
 export interface JobDetails {
-  hourly_rate?: number;
   job_description?: string;
   coverage_buckets?: DemandProfile["coverage_buckets"];
-  demand_shape?: DemandProfile["demand_shape"];
   prn_open?: DemandProfile["prn_open"];
   requirements?: MedjobsRequirements;
 }

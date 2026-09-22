@@ -409,7 +409,7 @@ export default function EditOverviewModal({
     >
       <div className="pt-6">
         {/* Photo Upload - Centered */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-6">
           <div
             onDragEnter={(e) => handleDrag(e, true)}
             onDragLeave={(e) => handleDrag(e, false)}
@@ -480,7 +480,7 @@ export default function EditOverviewModal({
         </div>
 
         {/* Form Fields */}
-        <div className="max-w-md mx-auto space-y-5 pb-48">
+        <div className="space-y-5">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -16,14 +16,14 @@ select
   jsonb_array_length(coalesce(t.payload->'found', '[]'::jsonb)) as entries,
   t.payload->'found'                    as entries_json
 from site_tasks t
-join campuses c on c.id = t.campus_id
+join student_outreach_campuses c on c.id = t.campus_id
 where t.task_type = 'advisor_sweep'
   and t.status = 'pending';
 
 -- Empty it.
 update site_tasks t
 set payload = jsonb_set(coalesce(t.payload, '{}'::jsonb), '{found}', '[]'::jsonb)
-from campuses c
+from student_outreach_campuses c
 where c.id = t.campus_id
   and t.task_type = 'advisor_sweep'
   and t.status = 'pending'
@@ -35,5 +35,5 @@ select
   t.status,
   jsonb_array_length(coalesce(t.payload->'found', '[]'::jsonb)) as entries
 from site_tasks t
-join campuses c on c.id = t.campus_id
+join student_outreach_campuses c on c.id = t.campus_id
 where t.task_type = 'advisor_sweep';

@@ -143,10 +143,24 @@ async function searchRecord(db: SupabaseClient, question: string): Promise<Sourc
   return (data ?? []) as SourceItemRow[];
 }
 
-/** Which external readers are actually switched on, so Cortex can say what it cannot see. */
-async function ingestedSources(db: SupabaseClient): Promise<string[]> {
-  const { data } = await db.from("war_room_source_items").select("source").limit(1000);
-  return [...new Set(((data ?? []) as Array<{ source: string }>).map((r) => r.source))];
+/**
+ * How much of each reader is actually stored, so Cortex can say what it cannot see.
+ *
+ * Three head-only counts rather than pulling a thousand rows to derive a set of
+ * three strings. The original did the latter, which was merely wasteful when the
+ * table held eighty archive rows and becomes a thousand-row transfer on every
+ * question now that twelve Slack channels feed it.
+ *
+ * Counts rather than presence, because "ingested" is not binary. A reader that
+ * has imported four messages is switched on and nearly empty, and answering as
+ * though it were fully stocked is the same overstatement this whole module
+ * exists to stop.
+ */
+async function ingestedCounts(db: SupabaseClient): Promise<Record<string, number>> {
+  const sources = ["slack", "notion", "archive"] as const;
+  const counts = await Promise.all(sources.map((source) =>
+    db.from("war_room_source_items").select("id", { count: "exact", head: true }).eq("source", source)));
+  return Object.fromEntries(sources.map((source, i) => [source, counts[i].count ?? 0]));
 }
 
 async function buildConversationContext(
@@ -166,7 +180,7 @@ async function buildConversationContext(
       .limit(10),
     db.from("war_room_company_models").select("north_star, targets, constraints").eq("key", "olera").maybeSingle(),
     question ? searchRecord(db, question) : Promise.resolve([] as SourceItemRow[]),
-    ingestedSources(db),
+    ingestedCounts(db),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
@@ -177,10 +191,14 @@ async function buildConversationContext(
     // "I cannot see where that would be recorded". Those are different answers
     // and only one of them is honest when a reader is not ingested.
     whatIsIngested: {
-      sourcesPresent: sources,
-      slackChannels: sources.includes("slack") ? "ingested" : "NOT ingested -- no Slack channel is being read",
-      notion: sources.includes("notion") ? "ingested" : "NOT ingested -- no Notion source is being read",
-      directMessages: "NEVER ingested. Cortex cannot read anyone's Slack DMs, including the founder's.",
+      slackChannelMessages: sources.slack > 0
+        ? `${sources.slack} stored`
+        : "NONE stored -- no Slack channel message has been ingested yet",
+      notionPages: sources.notion > 0
+        ? `${sources.notion} stored`
+        : "NONE stored -- no Notion source is being read",
+      oleraWrittenRecord: `${sources.archive} stored`,
+      directMessages: "NEVER ingested, and never can be. A Slack bot cannot read direct messages between two people; no permission grants it. This includes the founder's own DMs.",
       email: "NEVER ingested.",
     },
     recordMatches: matches.map((row) => ({

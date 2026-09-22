@@ -4,6 +4,9 @@ import { useState } from "react";
 import {
   HEARD_FIELDS,
   HEARD_LABEL,
+  HEARD_MULTI,
+  HEARD_OPTIONS,
+  heardDisplay,
   type FamilyTouchChannel,
   type Heard,
   type HeardField,
@@ -290,15 +293,71 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
 const FIELD_HINT: Record<HeardField, string> = {
   care_for: "Geraldine Wilson, 81",
   relationship: "sister, daughter, self",
-  care_type: "home care, memory care",
+  care_type: "",
   care_zip: "Oak Cliff, Dallas 75224",
   interim_location: "where they are now",
   hours: "6/day, mornings",
-  transfers: "one person, two people, lift",
-  payment: "private pay, Medicaid",
+  transfers: "",
+  payment: "",
   starts: "late Oct",
   budget: "$30/hr",
 };
+
+/**
+ * A small set of codes, as buttons rather than a select.
+ *
+ * One tap instead of a word typed, which serves the "fewer touches" rule better
+ * than a text box does, and the value that lands is a code the router can match
+ * rather than prose it cannot. Clicking the selected option clears it, so a
+ * mistake costs one tap and not a reach for the keyboard.
+ *
+ * `payment` is multi: private pay now with Medicaid pending is one situation,
+ * not two, and a single-value control would force whoever is typing to throw
+ * half of it away.
+ */
+function Picker({
+  field,
+  options,
+  value,
+  onChange,
+}: {
+  field: HeardField;
+  options: { code: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const multi = HEARD_MULTI.includes(field);
+  const chosen = value.split(",").map((c) => c.trim()).filter(Boolean);
+
+  function toggle(code: string) {
+    if (!multi) return onChange(chosen[0] === code ? "" : code);
+    const next = chosen.includes(code) ? chosen.filter((c) => c !== code) : [...chosen, code];
+    onChange(next.join(","));
+  }
+
+  return (
+    <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+      {options.map((o) => {
+        const on = chosen.includes(o.code);
+        return (
+          <button
+            key={o.code}
+            type="button"
+            aria-pressed={on}
+            onClick={() => toggle(o.code)}
+            className={`rounded-full border px-2.5 py-1 text-[12px] font-medium ${
+              on
+                ? "border-teal-700 bg-teal-700 text-white"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function DetailFields({
   values,
@@ -318,20 +377,32 @@ function DetailFields({
         </button>
       </div>
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
-        {HEARD_FIELDS.map((f) => (
-          <label key={f} className="flex items-center gap-2">
-            <span className="w-[74px] shrink-0 font-mono text-[9.5px] uppercase tracking-[0.06em] text-gray-500">
-              {HEARD_LABEL[f]}
-            </span>
-            <input
-              id={`family-detail-${f}`}
-              value={values[f] ?? ""}
-              onChange={(e) => onChange(f, e.target.value)}
-              placeholder={FIELD_HINT[f]}
-              className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[13px] text-gray-900 placeholder:text-gray-300 focus:border-gray-400 focus:outline-none"
-            />
-          </label>
-        ))}
+        {HEARD_FIELDS.map((f) => {
+          const options = HEARD_OPTIONS[f];
+          return (
+            <label key={f} className={`flex gap-2 ${options ? "items-start sm:col-span-2" : "items-center"}`}>
+              <span className="w-[74px] shrink-0 pt-1 font-mono text-[9.5px] uppercase tracking-[0.06em] text-gray-500">
+                {HEARD_LABEL[f]}
+              </span>
+              {options ? (
+                <Picker
+                  field={f}
+                  options={options}
+                  value={values[f] ?? ""}
+                  onChange={(v) => onChange(f, v)}
+                />
+              ) : (
+                <input
+                  id={`family-detail-${f}`}
+                  value={values[f] ?? ""}
+                  onChange={(e) => onChange(f, e.target.value)}
+                  placeholder={FIELD_HINT[f]}
+                  className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[13px] text-gray-900 placeholder:text-gray-300 focus:border-gray-400 focus:outline-none"
+                />
+              )}
+            </label>
+          );
+        })}
       </div>
       <p className="mt-2 font-mono text-[10.5px] text-gray-400">
         Anything you type here wins over what the note is read to say, now and later.
@@ -358,8 +429,11 @@ function HeardStrip({ heard, onDismiss }: { heard: Heard; onDismiss: () => void 
   // to fewer chips, never to a blank page from a render throw.
   const fields = heard.fields ?? {};
   const alsoNoted = heard.also_noted ?? [];
-  const got = HEARD_FIELDS.filter((f) => fields[f]);
-  const missing = HEARD_FIELDS.filter((f) => !fields[f]);
+  // A value, not merely an entry. HeardValue.value is nullable, so a row with
+  // nothing in it would otherwise render as a chip claiming to have read
+  // something, which is worse than no chip at all.
+  const got = HEARD_FIELDS.filter((f) => fields[f]?.value);
+  const missing = HEARD_FIELDS.filter((f) => !fields[f]?.value);
   const shownMissing = missing.slice(0, 3);
   const unsure = got.filter((f) => fields[f]?.sure === false).length;
 
@@ -394,7 +468,7 @@ function HeardStrip({ heard, onDismiss }: { heard: Heard; onDismiss: () => void 
                 {HEARD_LABEL[f as HeardField]}
               </span>
               <span className={`font-medium ${v.sure ? "" : "underline decoration-dotted underline-offset-2"}`}>
-                {v.value}
+                {heardDisplay(f, v.value ?? "")}
               </span>
             </span>
           );

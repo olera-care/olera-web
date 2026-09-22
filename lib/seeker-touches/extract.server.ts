@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { HEARD_FIELDS, type Heard, type HeardField, type HeardValue } from "./types";
+import { HEARD_FIELDS, HEARD_OPTIONS, heardCanonical, heardDisplay, type Heard, type HeardField, type HeardValue } from "./types";
 
 /**
  * Read a logged call note and pull out the care details a provider would ask for.
@@ -57,16 +57,18 @@ Return ONLY a JSON object, no prose and no code fence:
 FIELDS. Include a field ONLY if the note actually supports it. Omit it entirely when the note says nothing about it. Never guess a plausible value.
   care_for          who needs the care: name and age if given, e.g. "Geraldine Wilson, 81"
   relationship      how the person we spoke to relates to them, e.g. "sister", "daughter", "self"
-  care_type         the kind of care, e.g. "Home care, total care", "Assisted living", "Memory care"
+  care_type         ONE CODE ONLY from: home_care, assisted_living, medical, unsure
   care_zip          WHERE THE CARE HAPPENS: town and ZIP if given. Not the caller's own address when they differ.
   interim_location  where the person is living now, when that differs from where care will happen
   hours             e.g. "6/day, mornings, 7 days"
-  transfers         how much physical help moving: "independent", "standby", "one person", "total care", "lift required"
-  payment           "Private pay", "Medicaid", "LTC insurance", "VA", or what the note says
+  transfers         ONE CODE ONLY from: independent, standby, one_person, two_people, lift
+  payment           CODES from: private_pay, medicaid, medicare, ltc_insurance, va, unsure. More than one allowed, comma separated, when the note says so ("private pay for now, Medicaid pending")
   starts            when care needs to begin, e.g. "Late Oct", "immediately"
   budget            an amount or rate, only if stated
 
-"sure" is false when you are inferring rather than reading. If the note says "likely ZIP 75224 (needs confirmation)" that is sure:false. If it says "she is mostly bedridden and needs transfers", reading that as transfers "total care" is an inference, so sure:false. Only mark sure:true when the note states it plainly.
+For care_type, transfers and payment return the CODE EXACTLY as spelled above and nothing else. No prose, no capitals, no alternative wording. A value that is not one of those codes is discarded, so an unsure guess is better spent on the closest code with "sure" set to false than on inventing a word. If the note says nothing about one of them, omit the field.
+
+"sure" is false when you are inferring rather than reading. If the note says "likely ZIP 75224 (needs confirmation)" that is sure:false. If it says "she is mostly bedridden and needs transfers", reading that as transfers "two_people" is an inference, so sure:false. Only mark sure:true when the note states it plainly.
 
 ALSO_NOTED. Up to four short fragments that a provider would want and that no field above captures. COPY THE AUTHOR'S OWN WORDS EXACTLY. Do not summarise, do not rephrase, do not tidy the grammar. Trim to the relevant clause and nothing more. Examples of the kind of thing that belongs here: access or equipment concerns, a deadline the family cares about, a preference about the caregiver, something about the home. Return an empty array when there is nothing.
 
@@ -84,12 +86,16 @@ function buildPrompt(note: string, channel: string, reached: boolean | null): st
   return [context, "", "The note:", note, "", "Extract what it supports."].join("\n");
 }
 
-function readValue(raw: unknown): HeardValue | null {
+function readValue(field: HeardField, raw: unknown): HeardValue | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as { value?: unknown; sure?: unknown };
   const value = typeof o.value === "string" ? o.value.trim().slice(0, 120) : "";
   if (!value) return null;
-  return { value, sure: o.sure === true };
+  // A coded field keeps only codes it knows. Storing the model's prose here
+  // would leave the field unmatchable, which is the whole reason it is coded.
+  const canonical = heardCanonical(field, value);
+  if (!canonical) return null;
+  return { value: canonical, sure: o.sure === true };
 }
 
 /**
@@ -132,7 +138,7 @@ export async function extractHeard(
 
     const fields: Partial<Record<HeardField, HeardValue>> = {};
     for (const key of HEARD_FIELDS) {
-      const v = readValue(parsed.fields?.[key]);
+      const v = readValue(key, parsed.fields?.[key]);
       if (v) fields[key] = v;
     }
 
@@ -231,7 +237,9 @@ export function applyManual(
   for (const key of HEARD_FIELDS) {
     const raw = manual[key];
     if (raw === undefined) continue;
-    const value = raw.trim().slice(0, 120);
+    // Same gate as a model read: a coded field never stores prose, whichever
+    // side it arrived from, or the two could never be compared.
+    const value = raw.trim() ? heardCanonical(key, raw.trim().slice(0, 120)) : null;
     edited.add(key);
     if (value) fields[key] = { value, sure: true };
     else delete fields[key];
@@ -256,7 +264,13 @@ export function summariseManual(manual: Partial<Record<HeardField, string>>): st
   const preferred: HeardField[] = ["care_for", "care_type", "care_zip", "hours", "payment", "starts"];
   const order = [...preferred, ...HEARD_FIELDS.filter((f) => !preferred.includes(f))];
   const parts = order
-    .map((k) => manual[k]?.trim())
+    .map((k) => {
+      const raw = manual[k]?.trim();
+      if (!raw) return undefined;
+      // The timeline is read by people, so a coded field spells itself out.
+      const canonical = HEARD_OPTIONS[k] ? heardCanonical(k, raw) : raw;
+      return canonical ? heardDisplay(k, canonical) : undefined;
+    })
     .filter((v): v is string => Boolean(v));
   return parts.length ? parts.join(" · ").slice(0, 240) : "";
 }

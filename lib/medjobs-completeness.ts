@@ -3,15 +3,18 @@ import type { StudentMetadata } from "@/lib/types";
 /**
  * MedJobs Profile Completeness — Single Source of Truth
  *
- * Organized into 8 logical sections that match the portal page structure:
- * 1. Profile Overview (name, university, location, photo - from onboarding)
- * 2. Semester Schedule
- * 3. Availability & Commitment
+ * Organized into 9 sections that match the portal page structure:
+ * 1. Profile Overview (name, email, phone, university, location, photo)
+ * 2. Weekly Availability (schedule grid)
+ * 3. Availability & Commitment (statement, seasonal availability)
  * 4. Why I Want to Be a Caregiver
- * 5. Screening Questions
- * 6. Background & Experience (experience level, care types, languages, certifications)
- * 7. Resume & LinkedIn
- * 8. Verification (intro video, driver's license, car insurance) - the "go live" step
+ * 5. Screening Questions (3 scenario questions)
+ * 6. Experience (experience timeline entries)
+ * 7. Certifications
+ * 8. Resume & LinkedIn
+ * 9. Verification (intro video, driver's license, car insurance)
+ *
+ * Weights: Most sections = 10%, Resume & Verification = 15% each (total 100%)
  */
 
 export const SCENARIO_QUESTIONS = [
@@ -67,7 +70,6 @@ export function getSectionCompleteness(
   hasBasicInfo: { hasName: boolean; hasEmail: boolean; hasPhone: boolean; hasUniversity: boolean; hasLocation: boolean }
 ): CompletenessSection[] {
   const scenarios = meta.scenario_responses || [];
-  const answeredScenarios = scenarios.filter((s) => (s.answer?.length ?? 0) >= 50).length;
 
   // 1. Profile Overview (from onboarding)
   const overviewItems = [

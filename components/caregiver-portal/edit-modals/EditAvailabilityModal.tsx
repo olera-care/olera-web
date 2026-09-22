@@ -247,114 +247,90 @@ export default function EditAvailabilityModal({
 
         {/* Step 2: Additional Pledges */}
         {currentStep === 2 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Additional commitments</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-              Show providers you understand the responsibility.
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Additional commitments
+            </label>
+            <p className="text-sm text-gray-500 mb-5">
+              These are optional, but help providers understand your flexibility.
             </p>
 
-            <div className="max-w-md mx-auto space-y-3">
-              <button
-                type="button"
-                onClick={() => setPrnWilling(!prnWilling)}
-                className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${
-                  prnWilling
-                    ? "bg-primary-50 border-2 border-primary-600"
-                    : "bg-white border border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-md shrink-0 mt-0.5 transition-all ${
-                  prnWilling ? "bg-primary-600 text-white" : "border-2 border-gray-300"
-                }`}>
-                  {prnWilling && (
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </span>
-                <span className={`text-sm ${prnWilling ? "text-gray-900" : "text-gray-600"}`}>
-                  I am okay to be on-call / PRN until a client needs shifts that fit my schedule
-                </span>
-              </button>
+            <div className="space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={prnWilling}
+                  onChange={() => setPrnWilling(!prnWilling)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                    On-call / PRN available
+                  </span>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    I can be on-call until a client needs shifts that fit my schedule
+                  </p>
+                </div>
+              </label>
 
-              <button
-                type="button"
-                onClick={() => setAdvanceNoticePledge(!advanceNoticePledge)}
-                className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl text-left transition-all ${
-                  advanceNoticePledge
-                    ? "bg-primary-50 border-2 border-primary-600"
-                    : "bg-white border border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-md shrink-0 mt-0.5 transition-all ${
-                  advanceNoticePledge ? "bg-primary-600 text-white" : "border-2 border-gray-300"
-                }`}>
-                  {advanceNoticePledge && (
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </span>
-                <span className={`text-sm ${advanceNoticePledge ? "text-gray-900" : "text-gray-600"}`}>
-                  I commit to keeping my availability and course schedule updated regularly
-                </span>
-              </button>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={advanceNoticePledge}
+                  onChange={() => setAdvanceNoticePledge(!advanceNoticePledge)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                    Regular schedule updates
+                  </span>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    I commit to keeping my availability and course schedule updated
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
         )}
 
         {/* Step 3: Seasonal Availability */}
         {currentStep === 3 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Year-round availability</h3>
-            <p className="text-gray-500 text-sm mb-5 max-w-sm mx-auto">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Year-round availability
+            </label>
+            <p className="text-sm text-gray-500 mb-5">
               Let providers know your plans for each season.
             </p>
 
-            <div className="max-w-lg mx-auto space-y-4 text-left">
+            <div className="space-y-4">
               {SEASONS.map((season) => {
                 const data = yearRoundAvailability[season] as { status?: string; year?: number } | undefined;
                 const isCurrent = season === currentSeason;
                 return (
-                  <div key={season}>
-                    <div className="flex items-center gap-2 mb-2">
+                  <div key={season} className="flex items-center gap-3">
+                    <div className="w-24 shrink-0">
                       <span className="text-sm font-medium text-gray-900">
                         {SEASON_LABELS[season]}
                       </span>
                       {isCurrent && (
-                        <span className="px-2 py-0.5 bg-primary-600 text-white text-[10px] font-medium rounded-full">
-                          Now
+                        <span className="ml-1.5 text-[10px] font-medium text-primary-600">
+                          (now)
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <select
+                      value={data?.status || ""}
+                      onChange={(e) => handleSeasonChange(season, e.target.value)}
+                      className="flex-1 text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
+                    >
+                      <option value="">Select...</option>
                       {SEASONAL_STATUS_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => handleSeasonChange(season, opt.value)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                            data?.status === opt.value
-                              ? "bg-gray-900 text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
-                        >
+                        <option key={opt.value} value={opt.value}>
                           {opt.label}
-                        </button>
+                        </option>
                       ))}
-                    </div>
+                    </select>
                   </div>
                 );
               })}
@@ -364,31 +340,25 @@ export default function EditAvailabilityModal({
 
         {/* Step 4: Additional Notes */}
         {currentStep === 4 && (
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Anything else?</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-              Optional: Finals, spring break, planned travel, etc.
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Additional notes
+            </label>
+            <p className="text-sm text-gray-500 mb-4">
+              Optional: finals, spring break, planned travel, etc.
             </p>
 
-            <div className="w-full max-w-xl mx-auto">
-              <textarea
-                value={availabilityNotes}
-                onChange={(e) => setAvailabilityNotes(e.target.value)}
-                placeholder="Any specific dates or circumstances providers should know about..."
-                rows={7}
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-4 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[160px]"
-                autoFocus
-              />
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                This field is optional
-              </p>
-            </div>
+            <textarea
+              value={availabilityNotes}
+              onChange={(e) => setAvailabilityNotes(e.target.value)}
+              placeholder="Any specific dates or circumstances providers should know about..."
+              rows={8}
+              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[200px]"
+              autoFocus
+            />
+            <p className="text-xs text-gray-400 mt-2">
+              This field is optional
+            </p>
           </div>
         )}
       </div>

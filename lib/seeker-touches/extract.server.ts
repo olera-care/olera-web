@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { HEARD_FIELDS, type Heard, type HeardField, type HeardValue } from "./types";
+import { HEARD_FIELDS, HEARD_OPTIONS, heardCanonical, heardDisplay, type Heard, type HeardField, type HeardValue } from "./types";
 
 /**
  * Read a logged call note and pull out the care details a provider would ask for.
@@ -57,16 +57,18 @@ Return ONLY a JSON object, no prose and no code fence:
 FIELDS. Include a field ONLY if the note actually supports it. Omit it entirely when the note says nothing about it. Never guess a plausible value.
   care_for          who needs the care: name and age if given, e.g. "Geraldine Wilson, 81"
   relationship      how the person we spoke to relates to them, e.g. "sister", "daughter", "self"
-  care_type         the kind of care, e.g. "Home care, total care", "Assisted living", "Memory care"
+  care_type         ONE CODE ONLY from: home_care, assisted_living, medical, unsure
   care_zip          WHERE THE CARE HAPPENS: town and ZIP if given. Not the caller's own address when they differ.
   interim_location  where the person is living now, when that differs from where care will happen
   hours             e.g. "6/day, mornings, 7 days"
-  transfers         how much physical help moving: "independent", "standby", "one person", "total care", "lift required"
-  payment           "Private pay", "Medicaid", "LTC insurance", "VA", or what the note says
+  transfers         ONE CODE ONLY from: independent, standby, one_person, two_people, lift
+  payment           CODES from: private_pay, medicaid, medicare, ltc_insurance, va, unsure. More than one allowed, comma separated, when the note says so ("private pay for now, Medicaid pending")
   starts            when care needs to begin, e.g. "Late Oct", "immediately"
   budget            an amount or rate, only if stated
 
-"sure" is false when you are inferring rather than reading. If the note says "likely ZIP 75224 (needs confirmation)" that is sure:false. If it says "she is mostly bedridden and needs transfers", reading that as transfers "total care" is an inference, so sure:false. Only mark sure:true when the note states it plainly.
+For care_type, transfers and payment return the CODE EXACTLY as spelled above and nothing else. No prose, no capitals, no alternative wording. A value that is not one of those codes is discarded, so an unsure guess is better spent on the closest code with "sure" set to false than on inventing a word. If the note says nothing about one of them, omit the field.
+
+"sure" is false when you are inferring rather than reading. If the note says "likely ZIP 75224 (needs confirmation)" that is sure:false. If it says "she is mostly bedridden and needs transfers", reading that as transfers "two_people" is an inference, so sure:false. Only mark sure:true when the note states it plainly.
 
 ALSO_NOTED. Up to four short fragments that a provider would want and that no field above captures. COPY THE AUTHOR'S OWN WORDS EXACTLY. Do not summarise, do not rephrase, do not tidy the grammar. Trim to the relevant clause and nothing more. Examples of the kind of thing that belongs here: access or equipment concerns, a deadline the family cares about, a preference about the caregiver, something about the home. Return an empty array when there is nothing.
 
@@ -84,12 +86,16 @@ function buildPrompt(note: string, channel: string, reached: boolean | null): st
   return [context, "", "The note:", note, "", "Extract what it supports."].join("\n");
 }
 
-function readValue(raw: unknown): HeardValue | null {
+function readValue(field: HeardField, raw: unknown): HeardValue | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as { value?: unknown; sure?: unknown };
   const value = typeof o.value === "string" ? o.value.trim().slice(0, 120) : "";
   if (!value) return null;
-  return { value, sure: o.sure === true };
+  // A coded field keeps only codes it knows. Storing the model's prose here
+  // would leave the field unmatchable, which is the whole reason it is coded.
+  const canonical = heardCanonical(field, value);
+  if (!canonical) return null;
+  return { value: canonical, sure: o.sure === true };
 }
 
 /**
@@ -132,7 +138,7 @@ export async function extractHeard(
 
     const fields: Partial<Record<HeardField, HeardValue>> = {};
     for (const key of HEARD_FIELDS) {
-      const v = readValue(parsed.fields?.[key]);
+      const v = readValue(key, parsed.fields?.[key]);
       if (v) fields[key] = v;
     }
 
@@ -174,6 +180,33 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
   const edited = new Set(existing.edited_fields ?? []);
   const fields: Partial<Record<HeardField, HeardValue>> = { ...existing.fields };
 
+  // Bring stored coded values into canonical form BEFORE the rules run.
+  //
+  // The coded fields shipped after the prose ones, so records written in
+  // between hold values the rules would defend but nothing could match:
+  // care_type "Help bathing and dressing", transfers "two people". Both are
+  // `sure`, so both block a later guess, and if a person typed one it is also
+  // `edited` and could never be replaced at all. The field would stay
+  // permanently unmatchable, which is the one thing coding it was meant to
+  // prevent.
+  //
+  // Repair what can be repaired and drop only what cannot. "two people" IS
+  // two_people once it is normalised, so it keeps its place and its confidence
+  // rather than waiting for some future read to say the same thing again.
+  for (const key of HEARD_FIELDS) {
+    const prev = fields[key];
+    if (!prev?.value || !HEARD_OPTIONS[key]) continue;
+    const canonical = heardCanonical(key, prev.value);
+    if (canonical === prev.value) continue;
+    if (canonical) {
+      fields[key] = { ...prev, value: canonical };
+    } else {
+      // Nothing in it maps to a code, so it has no standing to block anything.
+      delete fields[key];
+      edited.delete(key);
+    }
+  }
+
   for (const key of HEARD_FIELDS) {
     if (edited.has(key)) continue;
     const next = fresh.fields[key];
@@ -199,10 +232,77 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
   return {
     fields,
     also_noted,
-    edited_fields: existing.edited_fields,
+    // Rebuilt from the set above, not copied from `existing`: a key dropped
+    // because its stored value was stale has to STAY dropped, or the next read
+    // would find it protected again and the prose would be immortal after all.
+    edited_fields: [...edited],
     extracted_at: fresh.extracted_at,
     model: fresh.model,
   };
+}
+
+/**
+ * Lay values a PERSON typed on top of what is already stored.
+ *
+ * Every key touched is added to `edited_fields`, which is what makes the win
+ * permanent: `mergeHeard` skips those keys forever after, so a later model read
+ * cannot quietly revise something somebody sat down and corrected. An empty
+ * string is a deletion, and it stays edited — "this field is blank because I
+ * say so" has to survive the next call too, or clearing a wrong value would
+ * just invite the model to fill it back in.
+ */
+export function applyManual(
+  existing: Heard | null,
+  manual: Partial<Record<HeardField, string>>,
+): Heard {
+  const base: Heard = existing ?? {
+    fields: {},
+    also_noted: [],
+    extracted_at: new Date().toISOString(),
+    model: "hand",
+  };
+  const fields = { ...base.fields };
+  const edited = new Set(base.edited_fields ?? []);
+
+  for (const key of HEARD_FIELDS) {
+    const raw = manual[key];
+    if (raw === undefined) continue;
+    // Same gate as a model read: a coded field never stores prose, whichever
+    // side it arrived from, or the two could never be compared.
+    const value = raw.trim() ? heardCanonical(key, raw.trim().slice(0, 120)) : null;
+    edited.add(key);
+    if (value) fields[key] = { value, sure: true };
+    else delete fields[key];
+  }
+
+  return { ...base, fields, edited_fields: [...edited] };
+}
+
+/**
+ * A one-line summary built from typed details, for a log with no note.
+ *
+ * `family_touches.summary` is the timeline's only handle on a row, so a
+ * fields-only log must still say something a person can read three weeks later.
+ * Without this the entry renders as a blank line and the whole point of logging
+ * it is lost.
+ */
+export function summariseManual(manual: Partial<Record<HeardField, string>>): string {
+  // Preferred order first, then ANYTHING else that was filled. Without the
+  // fallback, someone who fills only transfers and budget produces an empty
+  // summary, and the route answers "say what happened, or fill in some
+  // details" to a person who just filled in some details.
+  const preferred: HeardField[] = ["care_for", "care_type", "care_zip", "hours", "payment", "starts"];
+  const order = [...preferred, ...HEARD_FIELDS.filter((f) => !preferred.includes(f))];
+  const parts = order
+    .map((k) => {
+      const raw = manual[k]?.trim();
+      if (!raw) return undefined;
+      // The timeline is read by people, so a coded field spells itself out.
+      const canonical = HEARD_OPTIONS[k] ? heardCanonical(k, raw) : raw;
+      return canonical ? heardDisplay(k, canonical) : undefined;
+    })
+    .filter((v): v is string => Boolean(v));
+  return parts.length ? parts.join(" · ").slice(0, 240) : "";
 }
 
 /**
@@ -216,8 +316,10 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
 export async function saveHeard(
   db: SupabaseClient,
   seekerId: string,
-  fresh: Heard,
+  fresh: Heard | null,
+  manual?: Partial<Record<HeardField, string>>,
 ): Promise<Heard | null> {
+  if (!fresh && !manual) return null;
   try {
     const { data: profile } = await db
       .from("business_profiles")
@@ -227,7 +329,11 @@ export async function saveHeard(
 
     const metadata = (profile?.metadata as Record<string, unknown> | null) ?? {};
     const existing = (metadata.care_details as Heard | null) ?? null;
-    const merged = mergeHeard(existing, fresh);
+    // Hand values go on FIRST so they are already marked edited by the time the
+    // model read is merged. Reversing these two would let the extraction write
+    // the field in the same request that a person was correcting it.
+    const withManual = manual ? applyManual(existing, manual) : existing;
+    const merged = fresh ? mergeHeard(withManual, fresh) : withManual!;
 
     const { error } = await db
       .from("business_profiles")

@@ -1377,8 +1377,8 @@ Dr. Logan DuBose's office · Olera`,
         // here acts on an advisor record, and until this ran there was no
         // way for one to exist.
         branch: "advisorsweep",
-        title: "Find the people who can reach students",
-        what: "Search the university for the staff who can put this programme in front of pre-health students, and add each one.",
+        title: "Find career centers and advising offices",
+        what: "Search the university for the offices that can put this programme in front of pre-health students, and add each one.",
         why: "Nobody at a university is going to find us. Every advisor record on this board starts here.",
         steps: [
           "Open the university site search, below.",

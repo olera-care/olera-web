@@ -651,7 +651,6 @@ export function providerSubscriptionConfirmationEmail({
         <ul style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
           <li><strong>Full candidate profiles</strong> &mdash; names, contact info, resumes</li>
           <li><strong>Unlimited interview scheduling</strong> &mdash; no credit limits</li>
-          <li><strong>LinkedIn profiles</strong> &mdash; view candidate backgrounds</li>
           <li><strong>Unlimited review requests</strong> &mdash; grow your Google reviews</li>
         </ul>
       </td></tr>

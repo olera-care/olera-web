@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import StatusDot, { DueDot, statusLabel } from "@/components/admin/medjobs/activation/StatusDot";
 import { LADDERS, SECTION_ORDER, type SectionKey } from "@/lib/medjobs/ladders";
 import {
@@ -9,6 +9,7 @@ import {
   readyForStudents,
   type BoardUniversity,
 } from "@/lib/medjobs/task-board";
+import { demoUniversity, isDemoUniversity } from "@/lib/medjobs/demo-university";
 import UniversityFlow from "./UniversityFlow";
 
 /**
@@ -31,6 +32,11 @@ const CHANNEL_OF: Partial<Record<SectionKey, "st3" | "st4" | "st5" | "st6" | "st
 
 export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
   const [board, setBoard] = useState<BoardUniversity[] | null>(seed ?? null);
+  // Built once and kept, so working a real university — which refetches the
+  // board — does not wipe what somebody has done on the teaching campus. A
+  // page refresh makes a new one, which is the reset.
+  const demo = useRef<BoardUniversity | null>(null);
+  if (!demo.current) demo.current = demoUniversity();
   const [failed, setFailed] = useState<string | null>(null);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [, force] = useState(0);
@@ -41,7 +47,7 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
       const res = await fetch("/api/admin/medjobs/tasks-board");
       const d = (await res.json()) as { universities: BoardUniversity[]; error?: string };
       if (!res.ok) throw new Error(d.error ?? `Request failed (${res.status}).`);
-      setBoard(d.universities);
+      setBoard([...d.universities, demo.current!]);
       setFailed(null);
     } catch (e) {
       setFailed(e instanceof Error ? e.message : "The board could not be loaded.");
@@ -69,7 +75,15 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
 
   // Most waiting first, then alphabetical. Work top down and stop when the
   // counts run out.
-  const rows = [...board].sort((a, b) => readyCount(b) - readyCount(a) || a.name.localeCompare(b.name));
+  // The teaching campus sits at the bottom whatever it has waiting on it. It
+  // is not work, and sorting it up among the real universities by task count
+  // is how somebody ends up practising on a campus they meant to work.
+  const rows = [...board].sort(
+    (a, b) =>
+      Number(isDemoUniversity(a)) - Number(isDemoUniversity(b)) ||
+      readyCount(b) - readyCount(a) ||
+      a.name.localeCompare(b.name),
+  );
   const open = board.find((u) => u.slug === openSlug) ?? null;
 
   return (

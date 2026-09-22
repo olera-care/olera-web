@@ -39,7 +39,6 @@ const EDITABLE_META_FIELDS = new Set([
   "acknowledgments_completed",
   "resume_url",
   "video_intro_url",
-  "linkedin_url",
   "total_verified_hours",
   "verified_care_types",
   "profile_completeness",

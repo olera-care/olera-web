@@ -58,5 +58,5 @@ export const SECTION_LABELS: Record<CaregiverSectionId, string> = {
   scenarios: "Screening questions",
   background: "Experience",
   certifications: "Certifications",
-  resume: "Resume & LinkedIn",
+  resume: "Resume",
 };

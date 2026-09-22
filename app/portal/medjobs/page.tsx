@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import type { StudentMetadata } from "@/lib/types";
-import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel, hasVideo, getYouTubeId, getVideoPlatform } from "@/lib/medjobs-helpers";
+import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel, hasVideo, getYouTubeId, getVideoPlatform, getMajorLabel } from "@/lib/medjobs-helpers";
 import { ScheduleBuilder, parseSchedule, serializeSchedule } from "@/components/medjobs/ScheduleBuilder";
 import {
   SCENARIO_QUESTIONS,
@@ -1415,7 +1415,7 @@ function StudentPortalContent({
                     )}
                     {(meta.major || (profile.city && profile.state)) && (
                       <p className="text-sm text-gray-400">
-                        {meta.major}
+                        {getMajorLabel(meta.major)}
                         {meta.major && profile.city && profile.state && <span className="mx-1.5">·</span>}
                         {profile.city && profile.state && `${profile.city}, ${profile.state}`}
                       </p>

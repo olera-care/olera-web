@@ -29,7 +29,6 @@ export default function EditResumeModal({
     return () => { isMountedRef.current = false; };
   }, []);
 
-  const [linkedinUrl, setLinkedinUrl] = useState(meta.linkedin_url || "");
   const [resumeUrl, setResumeUrl] = useState(meta.resume_url || "");
   const [resumeFile, setResumeFile] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -41,37 +40,14 @@ export default function EditResumeModal({
   const [deleting, setDeleting] = useState(false);
   const [viewingResume, setViewingResume] = useState(false);
 
-  // Track changes to either field
-  const hasChanges =
-    linkedinUrl !== (meta.linkedin_url || "") ||
-    resumeUrl !== (meta.resume_url || "");
+  // Track changes
+  const hasChanges = resumeUrl !== (meta.resume_url || "");
 
   // Format file size
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  // Normalize LinkedIn URL - add https:// if missing
-  const normalizeLinkedInUrl = (url: string): string => {
-    const trimmed = url.trim();
-    if (!trimmed) return "";
-
-    // If no protocol, prepend https://
-    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-      return `https://${trimmed}`;
-    }
-    return trimmed;
-  };
-
-  // Validate LinkedIn URL (after normalization)
-  const isValidLinkedIn = (url: string) => {
-    if (!url.trim()) return true; // Empty is valid (optional field)
-    const normalized = normalizeLinkedInUrl(url);
-    // Allow word chars, hyphens, and periods in username (e.g., john.doe, jane-smith.phd)
-    const pattern = /^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/in\/[\w.-]+/i;
-    return pattern.test(normalized);
   };
 
   async function handleDeleteResume() {
@@ -102,24 +78,13 @@ export default function EditResumeModal({
       return;
     }
 
-    // Validate LinkedIn URL if provided
-    if (linkedinUrl.trim() && !isValidLinkedIn(linkedinUrl)) {
-      setError("Please enter a valid LinkedIn profile URL (e.g., https://linkedin.com/in/yourname)");
-      return;
-    }
-
     setSaving(true);
     setError(null);
 
     try {
-      // Normalize LinkedIn URL before saving
-      const normalizedLinkedIn = linkedinUrl.trim() ? normalizeLinkedInUrl(linkedinUrl) : null;
-
-      // Save both fields together to prevent race conditions
       await saveStudentProfile({
         profileId: profile.id,
         metadataFields: {
-          linkedin_url: normalizedLinkedIn,
           resume_url: resumeUrl || null,
         },
       });
@@ -250,7 +215,7 @@ export default function EditResumeModal({
     <Modal
       isOpen
       onClose={onClose}
-      title="Resume & LinkedIn"
+      title="Resume"
       size="md"
       footer={
         <ModalFooter
@@ -377,43 +342,6 @@ export default function EditResumeModal({
               if (f) handleUpload(f);
             }}
           />
-        </div>
-
-        {/* LinkedIn - streamlined */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            LinkedIn <span className="text-gray-400 font-normal">(optional)</span>
-          </label>
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2">
-              <svg className="w-4 h-4 text-[#0A66C2]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-              </svg>
-            </div>
-            <input
-              type="url"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="linkedin.com/in/yourname"
-              className={`w-full bg-gray-50 border rounded-xl pl-9 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all outline-none ${
-                linkedinUrl && !isValidLinkedIn(linkedinUrl)
-                  ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                  : "border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 focus:bg-white"
-              }`}
-            />
-            {linkedinUrl && isValidLinkedIn(linkedinUrl) && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            )}
-          </div>
-          {linkedinUrl && !isValidLinkedIn(linkedinUrl) && (
-            <p className="text-xs text-red-500 mt-1.5">
-              Enter a valid LinkedIn URL (e.g., linkedin.com/in/yourname)
-            </p>
-          )}
         </div>
 
         {error && (

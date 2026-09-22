@@ -28,7 +28,7 @@ export default function PostEditAdsNudge({
   return (
     <ManagedAdsNudgeCard
       source="post_edit"
-      opener="Looking sharp. Now let's get that page in front of families."
+      opener="Looking sharp. Now let's get it seen."
       hasEverRequested={hasEverRequested}
       providerSlug={providerSlug}
       providerName={providerName}

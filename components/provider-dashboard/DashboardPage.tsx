@@ -298,6 +298,12 @@ function DashboardContent({
    *  nudge is earned. Without this, closing the modal mid-run lost the moment
    *  entirely — one of two reasons only 97 of 255 editors were ever pitched. */
   const editSavedRef = useRef(false);
+  /** The section whose save earned the nudge. The nudge renders directly
+   *  under that section's card rather than at the top of the page: TJ edited
+   *  Care Services, the card appeared under the hero, and he never saw it.
+   *  The whole premise is the earned moment, so it has to be where the
+   *  moment happened. */
+  const [lastSavedSection, setLastSavedSection] = useState<SectionId | null>(null);
   // Whether this provider has EVER had a campaign. Gates the free-intro claim
   // in both nudges below; v2Data.hasActiveBoostRequest only covers live ones.
   const { hasEver: hasEverRequestedBoost } = useBoostRequestSummary();
@@ -346,6 +352,7 @@ function DashboardContent({
   const handleSaved = useCallback(async () => {
     await refreshAccountData();
     editSavedRef.current = true;
+    if (editingSection) setLastSavedSection(editingSection);
     let finishedEditing = false;
     if (guided.isGuidedActive && editingSection) {
       const next = guided.getNextSection(editingSection);
@@ -495,19 +502,6 @@ function DashboardContent({
             />
           )}
 
-          {/* Post-edit Managed Ads nudge — fires once per session after a save,
-              not as an always-on card. The earned, high-intent moment. Hidden
-              when the hero already resolved to the managed-ads banner, so the
-              pitch never doubles on one screen. */}
-          {showEditNudge && heroBannerId !== "managed_ads" && !v2Data?.hasActiveBoostRequest && (
-            <PostEditAdsNudge
-              providerSlug={profile.slug}
-              providerName={profile.display_name}
-              hasEverRequested={hasEverRequestedBoost}
-              onDismiss={() => setShowEditNudge(false)}
-            />
-          )}
-
           {/* Post-answer Managed Ads nudge — the additive "Great response. Want
               more families reaching out?" strip, mirrored from /provider/qna so
               onboard-flow answerers (redirected here with ?from=qa-success) get
@@ -584,71 +578,87 @@ function DashboardContent({
               space-y-6 gaps. */}
           <div className="divide-y divide-gray-100 lg:divide-y-0 lg:space-y-6">
           {[
-            <ProfileOverviewCard
+            { id: "overview", node: <ProfileOverviewCard
               key="overview"
               profile={profile}
               completionPercent={sectionPercent("overview")}
               onEdit={() => handleEdit("overview")}
               onVerifyClick={openVerificationModal}
               slug={profile.slug}
-            />,
-            <GalleryCard
+            /> },
+            { id: "gallery", node: <GalleryCard
               key="gallery"
               metadata={meta}
               completionPercent={sectionPercent("gallery")}
               onEdit={() => handleEdit("gallery")}
-            />,
-            <CareServicesCard
+            /> },
+            { id: "services", node: <CareServicesCard
               key="services"
               profile={profile}
               completionPercent={sectionPercent("services")}
               onEdit={() => handleEdit("services")}
-            />,
-            <StaffScreeningCard
+            /> },
+            { id: "screening", node: <StaffScreeningCard
               key="screening"
               metadata={meta}
               completionPercent={sectionPercent("screening")}
               onEdit={() => handleEdit("screening")}
-            />,
-            <AboutCard
+            /> },
+            { id: "about", node: <AboutCard
               key="about"
               profile={profile}
               metadata={meta}
               completionPercent={sectionPercent("about")}
               onEdit={() => handleEdit("about")}
-            />,
-            <PricingCard
+            /> },
+            { id: "pricing", node: <PricingCard
               key="pricing"
               metadata={meta}
               completionPercent={sectionPercent("pricing")}
               onEdit={() => handleEdit("pricing")}
-            />,
-            <PaymentInsuranceCard
+            /> },
+            { id: "payment", node: <PaymentInsuranceCard
               key="payment"
               metadata={meta}
               completionPercent={sectionPercent("payment")}
               onEdit={() => handleEdit("payment")}
-            />,
-            <OwnerCard
+            /> },
+            { id: "owner", node: <OwnerCard
               key="owner"
               metadata={meta}
               onEdit={() => handleEdit("owner")}
-            />,
-            <HireCaregiversCard
+            /> },
+            { id: "hire_caregivers", node: <HireCaregiversCard
               key="hire_caregivers"
               metadata={meta}
               onEdit={() => handleEdit("hire_caregivers")}
-            />,
-            <NotificationPreferencesCard key="notifications" profileSlug={profile.slug} profileMetadata={meta} />,
+            /> },
+            { id: "notifications", node: <NotificationPreferencesCard key="notifications" profileSlug={profile.slug} profileMetadata={meta} /> },
           ].map((card, i) => (
             <div
-              key={i}
+              key={card.id}
               style={{
                 animation: "card-enter 0.25s ease-out both",
                 animationDelay: `${(i + 1) * 60}ms`,
               }}
             >
-              {card}
+              {card.node}
+              {/* The earned moment, where the moment happened. Still yields when
+                  the hero is already pitching ads, so one screen never carries
+                  two pitches. */}
+              {showEditNudge
+                && lastSavedSection === card.id
+                && heroBannerId !== "managed_ads"
+                && !v2Data?.hasActiveBoostRequest && (
+                <div className="pt-4 lg:pt-6">
+                  <PostEditAdsNudge
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    hasEverRequested={hasEverRequestedBoost}
+                    onDismiss={() => setShowEditNudge(false)}
+                  />
+                </div>
+              )}
             </div>
           ))}
           </div>

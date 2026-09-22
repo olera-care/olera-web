@@ -7,7 +7,7 @@ type NudgeContext = "question" | "lead";
 /** The one line that differs by context: what the provider just did. Everything
  *  under it is the shared card. */
 const OPENER: Record<NudgeContext, string> = {
-  question: "Great response. That family now has an answer from you.",
+  question: "Great response. Want more of these?",
   lead: "Families are reaching out.",
 };
 

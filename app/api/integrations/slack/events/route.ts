@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackDirectMessage } from "@/lib/slack";
 import { ingestSlackEventEvidence, verifySlackRequest } from "@/lib/war-room/sources.server";
-import { captureFounderAnswer } from "@/lib/war-room/founder-loop.server";
+import { captureFounderAnswer, findAskByThread } from "@/lib/war-room/founder-loop.server";
+import { answerFounderQuestion, classifyMessage } from "@/lib/war-room/conversation.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
 
 export const maxDuration = 30;
@@ -19,6 +20,7 @@ type SlackEventsEnvelope = {
     text?: string;
     user?: string;
     bot_id?: string;
+    app_id?: string;
     subtype?: string;
   };
 };
@@ -57,7 +59,28 @@ export async function POST(request: NextRequest) {
     //
     // Channel messages still go to the evidence reader below — an answer is a
     // reply in the DM, not a remark in a channel.
-    if (payload.event.channel_type === "im" && !payload.event.bot_id && !payload.event.subtype && payload.event.text) {
+    // `app_id` is checked alongside `bot_id` and `subtype` because this branch
+    // now REPLIES, and a reply is itself a message in this DM. If Cortex ever
+    // read one of its own messages as founder input, an answer ending in a
+    // question mark would be classified as a question, answered, and that
+    // answer read again -- a loop that costs money on every turn. Three
+    // independent signals mark an app-posted message; any one of them is
+    // enough, and needing all three to fail at once is the point.
+    const fromThisApp = Boolean(payload.event.bot_id || payload.event.app_id || payload.event.subtype);
+    if (payload.event.channel_type === "im" && !fromThisApp && payload.event.text) {
+      // Slack retries anything it does not see answered within three seconds,
+      // up to three times. Every branch below can exceed that: starting a scan
+      // plus confirming it, and answering a question, which measured 2.5 to 6.4
+      // seconds against live data. A serverless route cannot answer Slack early
+      // and keep working, because it can be frozen the moment it responds.
+      //
+      // So retries are acknowledged and dropped. The first attempt is doing the
+      // work. Without this, one question would be answered three times, charged
+      // three times, and one answer would be written to the record three times.
+      if (request.headers.get("x-slack-retry-num")) {
+        return NextResponse.json({ ok: true, retry: true });
+      }
+
       // `chat.postMessage` accepts either a user id (U.../W...) or an IM channel
       // id (D...) as its channel, so this variable delivers the daily brief
       // correctly whichever shape it holds, and nothing has ever needed to know
@@ -76,16 +99,6 @@ export async function POST(request: NextRequest) {
       // is never filed as evidence against whatever was last asked.
       const command = parseScanCommand(payload.event.text);
       if (command) {
-        // Slack retries anything it does not see answered within three seconds,
-        // up to three times, and starting a scan plus sending a confirmation
-        // can exceed that. The in-flight guard in queueWarRoomDiscovery already
-        // stops a retry paying twice, but each retry would still send its own
-        // Slack reply. A retry carries this header; the first attempt did the
-        // work, so acknowledge and say nothing.
-        if (request.headers.get("x-slack-retry-num")) {
-          return NextResponse.json({ ok: true, scanCommand: { retry: true } });
-        }
-
         // A scan spends real money, so only the founder may start one. Without
         // this, anyone who can DM the bot could run up the bill, and the
         // confirmation would be delivered to the founder rather than to them --
@@ -128,7 +141,34 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: true, founderAnswer: { captured: false, reason: "not the founder" } });
       }
 
-      const captured = await captureFounderAnswer(db, payload.event.text);
+      // A reply typed in the thread of the brief that asked names its own
+      // subject. Outside a thread there is nothing to resolve, so the older
+      // latest-ask rule still applies -- stated here rather than hidden, since
+      // it is wrong whenever a newer brief landed in between.
+      const threadTs = payload.event.thread_ts;
+      const addressed = threadTs ? await findAskByThread(db, threadTs) : null;
+
+      // A question is not an answer. Filing one as evidence writes it into the
+      // record attributed to the founder and hands it to the next scan, which
+      // is worse than doing nothing.
+      if (classifyMessage(payload.event.text) === "question") {
+        const answer = await answerFounderQuestion(db, payload.event.text, addressed?.investigationId ?? null);
+        if (dmTarget) {
+          await sendSlackDirectMessage(dmTarget, answer.reply, { threadTs }).catch(() => null);
+        }
+        return NextResponse.json({ ok: true, question: { answered: answer.answered } });
+      }
+
+      const captured = await captureFounderAnswer(db, payload.event.text, addressed);
+      // Acknowledged, and naming what it was filed against. Silence is what
+      // made a reply landing on the wrong condition indistinguishable from a
+      // reply landing nowhere at all.
+      if (dmTarget) {
+        const ack = captured.captured
+          ? `Recorded against *${captured.title ?? "the open question"}*.`
+          : `I did not record that: ${captured.reason ?? "unknown reason"}.`;
+        await sendSlackDirectMessage(dmTarget, ack, { threadTs }).catch(() => null);
+      }
       return NextResponse.json({ ok: true, founderAnswer: captured });
     }
 

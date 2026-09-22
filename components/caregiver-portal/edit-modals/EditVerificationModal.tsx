@@ -467,7 +467,7 @@ export default function EditVerificationModal({
       size="2xl"
       footer={footerContent}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 pb-8">
         {/* Video Section - Primary Focus */}
         <div className="px-2">
           {/* Header */}
@@ -645,7 +645,7 @@ export default function EditVerificationModal({
         </div>
 
         {/* Optional Documents Section */}
-        <div className="border-t border-gray-100 pt-5 pb-8 px-2">
+        <div className="border-t border-gray-100 pt-5 px-2">
           <button
             type="button"
             onClick={() => setShowDocuments(!showDocuments)}

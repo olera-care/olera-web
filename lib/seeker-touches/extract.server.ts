@@ -180,6 +180,33 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
   const edited = new Set(existing.edited_fields ?? []);
   const fields: Partial<Record<HeardField, HeardValue>> = { ...existing.fields };
 
+  // Bring stored coded values into canonical form BEFORE the rules run.
+  //
+  // The coded fields shipped after the prose ones, so records written in
+  // between hold values the rules would defend but nothing could match:
+  // care_type "Help bathing and dressing", transfers "two people". Both are
+  // `sure`, so both block a later guess, and if a person typed one it is also
+  // `edited` and could never be replaced at all. The field would stay
+  // permanently unmatchable, which is the one thing coding it was meant to
+  // prevent.
+  //
+  // Repair what can be repaired and drop only what cannot. "two people" IS
+  // two_people once it is normalised, so it keeps its place and its confidence
+  // rather than waiting for some future read to say the same thing again.
+  for (const key of HEARD_FIELDS) {
+    const prev = fields[key];
+    if (!prev?.value || !HEARD_OPTIONS[key]) continue;
+    const canonical = heardCanonical(key, prev.value);
+    if (canonical === prev.value) continue;
+    if (canonical) {
+      fields[key] = { ...prev, value: canonical };
+    } else {
+      // Nothing in it maps to a code, so it has no standing to block anything.
+      delete fields[key];
+      edited.delete(key);
+    }
+  }
+
   for (const key of HEARD_FIELDS) {
     if (edited.has(key)) continue;
     const next = fresh.fields[key];
@@ -205,7 +232,10 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
   return {
     fields,
     also_noted,
-    edited_fields: existing.edited_fields,
+    // Rebuilt from the set above, not copied from `existing`: a key dropped
+    // because its stored value was stale has to STAY dropped, or the next read
+    // would find it protected again and the prose would be immortal after all.
+    edited_fields: [...edited],
     extracted_at: fresh.extracted_at,
     model: fresh.model,
   };

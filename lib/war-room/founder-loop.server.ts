@@ -37,9 +37,48 @@ export type FounderQuestion = {
   question: string;
 };
 
+/**
+ * Is this actually a question only the founder can answer?
+ *
+ * On 2026-09-22 the brief asked him: "What composes the 4,992 Direct sessions
+ * by landing-page family and new-versus-returning, and is the branded-share
+ * move from 3.78% to 1.0% a query-classification artifact or a real loss of
+ * brand demand?"
+ *
+ * Three things wrong with that, and they are the three tests below.
+ *
+ * It is two questions. The section is called "one thing only you can answer"
+ * and it asked two.
+ *
+ * The first half is a database query, not a fact he holds. Asking a person to
+ * compose a breakdown is work the system should do itself, and handing it over
+ * is the defect the founder-interruption budget exists to prevent.
+ *
+ * And it is built on Direct sessions, a figure the company model's own
+ * constraints say to distrust, because roughly forty percent of that analytics
+ * traffic is bot traffic and Direct is precisely the bucket a referrer-less bot
+ * lands in. It asked him to explain a number it had been told not to quote.
+ */
+const ANALYSIS_REQUEST = /\b(what composes|composed of|break ?down|broken down|split by|by landing[- ]page|for each of|what share of|what proportion|how many of the|list the|enumerate)\b/i;
+const DISTRUSTED_FIGURE = /\b(direct sessions|total users|page ?views?|ga4 total|session count)\b/i;
+
+export function isFounderAnswerable(question: string): { ok: boolean; reason?: string } {
+  const q = question.trim();
+  if (q.length < 12) return { ok: false, reason: "too short to be a real question" };
+  // Two questions welded together. One "?" is fine; a second means it bundled.
+  if ((q.match(/\?/g) ?? []).length > 1) return { ok: false, reason: "asks more than one thing" };
+  if (/,\s*and\s+(is|does|was|did|are|whether|what|how)\b/i.test(q)) {
+    return { ok: false, reason: "asks more than one thing" };
+  }
+  if (ANALYSIS_REQUEST.test(q)) return { ok: false, reason: "is a query the system should run itself" };
+  if (DISTRUSTED_FIGURE.test(q)) return { ok: false, reason: "rests on a figure the company model says to distrust" };
+  return { ok: true };
+}
+
 function firstUnknown(value: unknown): string | null {
   if (Array.isArray(value)) {
-    const first = value.find((entry) => typeof entry === "string" && entry.trim().length > 12);
+    const first = value.find((entry) =>
+      typeof entry === "string" && entry.trim().length > 12 && isFounderAnswerable(entry).ok);
     return typeof first === "string" ? first.trim() : null;
   }
   return null;
@@ -152,10 +191,16 @@ export async function pickQuestionForFounder(db: SupabaseClient): Promise<Founde
 
   for (const row of ranked) {
     const question = firstUnknown(row.unknowns) ?? row.readiness_reason;
-    if (question && question.trim().length > 12) {
+    // The fallback to readiness_reason is filtered too. It was the route the
+    // Direct-sessions question came in by, and an unfiltered fallback makes the
+    // filter decorative.
+    if (question && isFounderAnswerable(question).ok) {
       return { investigationId: row.id, title: row.title, question: question.trim() };
     }
   }
+  // Asking nothing is a valid morning. The brief already handles a missing
+  // question, and a bad question costs more than no question: it spends the
+  // one interruption on work he should never have been handed.
   return null;
 }
 

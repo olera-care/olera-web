@@ -8,7 +8,7 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import { createAuthClient } from "@/lib/supabase/auth-client";
-import { DEMAND_SHAPE_OPTIONS, PRN_OPTIONS, COVERAGE_OPTIONS } from "@/lib/medjobs/hiring-needs-questions";
+import { PRN_OPTIONS, COVERAGE_OPTIONS } from "@/lib/medjobs/hiring-needs-questions";
 
 /**
  * EligibilityScreenerModal — the provider eligibility screener.
@@ -23,19 +23,13 @@ import { DEMAND_SHAPE_OPTIONS, PRN_OPTIONS, COVERAGE_OPTIONS } from "@/lib/medjo
  * /welcome (no OAuth round-trip).
  */
 
-type Step = "q1" | "q2" | "q3" | "loading" | "claim" | "provisioning";
-type Shape = DemandProfile["demand_shape"];
+type Step = "q1" | "q2" | "loading" | "claim" | "provisioning";
 type Prn = DemandProfile["prn_open"];
 type Bucket = DemandProfile["coverage_buckets"][number];
 
 // Question options come from the shared source of truth so this funnel modal and
 // the dashboard "Hire more caregivers" editor never drift. The reassurance copy
 // is funnel-specific and stays local.
-const SHAPE_REASSURE: Record<Shape, string> = {
-  regular: "Great. A student can take your recurring shifts all term.",
-  varies: "Good. You'll know each student's hours and use them when you need them.",
-  unpredictable: "That's fine. Keep a student PRN and call them in only when a shift comes up.",
-};
 const PRN_REASSURE: Record<Prn, string> = {
   yes: "Great. You call them in only when you have a shift.",
   maybe: "We'll show you both: regular and on-call students.",
@@ -68,7 +62,6 @@ export default function EligibilityScreenerModal({
 }) {
   const { refreshAccountData } = useAuth();
   const [step, setStep] = useState<Step>("q1");
-  const [shape, setShape] = useState<Shape | null>(null);
   const [prn, setPrn] = useState<Prn | null>(null);
   const [buckets, setBuckets] = useState<Bucket[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +107,6 @@ export default function EligibilityScreenerModal({
     setBuckets((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));
 
   const demandProfile = () => ({
-    demand_shape: shape,
     prn_open: prn,
     coverage_buckets: buckets,
   });
@@ -287,15 +279,15 @@ export default function EligibilityScreenerModal({
               <div>
                 <h3 className="font-serif text-xl text-gray-900">Tell us your hiring needs</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Three quick questions about the shifts you need covered.
+                  Two quick questions about the shifts you need covered.
                 </p>
               </div>
-              <QuestionFrame dots={1} title="How steady are your staffing needs?">
-                {DEMAND_SHAPE_OPTIONS.map((o) => (
-                  <Opt key={o.value} sel={shape === o.value} onClick={() => setShape(o.value)} label={o.label} />
+              <QuestionFrame dots={1} total={2} title="Open to PRN students you call in only when needed?">
+                {PRN_OPTIONS.map((o) => (
+                  <Opt key={o.value} sel={prn === o.value} onClick={() => setPrn(o.value)} label={o.label} />
                 ))}
-                {shape && <Reassure text={SHAPE_REASSURE[shape]} />}
-                <button type="button" disabled={!shape} onClick={() => setStep("q2")} className={btnPrimary}>
+                {prn && <Reassure text={PRN_REASSURE[prn]} />}
+                <button type="button" disabled={!prn} onClick={() => setStep("q2")} className={btnPrimary}>
                   Next →
                 </button>
               </QuestionFrame>
@@ -303,19 +295,7 @@ export default function EligibilityScreenerModal({
           )}
 
           {step === "q2" && (
-            <QuestionFrame dots={2} title="Open to PRN students you call in only when needed?">
-              {PRN_OPTIONS.map((o) => (
-                <Opt key={o.value} sel={prn === o.value} onClick={() => setPrn(o.value)} label={o.label} />
-              ))}
-              {prn && <Reassure text={PRN_REASSURE[prn]} />}
-              <button type="button" disabled={!prn} onClick={() => setStep("q3")} className={btnPrimary}>
-                Next →
-              </button>
-            </QuestionFrame>
-          )}
-
-          {step === "q3" && (
-            <QuestionFrame dots={3} title="Which shifts are hardest to cover?">
+            <QuestionFrame dots={2} total={2} title="Which shifts are hardest to cover?">
               <p className="-mt-1 text-xs text-gray-400">
                 Pick any. We&apos;ll only surface students who can cover these.
               </p>
@@ -503,14 +483,14 @@ export default function EligibilityScreenerModal({
   );
 }
 
-function QuestionFrame({ dots, title, children }: { dots: number; title: string; children: React.ReactNode }) {
+function QuestionFrame({ dots, total = 2, title, children }: { dots: number; total?: number; title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-1.5">
-        {[1, 2, 3].map((n) => (
+        {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
           <span key={n} className={`h-1.5 w-1.5 rounded-full ${n <= dots ? "bg-primary-600" : "bg-gray-200"}`} />
         ))}
-        <span className="ml-2 text-xs text-gray-400">Question {dots} of 3</span>
+        <span className="ml-2 text-xs text-gray-400">Question {dots} of {total}</span>
       </div>
       <h3 className="text-base font-semibold text-gray-900">{title}</h3>
       {children}

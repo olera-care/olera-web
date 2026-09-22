@@ -33,16 +33,16 @@ export const EMPLOYER_AGREEMENT_URL = "/docs/employer-agreement-sample.pdf";
 
 /** What the eligibility screener captures, stored at DEMAND_PROFILE_KEY. */
 export interface DemandProfile {
-  /** Q1 — how steady their client staffing needs are. */
-  demand_shape: "regular" | "varies" | "unpredictable";
-  /** Q2 — openness to PRN / on-call students. */
+  /** Q1 — openness to PRN / on-call students. */
   prn_open: "yes" | "maybe" | "no";
-  /** Q3 — hardest shifts to cover. */
+  /** Q2 — hardest shifts to cover. */
   coverage_buckets: Array<"day" | "evening" | "overnight" | "weekend">;
-  /** Hiring default: hourly rate offered (e.g., 22 for $22/hr). */
-  hourly_rate?: number;
   /** Hiring default: job description text pre-filled in interview notes. */
   job_description?: string;
+  /** @deprecated No longer collected or displayed. Kept for backwards compatibility with existing data. */
+  demand_shape?: "regular" | "varies" | "unpredictable";
+  /** @deprecated No longer collected or displayed. Kept for backwards compatibility with existing data. */
+  hourly_rate?: number;
 }
 
 /**

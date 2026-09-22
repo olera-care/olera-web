@@ -5,7 +5,6 @@ import type { ExtendedMetadata } from "@/lib/profile-completeness";
 import { DEMAND_PROFILE_KEY, type DemandProfile } from "@/lib/medjobs/eligibility";
 import {
   COVERAGE_OPTIONS,
-  DEMAND_SHAPE_OPTIONS,
   PRN_OPTIONS,
   REQUIREMENT_OPTIONS,
   readRequirements,
@@ -34,18 +33,14 @@ export default function HireCaregiversCard({
   const shifts = (demand?.coverage_buckets ?? []).map(
     (b) => COVERAGE_OPTIONS.find((o) => o.value === b)?.label ?? b,
   );
-  const shapeLabel = demand?.demand_shape
-    ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand.demand_shape)?.label ?? null
-    : null;
   const prnLabel = demand?.prn_open
     ? PRN_OPTIONS.find((o) => o.value === demand.prn_open)?.label ?? null
     : null;
   const reqLabels = REQUIREMENT_OPTIONS.filter((o) => req[o.key]).map((o) => o.label);
-  const hourlyRate = demand?.hourly_rate;
   const jobDescription = demand?.job_description;
 
   // Local completeness (intentionally separate from the directory meter).
-  const checks = [shifts.length > 0, !!shapeLabel, !!prnLabel];
+  const checks = [shifts.length > 0, !!prnLabel];
   const completionPercent = Math.round((checks.filter(Boolean).length / checks.length) * 100);
 
   const isEmpty = !demand;
@@ -74,11 +69,6 @@ export default function HireCaregiversCard({
         />
       ) : (
         <div className="space-y-4 text-sm">
-          {hourlyRate != null && (
-            <Row label="Hourly rate">
-              <span className="text-lg font-semibold text-gray-900">${hourlyRate}/hr</span>
-            </Row>
-          )}
           {jobDescription && (
             <Row label="Job description">
               <p className="text-gray-700 line-clamp-3">{jobDescription}</p>
@@ -93,7 +83,6 @@ export default function HireCaregiversCard({
               </div>
             </Row>
           )}
-          {shapeLabel && <Row label="Pattern"><span className="text-gray-700">{shapeLabel}</span></Row>}
           {prnLabel && <Row label="Open to PRN"><span className="text-gray-700">{prnLabel}</span></Row>}
           {reqLabels.length > 0 && (
             <Row label="Requirements">

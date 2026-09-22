@@ -10,7 +10,7 @@ import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
 import { StudentContextGate, FamilyOnlyContent } from "@/components/providers/ProviderCTARouter";
 import { buildOpportunity, readOpportunityProfile } from "@/lib/medjobs/opportunity";
 import { DEMAND_PROFILE_KEY } from "@/lib/medjobs/eligibility";
-import { readRequirements, DEMAND_SHAPE_OPTIONS, PRN_OPTIONS } from "@/lib/medjobs/hiring-needs-questions";
+import { readRequirements, PRN_OPTIONS } from "@/lib/medjobs/hiring-needs-questions";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -1292,7 +1292,6 @@ export default async function ProviderPage({
                 const oppProfile = readOpportunityProfile(oppMeta);
                 const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as {
                   coverage_buckets?: string[];
-                  demand_shape?: "regular" | "varies" | "unpredictable";
                   prn_open?: "yes" | "maybe" | "no";
                 } | null;
                 const opp = buildOpportunity({
@@ -1302,10 +1301,7 @@ export default async function ProviderPage({
                   profile: oppProfile,
                 });
                 // Surface what the provider entered in their "Hire more
-                // caregivers" block: demand shape, PRN openness, and requirements.
-                const shapeLabel = demand?.demand_shape
-                  ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand.demand_shape)?.label ?? null
-                  : null;
+                // caregivers" block: PRN openness and requirements.
                 const prnLabel = demand?.prn_open
                   ? PRN_OPTIONS.find((o) => o.value === demand.prn_open)?.label ?? null
                   : null;
@@ -1332,12 +1328,6 @@ export default async function ProviderPage({
                         <p className="text-sm font-medium text-gray-500">Pay</p>
                         <p className="text-sm text-gray-700">{opp.pay}</p>
                       </div>
-                      {shapeLabel && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Schedule</p>
-                          <p className="text-sm text-gray-700">{shapeLabel}</p>
-                        </div>
-                      )}
                       {prnLabel && (
                         <div>
                           <p className="text-sm font-medium text-gray-500">Open to PRN (on-call)</p>

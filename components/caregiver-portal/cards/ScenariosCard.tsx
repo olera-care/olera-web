@@ -59,46 +59,34 @@ export default function ScenariosCard({ meta, onEdit }: ScenariosCardProps) {
           }
         />
       ) : (
-        <div className="space-y-4">
-          {/* Verification badges */}
-          <div className="flex flex-wrap gap-2">
-            {SCENARIO_QUESTIONS.map((q) => {
-              const response = responses.find((r) => r.question === q.question);
-              const isDone = (response?.answer?.length ?? 0) >= 50;
-              const questionMeta = QUESTION_LABELS[q.key] || { label: q.key, icon: null };
+        <div className="space-y-3">
+          {SCENARIO_QUESTIONS.map((q) => {
+            const response = responses.find((r) => r.question === q.question);
+            const isDone = (response?.answer?.length ?? 0) >= 50;
+            const questionMeta = QUESTION_LABELS[q.key] || { label: q.key, icon: null };
 
-              return (
-                <div
-                  key={q.key}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    isDone
-                      ? "bg-gray-100 text-gray-700"
-                      : "bg-gray-50 text-gray-400"
-                  }`}
-                >
+            return (
+              <div key={q.key}>
+                <div className="flex items-center gap-2 mb-1">
                   {isDone ? (
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <div className="w-3.5 h-3.5 rounded-full border border-current" />
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-300 shrink-0" />
                   )}
-                  {questionMeta.label}
+                  <span className={`text-sm font-medium ${isDone ? "text-gray-900" : "text-gray-400"}`}>
+                    {questionMeta.label}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Summary text */}
-          {isComplete ? (
-            <p className="text-xs text-gray-500">
-              All screening checks passed
-            </p>
-          ) : (
-            <p className="text-xs text-gray-500">
-              {answeredCount} of {totalQuestions} completed
-            </p>
-          )}
+                {isDone && response?.answer && (
+                  <p className="text-sm text-gray-500 line-clamp-2 ml-5.5 pl-0.5">
+                    {response.answer}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </CaregiverSectionCard>

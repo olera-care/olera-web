@@ -218,6 +218,7 @@ const statusLabel: Record<WarRoomProposalStatus, string> = {
   completed: "Measuring outcome",
   failed: "Execution failed",
   superseded: "Superseded",
+  parked: "Accepted, later",
 };
 
 const statusTone: Record<WarRoomProposalStatus, string> = {
@@ -230,6 +231,7 @@ const statusTone: Record<WarRoomProposalStatus, string> = {
   completed: "bg-teal-50 text-teal-700",
   failed: "bg-amber-50 text-amber-800",
   superseded: "bg-gray-100 text-gray-500",
+  parked: "bg-slate-100 text-slate-600",
 };
 
 const sourceTone: Record<WarRoomIntegrationStatus["status"], string> = {
@@ -278,7 +280,7 @@ function ProposalCard({
 }: {
   proposal: WarRoomProposal;
   busy: boolean;
-  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
+  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete" | "park", note?: string) => Promise<void>;
   onPass?: () => void;
 }) {
   const [showRejectReason, setShowRejectReason] = useState(false);
@@ -287,6 +289,7 @@ function ProposalCard({
   const isCode = proposal.action_kind === "code";
   const isAwaitingExecutor = isCode && (proposal.status === "approved" || (proposal.status === "failed" && Boolean(proposal.approved_at)));
   const isHumanApproved = !isCode && proposal.status === "approved";
+  const isParked = proposal.status === "parked";
   const isActive = ["dispatching", "executing"].includes(proposal.status);
   const isReviewReady = proposal.status === "review_ready";
   return (
@@ -503,6 +506,14 @@ function ProposalCard({
                 </button>
                 <button
                   type="button"
+                  onClick={() => onAction(proposal, "park")}
+                  disabled={busy}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Accept, later
+                </button>
+                <button
+                  type="button"
                   onClick={() => onAction(proposal, "approve")}
                   disabled={busy}
                   className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-5 py-2.5 text-xs font-bold text-white hover:bg-gray-800 disabled:opacity-50"
@@ -524,6 +535,26 @@ function ProposalCard({
                 className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-2.5 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} /> Retry executor
+              </button>
+            ) : null}
+            {isHumanApproved ? (
+              <button
+                type="button"
+                onClick={() => onAction(proposal, "park")}
+                disabled={busy}
+                className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Not now
+              </button>
+            ) : null}
+            {isParked ? (
+              <button
+                type="button"
+                onClick={() => onAction(proposal, "approve")}
+                disabled={busy}
+                className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-5 py-2.5 text-xs font-bold text-white hover:bg-gray-800 disabled:opacity-50"
+              >
+                <Check className="h-4 w-4" /> {busy ? "Starting…" : "Take it up"}
               </button>
             ) : null}
             {isHumanApproved ? (
@@ -611,6 +642,7 @@ export default function WarRoomDashboard() {
         || (proposal.status === "failed" && Boolean(proposal.approved_at)),
       ),
       review: proposals.filter((proposal) => proposal.status === "review_ready"),
+      parked: proposals.filter((proposal) => proposal.status === "parked"),
       recent: proposals.filter((proposal) =>
         ["completed", "rejected", "superseded"].includes(proposal.status)
         || (proposal.status === "failed" && !proposal.approved_at),
@@ -639,7 +671,7 @@ export default function WarRoomDashboard() {
     }
   }
 
-  async function act(proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) {
+  async function act(proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete" | "park", note?: string) {
     setBusyId(proposal.id);
     setError(null);
     try {
@@ -801,6 +833,7 @@ export default function WarRoomDashboard() {
           {groups.review.length ? <ProposalSection title="The work is back" detail="Review the PR. Shipping is still your decision." proposals={groups.review} busyId={busyId} onAction={act} /> : null}
           {groups.waiting.length ? <ProposalSection title="Needs your call" detail="One decision at a time. Pass leaves the proposal untouched so you can come back to it." proposals={groups.waiting} busyId={busyId} onAction={act} paged /> : null}
           {groups.active.length ? <ProposalSection title="Working" detail="You approved the direction. Code goes to the guarded executor; human plans remain human-controlled." proposals={groups.active} busyId={busyId} onAction={act} /> : null}
+          {groups.parked.length ? <ProposalSection title="Accepted, later" detail="Sound, not this week. Out of the brief and the three open slots until you take one up." proposals={groups.parked} busyId={busyId} onAction={act} /> : null}
 
           {groups.investigating.length ? <InvestigationSection title="Active investigations" detail="These are unresolved company conditions, not tasks. Each case records what is known and the next read-only question that should advance it." investigations={groups.investigating} /> : null}
           {groups.watchlist.length ? <InvestigationSection title="Watchlist" detail="Real enough to remember; not important or proven enough to consume your attention yet." investigations={groups.watchlist} /> : null}
@@ -971,7 +1004,7 @@ function ProposalSection({
   detail: string;
   proposals: WarRoomProposal[];
   busyId: string | null;
-  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
+  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete" | "park", note?: string) => Promise<void>;
   paged?: boolean;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);

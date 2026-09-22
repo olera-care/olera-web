@@ -178,7 +178,8 @@ export type WarRoomProposalStatus =
   | "rejected"
   | "completed"
   | "failed"
-  | "superseded";
+  | "superseded"
+  | "parked";
 
 export type WarRoomDomain =
   | "company"

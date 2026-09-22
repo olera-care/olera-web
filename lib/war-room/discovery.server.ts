@@ -2063,7 +2063,7 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
       .limit(5),
     db.from("war_room_proposals")
       .select("fingerprint, status")
-      .in("status", ["rejected", "completed", "failed", "superseded"]),
+      .in("status", ["rejected", "completed", "failed", "superseded", "parked"]),
   ]);
   // Answered probes and founder answers are evidence like any other source, so
   // the next scan reasons with the answer instead of re-asking the question.

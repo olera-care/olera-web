@@ -150,7 +150,8 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
   // the 300-second route ceiling shared with Notion and the model calls, not the
   // number of channels.
   const deadline = Date.now() + 45_000;
-  const results: Array<{ channel: string; imported?: number; error?: string }> = [];
+  const threadBudget: ThreadBudget = { remaining: THREAD_FETCHES_PER_SCAN };
+  const results: Array<{ channel: string; imported?: number; error?: string; threadsRead?: number }> = [];
   let imported = 0;
   let lastIndex = previousIndex;
 
@@ -159,7 +160,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
     const channelIndex = (previousIndex + step) % channels.length;
     const channel = channels[channelIndex];
     lastIndex = channelIndex;
-    const outcome = await backfillSlackChannel(db, token, channel, oldest, deadline);
+    const outcome = await backfillSlackChannel(db, token, channel, oldest, deadline, threadBudget);
     results.push({ channel: channel.label, ...outcome });
     imported += outcome.imported ?? 0;
   }
@@ -172,7 +173,12 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
   await writeSourceState(db, "slack_history", {
     success: failures.length < results.length,
     error: failures.length ? failures.map((f) => `#${f.channel}: ${f.error}`).join("; ").slice(0, 500) : undefined,
-    metadata: { channel_index: lastIndex, channels_read: results.length, results },
+    metadata: {
+      channel_index: lastIndex,
+      channels_read: results.length,
+      threads_read: THREAD_FETCHES_PER_SCAN - threadBudget.remaining,
+      results,
+    },
   });
   return {
     configured: true,
@@ -243,8 +249,26 @@ function slackItem(channel: SlackChannelConfig, message: SlackMessage): SourceIt
  * the footage is, how long an upload takes, and the answer to a question the
  * founder had asked Cortex and been told did not exist.
  */
-const THREADS_PER_CHANNEL = 6;
+const THREADS_PER_CHANNEL = 3;
 const REPLIES_PER_THREAD = 30;
+
+/**
+ * A scan-wide ceiling on thread fetches, which the per-channel cap alone does
+ * not give.
+ *
+ * Six threads across twenty-one channels is 126 extra calls on top of 21
+ * history calls. At roughly three quarters of a second each that is 110
+ * seconds against a 45-second budget, so the deadline would fire partway
+ * through and later channels would get nothing -- trading breadth for depth by
+ * accident rather than by choice. And if it did fit, it would be about 196
+ * requests a minute against a Slack tier that guarantees 50.
+ *
+ * There is a note in my own working memory that says to check rate limits
+ * before adding call volume. I wrote the first version without doing it.
+ */
+const THREAD_FETCHES_PER_SCAN = 20;
+
+type ThreadBudget = { remaining: number };
 
 async function backfillSlackChannel(
   db: SupabaseClient,
@@ -252,7 +276,8 @@ async function backfillSlackChannel(
   channel: SlackChannelConfig,
   oldest: string,
   deadline: number,
-): Promise<{ imported?: number; error?: string }> {
+  budget: ThreadBudget,
+): Promise<{ imported?: number; error?: string; threadsRead?: number }> {
   try {
     // Slack's custom-app history limit is intentionally respected here: one
     // allowlisted channel, one bounded page, per discovery run. Fresh messages
@@ -265,15 +290,25 @@ async function backfillSlackChannel(
     const top = (payload.messages ?? []).filter(usable);
     const items = top.map((message) => slackItem(channel, message));
 
-    // Open the busiest threads, newest first. A thread with more replies is
-    // where a decision got made; a thread with one is usually an acknowledgement.
-    const threads = top
-      .filter((message) => (message.reply_count ?? 0) > 0)
-      .sort((a, b) => (b.reply_count ?? 0) - (a.reply_count ?? 0))
-      .slice(0, THREADS_PER_CHANNEL);
+    // Open the busiest threads. A thread with more replies is where a decision
+    // got made; a thread with one is usually an acknowledgement.
+    //
+    // Only in channels that actually returned something. On the first real
+    // ingestion twelve of twenty-one channels imported zero messages, and
+    // spending the scan's thread budget opening nothing in those is what
+    // starves the channels that do have traffic.
+    const threads = top.length
+      ? top
+        .filter((message) => (message.reply_count ?? 0) > 0)
+        .sort((a, b) => (b.reply_count ?? 0) - (a.reply_count ?? 0))
+        .slice(0, THREADS_PER_CHANNEL)
+      : [];
 
+    let threadsRead = 0;
     for (const parent of threads) {
-      if (Date.now() >= deadline) break;
+      if (Date.now() >= deadline || budget.remaining <= 0) break;
+      budget.remaining -= 1;
+      threadsRead += 1;
       try {
         const thread = await slackApi<{ messages?: SlackMessage[] }>(token, "conversations.replies", {
           channel: channel.id, ts: parent.ts, limit: REPLIES_PER_THREAD,
@@ -290,7 +325,7 @@ async function backfillSlackChannel(
       }
     }
 
-    return { imported: await upsertSourceItems(db, items) };
+    return { imported: await upsertSourceItems(db, items), threadsRead };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }

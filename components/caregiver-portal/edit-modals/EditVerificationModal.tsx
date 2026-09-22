@@ -432,16 +432,46 @@ export default function EditVerificationModal({
         {/* Video Section - Primary Focus */}
         <div className="px-2">
           {/* Header */}
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary-50 flex items-center justify-center">
-              <svg className="w-7 h-7 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+          <div className="mb-6">
+            <div className="text-center mb-5">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary-50 flex items-center justify-center">
+                <svg className="w-7 h-7 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-1">Video Introduction</h2>
+              <p className="text-gray-500 text-sm">
+                Record a 2-3 minute video answering these questions.
+              </p>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-1">Share Your Intro Video</h2>
-            <p className="text-gray-500 text-sm max-w-sm mx-auto">
-              Help families get to know you — share your background and what makes you reliable.
-            </p>
+
+            {/* The 4 questions - always visible as guidance */}
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">What to cover:</p>
+              <ol className="space-y-2.5 text-sm text-gray-700">
+                <li className="flex gap-2">
+                  <span className="text-primary-600 font-semibold shrink-0">1.</span>
+                  <span><strong>Your qualifications</strong> — caregiving experience with older adults, family members, or in clinical settings</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary-600 font-semibold shrink-0">2.</span>
+                  <span><strong>Why caregiving?</strong> — your motivation and how this benefits your career goals</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary-600 font-semibold shrink-0">3.</span>
+                  <span><strong>Handling stress</strong> — how you stay calm and professional in difficult situations</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary-600 font-semibold shrink-0">4.</span>
+                  <span><strong>Professionalism</strong> — how you&apos;ll represent yourself and your university with integrity</span>
+                </li>
+              </ol>
+              {!videoSaved && (
+                <p className="text-xs text-amber-600 pt-1">
+                  Applications without a video will not be reviewed.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Video Content */}

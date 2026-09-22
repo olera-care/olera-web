@@ -158,7 +158,7 @@ export function getSectionCompleteness(
     { id: "background", label: "Experience", percent: backgroundPercent, done: backgroundPercent === 100, items: backgroundItems },
     { id: "certifications", label: "Certifications", percent: certsPercent, done: certsPercent === 100, items: certItems },
     { id: "resume", label: "Resume & LinkedIn", percent: resumePercent, done: resumePercent === 100, items: resumeItems },
-    { id: "verification", label: "Verification", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },
+    { id: "verification", label: "Video Introduction", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },
   ];
 }
 

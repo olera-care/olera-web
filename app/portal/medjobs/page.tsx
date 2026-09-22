@@ -1582,12 +1582,12 @@ function StudentPortalContent({
             <CertificationsCard meta={meta} onEdit={() => setEditingSection("certifications")} />
             <ResumeCard meta={meta} profileId={profile.id} onEdit={() => setEditingSection("resume")} />
 
-            {/* Verification Card — Final step to go live */}
+            {/* Video Introduction Card — Final step to go live */}
             <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-lg font-semibold text-gray-900">Verification</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Video Introduction</h2>
                   {videoAvailable ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

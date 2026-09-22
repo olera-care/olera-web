@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import { saveStudentProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
@@ -22,6 +22,12 @@ export default function EditResumeModal({
 }: BaseEditModalProps) {
   const meta = profile.metadata;
   const inputRef = useRef<HTMLInputElement>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   const [linkedinUrl, setLinkedinUrl] = useState(meta.linkedin_url || "");
   const [resumeUrl, setResumeUrl] = useState(meta.resume_url || "");
@@ -74,12 +80,16 @@ export default function EditResumeModal({
         profileId: profile.id,
         metadataFields: { resume_url: null },
       });
-      setResumeUrl("");
-      setResumeFile(null);
+      if (isMountedRef.current) {
+        setResumeUrl("");
+        setResumeFile(null);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete resume");
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : "Failed to delete resume");
+      }
     } finally {
-      setDeleting(false);
+      if (isMountedRef.current) setDeleting(false);
     }
   }
 
@@ -113,9 +123,11 @@ export default function EditResumeModal({
       });
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
-      setSaving(false);
+      if (isMountedRef.current) setSaving(false);
     }
   }
 
@@ -154,7 +166,7 @@ export default function EditResumeModal({
       }
 
       if (data.filePath) {
-        setUploadSuccess(true);
+        if (isMountedRef.current) setUploadSuccess(true);
 
         await saveStudentProfile({
           profileId: profile.id,
@@ -162,17 +174,20 @@ export default function EditResumeModal({
         });
 
         setTimeout(() => {
+          if (!isMountedRef.current) return;
           setUploadSuccess(false);
           setResumeUrl(data.filePath);
           setResumeFile({ name: file.name, size: file.size });
           setResumeJustSaved(true);
-          setTimeout(() => setResumeJustSaved(false), 3000);
+          setTimeout(() => {
+            if (isMountedRef.current) setResumeJustSaved(false);
+          }, 3000);
         }, 800);
       }
     } catch {
-      setError("Network error. Please try again.");
+      if (isMountedRef.current) setError("Network error. Please try again.");
     } finally {
-      setUploading(false);
+      if (isMountedRef.current) setUploading(false);
     }
   }, [profile.id]);
 
@@ -202,7 +217,7 @@ export default function EditResumeModal({
       size="2xl"
       footer={
         <ModalFooter
-          saving={saving || uploading}
+          saving={saving || uploading || deleting}
           hasChanges={hasChanges}
           onClose={onClose}
           onSave={handleSave}

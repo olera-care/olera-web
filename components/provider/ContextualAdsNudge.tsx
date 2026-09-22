@@ -7,8 +7,8 @@ type NudgeContext = "question" | "lead";
 /** The one line that differs by context: what the provider just did. Everything
  *  under it is the shared card. */
 const OPENER: Record<NudgeContext, string> = {
-  question: "Great response. Want more of these?",
-  lead: "Families are reaching out.",
+  question: "Get more families asking",
+  lead: "Bring more families in",
 };
 
 const SOURCE: Record<NudgeContext, ManagedAdsNudgeSource> = {

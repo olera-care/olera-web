@@ -17,14 +17,18 @@ import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-manag
  * card leads with who Olera is, then why that makes us different from the lead
  * brokers who have been calling them for years, then the offer.
  *
- * Why it looks the way it does. Reference is Perena's in-app programme card:
- * a mark on the left doing the visual work, a short title, three lines of body,
- * one restrained action. The first build was sixty words of prose in a flat
- * tinted rectangle, which reads as a banner ad and lost against the page's own
- * language (white cards, serif headings, hairlines). This one borrows that
- * language: same radius and padding as a section card, a hairline rather than a
- * fill, and the accent carried by one small mark and one teal button rather
- * than by a wash across the whole block.
+ * Why it looks the way it does. Airbnb is the reference and it is strict about
+ * this: their in-context card is an icon, "Have a question?", and one button.
+ * Five words. They never explain what Airbnb is inside a nudge, because that
+ * belongs on its own surface. Their trust signal is "Free cancellation" — two
+ * words, accent colour, next to the price.
+ *
+ * So the grant story is one accent line, not a paragraph, and the headline is
+ * what the provider GETS rather than who we are. The full version lives on
+ * /provider/boost, which is where the button goes. Type is sized like a message
+ * (17px headline, 15px body, near-black) rather than like fine print, and there
+ * is no border: a hairline and air, so it reads as something said to you rather
+ * than a fourth box in a column of boxes.
  *
  * What it deliberately does NOT do: name ad platforms. A provider who has just
  * answered a family's question is not in the market for a channel strategy, and
@@ -33,30 +37,6 @@ import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-manag
  */
 
 export type ManagedAdsNudgeSource = "post_edit" | "post_question" | "leads_page";
-
-/** The mark. Deliberately abstract and Olera's own — never anything that could
- *  read as a federal seal, which would be both false and a different kind of
- *  problem than a long paragraph. */
-function NudgeMark() {
-  return (
-    <span
-      aria-hidden="true"
-      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 ring-1 ring-inset ring-primary-100"
-    >
-      <svg viewBox="0 0 24 24" className="h-6 w-6 text-primary-600" fill="none">
-        <path
-          d="M12 3.5c.9 3.2 1.9 4.3 5.1 5.2-3.2.9-4.2 2-5.1 5.2-.9-3.2-1.9-4.3-5.1-5.2 3.2-.9 4.2-2 5.1-5.2Z"
-          fill="currentColor"
-        />
-        <path
-          d="M17.6 14.4c.45 1.6.95 2.15 2.55 2.6-1.6.45-2.1 1-2.55 2.6-.45-1.6-.95-2.15-2.55-2.6 1.6-.45 2.1-1 2.55-2.6Z"
-          fill="currentColor"
-          opacity="0.55"
-        />
-      </svg>
-    </span>
-  );
-}
 
 export default function ManagedAdsNudgeCard({
   source,
@@ -108,61 +88,58 @@ export default function ManagedAdsNudgeCard({
 
   return (
     <div
-      className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6"
+      className="px-1"
       style={{ animation: "card-enter 0.25s ease-out both" }}
     >
-      <div className="flex gap-4">
-        <NudgeMark />
+      <h3 className="text-[19px] font-semibold leading-snug tracking-[-0.01em] text-gray-900">
+        {opener}
+      </h3>
+      <p className="mt-1.5 text-[15px] leading-relaxed text-gray-700">
+        {neverHadOne
+          ? "First campaign on us. $50 of ads, free."
+          : "We run the ads. You keep the families."}
+      </p>
 
-        <div className="min-w-0 flex-1">
-          <p className="text-[15px] font-semibold text-gray-900">{opener}</p>
-          <p className="mt-1.5 max-w-[46ch] text-sm leading-relaxed text-gray-500">
-            Olera is funded by the National Institute on Aging. No investors, no resold
-            families, no middleman taking a cut.
-            {neverHadOne ? " Your first campaign is on us: $50 of ads, free." : ""}
-          </p>
+      <p className="mt-2 text-[13px] font-medium text-primary-700">
+        Funded by the National Institute on Aging
+      </p>
 
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <Link
-              href="/provider/boost"
-              onClick={() => {
-                if (providerSlug) {
-                  trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
-                    provider_name: providerName,
-                    source,
-                    managed_ads_variant: assignedVariant ?? "direct_reach",
-                  });
-                  trackProviderEvent(providerSlug, "ads_touchpoint_clicked", {
-                    touchpoint: source,
-                    provider_name: providerName,
-                  });
-                }
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-transform hover:gap-2 active:scale-[0.98]"
-            >
-              {neverHadOne ? "See my free campaign" : "See what we'd run"}
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <Link
+          href="/provider/boost"
+          onClick={() => {
+            if (providerSlug) {
+              trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+                provider_name: providerName,
+                source,
+                managed_ads_variant: assignedVariant ?? "direct_reach",
+              });
+              trackProviderEvent(providerSlug, "ads_touchpoint_clicked", {
+                touchpoint: source,
+                provider_name: providerName,
+              });
+            }
+          }}
+          className="inline-flex items-center justify-center rounded-full bg-gray-900 px-6 py-3 text-[15px] font-semibold text-white transition-transform active:scale-[0.98]"
+        >
+          {neverHadOne ? "Start my free campaign" : "See what we'd run"}
+        </Link>
 
-            <button
-              type="button"
-              onClick={() => {
-                if (providerSlug) {
-                  trackProviderEvent(providerSlug, "ads_touchpoint_dismissed", {
-                    touchpoint: source,
-                    provider_name: providerName,
-                  });
-                }
-                onDismiss();
-              }}
-              className="text-sm text-gray-400 hover:text-gray-600"
-            >
-              Not now
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (providerSlug) {
+              trackProviderEvent(providerSlug, "ads_touchpoint_dismissed", {
+                touchpoint: source,
+                provider_name: providerName,
+              });
+            }
+            onDismiss();
+          }}
+          className="text-[15px] font-medium text-gray-500 underline-offset-4 hover:underline"
+        >
+          Not now
+        </button>
       </div>
     </div>
   );

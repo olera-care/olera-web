@@ -21,8 +21,9 @@ export default function PostEditAdsNudge({
 }: {
   providerSlug: string;
   providerName?: string;
-  /** Whether they have EVER had a campaign. Gates the free-intro claim. */
-  hasEverRequested?: boolean | null;
+  /** Whether they have EVER had a campaign. Gates the free-intro claim.
+   *  Required: omitting it renders nothing at all. */
+  hasEverRequested: boolean | null;
   onDismiss: () => void;
 }) {
   return (

@@ -56,8 +56,10 @@ export default function ManagedAdsNudgeCard({
    *  provider whose flight already ended that "the first campaign is on us" is
    *  false, and it lands on exactly the people the team is re-approaching.
    *  `null` means still resolving, and the card holds until it does rather than
-   *  popping an extra line in a beat later. */
-  hasEverRequested?: boolean | null;
+   *  popping an extra line in a beat later. REQUIRED: an omitted prop renders
+   *  nothing at all, silently and forever, which is not a failure mode worth
+   *  leaving available to the next caller. */
+  hasEverRequested: boolean | null;
   providerSlug: string;
   providerName?: string;
   onDismiss: () => void;
@@ -66,7 +68,7 @@ export default function ManagedAdsNudgeCard({
   const firedView = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const scrolledIntoView = useRef(false);
-  const resolved = hasEverRequested !== null && hasEverRequested !== undefined;
+  const resolved = hasEverRequested !== null;
 
   // Being in the right place is not the same as being seen. The nudge renders
   // under the section that was just saved, and if that section happens to end
@@ -86,7 +88,16 @@ export default function ManagedAdsNudgeCard({
     // may still be releasing a body scroll lock. Measuring into that races it.
     const frame = requestAnimationFrame(() => {
       const rect = el.getBoundingClientRect();
-      if (rect.top >= 0 && rect.bottom <= window.innerHeight) return; // already seen
+      // MARGIN absorbs two things. First, `card-enter` opens at
+      // translateY(8px), so one frame in this measures 8px lower than where
+      // the card settles — measuring on the exact boundary would be an
+      // off-by-8 at the one place the code keys on. Second, and the reason
+      // this exists at all: a card whose last line sits flush against the
+      // bottom edge is technically visible and still gets missed, which is
+      // the bug being fixed.
+      const MARGIN = 32;
+      const seen = rect.top >= 0 && rect.bottom <= window.innerHeight - MARGIN;
+      if (seen) return;
       const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
     });
@@ -116,7 +127,7 @@ export default function ManagedAdsNudgeCard({
   return (
     <div
       ref={rootRef}
-      className="px-1 scroll-mt-24"
+      className="px-1"
       style={{ animation: "card-enter 0.25s ease-out both" }}
     >
       <h3 className="text-[19px] font-semibold leading-snug tracking-[-0.01em] text-gray-900">

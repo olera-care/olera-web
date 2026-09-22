@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
   let requestedAction: string | undefined;
   try {
     const body = await request.json() as {
-      action?: "discover" | "approve" | "retry" | "reject" | "complete";
+      action?: "discover" | "approve" | "retry" | "reject" | "complete" | "park";
       proposalId?: string;
       note?: string;
     };
@@ -231,15 +231,17 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
 
     if (body.action === "approve") {
-      if (proposal.status !== "proposed") {
-        return NextResponse.json({ error: "Only a waiting proposal can be approved" }, { status: 409 });
+      // A parked proposal is approved by "Take it up". Its approval clock and
+      // assigned-work delivery start then, not when it was first accepted.
+      if (proposal.status !== "proposed" && proposal.status !== "parked") {
+        return NextResponse.json({ error: "Only a waiting or parked proposal can be approved" }, { status: 409 });
       }
       const { data: approvedData, error } = await db.from("war_room_proposals").update({
         status: "approved",
         approved_by: auth.admin.email,
         approved_at: now,
         updated_at: now,
-      }).eq("id", proposal.id).eq("status", "proposed").select("*").maybeSingle();
+      }).eq("id", proposal.id).eq("status", proposal.status).select("*").maybeSingle();
       if (error) throw error;
       if (!approvedData) return NextResponse.json({ error: "Proposal changed before approval" }, { status: 409 });
       const { error: eventError } = await db.from("war_room_proposal_events").insert({
@@ -327,6 +329,47 @@ export async function POST(request: NextRequest) {
         dispatch = { dispatched: false, detail };
       }
       return NextResponse.json({ proposal: retryProposal, dispatch });
+    }
+
+    // Accept, but not now. Sound enough not to reject, not this week's work.
+    // Frees the proposal slot, leaves the morning brief, and is never
+    // superseded or re-proposed. Code already handed to the executor cannot be
+    // parked; that work is in flight.
+    if (body.action === "park") {
+      const parkable = proposal.status === "proposed"
+        || (proposal.status === "approved" && proposal.action_kind !== "code");
+      if (!parkable) {
+        return NextResponse.json({ error: "Only a waiting proposal or approved human work can be parked" }, { status: 409 });
+      }
+      const { data, error } = await db.from("war_room_proposals").update({
+        status: "parked",
+        updated_at: now,
+      }).eq("id", proposal.id).eq("status", proposal.status).select("*").maybeSingle();
+      if (error) throw error;
+      if (!data) return NextResponse.json({ error: "Proposal changed before parking" }, { status: 409 });
+      const { error: eventError } = await db.from("war_room_proposal_events").insert({
+        proposal_id: proposal.id,
+        event_type: "parked",
+        actor: auth.admin.email,
+        details: { from_status: proposal.status, note: body.note?.trim().slice(0, 1_000) || null },
+      });
+      if (eventError) throw eventError;
+      // The condition behind it stays remembered, not decision-ready. The link
+      // is kept so a later scan does not draft a second plan for it.
+      const { error: investigationError } = await db.from("war_room_investigations").update({
+        status: "watchlist",
+        readiness_reason: "Its intervention was accepted and parked: sound, not this week's priority.",
+        updated_at: now,
+      }).eq("proposal_id", proposal.id).in("status", ["decision_ready", "investigating"]);
+      if (investigationError && !["42P01", "PGRST205"].includes(investigationError.code ?? "")) throw investigationError;
+      await logAuditAction({
+        adminUserId: auth.admin.id,
+        action: "war_room_proposal_parked",
+        targetType: "war_room_proposal",
+        targetId: proposal.id,
+        details: { title: proposal.title, from_status: proposal.status },
+      });
+      return NextResponse.json({ proposal: data });
     }
 
     if (body.action === "reject") {

@@ -52,7 +52,20 @@ function readingLine(reading: WarRoomProbeReading, scanDate: string) {
   return `• *${reading.label}* ${reading.headline}${age}${from}`;
 }
 
-type ProposalRow = { title: string; why_now: string; decision_required: string };
+type ProposalRow = { title: string; why_now: string; decision_required: string; created_at?: string };
+type ApprovedRow = { title: string; approved_at: string | null; assigned_owner: string | null };
+
+/**
+ * Approved human work older than this, still not marked carried out, gets a
+ * line in every brief until it is.
+ *
+ * Approval used to be the end of the record. `measurement_due_at` is only set
+ * when someone clicks "Mark carried out", so approved work nobody closed was
+ * never measured and never mentioned again. The first proposal ever approved
+ * (2026-09-21, the Hoop Cares call) had no logged touch two days later and
+ * nothing anywhere would have noticed.
+ */
+const APPROVED_NUDGE_DAYS = 3;
 type InvestigationRow = { status: string };
 
 /**
@@ -67,6 +80,7 @@ export function buildWarRoomBriefText(input: {
   siteUrl: string;
   readings: WarRoomProbeReading[];
   proposals: ProposalRow[];
+  approvedOpen?: ApprovedRow[];
   open: number;
   watching: number;
   costUsd: number | null;
@@ -112,10 +126,27 @@ export function buildWarRoomBriefText(input: {
   if (input.proposals.length) {
     lines.push("", "*Decision ready*");
     for (const proposal of input.proposals) {
-      lines.push(`*${proposal.title}*`, proposal.why_now || proposal.decision_required);
+      // A proposal carried over from an earlier scan says so. Otherwise a
+      // week-old decision reads as this morning's news.
+      // Keyed on age, not run id: a re-drafted proposal takes the new run's id.
+      const waiting = proposal.created_at && proposal.created_at.slice(0, 10) < run.created_at.slice(0, 10)
+        ? ` _(waiting since ${shortDate(proposal.created_at)})_`
+        : "";
+      lines.push(`*${proposal.title}*${waiting}`, proposal.why_now || proposal.decision_required);
     }
   } else {
     lines.push("", `No founder decision is ready. ${input.open} case${input.open === 1 ? "" : "s"} open, ${input.watching} watching.`);
+  }
+
+  // Approved, then silence. Named until it is marked carried out, because an
+  // approval nobody closes is never measured and so teaches the system nothing.
+  if (input.approvedOpen?.length) {
+    lines.push("", "*Approved, not yet marked done*");
+    for (const row of input.approvedOpen.slice(0, 3)) {
+      const owner = row.assigned_owner ? `, ${row.assigned_owner}` : "";
+      lines.push(`• ${row.title} _(approved ${row.approved_at ? shortDate(row.approved_at) : "earlier"}${owner})_`);
+    }
+    lines.push(`_Done? Mark it carried out in ${href} so its outcome gets measured._`);
   }
 
   // One question, never a list. This system's whole design is that it spends
@@ -159,6 +190,7 @@ export async function deliverWarRoomBrief(
     const run = runRow as WarRoomDiscoveryRun;
     let readings: WarRoomProbeReading[] = [];
     let proposals: ProposalRow[] = [];
+    let approvedOpen: ApprovedRow[] = [];
     let open = 0;
     let watching = 0;
     let question: FounderQuestion | null = null;
@@ -166,16 +198,29 @@ export async function deliverWarRoomBrief(
       // Never ask on a failed scan. There is no fresh read behind the question,
       // and the only useful message on a failure is that it failed.
       question = await pickQuestionForFounder(db).catch(() => null);
-      const [readingResult, proposalResult, investigationResult] = await Promise.all([
+      const nudgeCutoff = new Date(Date.now() - APPROVED_NUDGE_DAYS * 86_400_000).toISOString();
+      const [readingResult, proposalResult, approvedResult, investigationResult] = await Promise.all([
         loadWarRoomBriefing(db),
+        // Every proposal still waiting, not only this run's. Proposals now
+        // outlive the scan that drafted them, and one that is waiting but
+        // absent from the brief is waiting where nobody looks.
         db.from("war_room_proposals")
-          .select("title, why_now, decision_required")
-          .eq("discovery_run_id", runId)
-          .eq("status", "proposed"),
+          .select("title, why_now, decision_required, created_at")
+          .eq("status", "proposed")
+          .order("created_at", { ascending: false })
+          .limit(3),
+        db.from("war_room_proposals")
+          .select("title, approved_at, assigned_owner")
+          .eq("status", "approved")
+          .neq("action_kind", "code")
+          .lt("approved_at", nudgeCutoff)
+          .order("approved_at", { ascending: true })
+          .limit(3),
         db.from("war_room_investigations").select("status"),
       ]);
       readings = readingResult;
       proposals = (proposalResult.data ?? []) as ProposalRow[];
+      approvedOpen = (approvedResult.data ?? []) as ApprovedRow[];
       const investigations = (investigationResult.data ?? []) as InvestigationRow[];
       open = investigations.filter((row) => row.status === "investigating").length;
       watching = investigations.filter((row) => row.status === "watchlist").length;
@@ -186,6 +231,7 @@ export async function deliverWarRoomBrief(
       siteUrl: getSiteUrl(),
       readings,
       proposals,
+      approvedOpen,
       open,
       watching,
       costUsd: warRoomScanCost(run)?.usd ?? null,

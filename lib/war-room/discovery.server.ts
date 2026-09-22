@@ -159,6 +159,8 @@ function isTruncationError(error: unknown, toolName: string) {
     && error.message === `war_room_truncated_tool_output:${toolName}`;
 }
 const ACTIVE_PROPOSAL_STATUSES = ["proposed", "approved", "dispatching", "executing", "review_ready"];
+/** How long a proposal waits for a founder decision before a later scan may retire it. */
+const PROPOSAL_WAIT_DAYS = 7;
 
 const INVESTIGATOR_SYSTEM = `You are Olera's autonomous chief-of-staff investigator. Your objective is not to produce work. Your objective is to improve Olera's odds of surviving and thriving while protecting founder attention.
 
@@ -1475,11 +1477,21 @@ async function saveInvestigations(
   }
   const existing = new Map(((data ?? []) as WarRoomInvestigation[]).map((row) => [row.fingerprint, row]));
   const dispositions = new Map(assessments.map((assessment) => [assessment.fingerprint, assessment]));
+  // Proposals now outlive the scan that drafted them. An investigation whose
+  // proposal is still waiting stays decision_ready even when this scan did not
+  // re-draft it; otherwise it flips back to investigating every morning, which
+  // counts as progress and invites a second proposal for the same condition.
+  const { data: waitingProposals, error: waitingError } = await db.from("war_room_proposals")
+    .select("id")
+    .eq("status", "proposed");
+  if (waitingError) throw waitingError;
+  const waitingProposalIds = new Set((waitingProposals ?? []).map((row) => (row as { id: string }).id));
   let saved = 0;
   for (const draft of drafts) {
     const prior = existing.get(draft.fingerprint);
     const assessment = dispositions.get(draft.fingerprint);
-    const selected = selectedProposalFingerprints.has(draft.fingerprint);
+    const selected = selectedProposalFingerprints.has(draft.fingerprint)
+      || Boolean(prior?.proposal_id && waitingProposalIds.has(prior.proposal_id) && assessment?.disposition !== "drop");
     const droppedStatus = assessment?.reasonCode === "resolved"
       ? "resolved"
       : assessment?.reasonCode === "contradicted"
@@ -1702,9 +1714,18 @@ async function saveProposals(
 ) {
   const acceptedDrafts: typeof drafts = [];
   const draftFingerprints = new Set(drafts.map((draft) => draft.fingerprint));
+  // A waiting proposal used to be retired by the very next scan that did not
+  // re-draft its exact fingerprint. Drafting is stochastic, so that was nearly
+  // every scan: the 2026-09-22 10:30 proposal was superseded three and a half
+  // hours later by a manual scan, before anyone had decided it. A proposal the
+  // founder never got to decide is the loop failing to close, not a retirement.
+  // It now waits a week from when a scan last drafted it; after that, silence is
+  // the answer.
+  const waitCutoff = new Date(Date.now() - PROPOSAL_WAIT_DAYS * 86_400_000).toISOString();
   const { data: waitingRows, error: waitingError } = await db.from("war_room_proposals")
     .select("id, fingerprint")
-    .eq("status", "proposed");
+    .eq("status", "proposed")
+    .lt("last_seen_at", waitCutoff);
   if (waitingError) throw waitingError;
   for (const waiting of (waitingRows ?? []) as Array<{ id: string; fingerprint: string }>) {
     if (draftFingerprints.has(waiting.fingerprint)) continue;
@@ -2042,7 +2063,7 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
       .limit(5),
     db.from("war_room_proposals")
       .select("fingerprint, status")
-      .in("status", ["rejected", "completed", "failed", "superseded"]),
+      .in("status", ["rejected", "completed", "failed", "superseded", "parked"]),
   ]);
   // Answered probes and founder answers are evidence like any other source, so
   // the next scan reasons with the answer instead of re-asking the question.

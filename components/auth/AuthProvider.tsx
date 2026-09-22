@@ -727,9 +727,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           if (cancelled || versionRef.current !== version) return;
 
           if (data) {
-            // Check if account exists but no family profile
+            // Same guard as init above. supabase-js v2 re-emits SIGNED_IN when a
+            // tab regains focus, so without this the waste just moves from page
+            // load to tab focus, where it is harder to notice.
             const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
-            if (!hasFamilyProfile) {
+            const hasAnyProfile = data.profiles.length > 0;
+            const needsActiveProfile = !data.account?.active_profile_id;
+            if (!hasFamilyProfile && (!hasAnyProfile || needsActiveProfile)) {
               try {
                 await fetch("/api/auth/ensure-account", {
                   method: "POST",

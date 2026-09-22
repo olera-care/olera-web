@@ -992,7 +992,7 @@ async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingP
       system: INVESTIGATOR_SYSTEM,
       tool,
       maxTokens: 14_000,
-      prompt: `This call owns the ${group.label} lenses: ${group.domains.join(", ")}. Review each of them against the operating pack and populate every required named field. Do not review any other lens in this call, and do not optimize for producing a founder task.\n${JSON.stringify(operatingPack)}`,
+      prompt: `This call owns the ${group.label} lenses: ${group.domains.join(", ")}. Review each of them against the operating pack and populate every required named field. Do not review any other lens in this call, and do not optimize for producing a founder task.\n${JSON.stringify(sweepContextFor(operatingPack))}`,
     });
     const reviews = group.domains.map((domain) => {
       const review = call.output?.lensReviews?.[domain] ?? {};
@@ -1067,6 +1067,114 @@ function councilContextFor(operatingPack: ReturnType<typeof buildOperatingPack>)
     operatingContract: operatingPack.operatingContract,
     proposalMemory: operatingPack.proposalMemory,
     investigationMemory: operatingPack.investigationMemory,
+    evidenceCatalog: operatingPack.evidenceCatalog,
+  };
+}
+
+/**
+ * The pack with memory as identity rather than prose.
+ *
+ * The lens sweep was handed `JSON.stringify(operatingPack)` unmodified: every
+ * investigation as a full record including its inline evidence copies, and
+ * forty proposals in full, to review ten business domains. It is the most
+ * expensive pass in the scan, two calls at about fifty cents each, and I had
+ * asserted it "needs breadth" without ever opening its prompt.
+ *
+ * Tested A/B against a live pack, same model, same lens group. Scoped input
+ * was 37,990 tokens against 86,401, and the output did not thin -- it grew.
+ * Mean tokens per lens review went from 416 to 510, field completeness was
+ * identical at ten of ten, and it cited more evidence, four to five ids per
+ * review against three to four. Less irrelevant context, not less attention.
+ *
+ * That is one sample per arm on one lens group, which is enough to act on and
+ * not enough to quote as a ratio.
+ *
+ * What stays whole: the evidence catalog, because both
+ * `retainStrategicLensInvestigations` and `applyAgendaGate` reject a review
+ * citing fewer than two ids that resolve against it. Everything else the sweep
+ * reads -- the company model, the mechanics, the probe menu, the contract, the
+ * facts -- is untouched.
+ */
+function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
+  return {
+    ...operatingPack,
+    proposalMemory: operatingPack.proposalMemory.map((proposal) => ({
+      fingerprint: proposal.fingerprint,
+      status: proposal.status,
+      title: proposal.title,
+      outcomeStatus: proposal.outcomeStatus,
+      // Kept deliberately. This is the only field that says WHY something was
+      // turned down, and dropping it is how a rejected idea comes back wearing
+      // a new title. Measured at seven tokens across the whole memory, so the
+      // saving from cutting it is nil and the cost of cutting it is repeating
+      // a decision the founder already made.
+      rejectionNote: proposal.rejectionNote,
+    })),
+    investigationMemory: operatingPack.investigationMemory.map((investigation) => ({
+      fingerprint: investigation.fingerprint,
+      status: investigation.status,
+      domain: investigation.domain,
+      title: investigation.title,
+      likelyCause: investigation.likelyCause,
+      causeConfidence: investigation.causeConfidence,
+      unknowns: investigation.unknowns,
+      occurrenceCount: investigation.occurrenceCount,
+      lastSeenAt: investigation.lastSeenAt,
+    })),
+  };
+}
+
+/**
+ * What the drafting pass actually needs, which is far less than it was given.
+ *
+ * Measured on a live pack: drafting received 71,316 tokens to write up a single
+ * condition that triage had already chosen and handed to it by name. Inside
+ * that were all twelve investigations in full (38,052 tokens) when it is
+ * writing about one of them, and forty proposals in full (12,787) when all it
+ * needs from them is "have we proposed this before".
+ *
+ * Two things are deliberately NOT cut, because I checked the gate before
+ * cutting and it would have broken.
+ *
+ * The evidence catalog stays whole. `applyAgendaGate` rejects any draft citing
+ * fewer than two ids that resolve against the catalog, and cause confidence
+ * rises with the number of distinct evidence families cited. Handing drafting
+ * only the nominated condition's own three evidence items would have starved
+ * both checks and produced proposals that fail the gate for a reason nobody
+ * would trace back to here.
+ *
+ * Proposal memory stays, but as identity rather than prose: fingerprint,
+ * status, title and outcome are what answer "was this already tried", and the
+ * full body is not read.
+ */
+function draftingContextFor(
+  operatingPack: ReturnType<typeof buildOperatingPack>,
+  nominatedFingerprint: string,
+) {
+  return {
+    generatedAt: operatingPack.generatedAt,
+    companyModel: operatingPack.companyModel,
+    operatingContract: operatingPack.operatingContract,
+    // Identity only. Enough to notice a repeat, not the whole brief again.
+    priorProposals: operatingPack.proposalMemory.map((proposal) => ({
+      fingerprint: proposal.fingerprint,
+      status: proposal.status,
+      title: proposal.title,
+      outcomeStatus: proposal.outcomeStatus,
+      // See sweepContextFor: seven tokens, and the difference between
+      // remembering a rejection and repeating it.
+      rejectionNote: proposal.rejectionNote,
+    })),
+    // Every other open condition as one line, so a brief can say how this one
+    // relates to the rest without carrying all of them.
+    otherOpenConditions: operatingPack.investigationMemory
+      .filter((investigation) => investigation.fingerprint !== nominatedFingerprint)
+      .map((investigation) => ({
+        fingerprint: investigation.fingerprint,
+        status: investigation.status,
+        domain: investigation.domain,
+        title: investigation.title,
+      })),
     evidenceCatalog: operatingPack.evidenceCatalog,
   };
 }
@@ -1186,7 +1294,7 @@ Rules:
 CONDITION:\n${JSON.stringify(commissioned)}
 
 COUNCIL CONTEXT:
-${JSON.stringify(councilContextFor(operatingPack))}
+${JSON.stringify(draftingContextFor(operatingPack, commissioned.fingerprint))}
 
 CHIEF-OF-STAFF READ:
 ${investigator.rawInvestigatorOutput.portfolioRead}`,
@@ -1223,7 +1331,7 @@ async function runProposalPass(
     system: COUNCIL_SYSTEM,
     tool: WIRE_PROPOSAL_TOOL,
     maxTokens: 12_000,
-    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(councilContextFor(operatingPack))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
+    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(draftingContextFor(operatingPack, nominated.fingerprint))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
   });
   const brief = call.output?.brief ?? {};
   const execution = call.output?.execution ?? {};

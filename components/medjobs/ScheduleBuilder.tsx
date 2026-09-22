@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const FULL_DAYS: Record<string, string> = {
@@ -70,6 +70,15 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
   const [expandedDay, setExpandedDay] = useState<Day | null>(null);
   const [newStart, setNewStart] = useState("09:00");
   const [newEnd, setNewEnd] = useState("17:00");
+
+  // Auto-adjust end time if start time moves past it
+  useEffect(() => {
+    if (newStart >= newEnd && newEnd !== "00:00") {
+      // Find next available time after start
+      const nextTime = TIME_OPTIONS.find((t) => t > newStart) || "00:00";
+      setNewEnd(nextTime);
+    }
+  }, [newStart, newEnd]);
 
   const addSlot = useCallback((day: Day) => {
     const existing = value[day] || [];

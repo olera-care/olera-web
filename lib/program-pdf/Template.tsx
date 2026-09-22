@@ -19,6 +19,7 @@ import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ProgramPdfConfig } from "./configs";
 import { StudentFlyer } from "./StudentFlyer";
+import { RecruitFlyerPage } from "./RecruitFlyer";
 
 const EMERALD = "#059669";
 const EMERALD_DARK = "#047857";
@@ -136,6 +137,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
   },
+  // The advising flyer's page one clears the panel by about three points,
+  // which is not a margin — one extra wrapped line anywhere above it and the
+  // panel lands on a page of its own. This buys back twenty-four: eight from
+  // the padding and sixteen from a bottom margin that is doing nothing,
+  // because on that page the panel is the last thing before the page break.
+  offerBoxTight: { paddingVertical: 11, marginBottom: 0 },
   offerHead: { fontSize: 14, fontFamily: "Helvetica-Bold", color: GRAY_900, marginBottom: 6 },
   offerAsk: { fontSize: 10.5, color: EMERALD_DARK, fontFamily: "Helvetica-Bold", marginBottom: 7 },
   offerBody: { fontSize: 8.5, color: GRAY_600, lineHeight: 1.5 },
@@ -239,6 +246,13 @@ export interface ProgramPdfAssets {
   /** Olera logo, reversed out of the header band. */
   oleraLogoDataUri?: string;
   qrDataUri: string;
+  /**
+   * The QR on the student recruitment flyer, which points at the student
+   * application rather than at whatever the host document's CTA is. An
+   * advising office forwards that page to students; a QR that took them to
+   * the advising page would be the one broken thing on it.
+   */
+  recruitQrDataUri?: string;
 }
 
 const initials = (name: string) =>
@@ -278,6 +292,7 @@ export function ProgramPdfTemplate({
     chantel: assets.chantelPhotoDataUri,
     sara: assets.saraPhotoDataUri,
   };
+  const advisor = config.audience === "advisor";
   const team = config.team ?? [];
   const lead = team[0];
   const rest = team.slice(1);
@@ -378,7 +393,7 @@ export function ProgramPdfTemplate({
           <Steps items={config.steps.map(stepOf)} />
 
           {config.offer ? (
-            <View style={styles.offerBox}>
+            <View style={advisor ? [styles.offerBox, styles.offerBoxTight] : styles.offerBox}>
               <Text style={styles.offerHead}>{config.offer.headline}</Text>
               <Text style={styles.offerAsk}>{config.offer.ask}</Text>
               <Text style={styles.offerBody}>{config.offer.body}</Text>
@@ -419,34 +434,74 @@ export function ProgramPdfTemplate({
             {config.nextStep ? (
               <View style={styles.offerBox}>
                 <Text style={styles.offerHead}>{config.nextStep.heading}</Text>
-                <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
-                <Text style={[styles.offerAsk, { color: GRAY_900 }]}>
+                {config.nextStep.kicker ? (
+                  <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
+                ) : null}
+                <Text
+                  style={[
+                    styles.offerAsk,
+                    { color: GRAY_900 },
+                    // Nothing follows it, so the gap under it is a gap at the
+                    // bottom of the box rather than space between two lines.
+                    config.nextStep.body ? {} : { marginBottom: 0 },
+                  ]}
+                >
                   {config.nextStep.ask}
                 </Text>
-                <Text style={styles.offerBody}>{config.nextStep.body}</Text>
+                {config.nextStep.body ? (
+                  <Text style={styles.offerBody}>{config.nextStep.body}</Text>
+                ) : null}
               </View>
             ) : null}
 
-            {config.afterReply?.length ? (
+            {/* The ask, then what follows it. The advising flyer asks for
+                the reply and then says what happens after one, which is the
+                order somebody reads in; the agency brochure keeps the ask
+                last, where its page has been building to it. */}
+            {advisor ? (
               <>
-                <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
-                <Steps items={config.afterReply} />
+                {config.replyBlock ? (
+                  <View style={styles.replyBox}>
+                    <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
+                    <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
+                    <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
+                  </View>
+                ) : null}
+                {config.afterReply?.length ? (
+                  <>
+                    <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
+                    <Steps items={config.afterReply} />
+                  </>
+                ) : null}
               </>
-            ) : null}
-
-            {config.replyBlock ? (
-              <View style={styles.replyBox}>
-                <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
-                <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
-                <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
-              </View>
-            ) : null}
+            ) : (
+              <>
+                {config.afterReply?.length ? (
+                  <>
+                    <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
+                    <Steps items={config.afterReply} />
+                  </>
+                ) : null}
+                {config.replyBlock ? (
+                  <View style={styles.replyBox}>
+                    <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
+                    <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
+                    <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
+                  </View>
+                ) : null}
+              </>
+            )}
             {config.footerLine ? (
               <Text style={styles.footerLine}>{config.footerLine}</Text>
             ) : null}
           </View>
         </Page>
       ) : null}
+
+      {/* The thing the office is being asked to share, in the same file as
+          the asking. An advising office that has to reply and wait for an
+          attachment shares it next week, or never. */}
+      {config.audience === "advisor" ? <RecruitFlyerPage assets={assets} /> : null}
     </Document>
   );
 }

@@ -58,6 +58,52 @@ type InvestigationRow = {
   occurrence_count: number | null;
 };
 
+type SourceItemRow = {
+  source: string;
+  title: string | null;
+  content: string | null;
+  source_url: string | null;
+  occurred_at: string | null;
+};
+
+/**
+ * Words worth searching the record for.
+ *
+ * Crude on purpose. The alternative is a model call to extract search terms,
+ * which doubles the cost and latency of every question to save a few wasted
+ * ILIKEs against a table of a few hundred rows.
+ */
+const STOP_WORDS = new Set([
+  "the","a","an","and","or","but","is","are","was","were","be","been","being","to","of","in","on","at",
+  "for","with","about","from","by","as","it","its","this","that","these","those","has","have","had",
+  "do","does","did","will","would","should","could","can","may","me","my","i","we","our","us","you",
+  "your","he","she","they","them","his","her","their","what","why","how","when","who","where","which",
+  "any","all","get","got","gotten","back","thing","stuff","whole","yet","still","now","just","really","kind",
+  // Sentence-initial words are capitalised by grammar, not by being names.
+  "has","had","was","were","does","did","can","should","would","could","is","are","the","what","why",
+]);
+
+export function searchTermsFrom(question: string): string[] {
+  // Proper nouns first, and this is not a nicety. Ranking by length alone
+  // dropped "Tim" from "has Tim gotten back to me about the Aging in America
+  // cloud solution" -- the single most distinctive word in the sentence lost
+  // to "gotten" because it is three letters long. A name is the thing you
+  // search a record for.
+  const proper = new Set(
+    (question.match(/\b[A-Z][a-zA-Z]{1,}\b/g) ?? [])
+      .map((w) => w.toLowerCase())
+      .filter((w) => !STOP_WORDS.has(w)),
+  );
+  const words = question.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter(Boolean);
+  const terms = [...new Set(words.filter((w) => w.length > 2 && !STOP_WORDS.has(w)))];
+  return terms
+    .sort((a, b) => {
+      const byProper = Number(proper.has(b)) - Number(proper.has(a));
+      return byProper !== 0 ? byProper : b.length - a.length;
+    })
+    .slice(0, 6);
+}
+
 type ProposalRow = {
   title: string;
   status: string | null;
@@ -74,11 +120,41 @@ type ProposalRow = {
  * and costs dollars to send; this answers questions about conditions and
  * proposals, so it carries conditions and proposals.
  */
+/**
+ * Anything in the ingested record that mentions what he is asking about.
+ *
+ * Added after the first question Cortex could not answer: "has Tim gotten back
+ * to me about the Aging in America cloud solution?" It replied that the record
+ * contained no mention of it, which was true of the record it had been given --
+ * investigations, proposals and the company model -- and badly misleading about
+ * the record as he would understand it. It had not looked anywhere a
+ * conversation with a person could possibly live.
+ */
+async function searchRecord(db: SupabaseClient, question: string): Promise<SourceItemRow[]> {
+  const terms = searchTermsFrom(question);
+  if (!terms.length) return [];
+  const filter = terms.flatMap((t) => [`title.ilike.*${t}*`, `content.ilike.*${t}*`]).join(",");
+  const { data, error } = await db.from("war_room_source_items")
+    .select("source, title, content, source_url, occurred_at")
+    .or(filter)
+    .order("occurred_at", { ascending: false, nullsFirst: false })
+    .limit(12);
+  if (error) return [];
+  return (data ?? []) as SourceItemRow[];
+}
+
+/** Which external readers are actually switched on, so Cortex can say what it cannot see. */
+async function ingestedSources(db: SupabaseClient): Promise<string[]> {
+  const { data } = await db.from("war_room_source_items").select("source").limit(1000);
+  return [...new Set(((data ?? []) as Array<{ source: string }>).map((r) => r.source))];
+}
+
 async function buildConversationContext(
   db: SupabaseClient,
   focusInvestigationId?: string | null,
+  question?: string,
 ): Promise<string> {
-  const [investigations, proposals, model] = await Promise.all([
+  const [investigations, proposals, model, matches, sources] = await Promise.all([
     db.from("war_room_investigations")
       .select("id, title, status, domain, impact, likely_cause, unknowns, occurrence_count")
       .in("status", ["investigating", "watchlist", "decision_ready"])
@@ -89,12 +165,31 @@ async function buildConversationContext(
       .order("created_at", { ascending: false })
       .limit(10),
     db.from("war_room_company_models").select("north_star, targets, constraints").eq("key", "olera").maybeSingle(),
+    question ? searchRecord(db, question) : Promise.resolve([] as SourceItemRow[]),
+    ingestedSources(db),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
   const focus = focusInvestigationId ? rows.find((row) => row.id === focusInvestigationId) : undefined;
 
   return JSON.stringify({
+    // Stated explicitly so Cortex can distinguish "this did not happen" from
+    // "I cannot see where that would be recorded". Those are different answers
+    // and only one of them is honest when a reader is not ingested.
+    whatIsIngested: {
+      sourcesPresent: sources,
+      slackChannels: sources.includes("slack") ? "ingested" : "NOT ingested -- no Slack channel is being read",
+      notion: sources.includes("notion") ? "ingested" : "NOT ingested -- no Notion source is being read",
+      directMessages: "NEVER ingested. Cortex cannot read anyone's Slack DMs, including the founder's.",
+      email: "NEVER ingested.",
+    },
+    recordMatches: matches.map((row) => ({
+      source: row.source,
+      title: row.title,
+      occurredAt: row.occurred_at,
+      excerpt: typeof row.content === "string" ? row.content.slice(0, 600) : null,
+      url: row.source_url,
+    })),
     northStar: model.data?.north_star ?? null,
     targets: model.data?.targets ?? null,
     constraints: model.data?.constraints ?? null,
@@ -117,7 +212,13 @@ async function buildConversationContext(
 
 const CONVERSATION_SYSTEM = `You are Cortex, the operating system for Olera, answering its founder in a Slack DM.
 
-Answer from the supplied record only. If the record does not contain the answer, say so plainly and say what would settle it. Never invent a number, an owner, a date, or a status.
+Answer from the supplied record only. Never invent a number, an owner, a date, or a status.
+
+When the record does not contain the answer, distinguish two very different cases and never blur them:
+
+If the relevant source IS ingested and simply holds nothing, say the record shows nothing and that you would expect it to.
+
+If the relevant source is NOT ingested, say you cannot see it. Read the whatIsIngested block before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
 
 Write for a phone screen. No markdown headers, no bullet lists, no tables. Two or three short paragraphs at most, and one is often right. Slack bold is single asterisks.
 
@@ -136,7 +237,7 @@ export async function answerFounderQuestion(
     return { answered: false, reply: "I cannot answer questions right now: no model key is configured." };
   }
   try {
-    const context = await buildConversationContext(db, focusInvestigationId);
+    const context = await buildConversationContext(db, focusInvestigationId, question);
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message = await anthropic.messages.create({
       model: CONVERSATION_MODEL,

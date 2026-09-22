@@ -159,13 +159,37 @@ export function getCachedBoostState(): BoostStateResponse | null {
   return cached.data;
 }
 
+/** In-flight request, so two callers on one page (the dashboard hero's prefetch
+ *  and a nudge's boost-request hook) share a single GET instead of racing two. */
+let inFlight: Promise<BoostStateResponse | null> | null = null;
+
+/** Fetch boost state, sharing any request already in flight, and cache the
+ *  result. Returns null on any failure — callers decide what that means. */
+export async function loadBoostState(): Promise<BoostStateResponse | null> {
+  const fresh = getCachedBoostState();
+  if (fresh) return fresh;
+  if (inFlight) return inFlight;
+
+  const pending = (async () => {
+    try {
+      const res = await fetch("/api/provider/ad-boost/request", { credentials: "include" });
+      if (!res.ok) return null;
+      const data = (await res.json()) as BoostStateResponse;
+      cacheBoostState(data);
+      return data;
+    } catch {
+      return null;
+    } finally {
+      inFlight = null;
+    }
+  })();
+
+  inFlight = pending;
+  return pending;
+}
+
 /** Warm the cache from an entry point so /provider/boost paints instantly.
  *  Best-effort and silent — a miss just means the boost page shows its loader. */
 export async function prefetchBoostState(): Promise<void> {
-  try {
-    const res = await fetch("/api/provider/ad-boost/request", { credentials: "include" });
-    if (res.ok) cacheBoostState((await res.json()) as BoostStateResponse);
-  } catch {
-    // best-effort; the boost page will fetch on its own
-  }
+  await loadBoostState();
 }

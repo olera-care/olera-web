@@ -11,7 +11,7 @@ import VerificationMethodModal from "@/components/provider/VerificationMethodMod
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import Pagination from "@/components/ui/Pagination";
 import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
-import { useHasActiveBoostRequest } from "@/hooks/useHasActiveBoostRequest";
+import { useBoostRequestSummary } from "@/hooks/useHasActiveBoostRequest";
 
 // ── Types ──
 
@@ -715,7 +715,7 @@ function ProviderQnAContent() {
   // Ads nudge state — shown once per session after answering a question
   const [showAdsNudge, setShowAdsNudge] = useState(false);
   const adsNudgeDismissedRef = useRef(false);
-  const hasActiveBoostRequest = useHasActiveBoostRequest();
+  const { hasActive: hasActiveBoostRequest, hasEver: hasEverRequestedBoost } = useBoostRequestSummary();
 
   // Verification state
   const { isVerified } = useProviderVerification();
@@ -1055,6 +1055,7 @@ function ProviderQnAContent() {
             providerSlug={providerProfile.slug}
             providerName={providerProfile.display_name}
             hasActiveBoostRequest={hasActiveBoostRequest === true}
+            hasEverRequested={hasEverRequestedBoost}
             onDismiss={() => {
               setShowAdsNudge(false);
               adsNudgeDismissedRef.current = true;

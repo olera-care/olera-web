@@ -8,7 +8,7 @@ import BrowseCard from "@/components/browse/BrowseCard";
 import Select from "@/components/ui/Select";
 import Modal from "@/components/ui/Modal";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
-import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
+import { SAMPLE_CANDIDATES, isSampleSlug } from "@/lib/medjobs/demo-candidate";
 import CandidateDetailPanel from "@/components/medjobs/CandidateDetailPanel";
 import ScheduleInterviewModal, { type JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
@@ -177,14 +177,16 @@ export default function HireCaregiversBoard() {
       ? { lat: selectedUni.lat, lng: selectedUni.lng }
       : null;
 
-  // Only show demo profiles as a fallback when there are no real approved
-  // students at all. "All Universities" now shows all real students.
-  const isDemoEra = !loading && candidates.length === 0;
-  const baseCards = isDemoEra ? SAMPLE_CANDIDATES : candidates;
+  // Show demo profiles alongside real students when "All Universities" is selected.
+  // When a specific university is selected, only show real students from that university.
+  const showDemos = !universityId; // Show demos when no university filter
+  const baseCards = showDemos
+    ? [...SAMPLE_CANDIDATES, ...candidates]  // Demos + real students
+    : candidates;                             // Only real students for specific university
   const filtered = baseCards.filter((c) => matchesAvailability(c, availability));
   const availLabel = AVAIL_OPTIONS.find((o) => o.value === availability)?.label ?? null;
   const mapCards = filtered
-    .map((c) => candidateToCardFormat(c, isDemoEra ? { isDemo: true } : undefined))
+    .map((c) => candidateToCardFormat(c, isSampleSlug(c.slug) ? { isDemo: true } : undefined))
     .filter((c) => c.lat != null && c.lon != null);
 
   // Options for Select dropdowns
@@ -299,8 +301,9 @@ export default function HireCaregiversBoard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filtered.map((c) =>
-                isDemoEra ? (
+              {filtered.map((c) => {
+                const isDemo = isSampleSlug(c.slug);
+                return isDemo ? (
                   <BrowseCard
                     key={c.id}
                     provider={candidateToCardFormat(c, { isDemo: true })}
@@ -330,8 +333,8 @@ export default function HireCaregiversBoard() {
                       matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
                     />
                   </div>
-                ),
-              )}
+                );
+              })}
             </div>
           )}
         </div>
@@ -438,7 +441,7 @@ export default function HireCaregiversBoard() {
       {/* Mobile: Candidate detail bottom sheet (hidden on desktop where inline panel is used) */}
       <div className="lg:hidden">
         <Modal
-          isOpen={!!selectedCandidate && !isDemoEra}
+          isOpen={!!selectedCandidate && !isSampleSlug(selectedCandidate?.slug ?? "")}
           onClose={() => setSelectedCandidate(null)}
           size="fullscreen"
         >

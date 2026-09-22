@@ -495,48 +495,51 @@ export default function EditOverviewModal({
             />
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@school.edu"
-              className={`w-full bg-white border focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all ${
-                email && !email.toLowerCase().endsWith(".edu")
-                  ? "border-red-300 focus:border-red-400"
-                  : "border-gray-200 focus:border-primary-600"
-              }`}
-            />
-            {email && !email.toLowerCase().endsWith(".edu") && (
-              <p className="mt-2 text-xs text-red-600">
-                A .edu email is required for student verification
-              </p>
-            )}
-          </div>
+          {/* Email & Phone - side by side on desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@school.edu"
+                className={`w-full bg-white border focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all ${
+                  email && !email.toLowerCase().endsWith(".edu")
+                    ? "border-red-300 focus:border-red-400"
+                    : "border-gray-200 focus:border-primary-600"
+                }`}
+              />
+              {email && !email.toLowerCase().endsWith(".edu") && (
+                <p className="mt-2 text-xs text-red-600">
+                  A .edu email is required for student verification
+                </p>
+              )}
+            </div>
 
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone number
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => {
-                // Allow only digits, spaces, dashes, parens, and plus
-                const cleaned = e.target.value.replace(/[^\d\s\-()+ ]/g, "");
-                setPhone(cleaned);
-              }}
-              placeholder="(555) 123-4567"
-              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all"
-            />
-            <p className="mt-2 text-xs text-gray-400">
-              Providers may contact you about shifts
-            </p>
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone number
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => {
+                  // Allow only digits, spaces, dashes, parens, and plus
+                  const cleaned = e.target.value.replace(/[^\d\s\-()+ ]/g, "");
+                  setPhone(cleaned);
+                }}
+                placeholder="(555) 123-4567"
+                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+              />
+              <p className="mt-2 text-xs text-gray-400">
+                Providers may contact you about shifts
+              </p>
+            </div>
           </div>
 
           {/* University with search/autocomplete */}

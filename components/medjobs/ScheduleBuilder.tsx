@@ -115,7 +115,7 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
                       {slots.map((slot, i) => (
                         <div
                           key={i}
-                          className="group flex items-center gap-2"
+                          className="flex items-center justify-between gap-2"
                         >
                           <span className="text-sm text-gray-600">
                             {formatTime(slot.start)} – {formatTime(slot.end)}
@@ -124,7 +124,7 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
                             <button
                               type="button"
                               onClick={() => removeSlot(day, i)}
-                              className="p-0.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="p-1 -mr-1 text-gray-400 hover:text-red-500 active:text-red-600 transition-colors"
                               aria-label="Remove time slot"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

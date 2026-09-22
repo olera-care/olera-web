@@ -249,7 +249,12 @@ export function applyManual(
  * it is lost.
  */
 export function summariseManual(manual: Partial<Record<HeardField, string>>): string {
-  const order: HeardField[] = ["care_for", "care_type", "care_zip", "hours", "payment", "starts"];
+  // Preferred order first, then ANYTHING else that was filled. Without the
+  // fallback, someone who fills only transfers and budget produces an empty
+  // summary, and the route answers "say what happened, or fill in some
+  // details" to a person who just filled in some details.
+  const preferred: HeardField[] = ["care_for", "care_type", "care_zip", "hours", "payment", "starts"];
+  const order = [...preferred, ...HEARD_FIELDS.filter((f) => !preferred.includes(f))];
   const parts = order
     .map((k) => manual[k]?.trim())
     .filter((v): v is string => Boolean(v));

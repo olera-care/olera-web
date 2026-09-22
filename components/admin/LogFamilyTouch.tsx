@@ -99,9 +99,16 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
 
   const channel = guessChannel(text);
   const reached = reachedChoice === undefined ? guessReached(text) : reachedChoice;
-  const filledDetails = Object.entries(details).filter(([, v]) => v && v.trim());
+  // TOUCHED is every field somebody has typed in, INCLUDING one they emptied
+  // again. FILLED is the subset with something in it. The difference matters:
+  // clearing a wrong value is an instruction ("this is blank because I say
+  // so"), and sending only the filled ones would drop that instruction on the
+  // floor, leaving the old value in place and the model free to rewrite it.
+  const touchedDetails = Object.entries(details) as [HeardField, string][];
+  const filledDetails = touchedDetails.filter(([, v]) => v && v.trim());
   // EITHER input is a complete log. Requiring the sentence would put the note
   // back in the way of someone who just wants to tap six things and move on.
+  // Clearing a field is not by itself a log, so FILLED gates the button.
   const canSave = (text.trim().length > 0 || filledDetails.length > 0) && !saving;
 
   async function save() {
@@ -122,7 +129,7 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
           reached,
           next_action: nextAction.trim() || null,
           next_action_due: due || null,
-          care_details: filledDetails.length ? Object.fromEntries(filledDetails) : undefined,
+          care_details: touchedDetails.length ? Object.fromEntries(touchedDetails) : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));

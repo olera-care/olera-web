@@ -429,32 +429,54 @@ export function adBoostLeadDeliveredEmail(opts: {
   city?: string | null;
   careRecipient?: string | null;
   viewUrl: string;
+  /**
+   * False when the inquiry arrived with nothing but an email address. About six
+   * in ten do, because every step of the qualifying flow is skippable. Claiming
+   * "your campaign brought in a new family" over one of those is how Franchil
+   * was told three times in September that a family had arrived when two of the
+   * three were caregivers asking for a job.
+   */
+  enriched?: boolean;
 }): string {
+  const enriched = opts.enriched !== false;
   const safeFamilyName = firstName(opts.familyName, "");
   const familyRef = safeFamilyName || "A family";
   const careType = opts.careType ? opts.careType.toLowerCase() : "care";
   const city = opts.city ? ` in ${escapeHtml(opts.city)}` : "";
   const recipient = opts.careRecipient ? ` for ${escapeHtml(opts.careRecipient)}` : "";
-  const leadLine = `${escapeHtml(familyRef)}${city} is looking for ${escapeHtml(careType)}${recipient}.`;
-  const buttonText = safeFamilyName
-    ? `View ${escapeHtml(safeFamilyName)}'s request`
-    : "View the family's request";
+  const leadLine = enriched
+    ? `${escapeHtml(familyRef)}${city} is looking for ${escapeHtml(careType)}${recipient}.`
+    : `Someone${city} asked to be contacted. They have not told us yet what kind of care they need, or who it is for.`;
+  const headline = enriched
+    ? "Your campaign brought in a new family"
+    : "Someone asked you to get in touch";
+  const intro = enriched
+    ? `Good news: a family reached out through your Ad Boost campaign for ${escapeHtml(opts.providerName)}.`
+    : `Someone reached out through your Ad Boost campaign for ${escapeHtml(opts.providerName)}.`;
+  const closing = enriched
+    ? "Open the request to see the family&rsquo;s contact details and respond from your Olera dashboard."
+    : "Open the request to see their contact details. A short first message asking who needs care and when is usually what turns one of these into a real conversation.";
+  const buttonText = enriched
+    ? (safeFamilyName ? `View ${escapeHtml(safeFamilyName)}'s request` : "View the family's request")
+    : "View the request";
 
   return layout(
     `
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families campaign</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your campaign brought in a new family</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.65;">Good news: a family reached out through your Ad Boost campaign for ${escapeHtml(opts.providerName)}.</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${headline}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.65;">${intro}</p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 20px;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">${leadLine}</p>
     </div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">Open the request to see the family&rsquo;s contact details and respond from your Olera dashboard.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">${closing}</p>
     <div>${button(buttonText, opts.viewUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">This lead was attributed to your Find Families campaign. More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
     </div>`,
-    "A new family reached out through your Find Families campaign.",
+    enriched
+      ? "A new family reached out through your Find Families campaign."
+      : "Someone reached out through your Find Families campaign.",
   );
 }
 
@@ -1286,7 +1308,14 @@ export function connectionRequestEmail(opts: {
   manageListingUrl?: string;
   settingsUrl?: string;
   providerSlug?: string;
+  /**
+   * False when the inquiry carries nothing but an email address. The "chose your
+   * team" framing below is a claim about intent, and on a blank lead it is one we
+   * cannot support. See lib/leads/provider-notifications.server.ts.
+   */
+  enriched?: boolean;
 }): string {
+  const enriched = opts.enriched !== false;
   // Extract first name, fallback to null if placeholder
   const safeFamilyName = firstName(opts.familyName, "");
   const hasName = safeFamilyName.length > 0;
@@ -1336,9 +1365,11 @@ export function connectionRequestEmail(opts: {
   }
 
   // Build preheader with pronoun fallback
-  const preheader = hasName
-    ? `See ${possessivePronoun} full request and message ${pronoun} directly.`
-    : "See their full request and message them directly.";
+  const preheader = !enriched
+    ? "See their contact details and message them directly."
+    : (hasName
+      ? `See ${possessivePronoun} full request and message ${pronoun} directly.`
+      : "See their full request and message them directly.");
 
   // Build greeting line
   const greeting = `Hi ${escapeHtml(opts.providerName)},`;
@@ -1363,13 +1394,24 @@ export function connectionRequestEmail(opts: {
     bodyLine = `${familyRef} is looking for ${careTypeRef} — and chose your team.`;
   }
 
+  if (!enriched) {
+    bodyLine = opts.city
+      ? `Someone in ${opts.city} asked you to get in touch through Olera. They have not told us yet what kind of care they need, or who it is for.`
+      : "Someone asked you to get in touch through Olera. They have not told us yet what kind of care they need, or who it is for.";
+  }
+
   // Build CTA explanation with pronoun fallback
-  const ctaExplanation = hasName
+  let ctaExplanation = hasName
     ? `Open ${possessivePronoun} request and you'll see ${possessivePronoun} full contact details, and you can message ${pronoun} directly through Olera. There's no fee, and we never sell your information.`
     : "Open their request and you'll see their contact details, and you can message them directly through Olera. There's no fee, and we never sell your information.";
+  if (!enriched) {
+    ctaExplanation = "Open the request to see their contact details. A short first message asking who needs care and when is usually what turns one of these into a real conversation. There's no fee, and we never sell your information.";
+  }
 
   // Button text with name fallback (escape for HTML safety)
-  const buttonText = hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the family's request →";
+  const buttonText = !enriched
+    ? "See the request →"
+    : (hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the family's request →");
 
   // Use new footer with magic links if URLs provided, otherwise fall back to legacy footer
   const footerBlock = opts.manageListingUrl && opts.settingsUrl

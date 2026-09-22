@@ -174,6 +174,23 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/ad-boost",
   },
   {
+    id: "lead-notification-release",
+    name: "Leads — release held provider notifications",
+    description:
+      "The ceiling half of the lead notification hold. Provider email, SMS and WhatsApp are no longer sent when an inquiry is created, because at that moment the family has given an email address and nothing else: the six-step qualifying flow runs afterwards and about six in ten people skip out of it. Most leads are released the moment the family finishes enrichment, by PATCH /api/connections/update-intent. This sweep covers the ones who abandon, releasing anything still held past its 10 minute ceiling. Measured on 353 sessions to 2026-09-22 the median lead-to-enrichment-finished gap was 53 seconds and 352 of 353 finished inside ten minutes, so the ceiling delays nobody who was going to answer.",
+    recipientCohort:
+      "Providers with an inquiry whose provider_notify_state is still `held` and whose provider_notify_after has passed.",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "*/5 * * * *",
+    humanSchedule: "Every 5 minutes",
+    path: "/api/cron/lead-notification-release",
+    emailTypes: ["connection_request", "ad_boost_lead_delivered", "first_lead_celebration"],
+    successSignal:
+      "A provider's new-lead email describes the lead. When it carries no care details it says so, instead of asserting a family is looking for care.",
+    relatedAdminPath: "/admin/relationships",
+  },
+  {
     id: "city-lead-offers",
     name: "City ads — offer chain",
     description:

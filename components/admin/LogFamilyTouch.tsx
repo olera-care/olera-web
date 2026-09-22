@@ -93,10 +93,16 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
   // What the last save was read to contain. Cleared when the next log starts,
   // so it always describes the note above it and never an older one.
   const [heard, setHeard] = useState<Heard | null>(null);
+  // Details typed straight into the fields, for a log that needs no sentence.
+  const [details, setDetails] = useState<Partial<Record<HeardField, string>>>({});
+  const [showDetails, setShowDetails] = useState(false);
 
   const channel = guessChannel(text);
   const reached = reachedChoice === undefined ? guessReached(text) : reachedChoice;
-  const canSave = text.trim().length > 0 && !saving;
+  const filledDetails = Object.entries(details).filter(([, v]) => v && v.trim());
+  // EITHER input is a complete log. Requiring the sentence would put the note
+  // back in the way of someone who just wants to tap six things and move on.
+  const canSave = (text.trim().length > 0 || filledDetails.length > 0) && !saving;
 
   async function save() {
     if (!canSave) return;
@@ -116,6 +122,7 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
           reached,
           next_action: nextAction.trim() || null,
           next_action_due: due || null,
+          care_details: filledDetails.length ? Object.fromEntries(filledDetails) : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -125,6 +132,8 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
       setNextAction("");
       setDue("");
       setShowNext(false);
+      setDetails({});
+      setShowDetails(false);
       // Absent on an older deployment, or null when the note was too short to
       // read or the model was unavailable. Either way the log already succeeded.
       setHeard((data?.heard as Heard | null) ?? null);
@@ -210,14 +219,35 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
             className="rounded-lg border border-gray-200 px-2 py-1.5 font-mono text-[12px] text-gray-700 focus:border-gray-400 focus:outline-none"
           />
         </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setShowNext(true)}
-          className="mt-2.5 text-[12px] font-medium text-teal-700 hover:underline"
-        >
-          + Set what happens next
-        </button>
+      ) : null}
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-4">
+        {!showNext && (
+          <button
+            type="button"
+            onClick={() => setShowNext(true)}
+            className="text-[12px] font-medium text-teal-700 hover:underline"
+          >
+            + Set what happens next
+          </button>
+        )}
+        {!showDetails && (
+          <button
+            type="button"
+            onClick={() => setShowDetails(true)}
+            className="text-[12px] font-medium text-teal-700 hover:underline"
+          >
+            + Add the details
+          </button>
+        )}
+      </div>
+
+      {showDetails && (
+        <DetailFields
+          values={details}
+          onChange={(k, v) => setDetails((d) => ({ ...d, [k]: v }))}
+          onClose={() => setShowDetails(false)}
+        />
       )}
 
       {error && <p className="mt-2 text-[13px] text-red-600">{error}</p>}
@@ -235,6 +265,70 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
       </div>
 
       {heard && <HeardStrip heard={heard} onDismiss={() => setHeard(null)} />}
+    </div>
+  );
+}
+
+/**
+ * The same details, typed rather than read.
+ *
+ * Placeholders carry the explaining so the labels can stay as terse as the
+ * chips they become. That is deliberate: someone who fills this in once
+ * recognises the chips afterwards, and someone who reads the chips first knows
+ * what these boxes want. One vocabulary, two directions.
+ *
+ * Nothing in here is required. A person opens it, fills the two things they
+ * know, and presses Log.
+ */
+const FIELD_HINT: Record<HeardField, string> = {
+  care_for: "Geraldine Wilson, 81",
+  relationship: "sister, daughter, self",
+  care_type: "home care, memory care",
+  care_zip: "Oak Cliff, Dallas 75224",
+  interim_location: "where they are now",
+  hours: "6/day, mornings",
+  transfers: "one person, two people, lift",
+  payment: "private pay, Medicaid",
+  starts: "late Oct",
+  budget: "$30/hr",
+};
+
+function DetailFields({
+  values,
+  onChange,
+  onClose,
+}: {
+  values: Partial<Record<HeardField, string>>;
+  onChange: (k: HeardField, v: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="mt-2.5 rounded-lg border border-gray-200 bg-gray-50 p-3">
+      <div className="flex items-baseline justify-between">
+        <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">The details</p>
+        <button type="button" onClick={onClose} className="font-mono text-[10.5px] text-gray-400 hover:text-gray-600">
+          close
+        </button>
+      </div>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        {HEARD_FIELDS.map((f) => (
+          <label key={f} className="flex items-center gap-2">
+            <span className="w-[74px] shrink-0 font-mono text-[9.5px] uppercase tracking-[0.06em] text-gray-500">
+              {HEARD_LABEL[f]}
+            </span>
+            <input
+              id={`family-detail-${f}`}
+              value={values[f] ?? ""}
+              onChange={(e) => onChange(f, e.target.value)}
+              placeholder={FIELD_HINT[f]}
+              className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[13px] text-gray-900 placeholder:text-gray-300 focus:border-gray-400 focus:outline-none"
+            />
+          </label>
+        ))}
+      </div>
+      <p className="mt-2 font-mono text-[10.5px] text-gray-400">
+        Anything you type here wins over what the note is read to say, now and later.
+      </p>
     </div>
   );
 }

@@ -206,6 +206,57 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
 }
 
 /**
+ * Lay values a PERSON typed on top of what is already stored.
+ *
+ * Every key touched is added to `edited_fields`, which is what makes the win
+ * permanent: `mergeHeard` skips those keys forever after, so a later model read
+ * cannot quietly revise something somebody sat down and corrected. An empty
+ * string is a deletion, and it stays edited — "this field is blank because I
+ * say so" has to survive the next call too, or clearing a wrong value would
+ * just invite the model to fill it back in.
+ */
+export function applyManual(
+  existing: Heard | null,
+  manual: Partial<Record<HeardField, string>>,
+): Heard {
+  const base: Heard = existing ?? {
+    fields: {},
+    also_noted: [],
+    extracted_at: new Date().toISOString(),
+    model: "hand",
+  };
+  const fields = { ...base.fields };
+  const edited = new Set(base.edited_fields ?? []);
+
+  for (const key of HEARD_FIELDS) {
+    const raw = manual[key];
+    if (raw === undefined) continue;
+    const value = raw.trim().slice(0, 120);
+    edited.add(key);
+    if (value) fields[key] = { value, sure: true };
+    else delete fields[key];
+  }
+
+  return { ...base, fields, edited_fields: [...edited] };
+}
+
+/**
+ * A one-line summary built from typed details, for a log with no note.
+ *
+ * `family_touches.summary` is the timeline's only handle on a row, so a
+ * fields-only log must still say something a person can read three weeks later.
+ * Without this the entry renders as a blank line and the whole point of logging
+ * it is lost.
+ */
+export function summariseManual(manual: Partial<Record<HeardField, string>>): string {
+  const order: HeardField[] = ["care_for", "care_type", "care_zip", "hours", "payment", "starts"];
+  const parts = order
+    .map((k) => manual[k]?.trim())
+    .filter((v): v is string => Boolean(v));
+  return parts.length ? parts.join(" · ").slice(0, 240) : "";
+}
+
+/**
  * Persist onto the family profile, under `metadata.care_details`.
  *
  * Read-modify-write on a JSONB column, which is safe here because a person
@@ -216,8 +267,10 @@ export function mergeHeard(existing: Heard | null, fresh: Heard): Heard {
 export async function saveHeard(
   db: SupabaseClient,
   seekerId: string,
-  fresh: Heard,
+  fresh: Heard | null,
+  manual?: Partial<Record<HeardField, string>>,
 ): Promise<Heard | null> {
+  if (!fresh && !manual) return null;
   try {
     const { data: profile } = await db
       .from("business_profiles")
@@ -227,7 +280,11 @@ export async function saveHeard(
 
     const metadata = (profile?.metadata as Record<string, unknown> | null) ?? {};
     const existing = (metadata.care_details as Heard | null) ?? null;
-    const merged = mergeHeard(existing, fresh);
+    // Hand values go on FIRST so they are already marked edited by the time the
+    // model read is merged. Reversing these two would let the extraction write
+    // the field in the same request that a person was correcting it.
+    const withManual = manual ? applyManual(existing, manual) : existing;
+    const merged = fresh ? mergeHeard(withManual, fresh) : withManual!;
 
     const { error } = await db
       .from("business_profiles")

@@ -165,14 +165,9 @@ export default function HireCaregiversBoard() {
   }, []);
 
   useEffect(() => {
-    // Skip API call for "All Universities" — we show demos instead, no need to
-    // fetch real students just to ignore them.
-    if (universityId) {
-      fetchCandidates(universityId);
-    } else {
-      setCandidates([]);
-      setLoading(false);
-    }
+    // Always fetch real candidates. When no universityId is selected, fetch all.
+    // Demo profiles only shown as fallback when no real students exist.
+    fetchCandidates(universityId);
   }, [universityId, fetchCandidates]);
 
   const selectedUni = universities.find((u) => u.id === universityId);
@@ -182,13 +177,9 @@ export default function HireCaregiversBoard() {
       ? { lat: selectedUni.lat, lng: selectedUni.lng }
       : null;
 
-  // Demo era: provider isn't near a partner campus, or their catchment has no
-  // live students yet. Either way show the curated samples so the board stays
-  // full (the user requested demo fallback when not in a catchment).
-  // Show demo profiles when "All Universities" is selected (the default) or when
-  // the selected university has no real students yet. This ensures the map works
-  // (demos have lat/lng) and showcases the caliber of students on the platform.
-  const isDemoEra = !loading && (!universityId || candidates.length === 0);
+  // Only show demo profiles as a fallback when there are no real approved
+  // students at all. "All Universities" now shows all real students.
+  const isDemoEra = !loading && candidates.length === 0;
   const baseCards = isDemoEra ? SAMPLE_CANDIDATES : candidates;
   const filtered = baseCards.filter((c) => matchesAvailability(c, availability));
   const availLabel = AVAIL_OPTIONS.find((o) => o.value === availability)?.label ?? null;

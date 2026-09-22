@@ -171,18 +171,9 @@ export default function ManagedAdsNudgeCard({
               trackProviderEvent(providerSlug, "ads_touchpoint_dismissed", {
                 touchpoint: source,
                 provider_name: providerName,
-              });
-              // Also the funnel's own drop-out stage. ads_touchpoint_dismissed
-              // is stored and queryable but sits outside the managed-ads
-              // funnel, so without this the admin view shows shown → clicked
-              // with no way to see anyone turning the offer down. That is the
-              // exact signal the old strip's 164-saw / 9-clicked / 2-dismissed
-              // numbers turned on: whether people are refusing the offer or
-              // never registering it. `source` separates a nudge dismissal
-              // from the plan chooser's on /provider/boost.
-              trackProviderEvent(providerSlug, "managed_ads_not_now", {
-                provider_name: providerName,
-                source,
+                // The funnel splits every stage by variant off this key. Without
+                // it each dismissal buckets as "unassigned" and the dismissed
+                // column of the per-variant table is wrong.
                 managed_ads_variant: assignedVariant ?? "unassigned",
               });
             }

@@ -213,6 +213,7 @@ interface ManagedAdsFunnel {
   plans_viewed: number;
   plan_selected: number;
   not_now: number;
+  dismissed: number;
   checkout_started: number;
   checkout_created: number;
   checkout_failed: number;
@@ -2876,6 +2877,13 @@ function ManagedAdsVariantsCard({
       prior: pf?.clicked ?? null,
       prev: f.shown,
       tooltip: "Distinct providers who clicked toward the managed-ads launch plan.",
+    },
+    {
+      label: "Dismissed",
+      value: f.dismissed,
+      prior: pf?.dismissed ?? null,
+      prev: f.shown,
+      tooltip: "Distinct providers who closed an in-product ads nudge with Not now. An awareness-stage refusal, separate from Not Now below, which is about a paid plan choice.",
     },
     {
       label: "Viewed Offer",

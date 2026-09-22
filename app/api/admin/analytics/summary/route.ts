@@ -206,6 +206,7 @@ type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 // Managed Ads pitch A/B funnel. Distinct providers per stage:
 //   shown      → managed_ads_pitch_viewed
 //   clicked    → managed_ads_cta_clicked
+//   dismissed  → ads_touchpoint_dismissed (closed the nudge, not a plan choice)
 //   viewed     → managed_ads_boost_viewed in apply/gate state
 //   requested  → managed_ads_requested
 //   results_viewed   → managed_ads_results_viewed
@@ -216,6 +217,7 @@ type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 type ManagedAdsFunnel = {
   shown: number;
   clicked: number;
+  dismissed: number;
   viewed: number;
   requested: number;
   results_viewed: number;
@@ -367,6 +369,7 @@ const EMPTY_CTA_FUNNEL_BY_VARIANT = (): CTAFunnelByVariant => ({
 const EMPTY_MANAGED_ADS_FUNNEL = (): ManagedAdsFunnel => ({
   shown: 0,
   clicked: 0,
+  dismissed: 0,
   viewed: 0,
   requested: 0,
   results_viewed: 0,
@@ -628,6 +631,7 @@ async function fetchWindow(
       "managed_ads_plans_viewed",
       "managed_ads_plan_selected",
       "managed_ads_not_now",
+      "ads_touchpoint_dismissed",
       "managed_ads_checkout_started",
       "managed_ads_checkout_created",
       "managed_ads_checkout_failed",
@@ -1368,6 +1372,7 @@ async function fetchWindow(
   const emptyManagedAdsStages = (): Record<keyof ManagedAdsFunnel, Set<string>> => ({
     shown: new Set(),
     clicked: new Set(),
+    dismissed: new Set(),
     viewed: new Set(),
     requested: new Set(),
     results_viewed: new Set(),
@@ -1435,6 +1440,10 @@ async function fetchWindow(
     let stage: keyof ManagedAdsFunnel | undefined;
     if (r.event_type === "managed_ads_pitch_viewed") stage = "shown";
     else if (r.event_type === "managed_ads_cta_clicked") stage = "clicked";
+    // Dismissing a nudge is an AWARENESS-stage fact, not a payment decision.
+    // It deliberately does not feed not_now, whose stated meaning is
+    // "dismissed a paid plan choice" — see the tooltip on that stage.
+    else if (r.event_type === "ads_touchpoint_dismissed") stage = "dismissed";
     else if (
       r.event_type === "managed_ads_boost_viewed" &&
       (r.metadata?.state === "apply" || r.metadata?.state === "gate")
@@ -1457,6 +1466,7 @@ async function fetchWindow(
   const managedAdsFunnel: ManagedAdsFunnel = {
     shown: managedAdsStageSets.shown.size,
     clicked: managedAdsStageSets.clicked.size,
+    dismissed: managedAdsStageSets.dismissed.size,
     viewed: managedAdsStageSets.viewed.size,
     requested: managedAdsStageSets.requested.size,
     results_viewed: managedAdsStageSets.results_viewed.size,
@@ -1471,6 +1481,7 @@ async function fetchWindow(
   const managedAdsSizesFor = (b: ManagedAdsVariantKey): ManagedAdsVariantRow => ({
     shown: managedAdsByVariantSets[b].shown.size,
     clicked: managedAdsByVariantSets[b].clicked.size,
+    dismissed: managedAdsByVariantSets[b].dismissed.size,
     viewed: managedAdsByVariantSets[b].viewed.size,
     requested: managedAdsByVariantSets[b].requested.size,
     results_viewed: managedAdsByVariantSets[b].results_viewed.size,

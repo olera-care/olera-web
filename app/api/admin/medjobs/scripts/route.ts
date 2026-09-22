@@ -28,8 +28,23 @@ export interface ScriptRow {
   emailSubject: string | null;
   emailBody: string | null;
   notes: string | null;
+  instructions: string | null;
+  videoUrl: string | null;
   position: number;
   updatedAt: string;
+}
+
+export interface SuggestionRow {
+  id: string;
+  scriptSlug: string | null;
+  scriptTitle: string | null;
+  kind: "improvement" | "new_step";
+  body: string;
+  status: "open" | "accepted" | "declined";
+  response: string | null;
+  raisedEmail: string | null;
+  raisedAt: string;
+  resolvedAt: string | null;
 }
 
 /** Long enough for the longest email we have, short enough to bound a write. */
@@ -75,12 +90,32 @@ export async function GET() {
         email_subject: s.emailSubject,
         email_body: s.emailBody,
         notes: s.notes,
+        instructions: s.instructions,
         position: s.position,
       })),
     );
     if (seedError) return NextResponse.json({ error: seedError.message }, { status: 500 });
     ({ data, error } = await read());
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Sections seeded before instructions existed have none. Fill them, but
+  // only where nobody has edited the section: somebody who clears the
+  // instructions deliberately must not find them back on the next read.
+  const blank = (data ?? []).filter((r) => !r.instructions && !r.updated_by);
+  if (blank.length > 0) {
+    const text = new Map(seedSections().map((s) => [s.slug, s.instructions]));
+    for (const r of blank) {
+      const fill = text.get(r.slug as string);
+      if (!fill) continue;
+      const { error: fillError } = await db
+        .from("medjobs_scripts")
+        .update({ instructions: fill })
+        .eq("slug", r.slug)
+        .is("updated_by", null);
+      if (fillError) return NextResponse.json({ error: fillError.message }, { status: 500 });
+      r.instructions = fill;
+    }
   }
 
   const rows: ScriptRow[] = (data ?? []).map((r) => ({
@@ -94,10 +129,34 @@ export async function GET() {
     emailSubject: r.email_subject,
     emailBody: r.email_body,
     notes: r.notes,
+    instructions: r.instructions,
+    videoUrl: r.video_url,
     position: r.position,
     updatedAt: r.updated_at,
   }));
-  return NextResponse.json({ rows });
+
+  const { data: sugg, error: suggError } = await db
+    .from("medjobs_script_suggestions")
+    .select("*")
+    .order("raised_at", { ascending: false })
+    .limit(200);
+  if (suggError) return NextResponse.json({ error: suggError.message }, { status: 500 });
+
+  const titleOf = new Map(rows.map((r) => [r.slug, r.title]));
+  const suggestions: SuggestionRow[] = (sugg ?? []).map((r) => ({
+    id: r.id,
+    scriptSlug: r.script_slug,
+    scriptTitle: r.script_slug ? titleOf.get(r.script_slug) ?? null : null,
+    kind: r.kind,
+    body: r.body,
+    status: r.status,
+    response: r.response,
+    raisedEmail: r.raised_email,
+    raisedAt: r.raised_at,
+    resolvedAt: r.resolved_at,
+  }));
+
+  return NextResponse.json({ rows, suggestions });
 }
 
 export async function PATCH(req: Request) {
@@ -125,6 +184,8 @@ export async function PATCH(req: Request) {
     ["emailSubject", "email_subject"],
     ["emailBody", "email_body"],
     ["notes", "notes"],
+    ["instructions", "instructions"],
+    ["videoUrl", "video_url"],
   ] as const) {
     if (field in body) patch[column] = clean(body[field]);
   }

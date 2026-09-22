@@ -25,6 +25,7 @@ export interface SeedSection {
   emailSubject: string | null;
   emailBody: string | null;
   notes: string | null;
+  instructions: string | null;
   position: number;
 }
 
@@ -44,7 +45,7 @@ const SECTION_ORDER: SectionKey[] = [
  * Written from the calls that worked, and meant to be edited afterwards —
  * these are a starting point, not the finished article.
  */
-const SITUATIONS: Omit<SeedSection, "kind" | "section" | "rungKey">[] = [
+const SITUATIONS: Omit<SeedSection, "kind" | "section" | "rungKey" | "instructions">[] = [
   {
     slug: "situation-front-desk",
     title: "Reaching the front desk",
@@ -258,6 +259,17 @@ is the reason the document is editable.
   },
 ];
 
+/** The rung's own explanation of itself, as one editable block. */
+function rungInstructions(rung: { what?: string; why?: string; steps?: string[] }): string {
+  const parts: string[] = [];
+  if (rung.what) parts.push(`WHAT THIS IS\n${rung.what}`);
+  if (rung.why) parts.push(`WHY\n${rung.why}`);
+  if (rung.steps?.length) {
+    parts.push(`WHAT TO DO\n${rung.steps.map((s, i) => `${i + 1}. ${s}`).join("\n")}`);
+  }
+  return parts.join("\n\n");
+}
+
 /** Every section the document should have, rungs first, in reading order. */
 export function seedSections(): SeedSection[] {
   const out: SeedSection[] = [];
@@ -280,13 +292,17 @@ export function seedSections(): SeedSection[] {
         emailSubject: rung.email?.subject ?? null,
         emailBody: rung.email?.body ?? null,
         notes: null,
+        // Everything the task screen used to print — what this is, why, and
+        // the numbered steps — moved here whole. The screen shows none of it
+        // now, so nothing may be dropped in the move.
+        instructions: rungInstructions(rung),
         position,
       });
     });
   }
 
   for (const s of SITUATIONS) {
-    out.push({ ...s, kind: "situation", section: null, rungKey: null });
+    out.push({ ...s, kind: "situation", section: null, rungKey: null, instructions: null });
   }
 
   return out;

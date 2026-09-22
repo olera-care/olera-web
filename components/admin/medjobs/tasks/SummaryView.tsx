@@ -27,7 +27,13 @@ import {
  * — or is found by a rung whose whole job is finding them, and a hand-typed
  * row would sit outside the count those rungs are measured on.
  */
-const ADD_BY_HAND = new Map<SectionKey, string>([["providers", "provider"]]);
+// Both sections the sweeps fill. A sweep is once per campus and the world
+// carries on afterwards: an agency somebody hears about on a call, an
+// advising office that did not exist when the sweep ran.
+const ADD_BY_HAND = new Map<SectionKey, string>([
+  ["providers", "provider"],
+  ["advisors", "advising office"],
+]);
 
 export default function SummaryView({
   university,

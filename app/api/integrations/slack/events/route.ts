@@ -3,7 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendSlackDirectMessage } from "@/lib/slack";
 import { ingestSlackEventEvidence, verifySlackRequest } from "@/lib/war-room/sources.server";
 import { captureFounderAnswer, findAskByThread } from "@/lib/war-room/founder-loop.server";
-import { answerFounderQuestion, classifyMessage } from "@/lib/war-room/conversation.server";
+import { answerFounderQuestion, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
 
 export const maxDuration = 30;
@@ -148,15 +148,43 @@ export async function POST(request: NextRequest) {
       const threadTs = payload.event.thread_ts;
       const addressed = threadTs ? await findAskByThread(db, threadTs) : null;
 
+      // Is an exchange still in progress? A message arriving moments after
+      // Cortex answered is the next turn of that conversation, not the answer
+      // to something a brief asked yesterday.
+      //
+      // This is what the lexical classifier cannot see, and tuning it would not
+      // help: on 2026-09-22 a two-word correction, "Aging in America", was
+      // genuinely not a question by any wording test, and got filed as his
+      // answer to an unrelated condition. What marked it as conversation was
+      // that Cortex had just spoken.
+      //
+      // A threaded reply outranks this. Replying in a brief's thread is an
+      // explicit statement of subject, and it should win over timing.
+      const openExchange = addressed ? null : await loadOpenExchange(db);
+
       // A question is not an answer. Filing one as evidence writes it into the
       // record attributed to the founder and hands it to the next scan, which
       // is worse than doing nothing.
-      if (classifyMessage(payload.event.text) === "question") {
-        const answer = await answerFounderQuestion(db, payload.event.text, addressed?.investigationId ?? null);
+      if (classifyMessage(payload.event.text) === "question" || openExchange) {
+        const answer = await answerFounderQuestion(
+          db,
+          payload.event.text,
+          addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
+          openExchange,
+        );
         if (dmTarget) {
           await sendSlackDirectMessage(dmTarget, answer.reply, { threadTs }).catch(() => null);
         }
-        return NextResponse.json({ ok: true, question: { answered: answer.answered } });
+        // Only a real answer continues the exchange. A failure to answer should
+        // not hold the conversation open and swallow the next thing he says.
+        if (answer.answered) {
+          await recordExchange(db, {
+            question: payload.event.text.slice(0, 500),
+            answer: answer.reply.slice(0, 1_500),
+            focusInvestigationId: addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
+          });
+        }
+        return NextResponse.json({ ok: true, question: { answered: answer.answered, continued: Boolean(openExchange) } });
       }
 
       const captured = await captureFounderAnswer(db, payload.event.text, addressed);

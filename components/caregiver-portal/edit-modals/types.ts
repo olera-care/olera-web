@@ -9,7 +9,6 @@ export type CaregiverSectionId =
   | "scenarios"
   | "background"
   | "certifications"
-  | "skills"
   | "resume";
 
 export interface StudentProfile {
@@ -36,7 +35,7 @@ export interface BaseEditModalProps {
   onGuidedBack?: () => void;
 }
 
-/** Section order used for guided onboarding flow - all 8 sections */
+/** Section order used for guided onboarding flow */
 export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
   "overview",
   "verification",
@@ -46,7 +45,6 @@ export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
   "scenarios",
   "background",
   "certifications",
-  "skills",
   "resume",
 ];
 
@@ -60,6 +58,5 @@ export const SECTION_LABELS: Record<CaregiverSectionId, string> = {
   scenarios: "Screening questions",
   background: "Experience",
   certifications: "Certifications",
-  skills: "Skills",
   resume: "Resume & LinkedIn",
 };

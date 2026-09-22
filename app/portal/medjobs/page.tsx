@@ -23,7 +23,6 @@ import EditWhyModal from "@/components/caregiver-portal/edit-modals/EditWhyModal
 import EditScenarioModal from "@/components/caregiver-portal/edit-modals/EditScenarioModal";
 import EditBackgroundModal from "@/components/caregiver-portal/edit-modals/EditBackgroundModal";
 import EditResumeModal from "@/components/caregiver-portal/edit-modals/EditResumeModal";
-import EditSkillsModal from "@/components/caregiver-portal/edit-modals/EditSkillsModal";
 import EditCertificationsModal from "@/components/caregiver-portal/edit-modals/EditCertificationsModal";
 import {
   ScheduleCard,
@@ -32,7 +31,6 @@ import {
   ScenariosCard,
   BackgroundCard,
   CertificationsCard,
-  SkillsCard,
   ResumeCard,
 } from "@/components/caregiver-portal/cards";
 import GoLiveCelebrationModal from "@/components/caregiver-portal/GoLiveCelebrationModal";
@@ -1584,7 +1582,6 @@ function StudentPortalContent({
             <ScenariosCard meta={meta} onEdit={() => setEditingSection("scenarios")} />
             <BackgroundCard meta={meta} onEdit={() => setEditingSection("background")} />
             <CertificationsCard meta={meta} onEdit={() => setEditingSection("certifications")} />
-            <SkillsCard meta={meta} onEdit={() => setEditingSection("skills")} />
             <ResumeCard meta={meta} onEdit={() => setEditingSection("resume")} />
 
             {/* Verification Card — Final step to go live */}
@@ -2042,7 +2039,6 @@ function StudentPortalContent({
       {editingSection === "scenarios" && <EditScenarioModal {...modalProps} />}
       {editingSection === "background" && <EditBackgroundModal {...modalProps} />}
       {editingSection === "certifications" && <EditCertificationsModal {...modalProps} />}
-      {editingSection === "skills" && <EditSkillsModal {...modalProps} />}
       {editingSection === "resume" && <EditResumeModal {...modalProps} />}
 
       {/* Go Live Review Modal */}

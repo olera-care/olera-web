@@ -41,7 +41,6 @@ export type SectionId =
   | "scenarios"
   | "background"
   | "certifications"
-  | "skills"
   | "resume";
 
 export interface CompletenessSection {
@@ -143,13 +142,6 @@ export function getSectionCompleteness(
   const certsDone = certItems.filter((i) => i.done).length;
   const certsPercent = Math.round((certsDone / certItems.length) * 100);
 
-  // 7c. Skills
-  const skillsItems = [
-    { key: "skills", label: "Skills", done: (meta.skills?.length ?? 0) >= 1 },
-  ];
-  const skillsDone = skillsItems.filter((i) => i.done).length;
-  const skillsPercent = Math.round((skillsDone / skillsItems.length) * 100);
-
   // 8. Resume & LinkedIn
   const resumeItems = [
     { key: "resume_linkedin", label: "Resume or LinkedIn", done: !!(meta.resume_url || meta.linkedin_url) },
@@ -165,15 +157,31 @@ export function getSectionCompleteness(
     { id: "scenarios", label: "Screening Questions", percent: scenariosPercent, done: scenariosPercent === 100, items: scenarioItems },
     { id: "background", label: "Experience", percent: backgroundPercent, done: backgroundPercent === 100, items: backgroundItems },
     { id: "certifications", label: "Certifications", percent: certsPercent, done: certsPercent === 100, items: certItems },
-    { id: "skills", label: "Skills", percent: skillsPercent, done: skillsPercent === 100, items: skillsItems },
     { id: "resume", label: "Resume & LinkedIn", percent: resumePercent, done: resumePercent === 100, items: resumeItems },
     { id: "verification", label: "Verification", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },
   ];
 }
 
 /**
+ * Section weights for overall completeness calculation.
+ * Total adds up to 100%. Resume and Verification are weighted higher
+ * as they are most important for provider visibility.
+ */
+const SECTION_WEIGHTS: Record<SectionId, number> = {
+  overview: 10,
+  schedule: 10,
+  availability: 10,
+  why: 10,
+  scenarios: 10,
+  background: 10,
+  certifications: 10,
+  resume: 15,        // +5% (was 10%)
+  verification: 15,  // +5% (was 10%)
+};
+
+/**
  * Calculate the overall completeness percentage (0-100).
- * Uses section-weighted average where each section counts equally.
+ * Uses weighted sections where Resume and Verification count more.
  *
  * @param meta - StudentMetadata from the business_profiles.metadata JSONB
  * @param hasPhoto - Whether the profile has an image_url set
@@ -195,8 +203,15 @@ export function calculateCompleteness(
     hasLocation: !!(profileFields?.city && profileFields?.state),
   };
   const sections = getSectionCompleteness(meta, hasPhoto, info);
-  const totalPercent = sections.reduce((sum, s) => sum + s.percent, 0);
-  return Math.round(totalPercent / sections.length);
+
+  // Weighted calculation: section's contribution = (section% / 100) * weight
+  let totalWeighted = 0;
+  for (const section of sections) {
+    const weight = SECTION_WEIGHTS[section.id] ?? 10;
+    totalWeighted += (section.percent / 100) * weight;
+  }
+
+  return Math.round(totalWeighted);
 }
 
 /**

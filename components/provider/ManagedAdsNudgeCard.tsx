@@ -26,9 +26,9 @@ import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-manag
  * So the grant story is one accent line, not a paragraph, and the headline is
  * what the provider GETS rather than who we are. The full version lives on
  * /provider/boost, which is where the button goes. Type is sized like a message
- * (17px headline, 15px body, near-black) rather than like fine print, and there
- * is no border: a hairline and air, so it reads as something said to you rather
- * than a fourth box in a column of boxes.
+ * (19px headline, 15px body, near-black) rather than like fine print, and it
+ * sits on plain ground with air around it, so it reads as something said to you
+ * rather than a fourth box in a column of boxes.
  *
  * What it deliberately does NOT do: name ad platforms. A provider who has just
  * answered a family's question is not in the market for a channel strategy, and
@@ -64,7 +64,34 @@ export default function ManagedAdsNudgeCard({
 }) {
   const assignedVariant = useManagedAdsVariant(providerSlug);
   const firedView = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const scrolledIntoView = useRef(false);
   const resolved = hasEverRequested !== null && hasEverRequested !== undefined;
+
+  // Being in the right place is not the same as being seen. The nudge renders
+  // under the section that was just saved, and if that section happens to end
+  // near the bottom of the viewport the whole thing lands below the fold — the
+  // provider saves, nothing appears, and they scroll away. So when it mounts
+  // off-screen, bring it into view. `block: "center"` rather than "nearest",
+  // because nearest parks it flush against the bottom edge where it is still
+  // easy to miss. When it is already comfortably visible this does nothing,
+  // which is the common case on the Q&A and connections pages.
+  useEffect(() => {
+    if (!resolved || scrolledIntoView.current) return;
+    const el = rootRef.current;
+    if (!el || typeof window === "undefined") return;
+    scrolledIntoView.current = true;
+
+    // One frame of slack: on the dashboard the edit modal has just closed and
+    // may still be releasing a body scroll lock. Measuring into that races it.
+    const frame = requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top >= 0 && rect.bottom <= window.innerHeight) return; // already seen
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [resolved]);
 
   useEffect(() => {
     if (!resolved) return; // don't count an impression for a card not yet shown
@@ -88,7 +115,8 @@ export default function ManagedAdsNudgeCard({
 
   return (
     <div
-      className="px-1"
+      ref={rootRef}
+      className="px-1 scroll-mt-24"
       style={{ animation: "card-enter 0.25s ease-out both" }}
     >
       <h3 className="text-[19px] font-semibold leading-snug tracking-[-0.01em] text-gray-900">

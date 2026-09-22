@@ -164,15 +164,45 @@ export async function recordFounderAsk(
   db: SupabaseClient,
   question: FounderQuestion,
   runId: string,
+  slackTs?: string | null,
 ): Promise<boolean> {
   const { error } = await db.from("war_room_investigation_events").insert({
     investigation_id: question.investigationId,
     discovery_run_id: runId,
     event_type: "founder_asked",
     actor: "war-room",
-    details: { question: question.question, title: question.title },
+    // `slack_ts` is the message this question was asked in. A reply typed into
+    // that message's thread resolves to this exact investigation, instead of
+    // falling back to whatever was asked most recently -- which is wrong the
+    // moment a newer brief lands between the question and the answer.
+    details: { question: question.question, title: question.title, slack_ts: slackTs ?? null },
   });
   return !error;
+}
+
+/**
+ * The investigation a threaded reply belongs to.
+ *
+ * Returns null when the thread is not one of ours, which is the caller's signal
+ * to fall back to the most recent ask rather than guess.
+ */
+export async function findAskByThread(
+  db: SupabaseClient,
+  threadTs: string,
+): Promise<{ investigationId: string; question: string | null; title: string | null } | null> {
+  const { data, error } = await db.from("war_room_investigation_events")
+    .select("investigation_id, details")
+    .eq("event_type", "founder_asked")
+    .eq("details->>slack_ts", threadTs)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (error || !data?.length) return null;
+  const row = data[0] as { investigation_id: string; details: Record<string, unknown> | null };
+  return {
+    investigationId: row.investigation_id,
+    question: typeof row.details?.question === "string" ? row.details.question : null,
+    title: typeof row.details?.title === "string" ? row.details.title : null,
+  };
 }
 
 /**
@@ -197,9 +227,22 @@ export async function recordFounderAsk(
 export async function captureFounderAnswer(
   db: SupabaseClient,
   text: string,
-): Promise<{ captured: boolean; investigationId?: string; reason?: string }> {
+  target?: { investigationId: string; question: string | null; title: string | null } | null,
+): Promise<{ captured: boolean; investigationId?: string; title?: string | null; reason?: string }> {
   const body = text.trim();
   if (body.length < 2) return { captured: false, reason: "empty reply" };
+
+  // An explicitly addressed reply, from a Slack thread. No guessing required.
+  if (target) {
+    const { error: targetError } = await db.from("war_room_investigation_events").insert({
+      investigation_id: target.investigationId,
+      event_type: "founder_answered",
+      actor: "founder",
+      details: { answer: body.slice(0, 2_000), question: target.question, answered_at: new Date().toISOString() },
+    });
+    if (targetError) return { captured: false, reason: targetError.message };
+    return { captured: true, investigationId: target.investigationId, title: target.title };
+  }
 
   const { data, error } = await db.from("war_room_investigation_events")
     .select("id, investigation_id, event_type, details, created_at")
@@ -222,7 +265,8 @@ export async function captureFounderAnswer(
     details: { answer: body.slice(0, 2_000), question: askedQuestion, answered_at: new Date().toISOString() },
   });
   if (insertError) return { captured: false, reason: insertError.message };
-  return { captured: true, investigationId: newest.investigation_id };
+  const title = typeof newest.details?.title === "string" ? newest.details.title : null;
+  return { captured: true, investigationId: newest.investigation_id, title };
 }
 
 /**

@@ -73,8 +73,8 @@ export async function sendSlackAlert(
 export async function sendSlackDirectMessage(
   userId: string,
   text: string,
-  options?: { timeoutMs?: number },
-): Promise<{ success: boolean; error?: string }> {
+  options?: { timeoutMs?: number; threadTs?: string },
+): Promise<{ success: boolean; error?: string; ts?: string }> {
   const token = process.env.SLACK_BOT_TOKEN;
   if (!token) return { success: false, error: "SLACK_BOT_TOKEN not configured" };
 
@@ -87,20 +87,27 @@ export async function sendSlackDirectMessage(
       },
       // Posting to a user id opens the IM automatically; conversations.open and
       // the im:write scope are not required.
-      body: JSON.stringify({ channel: userId, text }),
+      // `ts` comes back on success and is the handle a threaded reply carries,
+      // which is how an answer can be tied to the exact question that asked it
+      // rather than to whatever was asked most recently.
+      body: JSON.stringify({
+        channel: userId,
+        text,
+        ...(options?.threadTs ? { thread_ts: options.threadTs } : {}),
+      }),
       signal: AbortSignal.timeout(Math.max(1, Math.min(15_000, options?.timeoutMs ?? 10_000))),
     });
 
     // Slack answers 200 OK for application errors too, carrying ok:false and an
     // error string (missing_scope, channel_not_found, ...). Checking res.ok
     // alone reports a scope failure as a successful send.
-    const payload = (await res.json()) as { ok?: boolean; error?: string };
+    const payload = (await res.json()) as { ok?: boolean; error?: string; ts?: string };
     if (!payload.ok) {
       const error = payload.error ?? `Slack HTTP ${res.status}`;
       console.error("[slack] chat.postMessage failed:", error);
       return { success: false, error };
     }
-    return { success: true };
+    return { success: true, ts: payload.ts };
   } catch (err) {
     console.error("[slack] DM send failed:", err);
     return { success: false, error: String(err) };

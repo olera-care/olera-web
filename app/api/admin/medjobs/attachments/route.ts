@@ -35,6 +35,10 @@ const ALLOWED = new Set([
 /** Long enough to open and read, short enough not to be a shareable link. */
 const SIGNED_FOR = 60 * 60;
 
+export type RecordKind = "outreach" | "student" | "jobboard";
+
+const KINDS = new Set<RecordKind>(["outreach", "student", "jobboard"]);
+
 export interface AttachmentRow {
   id: string;
   taskId: string | null;
@@ -53,11 +57,45 @@ export interface AttachmentRow {
  * The original filename is kept on the row, not in the path: a name typed by
  * somebody else is not something to build a path out of.
  */
-const keyFor = (outreachId: string, filename: string) => {
+const keyFor = (recordId: string, filename: string) => {
   const dot = filename.lastIndexOf(".");
   const ext = dot > 0 ? filename.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "";
-  return `${outreachId}/${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
+  return `${recordId}/${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
 };
+
+/**
+ * Whether the record exists, and its campus where the server can know it.
+ *
+ * A student's campus is not on their profile — the board derives it by
+ * matching the application's metadata against campus slugs — so rather than
+ * duplicate that here or take it on trust from the uploader, a student's
+ * file is stored without one. campus_id is a cleanup convenience; nothing
+ * reads it for a student.
+ */
+async function resolveRecord(
+  db: ReturnType<typeof getServiceClient>,
+  kind: RecordKind,
+  id: string,
+): Promise<{ found: boolean; campusId: string | null }> {
+  if (kind === "outreach") {
+    const { data } = await db
+      .from("student_outreach")
+      .select("campus_id")
+      .eq("id", id)
+      .maybeSingle();
+    return { found: Boolean(data), campusId: data?.campus_id ?? null };
+  }
+  if (kind === "jobboard") {
+    const { data } = await db
+      .from("campus_channels")
+      .select("campus_id")
+      .eq("id", id)
+      .maybeSingle();
+    return { found: Boolean(data), campusId: data?.campus_id ?? null };
+  }
+  const { data } = await db.from("business_profiles").select("id").eq("id", id).maybeSingle();
+  return { found: Boolean(data), campusId: null };
+}
 
 async function guard() {
   const user = await getAuthUser();
@@ -72,13 +110,18 @@ export async function GET(req: Request) {
   if (g.error) return g.error;
   const { db } = g;
 
-  const outreachId = new URL(req.url).searchParams.get("outreachId");
-  if (!outreachId) return NextResponse.json({ error: "Missing outreachId" }, { status: 400 });
+  const params = new URL(req.url).searchParams;
+  const recordId = params.get("recordId");
+  const kind = params.get("recordKind") as RecordKind | null;
+  if (!recordId || !kind || !KINDS.has(kind)) {
+    return NextResponse.json({ error: "Missing the record" }, { status: 400 });
+  }
 
   const { data, error } = await db
     .from("medjobs_attachments")
     .select("*")
-    .eq("outreach_id", outreachId)
+    .eq("record_kind", kind)
+    .eq("record_id", recordId)
     .order("uploaded_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -119,14 +162,15 @@ export async function POST(req: Request) {
   }
 
   const file = form.get("file");
-  const outreachId = String(form.get("outreachId") ?? "").trim();
+  const recordId = String(form.get("recordId") ?? "").trim();
+  const kind = String(form.get("recordKind") ?? "").trim() as RecordKind;
   const taskIdRaw = String(form.get("taskId") ?? "").trim();
   const caption = String(form.get("caption") ?? "").trim().slice(0, 500) || null;
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file" }, { status: 400 });
   }
-  if (!outreachId) {
+  if (!recordId || !KINDS.has(kind)) {
     return NextResponse.json({ error: "Missing the record" }, { status: 400 });
   }
   if (!ALLOWED.has(file.type)) {
@@ -141,19 +185,21 @@ export async function POST(req: Request) {
 
   // The record decides the campus. Taking it from the request would let a
   // file be filed against a campus its record does not belong to.
-  const { data: record, error: recordError } = await db
-    .from("student_outreach")
-    .select("id, campus_id")
-    .eq("id", outreachId)
-    .maybeSingle();
-  if (recordError) return NextResponse.json({ error: recordError.message }, { status: 500 });
-  if (!record) return NextResponse.json({ error: "No such record" }, { status: 404 });
+  //
+  // Which table to ask depends on the kind, because only two of the four
+  // sections are student_outreach rows. A job board is a campus_channels row
+  // and carries its campus directly; a student has no campus of their own —
+  // they belong to the university their application named, which the board
+  // knows and the profile does not, so that one is taken on trust from the
+  // task board's own view of the record.
+  const { found, campusId } = await resolveRecord(db, kind, recordId);
+  if (!found) return NextResponse.json({ error: "No such record" }, { status: 404 });
 
   // A synthetic task id — the sweeps have one — is not a row, so it is not
   // stored. The file still lands on the record.
   const taskId = /^[0-9a-f-]{36}$/i.test(taskIdRaw) ? taskIdRaw : null;
 
-  const path = keyFor(outreachId, file.name);
+  const path = keyFor(recordId, file.name);
   const { error: uploadError } = await db.storage
     .from(BUCKET)
     .upload(path, file, { contentType: file.type, upsert: false });
@@ -164,9 +210,13 @@ export async function POST(req: Request) {
   const { data: row, error } = await db
     .from("medjobs_attachments")
     .insert({
-      outreach_id: outreachId,
+      record_kind: kind,
+      record_id: recordId,
+      // Kept in step with record_id by a CHECK, and kept so deleting a
+      // provider still takes its files with it.
+      outreach_id: kind === "outreach" ? recordId : null,
       task_id: taskId,
-      campus_id: record.campus_id,
+      campus_id: campusId,
       path,
       filename: file.name.slice(0, 260),
       mime: file.type,

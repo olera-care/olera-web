@@ -9,6 +9,7 @@ import {
   dueLabel,
   formatPhone,
   SWEEP_PREFIX,
+  attachmentKind,
   isCheck,
   isReady,
   longDate,
@@ -290,13 +291,6 @@ export default function RecordView({
         ))}
       </Band>
       <SystemBand record={record} />
-      {/* Everything on the record, whichever task it arrived with. A sweep's
-          synthetic id is not a record, so it gets no files band. */}
-      {!record.id.startsWith(SWEEP_PREFIX) && (
-        <div className="mt-4 border-t border-gray-100 pt-3">
-          <Collateral outreachId={record.id} label="Files on this record" onLoaded={setFiles} />
-        </div>
-      )}
       <Band label="History">
         {history.map((t) => (
           <AnyRow
@@ -324,6 +318,19 @@ export default function RecordView({
             </div>
           ))}
         </>
+      )}
+
+      {/* Last on the page, under everything the record still has to do. A
+          sweep's synthetic id is not a record, so it gets no files band. */}
+      {!record.id.startsWith(SWEEP_PREFIX) && (
+        <div className="mt-5 border-t border-gray-100 pt-3">
+          <Collateral
+            recordId={record.id}
+            recordKind={attachmentKind(record.section)}
+            label="Files on this record"
+            onLoaded={setFiles}
+          />
+        </div>
       )}
     </div>
   );

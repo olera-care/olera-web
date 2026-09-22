@@ -645,7 +645,7 @@ export default function EditVerificationModal({
         </div>
 
         {/* Optional Documents Section */}
-        <div className="border-t border-gray-100 pt-5 pb-4 px-2">
+        <div className="border-t border-gray-100 pt-5 pb-8 px-2">
           <button
             type="button"
             onClick={() => setShowDocuments(!showDocuments)}

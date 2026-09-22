@@ -265,7 +265,7 @@ export default function EditResumeModal({
         />
       }
     >
-      <div className="space-y-5 py-2">
+      <div className="space-y-5 pt-2 pb-8">
         {/* Resume Upload - streamlined */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -1103,6 +1103,12 @@ function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
       status: proposal.status,
       title: proposal.title,
       outcomeStatus: proposal.outcomeStatus,
+      // Kept deliberately. This is the only field that says WHY something was
+      // turned down, and dropping it is how a rejected idea comes back wearing
+      // a new title. Measured at seven tokens across the whole memory, so the
+      // saving from cutting it is nil and the cost of cutting it is repeating
+      // a decision the founder already made.
+      rejectionNote: proposal.rejectionNote,
     })),
     investigationMemory: operatingPack.investigationMemory.map((investigation) => ({
       fingerprint: investigation.fingerprint,
@@ -1155,6 +1161,9 @@ function draftingContextFor(
       status: proposal.status,
       title: proposal.title,
       outcomeStatus: proposal.outcomeStatus,
+      // See sweepContextFor: seven tokens, and the difference between
+      // remembering a rejection and repeating it.
+      rejectionNote: proposal.rejectionNote,
     })),
     // Every other open condition as one line, so a brief can say how this one
     // relates to the rest without carrying all of them.

@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { LADDERS, rungAt, type ContactField, type LadderInput } from "@/lib/medjobs/ladders";
+import {
+  LADDERS,
+  rungAt,
+  type ContactField,
+  type LadderInput,
+  type SectionKey,
+} from "@/lib/medjobs/ladders";
 import Collateral from "./Collateral";
 import { ContactFields } from "./RecordView";
 import {
@@ -156,7 +162,7 @@ export default function TaskView({
   // reaching students get the audience the PDF is written for.
   const flyer = `${typeof window === "undefined" ? "" : window.location.origin}/api/medjobs/program-pdf?university=${
     encodeURIComponent(universitySlug)
-  }&audience=${record.section === "students" ? "student" : "provider"}`;
+  }&audience=${flyerAudience(record.section)}`;
 
   const ctx: Record<string, string> = {
     university: universityName,
@@ -716,6 +722,21 @@ export default function TaskView({
  * Served through the guarded SOP route by key, never as a public URL: these
  * are internal, and the route is the one place that decides who sees them.
  */
+/**
+ * Which flyer a section sends.
+ *
+ * An advising office is not being sold anything and is not the employer, so
+ * the agency brochure would be answering questions they never asked. They get
+ * the same programme described as the student's opportunity. Everything that
+ * is neither a student nor an advising office gets the provider brochure,
+ * which is what it was written for.
+ */
+function flyerAudience(section: SectionKey): "student" | "advisor" | "provider" {
+  if (section === "students") return "student";
+  if (section === "advisors") return "advisor";
+  return "provider";
+}
+
 /** The fields a found record carries, in the order the record shows them. */
 const FOUND_FIELDS: Array<{ key: keyof FoundRecord; label: string }> = [
   { key: "contact", label: "Primary contact" },

@@ -324,11 +324,11 @@ export function ProgramPdfTemplate({
         <Band right={uni} />
 
         <View style={styles.body}>
-          <Text style={styles.eyebrow}>FOR HOME CARE AGENCIES</Text>
+          <Text style={styles.eyebrow}>{config.eyebrow ?? "FOR HOME CARE AGENCIES"}</Text>
           <Text style={styles.h1}>{config.heroHeadline}</Text>
           <Text style={styles.heroSub}>{config.heroSubhead}</Text>
 
-          <SectionHead>WHY AGENCIES PARTICIPATE</SectionHead>
+          <SectionHead>{config.benefitsHeading ?? "WHY AGENCIES PARTICIPATE"}</SectionHead>
           {[0, 2].map((i) => (
             <View style={styles.cardRow} key={i}>
               <View style={styles.card}>

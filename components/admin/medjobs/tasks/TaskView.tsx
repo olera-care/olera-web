@@ -279,29 +279,35 @@ export default function TaskView({
             </p>
           )}
 
+          {/* The step's instructions are not printed here any more. They live
+              in the scripts document with the call script, the email copy and
+              the walkthrough video, where a manager can improve them without
+              waiting for a deploy — so the screen points at them rather than
+              holding a copy that goes stale. */}
           {showHelp && (
             <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3.5 py-3">
-              <Help label="What this is">{rung.what}</Help>
-              <Help label="Why">{rung.why}</Help>
-              <Help label="What to do">
-                <ol className="list-decimal space-y-0.5 pl-4">
-                  {rung.steps.map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ol>
-              </Help>
               <Help label={`Goal for ${ladder.label.toLowerCase()}`}>{ladder.goal}</Help>
+              {scriptHref && (
+                <p className="mt-2.5 border-t border-gray-200 pt-2.5 text-[12.5px]">
+                  <a
+                    href={scriptHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-primary-700 underline hover:no-underline"
+                  >
+                    Review instructions on this step \u2197
+                  </a>
+                  <span className="mt-0.5 block text-[12px] text-gray-500">
+                    What to do and why, the call script, the email copy and the walkthrough
+                    video. Anything wrong or missing, suggest a change from that page.
+                  </span>
+                </p>
+              )}
               <p className="mt-2.5 border-t border-gray-200 pt-2.5 text-[12px] text-gray-500">
                 Still not sure? Message the team in Slack and someone will pick it up.
               </p>
             </div>
           )}
-
-          <ol className="mt-2.5 list-decimal space-y-0.5 pl-5 text-[13.5px] text-gray-700">
-            {rung.steps.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
 
           {record.flaggedOn && (
             <p className="mt-2 rounded-md border border-warning-200 bg-warning-50 px-3 py-2 text-[12.5px] leading-snug text-warning-800">

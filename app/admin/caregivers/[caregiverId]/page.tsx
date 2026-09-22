@@ -6,6 +6,12 @@ import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import type { StudentMetadata } from "@/lib/types";
 
+// Helper to check if a string looks like a storage path vs external URL
+function isStoragePath(value: string): boolean {
+  // Storage paths look like "uuid/filename" or similar, not full URLs
+  return !value.startsWith("http://") && !value.startsWith("https://");
+}
+
 interface ConnectionRow {
   id: string;
   type: string;
@@ -85,6 +91,38 @@ export default function AdminStudentDetailPage() {
   const [invitations, setInvitations] = useState<InvitationRow[]>([]);
   const [interviews, setInterviews] = useState<InterviewRow[]>([]);
   const [connectionCount, setConnectionCount] = useState(0);
+  const [viewingDoc, setViewingDoc] = useState<string | null>(null);
+
+  // View a document from private storage by fetching a signed URL
+  async function viewDocument(path: string, docType: string) {
+    if (!path) return;
+    setViewingDoc(docType);
+
+    // Open window synchronously to avoid popup blocker
+    const newWindow = window.open("about:blank", "_blank");
+
+    try {
+      const res = await fetch("/api/admin/medjobs/view-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      const data = await res.json();
+      if (data.url && newWindow) {
+        newWindow.location.href = data.url;
+      } else if (newWindow) {
+        newWindow.close();
+        alert(data.error || "Failed to load document");
+      } else {
+        alert(data.error || "Popup blocked - please allow popups for this site");
+      }
+    } catch {
+      if (newWindow) newWindow.close();
+      alert("Failed to load document");
+    } finally {
+      setViewingDoc(null);
+    }
+  }
 
   const fetchStudent = useCallback(async () => {
     try {
@@ -116,7 +154,6 @@ export default function AdminStudentDetailPage() {
         why_caregiving: meta.why_caregiving || "",
         resume_url: meta.resume_url || "",
         video_intro_url: meta.video_intro_url || "",
-        linkedin_url: meta.linkedin_url || "",
       };
       setFormData(initial);
       setOriginalData(initial);
@@ -673,21 +710,32 @@ export default function AdminStudentDetailPage() {
               <label className="block text-sm font-medium text-gray-700">Resume URL</label>
               <div className="flex items-center gap-2">
                 <input
-                  type="url"
+                  type="text"
                   value={(formData.resume_url as string) || ""}
                   onChange={(e) => updateField("resume_url", e.target.value)}
-                  placeholder="https://..."
+                  placeholder="https://... or storage path"
                   className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 />
                 {typeof formData.resume_url === "string" && formData.resume_url && (
-                  <a
-                    href={formData.resume_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    View →
-                  </a>
+                  isStoragePath(formData.resume_url) ? (
+                    <button
+                      type="button"
+                      onClick={() => viewDocument(formData.resume_url as string, "resume")}
+                      disabled={viewingDoc === "resume"}
+                      className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
+                    >
+                      {viewingDoc === "resume" ? "..." : "View →"}
+                    </button>
+                  ) : (
+                    <a
+                      href={formData.resume_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      View →
+                    </a>
+                  )
                 )}
               </div>
             </div>
@@ -714,47 +762,75 @@ export default function AdminStudentDetailPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">LinkedIn URL</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={(formData.linkedin_url as string) || ""}
-                  onChange={(e) => updateField("linkedin_url", e.target.value)}
-                  placeholder="https://linkedin.com/in/..."
-                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-                {typeof formData.linkedin_url === "string" && formData.linkedin_url && (
-                  <a
-                    href={formData.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    View →
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500">Driver&apos;s License</p>
+              <label className="block text-sm font-medium text-gray-700">Driver&apos;s License</label>
               {meta.drivers_license_url ? (
-                <p className="text-sm text-gray-600">
-                  Uploaded {meta.drivers_license_uploaded_at ? new Date(meta.drivers_license_uploaded_at).toLocaleDateString() : ""}
-                  {meta.drivers_license_expiration && ` · Expires ${meta.drivers_license_expiration}`}
-                </p>
+                <div className="flex items-center justify-between gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-primary-800">Uploaded</p>
+                      {meta.drivers_license_uploaded_at && (
+                        <p className="text-xs text-primary-600 truncate">
+                          {new Date(meta.drivers_license_uploaded_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {meta.drivers_license_expiration && ` · Expires ${meta.drivers_license_expiration}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => viewDocument(meta.drivers_license_url!, "license")}
+                    disabled={viewingDoc === "license"}
+                    className="text-xs font-medium text-primary-600 hover:text-primary-700 px-2 py-1 rounded hover:bg-primary-100 transition-colors disabled:opacity-50"
+                  >
+                    {viewingDoc === "license" ? "..." : "View"}
+                  </button>
+                </div>
               ) : (
-                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+                <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm font-medium text-amber-700">Not uploaded</p>
+                </div>
               )}
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-500">Car Insurance</p>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Car Insurance</label>
               {meta.car_insurance_url ? (
-                <p className="text-sm text-gray-600">
-                  Uploaded {meta.car_insurance_uploaded_at ? new Date(meta.car_insurance_uploaded_at).toLocaleDateString() : ""}
-                  {meta.car_insurance_expiration && ` · Expires ${meta.car_insurance_expiration}`}
-                </p>
+                <div className="flex items-center justify-between gap-3 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-primary-800">Uploaded</p>
+                      {meta.car_insurance_uploaded_at && (
+                        <p className="text-xs text-primary-600 truncate">
+                          {new Date(meta.car_insurance_uploaded_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {meta.car_insurance_expiration && ` · Expires ${meta.car_insurance_expiration}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => viewDocument(meta.car_insurance_url!, "insurance")}
+                    disabled={viewingDoc === "insurance"}
+                    className="text-xs font-medium text-primary-600 hover:text-primary-700 px-2 py-1 rounded hover:bg-primary-100 transition-colors disabled:opacity-50"
+                  >
+                    {viewingDoc === "insurance" ? "..." : "View"}
+                  </button>
+                </div>
               ) : (
-                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+                <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm font-medium text-amber-700">Not uploaded</p>
+                </div>
               )}
             </div>
           </div>

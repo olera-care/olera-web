@@ -7,15 +7,15 @@ import type { BaseEditModalProps } from "./types";
 
 const CERTIFICATION_OPTIONS = [
   "CNA",
+  "MA",
+  "ACLS",
+  "EMT",
   "BLS",
-  "CPR / First Aid",
-  "HHA",
-  "Medication Aide",
-  "Phlebotomy",
-  "CPI / De-escalation",
-  "Dementia Care Training",
-  "Fall Prevention",
+  "First Aid",
 ];
+
+// Special value that indicates user explicitly has no certifications
+const NO_CERTIFICATIONS = "__none__";
 
 export default function EditCertificationsModal({
   profile,
@@ -38,12 +38,28 @@ export default function EditCertificationsModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if "no certifications" is selected
+  const hasNoCerts = certifications.includes(NO_CERTIFICATIONS);
+  // Get actual certifications (excluding the "none" marker)
+  const actualCerts = certifications.filter(c => c !== NO_CERTIFICATIONS);
+
   const hasChanges = JSON.stringify(certifications) !== JSON.stringify(meta.certifications || []);
 
-  function toggle(item: string) {
-    setCertifications((prev) =>
-      prev.includes(item) ? prev.filter((c) => c !== item) : [...prev, item]
-    );
+  function toggleCert(item: string) {
+    setCertifications((prev) => {
+      // If selecting a real certification, remove the "none" marker
+      const withoutNone = prev.filter(c => c !== NO_CERTIFICATIONS);
+      if (withoutNone.includes(item)) {
+        return withoutNone.filter((c) => c !== item);
+      } else {
+        return [...withoutNone, item];
+      }
+    });
+  }
+
+  function selectNoCerts() {
+    // Clear all and set to "none" marker
+    setCertifications([NO_CERTIFICATIONS]);
   }
 
   async function handleSave() {
@@ -125,7 +141,7 @@ export default function EditCertificationsModal({
 
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Certifications</h3>
             <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Select all that apply. No certifications? No problem — you can skip this.
+              Select any certifications you have, or let us know if you don&apos;t have any yet.
             </p>
 
             <div className="max-w-md mx-auto flex flex-wrap justify-center gap-2">
@@ -133,9 +149,9 @@ export default function EditCertificationsModal({
                 <button
                   key={c}
                   type="button"
-                  onClick={() => toggle(c)}
+                  onClick={() => toggleCert(c)}
                   className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    certifications.includes(c)
+                    actualCerts.includes(c)
                       ? "bg-primary-600 text-white shadow-sm"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
@@ -145,9 +161,29 @@ export default function EditCertificationsModal({
               ))}
             </div>
 
-            {certifications.length > 0 && (
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-6 max-w-xs mx-auto">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400 uppercase tracking-wide">or</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* No certifications option */}
+            <button
+              type="button"
+              onClick={selectNoCerts}
+              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                hasNoCerts
+                  ? "bg-gray-700 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              I don&apos;t have any certifications yet
+            </button>
+
+            {actualCerts.length > 0 && (
               <p className="text-xs text-primary-600 mt-6">
-                {certifications.length} selected
+                {actualCerts.length} selected
               </p>
             )}
           </div>

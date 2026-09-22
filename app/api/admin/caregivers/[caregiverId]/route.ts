@@ -23,7 +23,6 @@ const EDITABLE_META_FIELDS = new Set([
   "commitment_statement",
   "resume_url",
   "video_intro_url",
-  "linkedin_url",
 ]);
 
 /**

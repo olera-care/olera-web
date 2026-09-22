@@ -7,6 +7,8 @@ import {
   formatHoursPerWeek,
   formatDuration,
   formatAvailability,
+  getMajorLabel,
+  getActualCertifications,
 } from "@/lib/medjobs-helpers";
 
 /**
@@ -154,18 +156,21 @@ export default function CandidateDetailPanel({
         )}
 
         {/* Certifications — moved up since it's a key hiring signal */}
-        {(meta.certifications?.length ?? 0) > 0 && (
-          <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Certifications</h3>
-            <div className="flex flex-wrap gap-1.5">
-              {meta.certifications!.map((cert) => (
-                <span key={cert} className="px-2.5 py-1 bg-primary-50 text-primary-700 rounded-lg text-xs font-semibold border border-primary-100">
-                  {cert}
-                </span>
-              ))}
+        {(() => {
+          const certs = getActualCertifications(meta.certifications);
+          return certs.length > 0 ? (
+            <div>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Certifications</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {certs.map((cert) => (
+                  <span key={cert} className="px-2.5 py-1 bg-primary-50 text-primary-700 rounded-lg text-xs font-semibold border border-primary-100">
+                    {cert}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          ) : null;
+        })()}
 
         {/* Care experience types */}
         {(meta.care_experience_types?.length ?? 0) > 0 && (
@@ -188,8 +193,8 @@ export default function CandidateDetailPanel({
             <div className="space-y-2.5">
               {meta.major && (
                 <div>
-                  <p className="text-xs text-gray-500">Major</p>
-                  <p className="text-sm font-medium text-gray-900">{meta.major}</p>
+                  <p className="text-xs text-gray-500">Program</p>
+                  <p className="text-sm font-medium text-gray-900">{getMajorLabel(meta.major)}</p>
                 </div>
               )}
               {meta.years_caregiving != null && meta.years_caregiving > 0 && (

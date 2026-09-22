@@ -176,7 +176,6 @@ export default function AdminMedJobsDetailPage() {
         acknowledgment_date: meta.acknowledgment_date,
         resume_url: meta.resume_url,
         video_intro_url: meta.video_intro_url,
-        linkedin_url: meta.linkedin_url,
         drivers_license_url: meta.drivers_license_url,
         drivers_license_uploaded_at: meta.drivers_license_uploaded_at,
         car_insurance_url: meta.car_insurance_url,
@@ -771,9 +770,8 @@ export default function AdminMedJobsDetailPage() {
 
         {/* Links & Media */}
         <Section title="Links & Media">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <FieldInput label="Video Intro URL" value={formData.video_intro_url as string} onChange={(v) => updateField("video_intro_url", v || undefined)} />
-            <FieldInput label="LinkedIn URL" value={formData.linkedin_url as string} onChange={(v) => updateField("linkedin_url", v || undefined)} />
           </div>
         </Section>
 

@@ -516,7 +516,6 @@ function InterviewDetailModal({
   const university = studentMeta.university as string | undefined;
   const track = studentMeta.intended_professional_school as string | undefined;
   const certifications = (studentMeta.certifications || []) as string[];
-  const linkedinUrl = studentMeta.linkedin_url as string | undefined;
   const resumeStoragePath = studentMeta.resume_url as string | undefined;
   const videoUrl = studentMeta.video_intro_url as string | undefined;
 
@@ -601,7 +600,7 @@ function InterviewDetailModal({
 
   // Check if we should show connect section (confirmed interview, provider view)
   const showConnectSection = perspective === "provider" && interview.status === "confirmed";
-  const hasContactInfo = studentEmail || studentPhone || resumeStoragePath || videoUrl || linkedinUrl;
+  const hasContactInfo = studentEmail || studentPhone || resumeStoragePath || videoUrl;
 
   // Link to the other person's profile
   const profileHref = perspective === "provider" && interview.student?.slug
@@ -1071,19 +1070,6 @@ function InterviewDetailModal({
                 >
                   <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                  </svg>
-                </a>
-              )}
-              {linkedinUrl && (
-                <a
-                  href={linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 hover:bg-[#0A66C2]/10 rounded-xl transition-all duration-200 group"
-                  title="View LinkedIn"
-                >
-                  <svg className="w-4 h-4 text-gray-500 group-hover:text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                   </svg>
                 </a>
               )}

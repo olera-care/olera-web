@@ -106,6 +106,34 @@ const UNIVERSITIES = [
   { name: "Other", city: "", state: "" },
 ];
 
+// Program tracks for healthcare students
+const PROGRAM_TRACKS = [
+  { value: "pre_med", label: "Pre-Med" },
+  { value: "pre_nursing", label: "Pre-Nursing" },
+  { value: "pre_pa", label: "Pre-PA" },
+  { value: "pre_pt", label: "Pre-PT" },
+  { value: "other_health", label: "Other Health Professional" },
+];
+
+// Map legacy free-text values to program track values
+function normalizeProgramTrack(value: string | undefined | null): string {
+  if (!value) return "";
+  const lower = value.toLowerCase().trim();
+
+  // Check if it's already a valid program track value
+  if (PROGRAM_TRACKS.some(t => t.value === value)) return value;
+
+  // Map common variations
+  if (lower.includes("physical therapy") || lower === "pt" || lower === "pre-pt") return "pre_pt";
+  if (lower.includes("nursing") || lower === "pre-nursing") return "pre_nursing";
+  if (lower.includes("physician assistant") || lower === "pa" || lower === "pre-pa") return "pre_pa";
+  if (lower.includes("med") || lower.includes("doctor") || lower === "pre-med" || lower === "premed") return "pre_med";
+  if (lower.includes("health")) return "other_health";
+
+  // Unknown - return empty to let them select
+  return "";
+}
+
 export default function EditOverviewModal({
   profile,
   onClose,
@@ -130,7 +158,7 @@ export default function EditOverviewModal({
   const [email, setEmail] = useState(profile.email || "");
   const [phone, setPhone] = useState(profile.phone || "");
   const [university, setUniversity] = useState(meta.university || "");
-  const [major, setMajor] = useState(meta.major || "");
+  const [programTrack, setProgramTrack] = useState(() => normalizeProgramTrack(meta.major));
   const [photoUrl, setPhotoUrl] = useState(profile.image_url || "");
 
   // Auto-populate city/state from university if missing
@@ -205,20 +233,23 @@ export default function EditOverviewModal({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [universitySearch]);
 
-  // Track changes
+  // Track changes - compare programTrack to raw meta.major so auto-normalized values count as changes
   const hasChanges =
     displayName !== (profile.display_name || "") ||
     email !== (profile.email || "") ||
     phone !== (profile.phone || "") ||
     university !== (meta.university || "") ||
-    major !== (meta.major || "") ||
+    programTrack !== (meta.major || "") ||
     city !== (profile.city || "") ||
     state !== (profile.state || "") ||
     photoUrl !== (profile.image_url || "");
 
   // Email is required and must be .edu
   const isValidEmail = email.trim().length > 0 && email.toLowerCase().endsWith(".edu");
-  const isValid = displayName.trim().length > 0 && isValidEmail;
+  // Phone is required - strip non-digits to check length
+  const phoneDigits = phone.replace(/\D/g, "");
+  const isValidPhone = phoneDigits.length >= 10;
+  const isValid = displayName.trim().length > 0 && isValidEmail && isValidPhone;
 
   async function handlePhotoUpload(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -299,7 +330,7 @@ export default function EditOverviewModal({
         },
         metadataFields: {
           university: university.trim() || null,
-          major: major.trim() || null,
+          major: programTrack || null,
         },
       });
       onSaved();
@@ -523,7 +554,7 @@ export default function EditOverviewModal({
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone number
+                Phone number <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
@@ -534,11 +565,21 @@ export default function EditOverviewModal({
                   setPhone(cleaned);
                 }}
                 placeholder="(555) 123-4567"
-                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                className={`w-full bg-white border focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all ${
+                  phone && !isValidPhone
+                    ? "border-red-300 focus:border-red-400"
+                    : "border-gray-200 focus:border-primary-600"
+                }`}
               />
-              <p className="mt-2 text-xs text-gray-400">
-                Providers may contact you about shifts
-              </p>
+              {phone && !isValidPhone ? (
+                <p className="mt-2 text-xs text-red-600">
+                  Please enter a valid 10-digit phone number
+                </p>
+              ) : (
+                <p className="mt-2 text-xs text-gray-400">
+                  Providers may contact you about shifts
+                </p>
+              )}
             </div>
           </div>
 
@@ -644,18 +685,32 @@ export default function EditOverviewModal({
             ) : null}
           </div>
 
-          {/* Major / Program of Study */}
+          {/* Program Track */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Major / Program of study
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Program track
             </label>
-            <input
-              type="text"
-              value={major}
-              onChange={(e) => setMajor(e.target.value)}
-              placeholder="e.g. Pre-Nursing, Biology, Health Sciences"
-              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all"
-            />
+            <div className="flex flex-wrap gap-2">
+              {PROGRAM_TRACKS.map((track) => (
+                <button
+                  key={track.value}
+                  type="button"
+                  onClick={() => setProgramTrack(track.value)}
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+                    programTrack === track.value
+                      ? "bg-primary-600 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {track.label}
+                </button>
+              ))}
+            </div>
+            {!programTrack && meta.major && !PROGRAM_TRACKS.some(t => t.value === meta.major) && (
+              <p className="mt-3 text-xs text-amber-600">
+                Previous value: &quot;{meta.major}&quot; — please select your program track above
+              </p>
+            )}
           </div>
         </div>
 

@@ -258,7 +258,6 @@ export async function GET(req: NextRequest) {
           next.metadata = {
             ...c.metadata,
             resume_url: undefined,
-            linkedin_url: undefined,
           };
         }
         return next;

@@ -10,6 +10,8 @@ import {
   studentFacts,
 } from "@/lib/medjobs/student-profile";
 import {
+  channelFromRecords,
+  resolveChannel,
   SWEEPS,
   sweepId,
   derivedStep,
@@ -798,6 +800,18 @@ export async function GET() {
         : uni
           ? `${uni.name}, ${uni.city}, ${uni.state}`
           : null;
+
+    // The advisors dot, read off the advising offices rather than off a
+    // campus_channels row that nothing on this board writes to. A campus
+    // whose offices had all been emailed still showed grey, because logging
+    // a rung here never touched that row.
+    const advisorChannel = LADDERS.advisors.channel;
+    if (advisorChannel) {
+      const derived = channelFromRecords("advisors", records.advisors ?? []);
+      if (derived) {
+        channels[advisorChannel] = resolveChannel(channels[advisorChannel], derived);
+      }
+    }
 
     return {
       id: campus.id,

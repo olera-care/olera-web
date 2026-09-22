@@ -1062,3 +1062,71 @@ export function taskTitle(task: BoardTask): string {
   if (todo && rung?.branch === "errand") return todo;
   return rung?.title ?? "Task";
 }
+
+/**
+ * The rung on a ladder whose outcome writes a given activation tick.
+ *
+ * Looked up rather than written down as a number. "Send the program info" is
+ * rung 1 and "Confirm the flyer is circulating" is rung 3 today, and both
+ * move the first time somebody inserts a step above them — at which point a
+ * hardcoded index does not fail, it quietly starts reading a different rung.
+ * The ticks are the ladder's own names for these two moments and they do not
+ * move.
+ */
+export function stepWithTick(section: SectionKey, tick: string): number {
+  return LADDERS[section].steps.findIndex((rung) =>
+    (rung.actions ?? []).some((a) => (a.ticks ?? []).includes(tick)),
+  );
+}
+
+/**
+ * How far a section's channel has got, read off its records.
+ *
+ * The advisors dot used to come from campus_channels, which nothing on the
+ * Tasks board writes — so a campus whose offices had all been emailed still
+ * showed grey. The offices are the truth: one of them sent the program info
+ * and the channel is moving; all of them confirmed circulation and it is
+ * live.
+ *
+ * "One is enough" for in-progress is deliberate. Adding a fourth advising
+ * office to a campus already in motion must not take the dot backwards.
+ */
+export function channelFromRecords(
+  section: SectionKey,
+  records: Array<{ id: string; tasks: Array<{ step: number; done: boolean }> }>,
+): "not_yet" | "in_progress" | "live" | null {
+  // The sweep is a job about the list, not a member of it.
+  const real = records.filter((r) => !r.id.startsWith(SWEEP_PREFIX));
+  if (real.length === 0) return null;
+
+  const sent = stepWithTick(section, "flyer_sent");
+  const circulating = stepWithTick(section, "confirmed");
+  const reached = (r: (typeof real)[number], step: number) =>
+    step >= 0 && r.tasks.some((t) => t.step === step && t.done);
+
+  if (circulating >= 0 && real.every((r) => reached(r, circulating))) return "live";
+  if (real.some((r) => reached(r, sent))) return "in_progress";
+  return "not_yet";
+}
+
+/**
+ * What the dot should say, given what is stored and what the records show.
+ *
+ * The records win. Green means every advising office is circulating the
+ * flyer, so a campus that gains a new office is no longer green — saying
+ * otherwise would be the dot claiming something that has stopped being true.
+ * Going backwards is the honest answer there, and it is the only case where
+ * it happens: adding an office to a campus that is merely in progress leaves
+ * it in progress, because one office is enough for that.
+ *
+ * The exception is a channel somebody has ruled out. "Not available" and
+ * "declined" are decisions about whether this channel applies at all, not
+ * measurements of progress through it, and no amount of record activity
+ * should overturn one.
+ */
+const MEASURED = new Set(["not_yet", "in_progress", "live"]);
+
+export function resolveChannel<T extends string>(stored: T | undefined, derived: T): T {
+  if (stored && !MEASURED.has(stored)) return stored;
+  return derived;
+}

@@ -9,12 +9,14 @@ import {
   STOP_REASONS,
   SWEEP_PREFIX,
   canReopen,
+  formatPhone,
   scriptSlug,
   shortDate,
   strikesAt,
   taskTitle,
   type BoardRecord,
   type BoardTask,
+  type FoundRecord,
 } from "@/lib/medjobs/task-board";
 
 /**
@@ -79,7 +81,7 @@ export default function TaskView({
   onNote: (text: string) => void;
   onField: (field: ContactField, value: string) => void;
   /** Research rungs: the names found, which become records on finishing. */
-  onFound: (names: string[]) => void;
+  onFound: (found: FoundRecord[]) => void;
   /** A typed value the rung asked for. */
   onFieldValue: (key: string, value: string) => void;
   /** The three record fields a confirming call also puts right. */
@@ -100,7 +102,6 @@ export default function TaskView({
   // the advisors and orgs blocks, which keep the single catch-all until
   // refinement 11 decides what their first ask is.
   const [replying, setReplying] = useState(false);
-  const [draftName, setDraftName] = useState("");
   /**
    * The acts done in this sitting. Deliberately not persisted: the log is
    * the record, and a tick that survives a reload would start claiming a
@@ -165,17 +166,12 @@ export default function TaskView({
     flyer,
   };
 
-  // A research rung fans out into whatever the operator found, so the
-  // ladder's names are suggestions rather than the answer.
+  // A sweep fans out into whatever the operator found. Read off the action
+  // rather than a flag on the rung, so the one thing that decides whether
+  // this rung produces records is the outcome it produces them with.
+  const fansOut = rung.actions.some((a) => a.outcome === "fanout");
   const found = task.found ?? [];
-  const suggestions = (rung.fanout ?? []).filter((n) => !found.includes(n));
-  const addName = (raw: string) => {
-    const name = raw.trim();
-    if (!name || found.includes(name)) return;
-    onFound([...found, name]);
-    setDraftName("");
-  };
-  const needsNames = Boolean(rung.fanout) && found.length === 0;
+  const needsNames = fansOut && found.length === 0;
 
   const contactLine = [
     record.contact,
@@ -424,71 +420,12 @@ export default function TaskView({
             </div>
           )}
 
-          {rung.fanout && (
-            <div className="mt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                What you found
-              </p>
-              {found.length === 0 ? (
-                <p className="mt-0.5 text-[12.5px] text-gray-500">
-                  Add each one you found. Every name becomes its own record with its own
-                  outreach.
-                </p>
-              ) : (
-                <ul className="mt-1">
-                  {found.map((n, i) => (
-                    <li
-                      key={`${n}-${i}`}
-                      className="flex items-center gap-2 border-b border-gray-100 py-1.5 last:border-b-0"
-                    >
-                      <span className="flex-1 text-[13.5px] text-gray-900">{n}</span>
-                      <button
-                        type="button"
-                        aria-label={`Remove ${n}`}
-                        onClick={() => onFound(found.filter((_, j) => j !== i))}
-                        className="px-1 text-[15px] leading-none text-gray-400 hover:text-error-700"
-                      >
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <form
-                className="mt-2 flex gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  addName(draftName);
-                }}
-              >
-                <input
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                  placeholder="Name it and press Add"
-                  className="min-w-0 flex-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
-                />
-                <button type="submit" disabled={!draftName.trim()} className={draftName.trim() ? BTN : `${BTN} cursor-not-allowed opacity-40`}>
-                  Add
-                </button>
-              </form>
-
-              {suggestions.length > 0 && (
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[12px] text-gray-400">Common here:</span>
-                  {suggestions.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => addName(n)}
-                      className="rounded-full border border-gray-300 px-2.5 py-1 text-[12px] text-gray-600 hover:border-primary-600 hover:text-primary-700"
-                    >
-                      + {n}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {fansOut && (
+            <FoundList
+              found={found}
+              noun={rung.foundNoun ?? "one"}
+              onChange={onFound}
+            />
           )}
 
           {(rung.inputs ?? []).map((f) => (
@@ -759,6 +696,150 @@ export default function TaskView({
  * Served through the guarded SOP route by key, never as a public URL: these
  * are internal, and the route is the one place that decides who sees them.
  */
+/** The fields a found record carries, in the order the record shows them. */
+const FOUND_FIELDS: Array<{ key: keyof FoundRecord; label: string }> = [
+  { key: "contact", label: "Primary contact" },
+  { key: "role", label: "Role" },
+  { key: "phone", label: "Phone" },
+  { key: "email", label: "Email" },
+  { key: "website", label: "Website" },
+  { key: "address", label: "Address" },
+];
+
+const summarise = (f: FoundRecord) =>
+  [f.contact, f.role, f.phone, f.email, f.website].filter(Boolean).join(" · ");
+
+/**
+ * What a sweep found, and the form for adding one more.
+ *
+ * The form is the record's own fields, in the record's own order and with
+ * the record's own labels. Somebody adding an agency is looking at its
+ * website while they do it — giving them three boxes now and asking for the
+ * rest on a later rung is asking them to find the same page twice.
+ */
+function FoundList({
+  found,
+  noun,
+  onChange,
+}: {
+  found: FoundRecord[];
+  /** What one of these is called, for the empty form's first box. */
+  noun: string;
+  onChange: (next: FoundRecord[]) => void;
+}) {
+  const [draft, setDraft] = useState<FoundRecord>({ name: "" });
+  /** Which row is being corrected, or null when adding a new one. */
+  const [editing, setEditing] = useState<number | null>(null);
+
+  const reset = () => {
+    setDraft({ name: "" });
+    setEditing(null);
+  };
+
+  const commit = () => {
+    const name = draft.name.trim();
+    if (!name) return;
+    const clean: FoundRecord = { ...draft, name };
+    if (editing === null) onChange([...found, clean]);
+    else onChange(found.map((f, i) => (i === editing ? clean : f)));
+    reset();
+  };
+
+  const set = (key: keyof FoundRecord, value: string) =>
+    setDraft((d) => ({ ...d, [key]: value }));
+
+  return (
+    <div className="mt-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        Added{found.length > 0 ? ` · ${found.length}` : ""}
+      </p>
+
+      {found.length > 0 && (
+        <ul className="mt-1">
+          {found.map((f, i) => (
+            <li
+              key={`${f.name}-${i}`}
+              className="flex items-start gap-2 border-b border-gray-100 py-2 last:border-b-0"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13.5px] text-gray-900">{f.name}</p>
+                {summarise(f) && (
+                  <p className="truncate text-[11.5px] text-gray-500">{summarise(f)}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDraft(f);
+                  setEditing(i);
+                }}
+                className="shrink-0 text-[11.5px] text-gray-400 underline hover:text-gray-700"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                aria-label={`Remove ${f.name}`}
+                onClick={() => {
+                  onChange(found.filter((_, j) => j !== i));
+                  if (editing === i) reset();
+                }}
+                className="shrink-0 px-1 text-[15px] leading-none text-gray-400 hover:text-error-700"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-2 rounded-md border border-dashed border-primary-300 bg-primary-25 p-3">
+        <input
+          value={draft.name}
+          onChange={(e) => set("name", e.target.value)}
+          placeholder={`${noun} name`}
+          className="mb-1.5 w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-[14px] font-semibold text-gray-900 placeholder:font-normal placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
+        />
+        <div className="space-y-1.5">
+          {FOUND_FIELDS.map((f) => (
+            <label key={f.key} className="flex items-center gap-2.5">
+              <span className="w-24 shrink-0 text-[12px] text-gray-500">{f.label}</span>
+              <input
+                value={(draft[f.key] as string) ?? ""}
+                onChange={(e) => set(f.key, e.target.value)}
+                onBlur={() => {
+                  if (f.key === "phone" && draft.phone) set("phone", formatPhone(draft.phone));
+                }}
+                placeholder="—"
+                className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
+              />
+            </label>
+          ))}
+        </div>
+        <div className="mt-2.5 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={commit}
+            disabled={!draft.name.trim()}
+            className={draft.name.trim() ? BTN : `${BTN} cursor-not-allowed opacity-40`}
+          >
+            {editing === null ? "Add" : "Save"}
+          </button>
+          {editing !== null && (
+            <button
+              type="button"
+              onClick={reset}
+              className="text-[12.5px] text-gray-500 underline hover:text-gray-900"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Attachment({ attachment }: { attachment: { label: string; doc: string } }) {
   return (
     <a

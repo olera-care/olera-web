@@ -197,6 +197,13 @@ export interface LadderRung {
   email?: LadderEmail;
   /** Offers "They replied", which breaks out of a follow-up block. */
   reply?: boolean;
+  /**
+   * What one of the things a sweep finds is called, for the add form.
+   *
+   * "Agency name" and "Office name" rather than "Name": the box is the first
+   * thing somebody types into and it should say what it wants.
+   */
+  foundNoun?: string;
 
   /**
    * A value carried onto this task, shown as a link.
@@ -1014,7 +1021,7 @@ Dr. Logan DuBose's office · Olera`,
           "Open Google Maps at the campus, below.",
           "Search each of: home care, home health, senior care, caregiver agency.",
           "For each result near campus, check it against the provider list. Match on phone and street address, not name — franchises repeat names.",
-          "Add the ones that pass the test below with Add a provider, then come back here.",
+          "Add the ones that pass the test, filling in what the listing already shows you.",
         ],
         script: `Add an agency when all four are true:
 
@@ -1025,27 +1032,22 @@ Dr. Logan DuBose's office · Olera`,
 
 If you are unsure on any of the four, leave it out and say so in the note. A provider added wrongly costs somebody a research rung and a call.`,
         textarea: "Anything worth saying about the sweep",
-        scriptLabel: "what counts as one worth adding",
+        scriptLabel: "where to look, and what counts",
         // Built by the board from the campus name, so the same search runs
         // at every university and nobody retypes it.
         link: { key: "maps_url", label: "Google Maps near campus" },
         // Once per university, so there is nothing to defer to.
         defer: false,
-        inputs: [
-          {
-            key: "added",
-            label: "How many did you add (0 is an answer)",
-            type: "number",
-            required: true,
-            needs: "Put in how many you added",
-          },
-        ],
+        foundNoun: "Agency",
+        // The count used to be typed in by hand, and adding was done on
+        // another screen — "add them with Add a provider, then come back
+        // here". Two screens and a number to remember, for the same job the
+        // advisor sweep does in one place. The list is the count now.
         actions: [
           {
-            label: "Swept",
-            outcome: "goal",
+            label: "All providers added for this area",
+            outcome: "fanout",
             delay: 0,
-            hint: "Done for this university. Zero added means the directory already had them all, which is worth knowing.",
           },
         ],
       },
@@ -1383,8 +1385,8 @@ Dr. Logan DuBose's office · Olera`,
         steps: [
           "Open the university site search, below.",
           "Work through the list of places to look in the note.",
-          "For each one that passes the test, add the office by name.",
-          "Put the person's job title in when you add them — the title is what the next person reads.",
+          "For each one that passes the test, add it, filling in whatever the page already shows you.",
+          "The role matters — a career centre manager and a pre-health advisor are approached differently.",
         ],
         script: `Search the university site for each of these:
 
@@ -1408,13 +1410,12 @@ If two names turn out to be the same office, add it once. If you are not sure wh
         link: { key: "advisor_search_url", label: "Search the university site" },
         // Once per university, so there is nothing to defer to.
         defer: false,
-        fanout: ["Pre-Health Advising Office", "Career Center", "Nursing Student Services"],
+        foundNoun: "Office",
         actions: [
           {
-            label: "Done — start outreach",
+            label: "All advising offices added for this area",
             outcome: "fanout",
             delay: 0,
-            hint: "Each one you added becomes its own record and starts its own outreach. Zero is an answer too.",
           },
         ],
       },

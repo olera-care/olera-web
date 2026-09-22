@@ -40,7 +40,7 @@ export type SweepKind = "map" | "advisor";
 
 export const SWEEPS: Record<
   SweepKind,
-  { taskType: string; section: SectionKey; branch: string }
+  { taskType: string; section: "providers" | "advisors"; branch: string }
 > = {
   map: { taskType: "provider_map_sweep", section: "providers", branch: "mapsweep" },
   advisor: { taskType: "advisor_sweep", section: "advisors", branch: "advisorsweep" },
@@ -66,6 +66,24 @@ export function parseSweepId(id: string): { kind: SweepKind; campusId: string } 
   return { kind, campusId: rest.slice(cut + 1) };
 }
 
+/**
+ * One thing a sweep found, as the operator typed it.
+ *
+ * The same fields the record itself shows, in the same order, because the
+ * form that collects them is the record's own: somebody adding an agency
+ * while looking at its website should not be given a smaller set of boxes
+ * than the record will have, and then be asked for the rest later.
+ */
+export interface FoundRecord {
+  name: string;
+  contact?: string;
+  role?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+}
+
 export interface BoardTask {
   id: string;
   section: SectionKey;
@@ -88,7 +106,7 @@ export interface BoardTask {
   redo?: boolean;
   /** On a research rung: the names the operator actually found. Each one
    *  becomes its own record when the task is finished. */
-  found?: string[];
+  found?: FoundRecord[];
   /** Typed values the rung asked for, keyed by LadderInput.key — a meeting
    *  time, a posting link, hours worked. Read back in the record history. */
   fields?: Record<string, string>;
@@ -630,13 +648,6 @@ export function complete(
       case "repeat":
         queue(task.step, task.round);
         break;
-      case "fanout":
-        // A sweep is finished by the records it produced, not by anything
-        // that happens to the sweep itself. It leaves the board here; the
-        // offices it found arrive on the next read, because only the server
-        // knows what they were given as ids.
-        stop(ladder.goal);
-        break;
       case "goal": {
         // A goal that recurs — monthly hours, or the seasonal check a
         // finished channel earns. `goto` names which rung comes back; with
@@ -670,11 +681,17 @@ export function complete(
         break;
       }
       case "fanout": {
-        const after = task.step + 1;
+        // Rung 1, not task.step + 1. This was written when the fan-out was
+        // rung 0 and the next rung was genuinely the one after it; the sweep
+        // that replaced it is a branch at the end of the ladder, where
+        // step + 1 is off the end. Rung 1 is where a found record starts on
+        // every one of these ladders — rung 0 is the research that found it
+        // — and it is the same step the server queues.
+        const after = 1;
         const startRound = ladder.steps[after]?.rounds ? 1 : 0;
-        // What the operator typed, not the examples on the rung. A research
-        // task that found nothing should create nothing.
-        const names = (task.found ?? []).map((n) => n.trim()).filter(Boolean);
+        // What the operator typed, not the examples on the rung. A sweep
+        // that found nothing should create nothing.
+        const names = (task.found ?? []).map((f) => f.name.trim()).filter(Boolean);
         const born = names.map((name) => {
           const r = makeRecord(record.section, name, after, startRound, 0);
           (u.records[record.section] ??= []).push(r);

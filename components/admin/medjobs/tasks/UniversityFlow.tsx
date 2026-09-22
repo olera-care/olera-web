@@ -526,8 +526,8 @@ export default function UniversityFlow({
             record[f] = v;
             force((n) => n + 1);
           }}
-          onFound={(names) => {
-            task.found = names;
+          onFound={(next) => {
+            task.found = next;
             force((n) => n + 1);
           }}
           onFieldValue={(key, value) => {

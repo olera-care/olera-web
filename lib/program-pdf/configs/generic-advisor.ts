@@ -27,13 +27,13 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
   heroHeadline:
     "Paid, hands-on bedside experience for your pre-health students — around their class schedule.",
   heroSubhead:
-    "Olera places pre-health students — future doctors, nurses and allied health professionals — into paid caregiving shifts with licensed local home care agencies. They get direct bedside experience with older adults and people with disabilities, and opportunities for references, letters of recommendation and direct-care hours that admissions committees value. Your office can help us spread the word.",
+    "Olera places pre-health students into paid caregiving shifts with licensed local agencies: bedside experience, references and hours admissions committees value. Your office can help us spread the word.",
 
   benefitsHeading: "WHY OFFICES SHARE THIS",
   benefits: [
     {
-      title: "A specific answer",
-      body: "Every pre-health student asks where to get hands-on experience that improves their competitiveness for professional school. This is one.",
+      title: "A specific answer to \u201cHow do I get experience?\u201d",
+      body: "Not a suggestion to go and look. A program they can apply to this week.",
     },
     {
       title: "Paid, and no cost to anyone here",
@@ -45,22 +45,22 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
     },
     {
       title: "Easy to share",
-      body: "We provide the flyer and an approved posting for the university job board, ready for a newsletter, a listserv or an advising session.",
+      body: "We provide the flyer and an approved job-board posting, ready for a newsletter or listserv.",
     },
   ],
 
   steps: [
     {
       title: "You share our flyer.",
-      body: "A newsletter, a listserv, an advising appointment — wherever you think it would help.",
+      body: "A newsletter, a listserv, or an advising appointment.",
     },
     {
-      title: "Students apply to us.",
-      body: "Our site carries the application and qualification, then matches them to partnering agencies near campus.",
+      title: "Students apply.",
+      body: "We qualify them and match them to agencies near campus.",
     },
     {
       title: "They are hired and paid.",
-      body: "The local agency employs them. We confirm the hire and stay with the student from there.",
+      body: "The local agency employs them. We stay with the student.",
     },
   ],
 
@@ -68,13 +68,13 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
 
   story: {
     heading: "Why this program exists",
-    body: "Pre-health students are advised to get hands-on experience providing care, and then struggle to find it. Meanwhile home care agencies near every campus cannot fill their shifts, and families who need personal care are turned away. Olera built the Student Caregiver Program to meet both needs at once: students get paid hours, references and something real to write a personal statement about; agencies get motivated new caregivers; families get reliable support at home. We would like your office to be part of it.",
+    body: "Pre-health students are advised to get hands-on experience providing care, and then struggle to find it. Meanwhile home care agencies near every campus cannot fill their shifts, and families who need personal care are turned away. Olera built the Student Caregiver Program to meet both needs at once. We would like your office to help us spread the word.",
   },
 
   offer: {
     headline: "What a student gets",
     ask: "Paid bedside care, references and letters, hours for their application, and mentorship from our team.",
-    body: "Students work for a licensed partnering agency doing the real work — supervision, medication reminders, transfers, companionship — with older adults and people with disabilities. It is the bedside experience a future clinician needs, and the kind admissions committees look for. Afterwards we help them write it up, ask for a letter, document their hours, and practise talking about it.",
+    body: "Students work for a licensed partnering agency — supervision, medication reminders, transfers, companionship. Afterwards we help them write it up, ask for a letter and document their hours.",
   },
 
   team: [
@@ -110,22 +110,22 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
   afterReply: [
     {
       title: "We answer your questions.",
-      body: "How the program works for students, and how we keep our agencies student-friendly.",
+      body: "How the program works, and how we keep agencies student-friendly.",
     },
     {
       title: "You share our recruitment flyer.",
-      body: "It is the last page of this document: one page, with the link and the approved posting.",
+      body: "The last page of this document, with the link and posting.",
     },
     {
-      title: "We meet, and keep meeting.",
-      body: "How many students applied, how many were hired, and what they said about the work.",
+      title: "Repeat every semester.",
+      body: "We keep you updated on how your students did.",
     },
   ],
 
   nextStep: {
     heading: "The easiest next step",
     ask: "Reply to this email.",
-    body: "We will answer your questions and send the recruitment flyer for you to forward to students. We would also like to meet you or someone from your office, and to keep working together semester after semester.",
+    body: "We will answer your questions so you are confident sharing our recruitment flyer (the last page of this document) with your students.",
   },
 
   replyBlock: {

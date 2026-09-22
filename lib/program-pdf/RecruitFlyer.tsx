@@ -47,9 +47,26 @@ const styles = StyleSheet.create({
 
   // ── the teal band ─────────────────────────────────────────────────────
   band: { backgroundColor: TEAL, paddingTop: 20, paddingBottom: 22, paddingHorizontal: 34 },
-  brandRow: { flexDirection: "row", alignItems: "center", marginBottom: 2 },
-  brandLogo: { width: 17, height: 17, marginRight: 6 },
-  brandWord: { fontSize: 13, fontFamily: "Helvetica-Bold", color: WHITE, letterSpacing: 0.3 },
+  // The top line: what this page is on the left, whose it is on the right.
+  // An office forwarding it should be able to tell at a glance that this is
+  // the student-facing sheet and not the letter that came with it.
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  stamp: {
+    fontSize: 7.5,
+    color: "#7fb3ad",
+    letterSpacing: 1.6,
+    fontFamily: "Helvetica-Bold",
+  },
+  brandRow: { flexDirection: "row", alignItems: "center" },
+  brandLogo: { width: 15, height: 15, marginRight: 5 },
+  brandWord: { fontSize: 12, fontFamily: "Helvetica-Bold", color: WHITE, letterSpacing: 0.3 },
+  brandRule: { width: 1, height: 12, backgroundColor: "#4d8f89", marginHorizontal: 8 },
+  brandProgram: { fontSize: 8.5, color: "#bcd9d6", letterSpacing: 0.9 },
   hero: {
     fontFamily: "Times-Bold",
     fontSize: 54,
@@ -214,12 +231,17 @@ export function RecruitFlyerPage({ assets }: { assets: ProgramPdfAssets }) {
   return (
     <Page size="LETTER" style={styles.page}>
       <View style={styles.band}>
-        <View style={styles.brandRow}>
-          {assets.oleraLogoDataUri ? (
-            /* eslint-disable-next-line jsx-a11y/alt-text */
-            <Image src={assets.oleraLogoDataUri} style={styles.brandLogo} />
-          ) : null}
-          <Text style={styles.brandWord}>Olera</Text>
+        <View style={styles.topRow}>
+          <Text style={styles.stamp}>STUDENT RECRUITMENT FLYER</Text>
+          <View style={styles.brandRow}>
+            {assets.oleraLogoDataUri ? (
+              /* eslint-disable-next-line jsx-a11y/alt-text */
+              <Image src={assets.oleraLogoDataUri} style={styles.brandLogo} />
+            ) : null}
+            <Text style={styles.brandWord}>Olera</Text>
+            <View style={styles.brandRule} />
+            <Text style={styles.brandProgram}>Student Caregiver Program</Text>
+          </View>
         </View>
         <Text style={styles.hero}>Open Caregiving Jobs</Text>
         <Text style={styles.heroSub}>

@@ -287,8 +287,10 @@ export function ProgramPdfTemplate({
     sara: assets.saraPhotoDataUri,
   };
   // The advising flyer differs from the agency brochure in one structural
-  // way: its call to action is on page two, so the panel that closes page one
-  // for an agency has no claim to that position here.
+  // way: its call to action is "reply to this email", which lives on page
+  // two. The panel that closes page one for an agency is that agency's ask;
+  // here it is a description, so it opens page two instead — which is also
+  // the only place it fits, page one being the longer of the two.
   const advisor = config.audience === "advisor";
   const team = config.team ?? [];
   const lead = team[0];
@@ -389,11 +391,6 @@ export function ProgramPdfTemplate({
           <SectionHead>HOW IT WORKS</SectionHead>
           <Steps items={config.steps.map(stepOf)} />
 
-          {/* On the agency brochure this panel is the call to action, so it
-              closes the page. On the advising flyer it is not — the ask there
-              is "reply to this email", which lives on page two — and the page
-              it would close is already the longer of the two. Left here it
-              overflowed onto a page of its own with nothing else on it. */}
           {config.offer && !advisor ? (
             <View style={styles.offerBox}>
               <Text style={styles.offerHead}>{config.offer.headline}</Text>
@@ -411,8 +408,17 @@ export function ProgramPdfTemplate({
           <Band right="the team" />
 
           <View style={styles.body}>
+            {/* Page two says who it is for, the same way page one does. A
+                page forwarded on its own, or printed and left on a desk,
+                otherwise says only "the team". It goes here rather than in
+                the band beside "STUDENT CAREGIVER PROGRAM", where the two
+                labels ran into each other. */}
+            {advisor && config.eyebrow ? (
+              <Text style={[styles.eyebrow, { marginBottom: 12 }]}>{config.eyebrow}</Text>
+            ) : null}
+
             {config.offer && advisor ? (
-              <View style={[styles.offerBox, { marginTop: -4 }]}>
+              <View style={styles.offerBox}>
                 <Text style={styles.offerHead}>{config.offer.headline}</Text>
                 <Text style={styles.offerAsk}>{config.offer.ask}</Text>
                 <Text style={styles.offerBody}>{config.offer.body}</Text>

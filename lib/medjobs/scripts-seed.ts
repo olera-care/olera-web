@@ -270,13 +270,61 @@ function rungInstructions(rung: { what?: string; why?: string; steps?: string[] 
   return parts.join("\n\n");
 }
 
+/**
+ * The order the document reads in, where it differs from the order a record
+ * climbs.
+ *
+ * A branch is not part of the sequence, so it reads after it — except the
+ * sweep on the advisor ladder, which is the first thing anybody does at a
+ * campus and belongs at the top however late in the array it sits. The
+ * provider sweep stays last on purpose: you research the providers you were
+ * given long before you go looking for more.
+ *
+ * Anchors, not indexes, and the ladder check asserts every one of them names
+ * a real rung — so this cannot quietly start ordering a rung that is gone.
+ */
+const READS_FIRST: Partial<Record<SectionKey, string[]>> = {
+  advisors: ["advisorsweep"],
+};
+
+/**
+ * Sections of the document that are not a rung.
+ *
+ * "Ready for students" is the goal a provider record reaches, not a job
+ * somebody does — there is no task, because the record arrives there by an
+ * outcome on the rung before it. It still needs somewhere to say what it
+ * means and what happens next.
+ */
+const EXTRA: Array<{ after: string; section: SectionKey; slug: string; title: string }> = [
+  {
+    after: "providers-onboardfollow",
+    section: "providers",
+    slug: "providers-ready-for-students",
+    title: "Ready for students",
+  },
+];
+
+/** The sections that are deliberately not a rung, for the ladder check. */
+export const NON_RUNG_SECTIONS: ReadonlySet<string> = new Set(EXTRA.map((e) => e.slug));
+
+/** The anchors a section reads first, for the ladder check. */
+export const READS_FIRST_ANCHORS: ReadonlyArray<[string, string]> = Object.entries(
+  READS_FIRST,
+).flatMap(([section, keys]) => (keys ?? []).map((k) => [section, k] as [string, string]));
+
 /** Every section the document should have, rungs first, in reading order. */
 export function seedSections(): SeedSection[] {
   const out: SeedSection[] = [];
   let position = 0;
 
   for (const section of SECTION_ORDER) {
-    LADDERS[section].steps.forEach((rung, step) => {
+    const first = READS_FIRST[section] ?? [];
+    const order = [...LADDERS[section].steps.entries()].sort(([, a], [, b]) => {
+      const rank = (r: { name?: string; branch?: string }) =>
+        first.includes(r.name ?? r.branch ?? "") ? -1 : r.branch ? 1 : 0;
+      return rank(a) - rank(b);
+    });
+    order.forEach(([step, rung]) => {
       const slug = scriptSlug(section, step);
       if (!slug) return;
       position += 10;
@@ -298,6 +346,24 @@ export function seedSections(): SeedSection[] {
         instructions: rungInstructions(rung),
         position,
       });
+
+      // Anything that belongs beside this rung but is not one.
+      for (const extra of EXTRA.filter((e) => e.after === slug)) {
+        position += 10;
+        out.push({
+          slug: extra.slug,
+          kind: "rung",
+          section: extra.section,
+          rungKey: extra.slug.slice(extra.section.length + 1),
+          title: extra.title,
+          callScript: null,
+          emailSubject: null,
+          emailBody: null,
+          notes: null,
+          instructions: null,
+          position,
+        });
+      }
     });
   }
 

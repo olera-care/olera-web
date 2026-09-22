@@ -286,19 +286,14 @@ async function createFound(
     if (restError) return { error: restError.message };
   }
 
-  // Where a new record starts, which is the one place the two sections
-  // genuinely differ — and differ because their ladders do, not by accident.
-  //
-  // A provider starts at rung 0, Research, and opens the block of three that
-  // are one sitting's work: the sweep captured what the listing showed, not
-  // whether the address is within range or the website says what it should.
-  //
-  // An advisor starts at rung 1. Rung 0 on that ladder is "Research the
-  // advising offices", the discovery step the sweep has just done for the
-  // whole campus — handing it back for one office would be asking for the
-  // work twice.
-  const start = provider ? 0 : 1;
-  const block = provider ? Math.max(1, LADDERS.providers.openTogether ?? 1) : 1;
+  // Where a new record starts: the first rung of its ladder that is not a
+  // branch. Asked of the ladder rather than written down, because it was
+  // written down — 0 for providers, 1 for advisors, because rung 0 on the
+  // advisor ladder used to be the research the sweep had just done. That
+  // rung is gone and the hardcoded 1 would now start every swept office on
+  // its first follow-up, having never sent it anything.
+  const start = Math.max(0, LADDERS[section].steps.findIndex((r) => !r.branch));
+  const block = Math.max(1, LADDERS[section].openTogether ?? 1);
   const today = new Date().toISOString().slice(0, 10);
   const { error: taskError } = await db.from("student_outreach_tasks").insert(
     Array.from({ length: block }, (_, k) => ({

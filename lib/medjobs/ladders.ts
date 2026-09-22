@@ -364,9 +364,6 @@ export interface Ladder {
   steps: LadderRung[];
 }
 
-/** The season the current checkpoint belongs to. */
-export const SEASON = "late July";
-
 /**
  * Book a call to help, from anywhere.
  *
@@ -752,8 +749,9 @@ export const LADDERS: Record<SectionKey, Ladder> = {
     emptyNote: "Providers populate from the catchment when the university is added.",
     steps: [
       {
+        name: "research",
         check: true,
-        title: "Research",
+        title: "Research the provider",
         what: "Check what we hold against the provider's own website, before anyone calls.",
         why: "Every wrong number caught here is a call nobody has to waste later.",
         steps: [
@@ -764,6 +762,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         actions: [{ label: "Done", outcome: "next", delay: 0 }],
       },
       {
+        name: "call-to-confirm-the-right-contact",
         title: "Call to confirm the right contact",
         what: "A short call to confirm who we should be talking to, and how to reach them.",
         why: "The research gives us a name and an address. Only the call proves they are the right ones.",
@@ -831,6 +830,7 @@ export const LADDERS: Record<SectionKey, Ladder> = {
         ],
       },
       {
+        name: "send-the-program-info",
         title: "Send the program info",
         what: "The first email to this provider, sent by you from your own inbox.",
         why: "It comes from a real person, so replies land in your inbox.",
@@ -939,8 +939,9 @@ Dr. Logan DuBose's office · Olera`,
         ...onboardingFollowUp(1),
       },
       {
+        name: "seasonal-check-late-july",
         seasonal: true,
-        title: `Seasonal check — ${SEASON}`,
+        title: "Seasonal check",
         what: "Meet the provider to review the season.",
         why: "We need feedback on the students and to know if they want more next term.",
         steps: ["Book a short call.", "Ask how the students did.", "Ask if they want more next season."],
@@ -1014,7 +1015,7 @@ Dr. Logan DuBose's office · Olera`,
         // place a rung can be added without renumbering the task rows
         // already written against every step before it.
         branch: "mapsweep",
-        title: "Sweep Google Maps for missing agencies",
+        title: "Find more local providers",
         what: "Search the map pack around campus and add the home care agencies the directory never had.",
         why: "The directory can only give us agencies it has heard of. The map pack has ones it has not, and those stay invisible until somebody looks.",
         steps: [
@@ -1058,27 +1059,15 @@ If you are unsure on any of the four, leave it out and say so in the note. A pro
     label: "Students",
     goal: "hired",
     auto: true,
-    // The meeting and the application. Neither waits on the other: most
-    // students finish their own application, some need the meeting to get
-    // there, and we meet every student either way.
-    openTogether: 2,
+    // The application opens on its own now. The meeting used to open beside
+    // it, on the reasoning that neither waits on the other; the order this
+    // ladder runs in says otherwise — qualification comes between them, and
+    // there is no point meeting a student who has not been qualified.
+    openTogether: 1,
     emptyNote: "Students appear here when an application lands.",
     steps: [
       {
-        title: "Meeting with the student",
-        what: "The intro call with the applicant.",
-        why: "We meet every student before putting them in front of a provider.",
-        steps: ["Book a time.", "Hold it.", "Log how it went."],
-        textarea: "How it went",
-        // Not every student needs one, and a student who has already been
-        // interviewed plainly did not. The second outcome exists so nobody
-        // has to log a meeting that never happened to move a record on.
-        actions: [
-          { label: "Meeting held", outcome: "next", delay: 0 },
-          { label: "No meeting needed", outcome: "next", delay: 0 },
-        ],
-      },
-      {
+        name: "complete-their-application",
         title: "Complete their application",
         what: "Chase whatever is missing from their profile.",
         why: "An incomplete application can't be sent to a provider.",
@@ -1104,6 +1093,31 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Application complete", outcome: "next", delay: 0 }],
       },
       {
+        name: "qualify-their-application",
+        title: "Qualify their application",
+        what: "TODO — write this up in the scripts document.",
+        why: "TODO.",
+        steps: ["TODO."],
+        actions: [{ label: "Qualified", outcome: "next", delay: 0 }],
+      },
+      {
+        name: "meeting-with-the-student",
+        title: "Meeting with the student",
+        what: "The intro call with the applicant.",
+        why: "We meet every student before putting them in front of a provider.",
+        steps: ["Book a time.", "Hold it.", "Log how it went."],
+        textarea: "How it went",
+        // Not every student needs one, and a student who has already been
+        // interviewed plainly did not. The second outcome exists so nobody
+        // has to log a meeting that never happened to move a record on.
+        actions: [
+          { label: "Meeting held", outcome: "next", delay: 0 },
+          { label: "No meeting needed", outcome: "next", delay: 0 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
+        ],
+      },
+      {
+        name: "get-them-an-interview",
         title: "Get them an interview",
         what: "Put them in front of a signed-up provider.",
         why: "The interview is what turns an applicant into a hire.",
@@ -1114,6 +1128,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Interview booked", outcome: "next", delay: 0 }],
       },
       {
+        name: "confirm-hire",
         title: "Confirm hire",
         what: "Did they get the job?",
         why: "A hire is the outcome the whole program exists for.",
@@ -1125,9 +1140,17 @@ Dr. Logan DuBose's office · Olera`,
         // "next" would queue the hours and leave the record reading as
         // unfinished, which is the opposite of what a hire means.
         actions: [
-          { label: "Hired", outcome: "goal", delay: 30, goto: "hours" },
+          { label: "Hired", outcome: "goal", delay: 30, goto: "mentor" },
           { label: "Not hired", outcome: "archive", delay: 0 },
         ],
+      },
+      {
+        name: "mentor",
+        title: "Mentor student",
+        what: "TODO — write this up in the scripts document.",
+        why: "TODO.",
+        steps: ["TODO."],
+        actions: [{ label: "Logged", outcome: "goal", delay: 30, goto: "hours" }],
       },
       {
         monthly: true,
@@ -1138,6 +1161,15 @@ Dr. Logan DuBose's office · Olera`,
         steps: ["Ask the student how many hours this month.", "Type the number.", "Log it."],
         inputs: [{ key: "hours", label: "Hours this month", type: "number" }],
         actions: [{ label: "Logged", outcome: "repeat", delay: 30 }],
+      },
+      {
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever the student asked for that no rung covers.",
+        why: "Nobody can guess in advance what a student will need.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "meeting-with-the-student" }],
       },
     ],
   },
@@ -1150,8 +1182,9 @@ Dr. Logan DuBose's office · Olera`,
     singleton: true,
     steps: [
       {
+        name: "research",
         check: true,
-        title: "Research",
+        title: "Research university job boards",
         // No {university} token: the help panel shows a rung as written, and
         // only the email copy is filled from the record. A token here reached
         // the screen as a token.
@@ -1165,6 +1198,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Done", outcome: "next", delay: 0 }],
       },
       {
+        name: "confirm-it-s-submitted",
         title: "Confirm it's submitted",
         what: "Get the Olera listing in front of the university, however this campus takes it.",
         why: "The job board is where students find us without us finding them.",
@@ -1193,9 +1227,13 @@ Thank you,
 Dr. Logan DuBose's office · Olera`,
         },
         // Two business days, because approval is somebody else's queue.
-        actions: [{ label: "Submitted", outcome: "next", delay: 2, ticks: ["submitted"] }],
+        actions: [
+          { label: "Submitted", outcome: "next", delay: 2, ticks: ["submitted"] },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
+        ],
       },
       {
+        name: "confirm-it-s-approved",
         title: "Confirm it's approved",
         what: "Check the university approved and posted the listing.",
         why: "Submitting and posting are not the same thing.",
@@ -1207,6 +1245,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Approved and live", outcome: "next", delay: 2, ticks: ["approved"] }],
       },
       {
+        name: "confirm-the-first-student-has-applied",
         title: "Confirm the first student has applied",
         what: "Someone came through the board.",
         why: "A live listing nobody applies to isn't working.",
@@ -1221,39 +1260,23 @@ Dr. Logan DuBose's office · Olera`,
       {
         seasonal: true,
         name: "seasonal",
-        title: `Confirm the listing is still live — ${SEASON}`,
+        title: "Seasonal check",
         what: "The seasonal look at the posting.",
         why: "Postings expire silently.",
         steps: ["Open the listing link.", "Confirm a student could still apply."],
         attachment: { label: "Example posting", doc: "posting" },
         actions: [
           { label: "Still live", outcome: "goal", delay: 120, goto: "seasonal" },
-          { label: "It's gone", outcome: "next", delay: 0, goto: "relist" },
         ],
       },
       {
-        branch: "relist",
-        title: "Get the listing back up",
-        what: "The posting dropped off. Put it back.",
-        why: "Every day it's down is a day students can't find us.",
-        steps: ["Contact the job board owner.", "Resubmit.", "Confirm it's back."],
-        email: {
-          subject: "Re-posting the Student Caregiver role — {university}",
-          body: `Hello,
-
-Our Student Caregiver posting appears to have expired from the {university} job board. Students are still applying through other channels, so we would like it back up.
-
-Same role as before — part-time paid caregiving shifts for pre-health students, flexible around classes. Details here: {flyer}
-
-Is there anything you need from me to renew it?
-
-Thank you,
-[your name]
-Dr. Logan DuBose's office · Olera`,
-        },
-        actions: [
-          { label: "Back up", outcome: "goal", delay: 120, ticks: ["visible"], goto: "seasonal" },
-        ],
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever the job board asked for that no rung covers.",
+        why: "Every campus runs its board differently and some ask for things nothing here anticipates.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "confirm-it-s-submitted" }],
       },
     ],
   },
@@ -1264,14 +1287,7 @@ Dr. Logan DuBose's office · Olera`,
     channel: "st4",
     steps: [
       {
-        title: "Research the advising offices",
-        what: "Find who advises pre-health students here.",
-        why: "You need a named office before any outreach starts.",
-        steps: ["Search the university site.", "Add each office you find.", "Done — each one starts its own outreach."],
-        fanout: ["Pre-Health Advising Office", "Nursing Student Services"],
-        actions: [{ label: "Done — start outreach", outcome: "fanout", delay: 0 }],
-      },
-      {
+        name: "send-the-program-info",
         title: "Send the program info",
         what: "The first email to this office, sent by you from your own inbox.",
         why: "There is nothing to follow up on until something has been sent.",
@@ -1294,8 +1310,9 @@ Dr. Logan DuBose's office · Olera`,
         },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2, ticks: ["flyer_sent"] }],
       },
-      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "advisors") },
+      { name: "follow-up-1", rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "advisors") },
       {
+        name: "confirm-the-flyer-is-circulating",
         title: "Confirm the flyer is circulating",
         what: "Check they actually sent it to students.",
         why: "Agreeing and sending are not the same thing.",
@@ -1305,33 +1322,18 @@ Dr. Logan DuBose's office · Olera`,
         ],
       },
       {
-        title: "Confirm a meeting with the team",
-        what: "A conversation about raising awareness with students.",
-        why: "The meeting is where the partnership actually forms.",
-        steps: ["Offer times.", "Confirm one.", "Put it in the calendar."],
+        name: "confirm-a-meeting-with-the-team",
+        title: "Meeting with the team",
+        what: "A conversation about raising awareness with students — booked, held, logged.",
+        why: "The meeting is where the partnership actually forms, and people no-show often.",
+        steps: ["Offer times and confirm one.", "Hold it.", "Pick the outcome and write a line about it."],
         inputs: [{ key: "meeting_at", label: "Meeting date and time", type: "datetime-local" }],
-        actions: [{ label: "Meeting booked", outcome: "next", delay: 0 }],
-      },
-      {
-        title: "Log the meeting",
-        what: "What happened at the meeting.",
-        why: "People no-show often. What happens next depends on which.",
-        steps: ["Pick the outcome.", "Write a line about it."],
         textarea: "How it went",
         actions: [
-          {
-            // An advisor is never finished with. The meeting is the goal and
-            // the record says so, but a `goal` carrying a delay also queues
-            // the rung it names — so the relationship comes back round each
-            // term instead of going quiet the moment it is working.
-            label: "Held",
-            outcome: "goal",
-            goto: "recirculate",
-            delay: 90,
-            hint: "Marks them as a partner, and brings them back next term to circulate again.",
-          },
-          { label: "No-show", outcome: "reschedule", delay: 0 },
-          { label: "Needs reschedule", outcome: "reschedule", delay: 0 },
+          { label: "Held", outcome: "goal", delay: 120, goto: "recirculate" },
+          { label: "No-show", outcome: "reschedule", delay: 7 },
+          { label: "Needs reschedule", outcome: "reschedule", delay: 7 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
         ],
       },
       {
@@ -1339,7 +1341,7 @@ Dr. Logan DuBose's office · Olera`,
         // Named, because a goal that recurs has to say which rung comes
         // back and `goto` addresses a rung by name.
         name: "recirculate",
-        title: `Recirculate the flyer — ${SEASON}`,
+        title: "Seasonal check",
         what: "Ask the office to send the flyer out again.",
         why: "A flyer sent last term isn't reaching this term's students.",
         steps: ["Email the office with the current flyer.", "Confirm it went out."],
@@ -1379,7 +1381,7 @@ Dr. Logan DuBose's office · Olera`,
         // here acts on an advisor record, and until this ran there was no
         // way for one to exist.
         branch: "advisorsweep",
-        title: "Find career centers and advising offices",
+        title: "Research advising offices",
         what: "Search the university for the offices that can put this programme in front of pre-health students, and add each one.",
         why: "Nobody at a university is going to find us. Every advisor record on this board starts here.",
         steps: [
@@ -1419,6 +1421,15 @@ If two names turn out to be the same office, add it once. If you are not sure wh
           },
         ],
       },
+      {
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever the office asked for that no rung covers.",
+        why: "Nobody can guess in advance what an advising office will need.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "confirm-the-flyer-is-circulating" }],
+      },
     ],
   },
 
@@ -1428,6 +1439,7 @@ If two names turn out to be the same office, add it once. If you are not sure wh
     channel: "st5",
     steps: [
       {
+        name: "identify-the-student-orgs",
         title: "Identify the student orgs",
         what: "Find the pre-health and nursing student organisations.",
         why: "Orgs reach students through channels we can't touch — group chats, meetings.",
@@ -1436,6 +1448,7 @@ If two names turn out to be the same office, add it once. If you are not sure wh
         actions: [{ label: "Done — start outreach", outcome: "fanout", delay: 0 }],
       },
       {
+        name: "identify-a-contact-at-the-org",
         title: "Identify a contact at the org",
         what: "Find the president or an officer.",
         why: "Orgs have no general inbox that anyone reads.",
@@ -1448,6 +1461,7 @@ If two names turn out to be the same office, add it once. If you are not sure wh
         actions: [{ label: "Contact found", outcome: "next", delay: 0 }],
       },
       {
+        name: "send-the-program-info",
         title: "Send the program info",
         what: "The first email to the officer you just named.",
         why: "There is nothing to follow up on until something has been sent.",
@@ -1473,8 +1487,9 @@ Dr. Logan DuBose's office · Olera`,
         },
         actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
       },
-      { rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "orgs") },
+      { name: "follow-up-1", rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "orgs") },
       {
+        name: "confirm-the-flyer-went-out-or-a-presentation-is-booked",
         title: "Confirm the flyer went out or a presentation is booked",
         what: "Either outcome counts — they circulate it, or they let us present.",
         why: "This is the goal for an org, and it resets every semester.",
@@ -1485,8 +1500,9 @@ Dr. Logan DuBose's office · Olera`,
         ],
       },
       {
+        name: "recirculate-with-the-org-late-july",
         seasonal: true,
-        title: `Recirculate with the org — ${SEASON}`,
+        title: "Seasonal check",
         what: "Reach the org again for the new term.",
         why: "Presidents and officers change every year.",
         steps: ["Check the contact is still there.", "Ask for the flyer to go out again."],
@@ -1515,6 +1531,7 @@ Dr. Logan DuBose's office · Olera`,
     channel: "st6",
     steps: [
       {
+        name: "research-career-fairs-and-events",
         title: "Research career fairs and events",
         what: "Find the events where we could meet students face to face.",
         why: "One good fair beats a hundred cold emails.",
@@ -1523,6 +1540,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Done — add events", outcome: "fanout", delay: 0 }],
       },
       {
+        name: "sign-up-for-the-event",
         title: "Sign up for the event",
         what: "Register Olera as an exhibitor or attendee.",
         why: "Fairs fill up and close registration early.",
@@ -1530,6 +1548,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Signed up", outcome: "next", delay: 0 }],
       },
       {
+        name: "ask-the-advisor-about-other-events",
         title: "Ask the advisor about other events",
         what: "Find the events that aren't listed online.",
         why: "Advisors know about things the calendar never shows, and can help us run our own.",
@@ -1554,6 +1573,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Logged", outcome: "next", delay: 0 }],
       },
       {
+        name: "set-the-event-up",
         title: "Set the event up",
         what: "Lock the logistics — date, place, table, whatever it needs.",
         why: "An event nobody set up doesn't happen.",
@@ -1565,6 +1585,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Set up", outcome: "next", delay: 0 }],
       },
       {
+        name: "prepare-for-the-event",
         title: "Prepare for the event",
         what: "Everything needed before the day.",
         why: "Turning up unprepared wastes the slot.",
@@ -1573,6 +1594,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Ready for the day", outcome: "next", delay: 0 }],
       },
       {
+        name: "attend-and-document",
         title: "Attend and document",
         what: "Go, then write down what happened.",
         why: "If we don't record it we can't tell which events are worth repeating.",
@@ -1581,8 +1603,9 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Log the event", outcome: "goal", delay: 0 }],
       },
       {
+        name: "what-s-coming-this-term-late-july",
         seasonal: true,
-        title: `What's coming this term — ${SEASON}`,
+        title: "Seasonal check",
         what: "Look ahead at the term's events.",
         why: "Registration closes weeks before the event.",
         steps: ["Check the calendar.", "Add anything worth attending."],
@@ -1597,6 +1620,7 @@ Dr. Logan DuBose's office · Olera`,
     channel: "st7",
     steps: [
       {
+        name: "get-permission-to-email-professors",
         title: "Get permission to email professors",
         what: "Written approval from the dean, department chair, or another person of authority.",
         why: "We do not email professors cold. This is the gate for the whole section.",
@@ -1632,6 +1656,7 @@ Dr. Logan DuBose's office · Olera`,
         ],
       },
       {
+        name: "identify-professors-from-the-directory",
         title: "Identify professors from the directory",
         what: "List the professors whose students fit the program.",
         why: "Targeting the right courses matters more than volume.",
@@ -1640,6 +1665,7 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Done — add professors", outcome: "fanout", delay: 0 }],
       },
       {
+        name: "email-flyer-and-class-visit",
         title: "Email — flyer and class visit",
         what: "One email asking them to share the flyer and offering a class visit.",
         why: "Never more than one email per professor per season. That's the rule.",
@@ -1666,8 +1692,9 @@ Dr. Logan DuBose's office · Olera`,
         actions: [{ label: "Log email sent", outcome: "goal", delay: 0 }],
       },
       {
+        name: "message-professors-again-late-july",
         seasonal: true,
-        title: `Message professors again — ${SEASON}`,
+        title: "Seasonal check",
         what: "The one message this season.",
         why: "A new term means new students on the roster.",
         steps: ["Send the seasonal email.", "Log it."],

@@ -484,9 +484,14 @@ let seq = 0;
  */
 export const LOCAL_PREFIX = "local-";
 
+/** Records on the teaching campus. Never written, never read back. */
+export const DEMO_RECORD_PREFIX = "demo:";
+
 /** True when this record exists only in the page, with no row behind it. */
 export const isSaved = (id: string): boolean =>
-  !id.startsWith(LOCAL_PREFIX) && !id.startsWith(SWEEP_PREFIX);
+  !id.startsWith(LOCAL_PREFIX) &&
+  !id.startsWith(SWEEP_PREFIX) &&
+  !id.startsWith(DEMO_RECORD_PREFIX);
 
 const newId = (): string => `${LOCAL_PREFIX}${Date.now().toString(36)}-${(seq += 1).toString(36)}`;
 

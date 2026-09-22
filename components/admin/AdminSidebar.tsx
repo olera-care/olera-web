@@ -161,21 +161,37 @@ const STAKEHOLDERS_KEY = "stakeholders";
 // the Sites and In Basket actions; the other three are the role manuals.
 // Stats is retired: the performance instrumentation lives on the architecture.
 const SOP_HREF = "/admin/medjobs/sop";
+
+/**
+ * Three entries, because three is what somebody working the board needs.
+ *
+ * Universities is the daily work. SOP is the words we say, which is the only
+ * one of the five SOP pages anybody opens mid-task. Archive is where records
+ * go when they close.
+ *
+ * System, Admin, Sales and CRM used to sit here too, five links deep, and
+ * were opened about as often as a filing cabinet. They are buttons at the
+ * bottom of the Archive page now. The routes are unchanged and they stay
+ * searchable and pinnable — see SOP_PAGES.
+ */
 const medjobsItems: NavItem[] = [
-  { label: "System", href: SOP_HREF, description: "Explore the MedJobs operating system", keywords: "staffing sites territories sop" },
+  { label: "Universities", href: "/admin/medjobs/in-basket", description: "Work through every university, one task at a time", keywords: "staffing in basket queue campuses tasks providers students" },
+  { label: "Standard Operating Procedures (SOP)", href: `${SOP_HREF}/scripts`, description: "Instructions, scripts and email copy for every step", keywords: "staffing scripts email copy calls sop playbook instructions" },
+  { label: "Archive", href: "/admin/medjobs/archive", description: "Records closed by hand or out of rounds", keywords: "staffing closed archived revive" },
+];
+
+/**
+ * The four role manuals, off the sidebar but not gone.
+ *
+ * They stay in the command palette and in the pinnable list. Dropping them
+ * from both would have quietly deleted anybody's pinned favourite: a pinned
+ * href whose label no longer resolves is filtered out without a word.
+ */
+export const SOP_PAGES: NavItem[] = [
+  { label: "System", href: SOP_HREF, description: "The operating model, the architecture and the funnel", keywords: "staffing sites territories sop matrix health" },
   { label: "Admin", href: `${SOP_HREF}/admin`, description: "Open the MedJobs admin manual", keywords: "staffing operations sop" },
   { label: "Sales", href: `${SOP_HREF}/sales`, description: "Open the MedJobs sales manual", keywords: "staffing prospecting sop" },
   { label: "CRM", href: `${SOP_HREF}/crm`, description: "Open the MedJobs relationship manual", keywords: "staffing clients partners sop" },
-  { label: "Scripts", href: `${SOP_HREF}/scripts`, description: "Read and edit the MedJobs call scripts and email copy", keywords: "staffing scripts email copy calls sop playbook" },
-  // The daily work sits under the four workspace pages: it is where the work
-  // actually happens, and it carries the only count worth glancing at.
-  //
-  // Universities is the board. Archive is where records go when the rounds
-  // run out or somebody closes them by hand — somewhere you visit on purpose
-  // rather than part of the daily pass, which is why it is a destination in
-  // the menu and no longer a tab sitting beside the work.
-  { label: "Universities", href: "/admin/medjobs/in-basket", description: "Work through every university, one task at a time", keywords: "staffing in basket queue campuses tasks providers students" },
-  { label: "Archive", href: "/admin/medjobs/archive", description: "Records closed by hand or out of rounds", keywords: "staffing closed archived revive" },
 ];
 
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
@@ -253,14 +269,14 @@ const STORAGE_KEY = "admin-sidebar-collapsed";
 // simply stops rendering, no cleanup needed.
 const pinnableItems: NavItem[] = [
   ...navSections.flatMap((s) => s.items),
-  ...medjobsItems.map((i) => ({ ...i, label: `MedJobs · ${i.label}` })),
+  ...[...medjobsItems, ...SOP_PAGES].map((i) => ({ ...i, label: `MedJobs · ${i.label}` })),
   { label: "Young Caregivers", href: "/admin/young-caregivers" },
 ];
 
 // Search derives destinations from the same registry as the visible navigation.
 const searchableTools: AdminTool[] = [
   { label: "Overview", href: "/admin", section: "Overview", description: "See the admin dashboard", keywords: "home summary" },
-  ...[...navSections, { label: "MedJobs", items: medjobsItems }].flatMap((section) =>
+  ...[...navSections, { label: "MedJobs", items: [...medjobsItems, ...SOP_PAGES] }].flatMap((section) =>
     section.items.map((item) => ({ ...item, section: section.label, description: item.description ?? item.label })),
   ),
   { label: "Young Caregivers", href: "/admin/young-caregivers", section: "Community", description: "Manage the young caregiver community", keywords: "discord support" },

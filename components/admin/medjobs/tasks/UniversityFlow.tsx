@@ -20,6 +20,7 @@ import {
   type BoardUniversity,
   type Effect,
 } from "@/lib/medjobs/task-board";
+import { isDemoUniversity } from "@/lib/medjobs/demo-university";
 import NewRecordView, { type NewRecord } from "./NewRecordView";
 import RecordView from "./RecordView";
 import SummaryView from "./SummaryView";
@@ -167,6 +168,13 @@ export default function UniversityFlow({
    * is reloaded from the server afterwards rather than patched in memory,
    * because a delete changes more than the record it names and guessing at
    * the rest is how a screen starts lying about what is saved.
+   *
+   * It is also the whole of the teaching campus's sandbox. Because this is
+   * the only function that writes, one guard here is the guarantee — not a
+   * rule each caller has to remember. The screen has already applied the
+   * change by the time send() is reached, so returning success is the real
+   * behaviour rather than a pretence, and a refresh discards it because
+   * there was never a row.
    */
   const send = async (
     payload: Record<string, unknown>,
@@ -183,6 +191,10 @@ export default function UniversityFlow({
       undo?: () => void;
     },
   ): Promise<{ ok: boolean; data?: Record<string, unknown> }> => {
+    if (isDemoUniversity(university)) {
+      if (done) say(done);
+      return { ok: true };
+    }
     setBusy(true);
     try {
       const res = await fetch("/api/admin/medjobs/tasks-board/actions", {

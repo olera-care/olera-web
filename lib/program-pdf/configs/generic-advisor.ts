@@ -25,9 +25,9 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
   ctaUrl: "https://olera.care/medjobs/candidates",
   eyebrow: "FOR PRE-HEALTH ADVISING AND CAREER CENTERS",
   heroHeadline:
-    "Paid, hands-on bedside experience for your pre-health students — around their class schedule.",
+    "Paid, hands-on caregiving experience for your pre-health students — around their class schedule.",
   heroSubhead:
-    "Olera places pre-health students into paid caregiving shifts with licensed local home care agencies: bedside experience with older adults who need personal care support, references and hours admissions committees value.",
+    "Olera places pre-health students into paid caregiving jobs with licensed local home care agencies, helping older adults with supervision, medication reminders, transfers, companionship and personal care.",
 
   benefitsHeading: "WHY OFFICES SHARE THIS",
   benefits: [
@@ -45,22 +45,22 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
     },
     {
       title: "Easy to share with students",
-      body: "A flyer and an approved job-board posting — for your newsletter, your listserv, or to point students to.",
+      body: "A flyer and an approved university job-board posting — for your newsletter, listserv, or students directly.",
     },
   ],
 
   steps: [
     {
       title: "You share our flyer.",
-      body: "A newsletter, a listserv, or an advising appointment.",
+      body: "In a newsletter, on a listserv, or in an advising appointment.",
     },
     {
       title: "Students apply.",
-      body: "We qualify them and match them to agencies near campus.",
+      body: "We match them to student-friendly agencies near campus.",
     },
     {
-      title: "They are hired and paid.",
-      body: "The local agency employs them. We help them use it on applications.",
+      title: "They get hired and paid.",
+      body: "The local agency employs them. We help them make the most of it.",
     },
   ],
 
@@ -68,13 +68,13 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
 
   story: {
     heading: "Why this program exists",
-    body: "Pre-health students are advised to get hands-on experience providing care, and then struggle to find it. Meanwhile home care agencies near every campus cannot fill their shifts, and families who need personal care are turned away. Olera built the Student Caregiver Program to meet both needs at once. We would like your office to help us spread the word.",
+    body: "Pre-health students are advised to get hands-on experience providing care, and then struggle to find it. Meanwhile home care agencies near every campus cannot fill their shifts, and families who need personal care are turned away. Olera built the Student Caregiver Program to meet these needs. We would like your office to be part of it and help us spread the word.",
   },
 
   offer: {
     headline: "What a student gets",
-    ask: "Paid bedside care, references and letters, hours for their application, and mentorship from our team.",
-    body: "Students work for licensed home care agencies: supervision, medication reminders, transfers, companionship, personal care. We mentor them on positioning it in an application, asking for letters, documenting hours and interviewing.",
+    ask: "Paid caregiving experience, references and letters, hours for their application, and mentorship.",
+    body: "Students gain valuable caregiving experience with older adults in their community. We mentor them on explaining it on an application, asking employers for letters, documenting hours, and talking about it at interview.",
   },
 
   team: [
@@ -114,27 +114,21 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
     },
     {
       title: "You share our recruitment flyer.",
-      body: "The last page, in a listserv, newsletter or advising session.",
+      body: "Last page. Share it in a listserv, newsletter or advising session.",
     },
     {
       title: "Repeat every semester.",
-      body: "We keep you updated on how your students did.",
+      body: "We want an ongoing relationship with you and your office.",
     },
   ],
 
-  nextStep: {
-    heading: "The easiest next step",
-    // One line, and the whole ask. What used to follow it — that we answer
-    // questions first so the office is confident sharing the flyer — is the
-    // three numbered steps directly beneath, said once instead of twice.
-    ask: "Reply to this email.",
-    body: "",
-  },
-
+  // One box, not two. "The easiest next step" and "Reply with one word"
+  // were the same instruction given twice, one immediately above the other,
+  // and the reader had to work out that they were not two separate asks.
   replyBlock: {
-    label: "REPLY WITH ONE WORD",
+    label: "THE EASIEST NEXT STEP \u2014 REPLY WITH ONE WORD",
     word: "INTERESTED",
-    tail: "We’ll send more information from there.",
+    tail: "We\u2019ll send more information from there.",
   },
 
   footerLine: "Olera Student Caregiver Program • For pre-health advising and career centers",

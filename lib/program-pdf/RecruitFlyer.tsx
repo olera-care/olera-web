@@ -256,9 +256,8 @@ export function RecruitFlyerPage({ assets }: { assets: ProgramPdfAssets }) {
 
       <View style={styles.body}>
         <Text style={styles.lede}>
-          Help older adults in your community with medication reminders, supervision,
-          companionship, transfers and other bedside skills — and build your future career as a
-          healthcare professional.
+          Help older adults with medication reminders, supervision, companionship, transfers and
+          personal care — and build your future career as a healthcare professional.
         </Text>
 
         <View style={styles.cols}>

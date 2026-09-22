@@ -463,20 +463,43 @@ export function ProgramPdfTemplate({
               </View>
             ) : null}
 
-            {config.afterReply?.length ? (
+            {/* The ask, then what follows it. The advising flyer asks for
+                the reply and then says what happens after one, which is the
+                order somebody reads in; the agency brochure keeps the ask
+                last, where its page has been building to it. */}
+            {advisor ? (
               <>
-                <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
-                <Steps items={config.afterReply} />
+                {config.replyBlock ? (
+                  <View style={styles.replyBox}>
+                    <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
+                    <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
+                    <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
+                  </View>
+                ) : null}
+                {config.afterReply?.length ? (
+                  <>
+                    <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
+                    <Steps items={config.afterReply} />
+                  </>
+                ) : null}
               </>
-            ) : null}
-
-            {config.replyBlock ? (
-              <View style={styles.replyBox}>
-                <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
-                <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
-                <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
-              </View>
-            ) : null}
+            ) : (
+              <>
+                {config.afterReply?.length ? (
+                  <>
+                    <SectionHead>WHAT HAPPENS AFTER YOU REPLY</SectionHead>
+                    <Steps items={config.afterReply} />
+                  </>
+                ) : null}
+                {config.replyBlock ? (
+                  <View style={styles.replyBox}>
+                    <Text style={styles.replyLabel}>{config.replyBlock.label}</Text>
+                    <Text style={styles.replyWord}>{config.replyBlock.word}</Text>
+                    <Text style={styles.replyTail}>{config.replyBlock.tail}</Text>
+                  </View>
+                ) : null}
+              </>
+            )}
             {config.footerLine ? (
               <Text style={styles.footerLine}>{config.footerLine}</Text>
             ) : null}

@@ -177,12 +177,9 @@ export default function EditAvailabilityModal({
     return "Back";
   };
 
-  // Custom header with title and subtitle
+  // Custom header - just title, steps provide their own context
   const headerContent = (
-    <div>
-      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Availability & Commitment</h2>
-      <p className="text-sm text-gray-500 mt-0.5">Tell providers about your schedule</p>
-    </div>
+    <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Availability & Commitment</h2>
   );
 
   // Render step content
@@ -198,10 +195,7 @@ export default function EditAvailabilityModal({
         {/* Step 1: Commitment Statement */}
         {currentStep === 1 && (
           <div>
-            <label htmlFor="commitment-statement" className="block text-sm font-medium text-gray-700 mb-1">
-              Your commitment to caregiving
-            </label>
-            <p id="commitment-description" className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-600 mb-4">
               This is the #1 thing providers look at. Describe your availability and how long you plan to work.
             </p>
 
@@ -226,7 +220,7 @@ export default function EditAvailabilityModal({
 
             <textarea
               id="commitment-statement"
-              aria-describedby="commitment-description"
+              aria-label="Your commitment to caregiving"
               value={commitmentStatement}
               onChange={(e) => setCommitmentStatement(e.target.value)}
               placeholder="I am committed to working caregiving shifts around my class schedule for at least 6 months. Outside of class and exam periods, I am available for shifts including evenings, weekends, and overnights..."
@@ -256,11 +250,8 @@ export default function EditAvailabilityModal({
 
         {/* Step 2: Additional Pledges */}
         {currentStep === 2 && (
-          <div role="group" aria-labelledby="pledges-label">
-            <p id="pledges-label" className="block text-sm font-medium text-gray-700 mb-1">
-              Additional commitments
-            </p>
-            <p className="text-sm text-gray-500 mb-5">
+          <div role="group" aria-label="Additional commitments">
+            <p className="text-sm text-gray-600 mb-5">
               These are optional, but help providers understand your flexibility.
             </p>
 
@@ -304,11 +295,8 @@ export default function EditAvailabilityModal({
 
         {/* Step 3: Seasonal Availability */}
         {currentStep === 3 && (
-          <div role="group" aria-labelledby="seasonal-availability-label">
-            <p id="seasonal-availability-label" className="block text-sm font-medium text-gray-700 mb-1">
-              Year-round availability
-            </p>
-            <p className="text-sm text-gray-500 mb-5">
+          <div role="group" aria-label="Seasonal availability">
+            <p className="text-sm text-gray-600 mb-5">
               Let providers know your plans for each season.
             </p>
 
@@ -352,25 +340,19 @@ export default function EditAvailabilityModal({
         {/* Step 4: Additional Notes */}
         {currentStep === 4 && (
           <div>
-            <label htmlFor="availability-notes" className="block text-sm font-medium text-gray-700 mb-1">
-              Additional notes
-            </label>
-            <p id="notes-description" className="text-sm text-gray-500 mb-4">
-              Optional: finals, spring break, planned travel, etc.
+            <p className="text-sm text-gray-600 mb-4">
+              Optional: finals, spring break, planned travel, or anything else providers should know.
             </p>
 
             <textarea
               id="availability-notes"
-              aria-describedby="notes-description"
+              aria-label="Additional notes"
               value={availabilityNotes}
               onChange={(e) => setAvailabilityNotes(e.target.value)}
               placeholder="Any specific dates or circumstances providers should know about..."
               rows={8}
               className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[200px]"
             />
-            <p className="text-xs text-gray-400 mt-2">
-              This field is optional
-            </p>
           </div>
         )}
       </div>

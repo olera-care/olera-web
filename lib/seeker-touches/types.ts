@@ -399,3 +399,81 @@ export type Heard = {
   extracted_at: string;
   model: string;
 };
+
+// ── Fields with a fixed vocabulary ───────────────────────────────────────────
+
+/**
+ * Three of the ten details are matched against something rather than merely
+ * read, so they carry codes instead of prose.
+ *
+ * `care_type` uses the SAME four values the city pool already routes on, not a
+ * new list beside it. A field that decides which providers are eligible cannot
+ * be free text: "home care" typed into a box never equals `home_care`, and the
+ * router is left unable to read something we plainly know, which is the exact
+ * defect this whole feature exists to close.
+ *
+ * `transfers` is bounded and ordered, and it is the question that decides
+ * whether an agency says yes. As prose, "needs 2 ppl" and "two people" never
+ * aggregate and you can never count what you are losing on it.
+ *
+ * `payment` is the only MULTI field. Private pay now with Medicaid pending is
+ * a real and common state that one value cannot hold.
+ *
+ * Everything else stays prose on purpose. Nothing matches on a name, a ZIP or a
+ * start date, the long tail is real, and "late October or early November" is
+ * more honest than a date picker forcing a precision the family did not give.
+ */
+export type HeardOption = { code: string; label: string };
+
+export const HEARD_OPTIONS: Partial<Record<HeardField, HeardOption[]>> = {
+  care_type: [
+    { code: "home_care", label: "Home care" },
+    { code: "assisted_living", label: "Assisted living" },
+    { code: "medical", label: "Nursing / medical" },
+    { code: "unsure", label: "Not decided" },
+  ],
+  transfers: [
+    { code: "independent", label: "Independent" },
+    { code: "standby", label: "Standby help" },
+    { code: "one_person", label: "One person" },
+    { code: "two_people", label: "Two people" },
+    { code: "lift", label: "Lift required" },
+  ],
+  payment: [
+    { code: "private_pay", label: "Private pay" },
+    { code: "medicaid", label: "Medicaid" },
+    { code: "medicare", label: "Medicare" },
+    { code: "ltc_insurance", label: "LTC insurance" },
+    { code: "va", label: "VA" },
+    { code: "unsure", label: "Not sure" },
+  ],
+};
+
+/** Fields that may hold more than one code, stored comma-separated. */
+export const HEARD_MULTI: HeardField[] = ["payment"];
+
+/** Codes in, prose out. Unknown codes render as themselves rather than vanish. */
+export function heardDisplay(field: HeardField, value: string): string {
+  const options = HEARD_OPTIONS[field];
+  if (!options) return value;
+  return value
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .map((c) => options.find((o) => o.code === c)?.label ?? c)
+    .join(" + ");
+}
+
+/** Keeps only codes this field knows, so a bad value is dropped, never stored. */
+export function heardCanonical(field: HeardField, value: string): string | null {
+  const options = HEARD_OPTIONS[field];
+  if (!options) return value.trim() || null;
+  const allowed = new Set(options.map((o) => o.code));
+  const codes = value
+    .split(",")
+    .map((c) => c.trim().toLowerCase().replace(/[\s-]+/g, "_"))
+    .filter((c) => allowed.has(c));
+  const unique = [...new Set(codes)];
+  if (!unique.length) return null;
+  return (HEARD_MULTI.includes(field) ? unique : unique.slice(0, 1)).join(",");
+}

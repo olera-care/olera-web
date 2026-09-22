@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { getRoutingPlan } from "@/lib/city-ads/plan.server";
-import { extractHeard, saveHeard } from "@/lib/seeker-touches/extract.server";
-import { FAMILY_TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type FamilyTouchInput } from "@/lib/seeker-touches/types";
+import { extractHeard, saveHeard, summariseManual } from "@/lib/seeker-touches/extract.server";
+import { HEARD_FIELDS, FAMILY_TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type FamilyTouchInput, type HeardField } from "@/lib/seeker-touches/types";
 import {
   loadSeekerRelationships,
   loadSeekerTimeline,
@@ -126,7 +126,25 @@ export async function POST(request: NextRequest) {
   const seeker_id = clean(body.seeker_id);
   const channel = clean(body.channel);
   const direction = clean(body.direction) ?? "out";
-  const summary = clean(body.summary);
+  let summary = clean(body.summary);
+
+  // Details somebody typed into the fields rather than into the note. Only
+  // known keys survive, and only as strings, so an unexpected body cannot write
+  // arbitrary structure onto the profile.
+  const rawDetails = (body as { care_details?: unknown }).care_details;
+  const manual: Partial<Record<HeardField, string>> = {};
+  if (rawDetails && typeof rawDetails === "object") {
+    for (const key of HEARD_FIELDS) {
+      const v = (rawDetails as Record<string, unknown>)[key];
+      if (typeof v === "string") manual[key] = v.slice(0, 120);
+    }
+  }
+  const hasManual = Object.keys(manual).length > 0;
+
+  // A fields-only log is a real log. Rather than reject it for having no note,
+  // build the one line the timeline needs out of what was typed, so the row
+  // still reads as something three weeks later instead of as a blank.
+  if (!summary && hasManual) summary = summariseManual(manual) || null;
   const source = clean(body.source) ?? "manual";
   const occurred_at = clean(body.occurred_at);
   const next_action = clean(body.next_action);
@@ -145,7 +163,7 @@ export async function POST(request: NextRequest) {
   if (!(TOUCH_SOURCES as readonly string[]).includes(source)) {
     return NextResponse.json({ error: `source must be one of ${TOUCH_SOURCES.join(", ")}` }, { status: 400 });
   }
-  if (!summary) return NextResponse.json({ error: "Say what happened" }, { status: 400 });
+  if (!summary) return NextResponse.json({ error: "Say what happened, or fill in some details" }, { status: 400 });
   if (summary.length > 240) {
     return NextResponse.json({ error: "That is one line's worth; put the rest in detail" }, { status: 400 });
   }
@@ -238,7 +256,7 @@ export async function POST(request: NextRequest) {
     channel,
     reached: typeof body.reached === "boolean" ? body.reached : null,
   });
-  if (fresh) heard = await saveHeard(db, seeker_id, fresh);
+  if (fresh || hasManual) heard = await saveHeard(db, seeker_id, fresh, hasManual ? manual : undefined);
 
   return NextResponse.json({ touch: data, heard }, { status: 201 });
 }

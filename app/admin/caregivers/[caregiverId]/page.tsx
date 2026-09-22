@@ -154,7 +154,6 @@ export default function AdminStudentDetailPage() {
         why_caregiving: meta.why_caregiving || "",
         resume_url: meta.resume_url || "",
         video_intro_url: meta.video_intro_url || "",
-        linkedin_url: meta.linkedin_url || "",
       };
       setFormData(initial);
       setOriginalData(initial);
@@ -753,28 +752,6 @@ export default function AdminStudentDetailPage() {
                 {typeof formData.video_intro_url === "string" && formData.video_intro_url && (
                   <a
                     href={formData.video_intro_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    View →
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">LinkedIn URL</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={(formData.linkedin_url as string) || ""}
-                  onChange={(e) => updateField("linkedin_url", e.target.value)}
-                  placeholder="https://linkedin.com/in/..."
-                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-                {typeof formData.linkedin_url === "string" && formData.linkedin_url && (
-                  <a
-                    href={formData.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3 py-2.5 text-sm text-primary-600 hover:text-primary-700 font-medium"

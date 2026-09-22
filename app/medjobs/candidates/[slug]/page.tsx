@@ -695,34 +695,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* ── Documents & Links Section (Profile Owner / Paid Providers Only) ── */}
-              {canViewFullProfile && (resumeUrl || meta.linkedin_url) && (
+              {/* ── Documents Section (Profile Owner / Paid Providers Only) ── */}
+              {canViewFullProfile && resumeUrl && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
                   <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
-                    Documents & Links
+                    Documents
                   </h2>
                   <div className="space-y-3">
-                    {meta.linkedin_url && (
-                      <a
-                        href={meta.linkedin_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors group"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-[#0A66C2] flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-[#0A66C2] transition-colors">LinkedIn Profile</p>
-                          <p className="text-xs text-gray-500 truncate">{meta.linkedin_url}</p>
-                        </div>
-                        <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                        </svg>
-                      </a>
-                    )}
                     {resumeUrl && (
                       <a
                         href={resumeUrl}

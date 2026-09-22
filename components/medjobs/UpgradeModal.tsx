@@ -76,7 +76,7 @@ export default function UpgradeModal({ creditsUsed, onClose }: UpgradeModalProps
             <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            Resume downloads & LinkedIn access
+            Resume downloads
           </li>
         </ul>
 

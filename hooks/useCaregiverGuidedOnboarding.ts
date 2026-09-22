@@ -50,7 +50,6 @@ const ITEM_TO_SECTION: Record<string, CaregiverSectionId> = {
   experience: "background",
   care_types: "background",
   languages: "background",
-  resume_or_linkedin: "resume",
 };
 
 interface CaregiverCompleteness {

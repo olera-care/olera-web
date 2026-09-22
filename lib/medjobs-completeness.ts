@@ -11,7 +11,7 @@ import type { StudentMetadata } from "@/lib/types";
  * 5. Screening Questions (3 scenario questions)
  * 6. Experience (experience timeline entries)
  * 7. Certifications
- * 8. Resume & LinkedIn
+ * 8. Resume
  * 9. Verification (intro video, driver's license, car insurance)
  *
  * Weights: Most sections = 10%, Resume & Verification = 15% each (total 100%)
@@ -145,9 +145,9 @@ export function getSectionCompleteness(
   const certsDone = certItems.filter((i) => i.done).length;
   const certsPercent = Math.round((certsDone / certItems.length) * 100);
 
-  // 8. Resume & LinkedIn
+  // 8. Resume
   const resumeItems = [
-    { key: "resume_linkedin", label: "Resume or LinkedIn", done: !!(meta.resume_url || meta.linkedin_url) },
+    { key: "resume", label: "Resume", done: !!meta.resume_url },
   ];
   const resumeDone = resumeItems.filter((i) => i.done).length;
   const resumePercent = Math.round((resumeDone / resumeItems.length) * 100);
@@ -160,7 +160,7 @@ export function getSectionCompleteness(
     { id: "scenarios", label: "Screening Questions", percent: scenariosPercent, done: scenariosPercent === 100, items: scenarioItems },
     { id: "background", label: "Experience", percent: backgroundPercent, done: backgroundPercent === 100, items: backgroundItems },
     { id: "certifications", label: "Certifications", percent: certsPercent, done: certsPercent === 100, items: certItems },
-    { id: "resume", label: "Resume & LinkedIn", percent: resumePercent, done: resumePercent === 100, items: resumeItems },
+    { id: "resume", label: "Resume", percent: resumePercent, done: resumePercent === 100, items: resumeItems },
     { id: "verification", label: "Video Introduction", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },
   ];
 }
@@ -250,7 +250,7 @@ export function getProfileItems(
     { key: "languages", label: "Languages", done: (meta.languages?.length ?? 0) > 0, category: "profile" },
     { key: "why", label: "Why I want to be a caregiver", done: !!(meta.why_caregiving && meta.why_caregiving.length >= 100), category: "profile" },
     { key: "scenarios", label: "Screening questions", done: scenarios.length >= SCENARIO_QUESTIONS.length && scenarios.every((s) => (s.answer?.length ?? 0) >= 50), category: "profile" },
-    { key: "resume_or_linkedin", label: "Resume or LinkedIn", done: !!(meta.resume_url || meta.linkedin_url), category: "profile" },
+    { key: "resume", label: "Resume", done: !!meta.resume_url, category: "profile" },
   ];
 }
 

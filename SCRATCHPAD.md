@@ -7,6 +7,53 @@
 
 ## Current Focus
 
+### 2026-09-22 (later) — The Ces handoff: she had already called all twelve, and two of my own claims did not survive contact (`ces-handoff-log`, no app code)
+
+Follow-on from the audit entry below. **No application code changed.** Outputs are two production data fixes, a Slack brief, `Care Seeker Outreach` at v6, and one memory corrected.
+
+#### The thing that reframed the whole afternoon
+
+I drafted a message handing Ces twelve families to call. Before sending, I checked `family_touches` and found **she had already called all twelve the night before** — sixteen logged calls, 21:19 to 23:57 UTC, including Rudy and Rochelle who were not on the list. Two reached (Helen, Karl), eight voicemails, four numbers that would not connect.
+
+**Why the audit missed it.** I checked `city_leads.reached_at`, which only the app writes and which was null, and repeated the 21 Sep note that the Log-it form had never been submitted by a human. The record was in `family_touches` the whole time, being written *while I was auditing*. Same class as the "hand-placed action leaves no trace" trap in `/ad-boost-audit`, except the trace existed in a table I did not open. **Check `family_touches` before asserting anything about whether a family has been contacted.**
+
+#### Two claims of mine TJ overturned
+
+- **"A text reply alone routes a request."** False since 21 Sep. `offers.server.ts:231` gates on `qualification_reply_at && qualification_verdict === "care_seeker"`, and a null verdict holds too. The code comment names the exact error. I stated it as current without reading it, and attributed it to TJ when I had written it myself in the 19 Sep artifact. His question was "is this in fact the case or are you making this up".
+- **"Hoop answered her first inquiry in 57 seconds by a human."** Carried straight from SCRATCHPAD. The 57-second event is the automated `quick_reply_request`; first human `read_by` is 21 Sep 16:18, forty-three hours later, after an unread reminder fired.
+
+#### Voice, four rounds of correction
+
+The Slack draft went drill sergeant, then over-explained, then back. What landed: acknowledgement is a **fact stated specifically**, never a standalone thank-you; every instruction carries its reason as a **clause, not a sentence**; say the autonomy point once at the top rather than per item. TJ's own phrase for the opener is "couple of things worth knowing". See [[feedback_tj_writing_style]].
+
+#### Handled ourselves rather than handed over
+
+- **Jillanna's email corrected** to `gracefullyspeaking2@gmail.com` (ours had three l's where the word has two). Guarded the PATCH on the old value. Ces found and verified it; **nothing in the admin panel edits a lead's phone or email**, so only a direct write could do it.
+- **Karl marked `no_fit`**, outcome `no`. He told Ces he does not need care and did not know how he got into the ad. Queue 12 → 11.
+- Left **Rochelle** alone: already `redirected`, so already excluded from Needs you, and archiving would only lose the reason she closed.
+
+#### Facts worth keeping
+
+- **Everyone left in the queue has an email address.** Email is the universal fallback, not a special case. `message_family` takes `channel: "email"` with a subject, so it is a button on the panel.
+- **Karl is a third non-family on the Dallas instant form.** With Gwen and Drema, cost per *confirmed family* on that arm is $45–$56, not the $28 in today's audit. Still under the $76 bar, and the margin halved the moment someone phoned them.
+- **Jillanna's phone is unrecoverable**, not merely wrong: `+11214870172` is area code 121, which cannot exist. Probably a Dallas `214` number with a digit lost. Her description came from the quiz note field at submission, unprompted, not from a text.
+- **Slack's IP block stops signing in, not using an existing session.** `app.slack.com` is 200; `slack.com` and `oleraworkspace.slack.com` are 403. Only `chrome-profile-google` holds the session cookie. Straight to `app.slack.com/client/T01305841EZ/<channel>` works; the workspace picker's Open button routes through the blocked host and bounces. Written into [[reference_slack_com_ip_blocked]], which previously said nothing browser-side helps.
+
+#### Three defects with no ticket
+
+1. **A bounce does not write back to `city_lead_messages`.** Jillanna's 13 Sep email reads `status=sent` while `email_log` recorded the bounce ten hours earlier. That is why she sat nine days looking fine.
+2. **No admin action edits a lead's phone or email.** Recurs on every fat-fingered digit.
+3. **Four of ten provider offers reached nobody** on 20 Sep (`reached_channels: []`, "both sends failed" for Cambridge Caregivers and Granny NANNIES). The same two received email fine on 21 Sep. Unexplained.
+
+#### Next up
+
+1. **Share `Care Seeker Outreach` with Ces** — access is `cchavez.olera@gmail.com`, not her Slack address. The 19 Sep message links it and today's brief points her at it, so she hits an access wall until this is done.
+2. **Rebuild that artifact as a status board.** It still describes twelve people nobody has called, including Karl who is closed and Jillanna with the old email. Offered and not taken today.
+3. **Wednesday 24 Sep**: decline the second $300 per Google city arm.
+4. Answer Ces on manual routing, still open in the Helen thread.
+
+Slack: brief sent in `#careseeker-support` under the Helen message. A scheduled 19:00 version was created and then deleted once the content was superseded.
+
 ### 2026-09-22 — Ad Boost full-book audit: delivery is closed, the instant form clears the $76 bar, and Ces is on twelve families (`fresh-joliot`, no code, production state + artifacts)
 
 **No code changed.** Outputs are 17 `ad_campaign_log` observations, all six `city_campaigns.admin_note` appended, `~/Desktop/adboost-state-of-play.md` rewritten, one new artifact, one existing artifact updated to v6, and two Slack messages sent.

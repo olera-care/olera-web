@@ -47,6 +47,45 @@ import {
 export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
   || process.env.WAR_ROOM_MODEL
   || "claude-opus-5";
+
+/**
+ * Which model runs which pass.
+ *
+ * Every pass ran on Opus because one constant named the model, not because any
+ * pass needed it. Tested against the live API on 2026-09-22, and the answer is
+ * not uniform:
+ *
+ *   submit_lens_sweep_core        5478ch   Haiku: GRAMMAR TOO LARGE
+ *   submit_lens_sweep_execution   5477ch   Haiku: GRAMMAR TOO LARGE
+ *   submit_opportunity_dossiers   3591ch   Haiku: passes
+ *   submit_ceo_triage             1975ch   Haiku: passes
+ *   submit_agenda_proposal        2443ch   Haiku: passes
+ *
+ * Haiku's strict-grammar budget is smaller than Opus's, and the lens sweep --
+ * the pass carrying the most input -- is over it. It cannot be moved without
+ * splitting its schema, so the largest saving is also the hardest one.
+ *
+ * The same test killed prompt caching across passes. Caching requires an
+ * identical prefix and the prefix begins with the tools, so every pass would
+ * have to send the same tool array. Sending all five at once returns
+ * "The compiled grammar is too large". That route is closed, not merely untried.
+ *
+ * Only triage moves by default. It is classification against a reduced context
+ * and the cheapest thing to be wrong about. The dossier pass is where
+ * conditions are actually formed, which is judgement, and it stays on Opus
+ * until the cost ledger shows what it is really costing -- changing it is one
+ * environment variable once that number exists.
+ */
+const PASS_MODELS: Record<string, string | undefined> = {
+  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP,
+  forming_candidates: process.env.WAR_ROOM_MODEL_DOSSIER,
+  challenging_candidates: process.env.WAR_ROOM_MODEL_TRIAGE || "claude-haiku-4-5-20251001",
+  drafting_decision: process.env.WAR_ROOM_MODEL_DRAFT,
+};
+
+export function modelForStage(stage: string): string {
+  return PASS_MODELS[stage] || WAR_ROOM_DISCOVERY_MODEL;
+}
 // Bump whenever prompt text changes. Every run row and every failure
 // diagnostic is stamped with this, so leaving it alone after editing a prompt
 // makes runs before and after the change indistinguishable in the data.
@@ -655,7 +694,10 @@ export function describeProviderFailure(
     stage: context.stage,
     tool: context.tool,
     promptVersion: WAR_ROOM_PROMPT_VERSION,
-    model: WAR_ROOM_DISCOVERY_MODEL,
+    // The model that actually ran this pass, not the default. A 400 from a
+    // grammar budget is model-specific, so naming the wrong one sends the next
+    // reader looking in the wrong place.
+    model: modelForStage(context.stage),
     status,
     requestId: providerRequestId(error),
     providerErrorType: body.type,
@@ -832,8 +874,9 @@ async function callWarRoomTool<T>(input: {
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const startedAt = Date.now();
   try {
+    const stageModel = modelForStage(input.stage);
     const message = await anthropic.messages.stream({
-      model: WAR_ROOM_DISCOVERY_MODEL,
+      model: stageModel,
       max_tokens: input.maxTokens,
       system: input.system,
       tools: [input.tool],
@@ -854,7 +897,7 @@ async function callWarRoomTool<T>(input: {
           stage: input.stage,
           tool: input.tool.name,
           promptVersion: WAR_ROOM_PROMPT_VERSION,
-          model: WAR_ROOM_DISCOVERY_MODEL,
+          model: stageModel,
           status: null,
           requestId: message.id,
           providerErrorType: null,
@@ -866,7 +909,7 @@ async function callWarRoomTool<T>(input: {
       truncated.cost = {
         stage: input.stage,
         tool: input.tool.name,
-        model: WAR_ROOM_DISCOVERY_MODEL,
+        model: stageModel,
         inputTokens: truncatedUsage.input_tokens,
         outputTokens: truncatedUsage.output_tokens,
         cacheReadTokens: truncatedUsage.cache_read_input_tokens ?? 0,
@@ -886,7 +929,7 @@ async function callWarRoomTool<T>(input: {
       cost: {
         stage: input.stage,
         tool: input.tool.name,
-        model: WAR_ROOM_DISCOVERY_MODEL,
+        model: stageModel,
         inputTokens: usage.input_tokens,
         outputTokens: usage.output_tokens,
         cacheReadTokens: usage.cache_read_input_tokens ?? 0,
@@ -1990,7 +2033,7 @@ async function withFailureDiagnostic<T>(runId: string, stage: string, work: () =
           stage,
           tool: "deterministic_contract",
           promptVersion: WAR_ROOM_PROMPT_VERSION,
-          model: WAR_ROOM_DISCOVERY_MODEL,
+          model: modelForStage(stage),
           status: null,
           requestId: null,
           providerErrorType: null,

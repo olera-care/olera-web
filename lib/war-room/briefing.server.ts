@@ -92,6 +92,39 @@ export async function loadWarRoomBriefing(db: SupabaseClient): Promise<WarRoomPr
     return [];
   }
 
+  /**
+   * Did this number actually move?
+   *
+   * Compared on a threshold, never on equality. Probe headlines carry counts
+   * that tick on their own -- a question total going 1,658 to 1,662 -- and a
+   * string comparison calls that a change every single morning. That is the
+   * defect that made every stalled condition report progress for thirty-six
+   * days, and reproducing it here would refill the brief with the same noise
+   * by a different route.
+   *
+   * Ten percent on any figure in the headline. Below that it is drift.
+   */
+  const MOVEMENT_THRESHOLD = 0.1;
+  const figuresIn = (headline: string): number[] =>
+    (headline.match(/-?[\d,]+\.?\d*/g) ?? [])
+      .map((raw) => Number(raw.replace(/,/g, "")))
+      .filter((n) => Number.isFinite(n));
+
+  const movementOf = (current: string, previous: string | null): "new" | "moved" | "steady" => {
+    if (!previous) return "new";
+    const now = figuresIn(current);
+    const before = figuresIn(previous);
+    // Different shape of sentence, not just different digits: something
+    // structural changed and it is worth reading.
+    if (now.length !== before.length) return "moved";
+    if (!now.length) return current.trim() === previous.trim() ? "steady" : "moved";
+    return now.some((value, i) => {
+      const prior = before[i];
+      if (prior === 0) return value !== 0;
+      return Math.abs(value - prior) / Math.abs(prior) >= MOVEMENT_THRESHOLD;
+    }) ? "moved" : "steady";
+  };
+
   const seen = new Set<string>();
   const readings: WarRoomProbeReading[] = [];
   for (const row of data) {
@@ -100,6 +133,12 @@ export async function loadWarRoomBriefing(db: SupabaseClient): Promise<WarRoomPr
     const headline = typeof details.headline === "string" ? details.headline : null;
     if (!probeId || !headline || probeId === "none" || seen.has(probeId)) continue;
     seen.add(probeId);
+    // The same fetch already holds this probe's earlier readings, newest first,
+    // so the comparison costs nothing extra.
+    const previousHeadline = data
+      .filter((other) => (other.details ?? {}).probe_id === probeId && other !== row)
+      .map((other) => (other.details ?? {}).headline)
+      .find((value): value is string => typeof value === "string" && Boolean(value)) ?? null;
     const known = PROBE_LABELS[probeId];
     readings.push({
       probeId,
@@ -110,6 +149,8 @@ export async function loadWarRoomBriefing(db: SupabaseClient): Promise<WarRoomPr
       rows: readRows(details.rows),
       caveat: typeof details.caveat === "string" && details.caveat ? details.caveat : null,
       measuredAt: typeof details.measured_at === "string" ? details.measured_at : row.created_at,
+      movement: movementOf(headline, previousHeadline),
+      previousHeadline,
     });
   }
   return readings;
@@ -125,7 +166,10 @@ export async function loadWarRoomBriefing(db: SupabaseClient): Promise<WarRoomPr
 const MODEL_PRICE_PER_MTOK: Record<string, { input: number; output: number }> = {
   "claude-opus-5": { input: 5, output: 25 },
   "claude-opus-4-8": { input: 5, output: 25 },
-  "claude-sonnet-5": { input: 3, output: 15 },
+  // $2/$10, not $3/$15. The introductory price announced at launch became the
+  // standard price; the scheduled September increase never happened. The stale
+  // row overstated every Sonnet pass by half.
+  "claude-sonnet-5": { input: 2, output: 10 },
   "claude-haiku-4-5": { input: 1, output: 5 },
   // The dated id is what the API is actually called with, and it is what the
   // cost ledger records. Without this row a Haiku pass prices as unknown and

@@ -7,6 +7,62 @@
 
 ## Current Focus
 
+### 2026-09-22 (evening) — The care-seeker call log reads itself, both halves in production (`touch-log-heard` #2048, `touch-log-details` #2051, promoted #2052 and #2053)
+
+Ces called Helen on 21 Sep and came away with the diagnosis, the transfers, the hours, the payment type and the care address. All of it went into one free-text box, and the lead still read `care_type: unsure` with Helen's own ZIP rather than Geraldine's. **Everything the router acts on was known and none of it was readable.** That gap is what these two PRs close.
+
+#### The design rule that decided everything
+
+`LogFamilyTouch.tsx` carries a comment recording TJ rejecting a **seven-field version of this exact form**: *"way too manual and I'll quickly fall behind and probably not use this as it should be."* The instinct on reading that was to abandon structured fields entirely. The resolution instead:
+
+> **Fields shown BEFORE a save are that rejected form. The same fields shown AFTER, already filled, are the system reporting back — which is why they can be visible without being work.**
+
+So the box stays one box. Haiku reads the note after the insert and renders chips. An empty field is a chore; a filled one is information. That reframe also answers "how will she know it exists": she finds out the first time she logs a call, because it appears with her own information in it.
+
+Then TJ's second point, which the first version missed: **sometimes nobody wants to compose a sentence.** Typing and tapping are two doors to the same room, not a primary and a fallback. So the save button stopped demanding text, a fields-only log builds its own timeline summary, and `+ Add the details` sits at rest beside `+ Set what happens next` — one link, the house pattern already in that component.
+
+#### Coded vs prose, and why it mattered
+
+TJ asked whether the detail fields should be dropdowns. The answer split on one test: **does anything downstream compare this value to another value?**
+
+- **Coded:** `care_type` (the four values `lib/city-ads/config.ts` already routes on), `transfers` (bounded, ordered, the dealbreaker question), `payment` (multi — private pay now with Medicaid pending is one situation).
+- **Prose, deliberately:** name, ZIP, hours, start date, budget, relationship, interim location. Nothing matches on them, the long tail is real, and "late October or early November" is more honest than a date picker.
+
+Free text in `care_type` was **quietly recreating the defect the feature exists to close**: "home care" typed into a box never equals `home_care`. Both entry paths now go through `heardCanonical`, so a model read and a person's pick are comparable.
+
+#### Four bugs, each found by a check shaped differently from the last
+
+1. **No `maxDuration` on a route that now makes a model call.** The insert happens first, so a killed function returns "Could not save that" for a touch already written, and the obvious response writes it twice. Ceiling 30s, model timeout 12s → 6s.
+2. **Quotes followed the record into unrelated calls.** `mergeHeard` unioned `also_noted` across reads, so the third note rendered "in your words" above three fragments from earlier calls. Fields merge forward, quotes do not.
+3. **Clearing a field did nothing.** The client filtered to non-empty before posting, so the deletion semantics in `applyManual` were unreachable from their only caller. Now every *touched* field is sent, emptied or not, while *filled* gates the button.
+4. **Coding the fields orphaned every value already stored.** #2048 merged hours before the codes existed, so records carry `care_type: "Help bathing and dressing"`. Marked sure, so it blocks a guess; if hand-typed, also edited and unreplaceable forever. **First fix was wrong**: "stale" as "cannot canonicalise" is too narrow, because `"two people"` canonicalises fine and simply was not stored that way. Stored coded values are now normalised *before* any merge rule runs, repairing what can be repaired.
+
+#### Method notes worth more than the code
+
+- **`document.body.innerText` is not a presence test.** It reported the chips missing for 35 seconds across two attempts while they were rendering at 942×149. Fetching the JS bundle and grepping it is what caught the lie.
+- **A green check on logic says nothing about whether the logic is reachable.** The merge tested clean in isolation on every case including clear-stays-cleared — because the test handed it inputs the real client never sent. Ask what the passing check could not see.
+- **Both Slack and preview auth were solvable by driving.** Google OAuth completed silently in the already-signed-in Chrome; the preview needed no hand-off. Slack message *editing*, however, ignores synthetic clicks the same way Meta and Google Ads do.
+
+#### Deliberately NOT shipped
+
+- **`city_leads.care_type` is untouched.** It feeds the qualification gate, and writing to it would loosen that gate as a side effect of a log form.
+- **The gate change TJ approved** — a reached call unlocking routing the same way a text reply does — **rides with the manual router, not alone.** Shipped by itself it would make Helen instantly eligible for *automatic* routing into a Dallas pool of four north-Dallas providers, three of whom have never logged in.
+
+#### Routing analysis behind the Ces brief
+
+- **Dallas pool is all north.** Closest office to 75224 is Assisting Hands at 18 mi; the other three have never logged in. Ranked three sent to Ces: **Assisting Hands** (4.7/62, incumbent, live Managed Ads, only Dallas provider who uses the product), **Home Instead Cedar Hill** (4.9/52, 12 mi, its own service-area page names Oak Cliff, Cockrell Hill, Kessler Park **and** Grand Prairie — covers where Geraldine is now *and* where she is going), **Visiting Angels Cedar Hill** (5.0/65, 11 mi).
+- **The directory's geography is unusable.** ComForCare Park Cities stored with ZIP `12700`, Home Care Providers of Texas `14114` — both New York. Verify against Places or the agency's own page.
+- **Branded agencies publish Oak Cliff pages they do not staff.** Amada's "Senior Home Care in Oak Cliff" lists only northern suburbs and sits on Midway Road, 75244.
+- **Geraldine does not exist in the database.** One record, Helen's. `city_leads.care_recipient` and `metadata.relationship_to_recipient` both null. The sharpest illustration of the whole problem.
+
+#### Next Up
+
+1. **Plan the manual router before writing it.** TJ's sketch differs from the drawn one: type a provider name from scratch, system finds and verifies them and cross-checks distance — which is what was done by hand this morning to build the ranked three.
+2. Tap a chip to correct it; the durable details block on the record header (`app/admin/relationships/families/[seekerId]`).
+3. **Clean up:** `Zz Chip Test (delete me)` (`277a4f34`) and three fictional notes on Test McTest (`b32bb6fd`). Shared DB, so both are visible in production.
+
+Artifacts: [routing panel + board](https://claude.ai/artifact/5m64Q4rHyx6H8f8n5XJHLW), [log-form design, 4 states](https://claude.ai/artifact/5LSXnPF9e211XXshM5UrPq).
+
 ### 2026-09-22 (later) — The Ces handoff: she had already called all twelve, and two of my own claims did not survive contact (`ces-handoff-log`, no app code)
 
 Follow-on from the audit entry below. **No application code changed.** Outputs are two production data fixes, a Slack brief, `Care Seeker Outreach` at v6, and one memory corrected.

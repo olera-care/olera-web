@@ -58,7 +58,19 @@ export async function POST(request: NextRequest) {
     // Channel messages still go to the evidence reader below — an answer is a
     // reply in the DM, not a remark in a channel.
     if (payload.event.channel_type === "im" && !payload.event.bot_id && !payload.event.subtype && payload.event.text) {
-      const founderUserId = process.env.WAR_ROOM_BRIEF_SLACK_USER_ID?.trim();
+      // `chat.postMessage` accepts either a user id (U.../W...) or an IM channel
+      // id (D...) as its channel, so this variable delivers the daily brief
+      // correctly whichever shape it holds, and nothing has ever needed to know
+      // which. Authorisation does: only a user id can be compared to
+      // `event.user`. Comparing a D-channel id against a sender would never
+      // match, which would have rejected the founder's own replies and broken
+      // the answer loop that works in production today.
+      //
+      // So the two uses are separated. `dmTarget` delivers, and works either
+      // way. `founderUserId` authorises, and is null unless we hold something
+      // that can actually identify a person.
+      const dmTarget = process.env.WAR_ROOM_BRIEF_SLACK_USER_ID?.trim() || null;
+      const founderUserId = dmTarget && /^[UW][A-Z0-9]{2,}$/i.test(dmTarget) ? dmTarget : null;
 
       // "scan" is a command, not an answer. Checked before capture so the word
       // is never filed as evidence against whatever was last asked.
@@ -79,9 +91,20 @@ export async function POST(request: NextRequest) {
         // confirmation would be delivered to the founder rather than to them --
         // he would see replies to commands he never typed.
         //
-        // Unset env means nobody is authorised, which is the safe default: the
-        // bot simply does not answer the word.
-        if (!founderUserId || payload.event.user !== founderUserId) {
+        // Being unable to identify him is a misconfiguration, not an
+        // unauthorised request, so it says so rather than going quiet. A
+        // command that silently does nothing is indistinguishable from a broken
+        // deploy, and that ambiguity has cost this project days before.
+        if (!founderUserId) {
+          if (dmTarget) {
+            await sendSlackDirectMessage(
+              dmTarget,
+              "I cannot start a scan: WAR_ROOM_BRIEF_SLACK_USER_ID is not a Slack user id, so I cannot verify who is asking. It needs to be the U... id, not a D... channel id.",
+            ).catch(() => null);
+          }
+          return NextResponse.json({ ok: true, scanCommand: { ignored: "founder id not a user id" } });
+        }
+        if (payload.event.user !== founderUserId) {
           return NextResponse.json({ ok: true, scanCommand: { ignored: "not the founder" } });
         }
 
@@ -89,7 +112,7 @@ export async function POST(request: NextRequest) {
         // Awaited, not fired and forgotten: this route can be frozen the moment
         // it responds, and an unsent confirmation looks exactly like a scan
         // that never started.
-        await sendSlackDirectMessage(founderUserId, result.reply).catch(() => null);
+        await sendSlackDirectMessage(dmTarget ?? founderUserId, result.reply).catch(() => null);
         return NextResponse.json({ ok: true, scanCommand: { started: result.started, runId: result.runId ?? null } });
       }
 

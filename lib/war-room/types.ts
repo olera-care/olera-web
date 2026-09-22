@@ -397,6 +397,15 @@ export interface WarRoomProbeReading {
   rows: Array<Record<string, string | number>>;
   caveat: string | null;
   measuredAt: string;
+  /**
+   * Whether this reading is worth saying out loud.
+   *
+   * "steady" is the common case and the brief stays silent about it. A number
+   * that has not moved is not news, and six of them every morning is the
+   * litany the founder asked to stop receiving.
+   */
+  movement: "new" | "moved" | "steady";
+  previousHeadline: string | null;
 }
 
 /** What the last scan cost, priced from the run's recorded token counts. */

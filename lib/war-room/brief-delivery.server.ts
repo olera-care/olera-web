@@ -44,7 +44,12 @@ function readingLine(reading: WarRoomProbeReading, scanDate: string) {
   // latest answer per probe across all scans, so a probe that did not run today
   // still appears. Dating it is what stops a stale answer reading as today's.
   const age = measured === scanDate ? "" : ` _(measured ${measured})_`;
-  return `• *${reading.label}* ${reading.headline}${age}`;
+  // What it was, not just what it is. A number on its own is a fact; a number
+  // next to the one it replaced is the thing worth reading.
+  const from = reading.movement === "moved" && reading.previousHeadline
+    ? `\n  _was: ${reading.previousHeadline}_`
+    : "";
+  return `• *${reading.label}* ${reading.headline}${age}${from}`;
 }
 
 type ProposalRow = { title: string; why_now: string; decision_required: string };
@@ -87,11 +92,21 @@ export function buildWarRoomBriefText(input: {
   // reads as failure every morning.
   const lines: string[] = [`*War Room, ${date}* ${href}`];
 
-  if (input.readings.length) {
-    lines.push("", "*Today's read*");
-    lines.push(...input.readings.slice(0, 6).map((reading) => readingLine(reading, date)));
-  } else {
-    lines.push("", "No probe answers landed in this scan.");
+  // Only what moved.
+  //
+  // This printed all six standing metrics every morning whether or not any of
+  // them had changed. The founder's words: "no vanilla reports, only
+  // intelligent suggestions". Six unchanged numbers is not a report of the
+  // company, it is proof the query ran.
+  //
+  // The numbers are all still computed and still reach the reasoning pack.
+  // What changed is that a number earns a line by having moved. On most days
+  // this section is empty, and an empty section prints nothing at all rather
+  // than announcing its own emptiness.
+  const movers = input.readings.filter((reading) => reading.movement !== "steady");
+  if (movers.length) {
+    lines.push("", "*What moved*");
+    lines.push(...movers.slice(0, 3).map((reading) => readingLine(reading, date)));
   }
 
   if (input.proposals.length) {

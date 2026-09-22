@@ -4,12 +4,13 @@
  *
  * Not the provider brochure with the nouns swapped. An advising office is not
  * buying anything and is not the employer — what they have is students who
- * need hands-on patient experience before they apply, and no good answer when
+ * need hands-on experience before they apply, and no specific answer when
  * those students ask where to get it. So the document is about the student,
- * and everything the office might fear is answered on the page: no cost, no
- * endorsement, no paperwork, nothing that competes with coursework.
+ * and what it asks of the office is only that they pass it on.
  *
- * Same renderer as every other config (Template.tsx).
+ * Same renderer as every other config (Template.tsx), plus the student
+ * recruitment flyer appended as a final page — the office is being asked to
+ * share something, so the thing they would share is in their hands already.
  */
 
 import type { ProgramPdfConfig } from "./texas-am";
@@ -24,15 +25,15 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
   ctaUrl: "https://olera.care/medjobs/candidates",
   eyebrow: "FOR PRE-HEALTH ADVISING AND CAREER CENTERS",
   heroHeadline:
-    "Paid, hands-on patient experience for your pre-health students — around their class schedule.",
+    "Paid, hands-on bedside experience for your pre-health students — around their class schedule.",
   heroSubhead:
-    "Olera places pre-health students into paid caregiving shifts with licensed local home care agencies. They get direct patient contact, a reference, and hours that admissions committees recognise. Your office does nothing but tell them it exists.",
+    "Olera places pre-health students — future doctors, nurses and allied health professionals — into paid caregiving shifts with licensed local home care agencies. They get direct bedside experience with older adults and people with disabilities, and opportunities for references, letters of recommendation and direct-care hours that admissions committees value. Your office can help us spread the word.",
 
   benefitsHeading: "WHY OFFICES SHARE THIS",
   benefits: [
     {
-      title: "Something to point students to",
-      body: "Every pre-health student asks where to get patient experience. This is a specific answer, not a suggestion to go and look.",
+      title: "A specific answer",
+      body: "Every pre-health student asks where to get hands-on experience that improves their competitiveness for professional school. This is one.",
     },
     {
       title: "Paid, and no cost to anyone here",
@@ -40,26 +41,26 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
     },
     {
       title: "Built around coursework",
-      body: "Shifts are arranged around a class schedule. This is not something that competes with the semester.",
+      body: "Shifts are arranged around a class schedule, and our partnering agencies are vetted to be student-friendly.",
     },
     {
-      title: "Nothing for you to administer",
-      body: "We recruit, qualify and follow up. You do not vet, place, supervise or track anybody.",
+      title: "Easy to share",
+      body: "We provide the flyer and an approved posting for the university job board, ready for a newsletter, a listserv or an advising session.",
     },
   ],
 
   steps: [
     {
-      title: "You share it.",
-      body: "A newsletter, a listserv, an advising appointment — whatever you already use.",
+      title: "You share our flyer.",
+      body: "A newsletter, a listserv, an advising appointment — wherever you think it would help.",
     },
     {
       title: "Students apply to us.",
-      body: "We qualify them and match them to licensed agencies near campus.",
+      body: "Our site carries the application and qualification, then matches them to partnering agencies near campus.",
     },
     {
       title: "They are hired and paid.",
-      body: "The agency is the employer. We confirm the hire and stay in touch with the student.",
+      body: "The local agency employs them. We confirm the hire and stay with the student from there.",
     },
   ],
 
@@ -67,13 +68,13 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
 
   story: {
     heading: "Why this program exists",
-    body: "Pre-health students are told to get patient experience and are rarely told where. Meanwhile home care agencies near every campus cannot fill shifts. Olera built the Student Caregiver Program to put those two facts together — students get paid clinical hours before they apply, and families get reliable support at home.",
+    body: "Pre-health students are advised to get hands-on experience providing care, and then struggle to find it. Meanwhile home care agencies near every campus cannot fill their shifts, and families who need personal care are turned away. Olera built the Student Caregiver Program to meet both needs at once: students get paid hours, references and something real to write a personal statement about; agencies get motivated new caregivers; families get reliable support at home. We would like your office to be part of it.",
   },
 
   offer: {
     headline: "What a student gets",
-    ask: "Paid direct patient care, a professional reference, and hours that count.",
-    body: "Students work alongside licensed caregivers doing real, supervised, patient-facing work — the kind of experience an admissions committee asks about and a personal statement can be written from.",
+    ask: "Paid bedside care, references and letters, hours for their application, and mentorship from our team.",
+    body: "Students work for a licensed partnering agency doing the real work — supervision, medication reminders, transfers, companionship — with older adults and people with disabilities. It is the bedside experience a future clinician needs, and the kind admissions committees look for. Afterwards we help them write it up, ask for a letter, document their hours, and practise talking about it.",
   },
 
   team: [
@@ -109,29 +110,28 @@ export const GENERIC_ADVISOR: ProgramPdfConfig = {
   afterReply: [
     {
       title: "We answer your questions.",
-      body: "What we ask of students, who the agencies are, and what we do not do.",
+      body: "How the program works for students, and how we keep our agencies student-friendly.",
     },
     {
-      title: "We send you something to forward.",
-      body: "A short student-facing version, written to be pasted into a newsletter.",
+      title: "You share our recruitment flyer.",
+      body: "It is the last page of this document: one page, with the link and the approved posting.",
     },
     {
-      title: "We tell you what happened.",
-      body: "How many of your students applied, and how many were hired.",
+      title: "We meet, and keep meeting.",
+      body: "How many students applied, how many were hired, and what they said about the work.",
     },
   ],
 
   nextStep: {
     heading: "The easiest next step",
-    kicker: "No endorsement. No paperwork. No commitment from the office.",
     ask: "Reply to this email.",
-    body: "We will answer your questions and send a short version you can forward to students. If you would rather talk it through first, we will find fifteen minutes.",
+    body: "We will answer your questions and send the recruitment flyer for you to forward to students. We would also like to meet you or someone from your office, and to keep working together semester after semester.",
   },
 
   replyBlock: {
     label: "REPLY WITH ONE WORD",
     word: "INTERESTED",
-    tail: "We’ll take it from there.",
+    tail: "We’ll send more information from there.",
   },
 
   footerLine: "Olera Student Caregiver Program • For pre-health advising and career centers",

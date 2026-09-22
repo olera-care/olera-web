@@ -19,6 +19,7 @@ import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ProgramPdfConfig } from "./configs";
 import { StudentFlyer } from "./StudentFlyer";
+import { RecruitFlyerPage } from "./RecruitFlyer";
 
 const EMERALD = "#059669";
 const EMERALD_DARK = "#047857";
@@ -239,6 +240,13 @@ export interface ProgramPdfAssets {
   /** Olera logo, reversed out of the header band. */
   oleraLogoDataUri?: string;
   qrDataUri: string;
+  /**
+   * The QR on the student recruitment flyer, which points at the student
+   * application rather than at whatever the host document's CTA is. An
+   * advising office forwards that page to students; a QR that took them to
+   * the advising page would be the one broken thing on it.
+   */
+  recruitQrDataUri?: string;
 }
 
 const initials = (name: string) =>
@@ -278,6 +286,10 @@ export function ProgramPdfTemplate({
     chantel: assets.chantelPhotoDataUri,
     sara: assets.saraPhotoDataUri,
   };
+  // The advising flyer differs from the agency brochure in one structural
+  // way: its call to action is on page two, so the panel that closes page one
+  // for an agency has no claim to that position here.
+  const advisor = config.audience === "advisor";
   const team = config.team ?? [];
   const lead = team[0];
   const rest = team.slice(1);
@@ -377,7 +389,12 @@ export function ProgramPdfTemplate({
           <SectionHead>HOW IT WORKS</SectionHead>
           <Steps items={config.steps.map(stepOf)} />
 
-          {config.offer ? (
+          {/* On the agency brochure this panel is the call to action, so it
+              closes the page. On the advising flyer it is not — the ask there
+              is "reply to this email", which lives on page two — and the page
+              it would close is already the longer of the two. Left here it
+              overflowed onto a page of its own with nothing else on it. */}
+          {config.offer && !advisor ? (
             <View style={styles.offerBox}>
               <Text style={styles.offerHead}>{config.offer.headline}</Text>
               <Text style={styles.offerAsk}>{config.offer.ask}</Text>
@@ -394,6 +411,14 @@ export function ProgramPdfTemplate({
           <Band right="the team" />
 
           <View style={styles.body}>
+            {config.offer && advisor ? (
+              <View style={[styles.offerBox, { marginTop: -4 }]}>
+                <Text style={styles.offerHead}>{config.offer.headline}</Text>
+                <Text style={styles.offerAsk}>{config.offer.ask}</Text>
+                <Text style={styles.offerBody}>{config.offer.body}</Text>
+              </View>
+            ) : null}
+
             <SectionHead>WHO YOU WILL BE WORKING WITH</SectionHead>
             <View style={styles.teamRow}>
               {rest.map((m, i) => (
@@ -419,7 +444,9 @@ export function ProgramPdfTemplate({
             {config.nextStep ? (
               <View style={styles.offerBox}>
                 <Text style={styles.offerHead}>{config.nextStep.heading}</Text>
-                <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
+                {config.nextStep.kicker ? (
+                  <Text style={styles.offerAsk}>{config.nextStep.kicker}</Text>
+                ) : null}
                 <Text style={[styles.offerAsk, { color: GRAY_900 }]}>
                   {config.nextStep.ask}
                 </Text>
@@ -447,6 +474,11 @@ export function ProgramPdfTemplate({
           </View>
         </Page>
       ) : null}
+
+      {/* The thing the office is being asked to share, in the same file as
+          the asking. An advising office that has to reply and wait for an
+          attachment shares it next week, or never. */}
+      {config.audience === "advisor" ? <RecruitFlyerPage assets={assets} /> : null}
     </Document>
   );
 }

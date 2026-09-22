@@ -87,7 +87,10 @@ export interface ProgramPdfConfig {
    */
   offer?: { headline: string; ask: string; body: string };
   /** The closing panel on the team page. */
-  nextStep?: { heading: string; kicker: string; ask: string; body: string };
+  /** The closing ask. `kicker` is optional: on the advising flyer the line
+   *  that used to sit here was a list of what the office would not have to
+   *  do, which answered a worry nobody had raised. */
+  nextStep?: { heading: string; kicker?: string; ask: string; body: string };
   /** The one-word reply block that ends the brochure. */
   replyBlock?: { label: string; word: string; tail: string };
   /** The rule-line at the very bottom of the last page. */

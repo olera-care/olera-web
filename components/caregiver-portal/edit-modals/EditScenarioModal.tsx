@@ -51,13 +51,6 @@ export default function EditScenarioModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const originalAnswers = SCENARIO_QUESTIONS.map((q) => {
-    const existing = responses.find((r) => r.question === q.question);
-    return existing?.answer || "";
-  });
-
-  const hasChanges = JSON.stringify(answers) !== JSON.stringify(originalAnswers);
-
   // Navigate with animation
   const navigateToStep = useCallback((step: Step) => {
     if (step === currentStep || isTransitioning) return;

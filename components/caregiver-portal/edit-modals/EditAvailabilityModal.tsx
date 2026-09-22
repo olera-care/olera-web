@@ -59,13 +59,6 @@ export default function EditAvailabilityModal({
     4: "Notes",
   };
 
-  const hasChanges =
-    commitmentStatement !== (meta.commitment_statement || "") ||
-    prnWilling !== !!meta.prn_willing ||
-    advanceNoticePledge !== !!meta.advance_notice_pledge ||
-    JSON.stringify(yearRoundAvailability) !== JSON.stringify(meta.year_round_availability || {}) ||
-    availabilityNotes !== (meta.availability_notes || "");
-
   const isCommitmentValid = commitmentStatement.trim().length >= 50;
 
   // Navigate with animation
@@ -82,10 +75,17 @@ export default function EditAvailabilityModal({
   }, [currentStep, isTransitioning]);
 
   const handleSeasonChange = (season: string, status: string) => {
-    setYearRoundAvailability((prev) => ({
-      ...prev,
-      [season]: { status, year: currentYear },
-    }));
+    setYearRoundAvailability((prev) => {
+      // If clearing the selection, remove the entry entirely
+      if (!status) {
+        const { [season]: _, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [season]: { status, year: currentYear },
+      };
+    });
   };
 
   async function handleSave() {
@@ -151,7 +151,13 @@ export default function EditAvailabilityModal({
     switch (currentStep) {
       case 1: return isCommitmentValid;
       case 2: return true; // Optional
-      case 3: return Object.keys(yearRoundAvailability).length > 0;
+      case 3: {
+        // Check for at least one season with a valid (non-empty) status
+        const validEntries = Object.values(yearRoundAvailability).filter(
+          (entry) => entry && typeof entry === "object" && "status" in entry && entry.status
+        );
+        return validEntries.length > 0;
+      }
       case 4: return true; // Optional
     }
   };
@@ -191,10 +197,10 @@ export default function EditAvailabilityModal({
         {/* Step 1: Commitment Statement */}
         {currentStep === 1 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="commitment-statement" className="block text-sm font-medium text-gray-700 mb-1">
               Your commitment to caregiving
             </label>
-            <p className="text-sm text-gray-500 mb-4">
+            <p id="commitment-description" className="text-sm text-gray-500 mb-4">
               This is the #1 thing providers look at. Describe your availability and how long you plan to work.
             </p>
 
@@ -218,6 +224,8 @@ export default function EditAvailabilityModal({
             )}
 
             <textarea
+              id="commitment-statement"
+              aria-describedby="commitment-description"
               value={commitmentStatement}
               onChange={(e) => setCommitmentStatement(e.target.value)}
               placeholder="I am committed to working caregiving shifts around my class schedule for at least 6 months. Outside of class and exam periods, I am available for shifts including evenings, weekends, and overnights..."
@@ -247,10 +255,10 @@ export default function EditAvailabilityModal({
 
         {/* Step 2: Additional Pledges */}
         {currentStep === 2 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div role="group" aria-labelledby="pledges-label">
+            <p id="pledges-label" className="block text-sm font-medium text-gray-700 mb-1">
               Additional commitments
-            </label>
+            </p>
             <p className="text-sm text-gray-500 mb-5">
               These are optional, but help providers understand your flexibility.
             </p>
@@ -295,10 +303,10 @@ export default function EditAvailabilityModal({
 
         {/* Step 3: Seasonal Availability */}
         {currentStep === 3 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div role="group" aria-labelledby="seasonal-availability-label">
+            <p id="seasonal-availability-label" className="block text-sm font-medium text-gray-700 mb-1">
               Year-round availability
-            </label>
+            </p>
             <p className="text-sm text-gray-500 mb-5">
               Let providers know your plans for each season.
             </p>
@@ -307,9 +315,10 @@ export default function EditAvailabilityModal({
               {SEASONS.map((season) => {
                 const data = yearRoundAvailability[season] as { status?: string; year?: number } | undefined;
                 const isCurrent = season === currentSeason;
+                const selectId = `season-${season}`;
                 return (
                   <div key={season} className="flex items-center gap-3">
-                    <div className="w-24 shrink-0">
+                    <label htmlFor={selectId} className="w-24 shrink-0">
                       <span className="text-sm font-medium text-gray-900">
                         {SEASON_LABELS[season]}
                       </span>
@@ -318,8 +327,9 @@ export default function EditAvailabilityModal({
                           (now)
                         </span>
                       )}
-                    </div>
+                    </label>
                     <select
+                      id={selectId}
                       value={data?.status || ""}
                       onChange={(e) => handleSeasonChange(season, e.target.value)}
                       className="flex-1 text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
@@ -341,20 +351,21 @@ export default function EditAvailabilityModal({
         {/* Step 4: Additional Notes */}
         {currentStep === 4 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="availability-notes" className="block text-sm font-medium text-gray-700 mb-1">
               Additional notes
             </label>
-            <p className="text-sm text-gray-500 mb-4">
+            <p id="notes-description" className="text-sm text-gray-500 mb-4">
               Optional: finals, spring break, planned travel, etc.
             </p>
 
             <textarea
+              id="availability-notes"
+              aria-describedby="notes-description"
               value={availabilityNotes}
               onChange={(e) => setAvailabilityNotes(e.target.value)}
               placeholder="Any specific dates or circumstances providers should know about..."
               rows={8}
               className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all resize-y min-h-[200px]"
-              autoFocus
             />
             <p className="text-xs text-gray-400 mt-2">
               This field is optional

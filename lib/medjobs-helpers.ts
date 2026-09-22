@@ -132,6 +132,44 @@ export function getYouTubeId(url: string): string | null {
   }
 }
 
+/** Extract Loom video ID from share URL.
+ *  Returns null for non-Loom URLs. */
+export function getLoomId(url: string): string | null {
+  try {
+    const match = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Extract Vimeo video ID from URL.
+ *  Returns null for non-Vimeo URLs. */
+export function getVimeoId(url: string): string | null {
+  try {
+    const match = url.match(/vimeo\.com\/(\d+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Get video platform info from a URL */
+export function getVideoPlatform(url: string): { platform: "youtube" | "loom" | "vimeo" | null; id: string | null } {
+  if (!url) return { platform: null, id: null };
+
+  const youtubeId = getYouTubeId(url);
+  if (youtubeId) return { platform: "youtube", id: youtubeId };
+
+  const loomId = getLoomId(url);
+  if (loomId) return { platform: "loom", id: loomId };
+
+  const vimeoId = getVimeoId(url);
+  if (vimeoId) return { platform: "vimeo", id: vimeoId };
+
+  return { platform: null, id: null };
+}
+
 /** Map legacy program_track values to intended_professional_school equivalents */
 const LEGACY_TRACK_TO_INTENDED: Record<string, string> = {
   pre_med: "medicine",

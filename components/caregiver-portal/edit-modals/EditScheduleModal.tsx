@@ -117,7 +117,7 @@ export default function EditScheduleModal({
 
   return (
     <Modal isOpen onClose={onClose} title={headerContent} size="2xl" footer={footerContent}>
-      <div className="pt-2">
+      <div className="pt-2 pb-8">
         <ScheduleBuilder value={schedule} onChange={setSchedule} />
         {error && (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">

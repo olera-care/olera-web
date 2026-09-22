@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
-import { LADDERS, rungAt, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
+import { LADDERS, SECTION_ORDER, rungAt, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   canReopen,
   complete,
@@ -43,25 +43,45 @@ import TaskView from "./TaskView";
  * it closed is the opening block: three rungs waiting at once is only worth
  * anything if finishing the first two survives a refresh.
  */
-const PERSISTED: Partial<
-  Record<SectionKey, { complete: string; reopen: string; defer: string }>
-> = {
-  providers: {
-    complete: "complete_record_task",
-    reopen: "reopen_check",
-    defer: "defer_record_task",
-  },
-  jobboard: {
-    complete: "complete_channel_task",
-    reopen: "reopen_check",
-    defer: "defer_channel_task",
-  },
-  students: {
-    complete: "complete_student_task",
-    reopen: "reopen_student_task",
-    defer: "defer_student_task",
-  },
-};
+/**
+ * Which server ops a section's writes go through.
+ *
+ * Written as a default plus its exceptions, not as a list of the sections
+ * that work. It was a list, and advisors, student orgs and professors were
+ * not on it — so every task logged on one of those records updated the
+ * screen, said "Saved", and reached nothing. The note and the outcome lived
+ * in this page object until the next reload threw them away. Attachments
+ * survived, because those post on their own path, which is what made the
+ * loss look arbitrary.
+ *
+ * A section left out of a list is silent. A section left out of an override
+ * gets the record ops, which is right for every section whose records are
+ * student_outreach rows — providers, advisors, orgs, events and professors,
+ * and anything added beside them.
+ */
+const RECORD_OPS = {
+  complete: "complete_record_task",
+  reopen: "reopen_check",
+  defer: "defer_record_task",
+} as const;
+
+const PERSISTED: Record<SectionKey, { complete: string; reopen: string; defer: string }> =
+  Object.fromEntries(
+    SECTION_ORDER.map((key) => [
+      key,
+      // A job board is a channel, not a record, and a student is their own
+      // profile. Those two have their own tables and so their own ops.
+      key === "jobboard"
+        ? { complete: "complete_channel_task", reopen: "reopen_check", defer: "defer_channel_task" }
+        : key === "students"
+          ? {
+              complete: "complete_student_task",
+              reopen: "reopen_student_task",
+              defer: "defer_student_task",
+            }
+          : RECORD_OPS,
+    ]),
+  ) as Record<SectionKey, { complete: string; reopen: string; defer: string }>;
 
 type View =
   | { kind: "summary" }

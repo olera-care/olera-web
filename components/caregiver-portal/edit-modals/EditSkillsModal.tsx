@@ -171,7 +171,7 @@ export default function EditSkillsModal({
 
   return (
     <Modal isOpen onClose={onClose} title="" size="2xl" footer={footerContent}>
-      <div className="px-2">
+      <div className="px-2 pb-8">
         <div className="min-h-[360px] flex items-start justify-center pt-4">
           <div className="w-full max-w-md mx-auto text-center">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">

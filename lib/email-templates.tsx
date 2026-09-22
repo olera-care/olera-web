@@ -1325,7 +1325,11 @@ export function connectionRequestEmail(opts: {
 
   // Determine pronoun based on care recipient (defaults to "their" if unknown)
   // "her mother" → "her", "his father" → "his", otherwise "their"
-  let pronoun = "their";
+  // `pronoun` is the OBJECT pronoun ("message them directly"), `possessivePronoun`
+  // the possessive ("see their request"). The object one defaulted to "their",
+  // which shipped "you can message their directly" on every lead where we do not
+  // know who the care is for. That is most of them.
+  let pronoun = "them";
   let possessivePronoun = "their";
   if (hasCareRecipient) {
     const recipientLower = opts.careRecipient!.toLowerCase();
@@ -1375,23 +1379,23 @@ export function connectionRequestEmail(opts: {
   const greeting = `Hi ${escapeHtml(opts.providerName)},`;
 
   // Build main body line with smart fallbacks
-  // Full: "Margaret is looking for assisted living for her mother in Bryan — and chose your team."
-  // No recipient: "Margaret is looking for assisted living in Bryan — and chose your team."
-  // No city: "Margaret is looking for assisted living — and chose your team."
-  // No care type: "Margaret is looking for care in Bryan — and chose your team."
-  // Minimal: "A family is looking for care — and chose your team."
+  // Full: "Margaret is looking for assisted living for her mother in Bryan, and chose your team."
+  // No recipient: "Margaret is looking for assisted living in Bryan, and chose your team."
+  // No city: "Margaret is looking for assisted living, and chose your team."
+  // No care type: "Margaret is looking for care in Bryan, and chose your team."
+  // Minimal: "A family is looking for care, and chose your team."
   let bodyLine: string;
   const familyRef = hasName ? safeFamilyName : "A family";
   const careTypeRef = hasCareType ? opts.careType!.toLowerCase() : "care";
 
   if (hasCareRecipient && hasCity) {
-    bodyLine = `${familyRef} is looking for ${careTypeRef} for ${opts.careRecipient} in ${opts.city} — and chose your team.`;
+    bodyLine = `${familyRef} is looking for ${careTypeRef} for ${opts.careRecipient} in ${opts.city}, and chose your team.`;
   } else if (hasCareRecipient && !hasCity) {
-    bodyLine = `${familyRef} is looking for ${careTypeRef} for ${opts.careRecipient} — and chose your team.`;
+    bodyLine = `${familyRef} is looking for ${careTypeRef} for ${opts.careRecipient}, and chose your team.`;
   } else if (hasCity) {
-    bodyLine = `${familyRef} in ${opts.city} is looking for ${careTypeRef} — and chose your team.`;
+    bodyLine = `${familyRef} in ${opts.city} is looking for ${careTypeRef}, and chose your team.`;
   } else {
-    bodyLine = `${familyRef} is looking for ${careTypeRef} — and chose your team.`;
+    bodyLine = `${familyRef} is looking for ${careTypeRef}, and chose your team.`;
   }
 
   if (!enriched) {

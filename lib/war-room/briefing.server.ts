@@ -127,6 +127,10 @@ const MODEL_PRICE_PER_MTOK: Record<string, { input: number; output: number }> = 
   "claude-opus-4-8": { input: 5, output: 25 },
   "claude-sonnet-5": { input: 3, output: 15 },
   "claude-haiku-4-5": { input: 1, output: 5 },
+  // The dated id is what the API is actually called with, and it is what the
+  // cost ledger records. Without this row a Haiku pass prices as unknown and
+  // silently drops out of the total.
+  "claude-haiku-4-5-20251001": { input: 1, output: 5 },
 };
 
 /**
@@ -141,6 +145,31 @@ export function warRoomScanCost(run: WarRoomDiscoveryRun | null): WarRoomScanCos
   const inputTokens = run.input_tokens ?? 0;
   const outputTokens = run.output_tokens ?? 0;
   if (!inputTokens && !outputTokens) return null;
+  // Price per call when the ledger is there, because passes no longer share a
+  // model. Pricing a mixed run at the run's single `model` column overstates
+  // every scan where a pass ran on something cheaper -- the brief would report
+  // a saving it had not made, which is worse than reporting nothing.
+  const ledger = (run.source_summary as { cost_ledger?: unknown } | null)?.cost_ledger;
+  if (Array.isArray(ledger) && ledger.length) {
+    const entries = ledger as Array<{ model?: string; inputTokens?: number; outputTokens?: number }>;
+    let usd = 0;
+    let priced = true;
+    for (const entry of entries) {
+      const entryPrice = MODEL_PRICE_PER_MTOK[entry.model ?? ""];
+      if (!entryPrice) { priced = false; break; }
+      usd += ((entry.inputTokens ?? 0) * entryPrice.input + (entry.outputTokens ?? 0) * entryPrice.output) / 1_000_000;
+    }
+    const models = [...new Set(entries.map((entry) => entry.model).filter(Boolean))] as string[];
+    if (priced) {
+      return {
+        model: models.length === 1 ? models[0] : models.join(" + "),
+        inputTokens,
+        outputTokens,
+        usd,
+      };
+    }
+  }
+
   const price = MODEL_PRICE_PER_MTOK[run.model];
   return {
     model: run.model,

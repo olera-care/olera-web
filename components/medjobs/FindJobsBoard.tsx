@@ -223,14 +223,6 @@ export default function FindJobsBoard() {
   const displayProviders = activeTab === "near" ? nearProviders : allProviders;
   const mapCards = displayProviders.filter((p) => p.lat != null && p.lon != null);
 
-  // Handle card click — open provider detail page in new tab
-  const handleCardClick = (provider: ProviderCard, e: React.MouseEvent) => {
-    // Cmd/ctrl-click always opens in new tab naturally
-    if (e.metaKey || e.ctrlKey) return;
-    e.preventDefault();
-    window.open(`/provider/${provider.slug}?ctx=medjobs-student`, "_blank", "noopener,noreferrer");
-  };
-
   // Handle interview request
   const handleRequestInterview = (provider: ProviderCard) => {
     if (!student.profileId) {
@@ -348,8 +340,7 @@ export default function FindJobsBoard() {
                   key={provider.id}
                   onMouseEnter={() => setHoveredId(provider.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  onClick={(e) => handleCardClick(provider, e)}
-                  className="cursor-pointer rounded-2xl transition-shadow hover:shadow-md"
+                  className="rounded-2xl transition-shadow hover:shadow-md"
                 >
                   <BrowseCard
                     provider={provider}

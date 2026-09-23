@@ -78,6 +78,8 @@ export default function AdminStudentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [sendingLink, setSendingLink] = useState(false);
+  const [linkMessage, setLinkMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -195,6 +197,37 @@ export default function AdminStudentDetailPage() {
 
   function updateField(field: string, value: unknown) {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  /**
+   * Email this student a one-click sign-in link.
+   *
+   * For the call where somebody cannot get into their own application. The
+   * link comes from the app's own sender rather than Supabase's, and lasts
+   * fifteen days rather than an hour.
+   *
+   * Says what happened either way. A button that reports success on mail that
+   * never left is worse than no button, because somebody is on the phone
+   * telling a student to go and check their inbox.
+   */
+  async function handleSendMagicLink() {
+    setSendingLink(true);
+    setLinkMessage(null);
+    try {
+      const res = await fetch(`/api/admin/caregivers/${studentId}/send-magic-link`, {
+        method: "POST",
+      });
+      const json = (await res.json()) as { ok?: boolean; sentTo?: string; error?: string };
+      if (!res.ok || !json.ok) {
+        setLinkMessage({ type: "error", text: json.error || "Could not send the link." });
+        return;
+      }
+      setLinkMessage({ type: "success", text: `Sign-in link sent to ${json.sentTo}` });
+    } catch {
+      setLinkMessage({ type: "error", text: "Could not reach the server." });
+    } finally {
+      setSendingLink(false);
+    }
   }
 
   async function handleSave() {
@@ -358,19 +391,42 @@ export default function AdminStudentDetailPage() {
           </svg>
           Back to Students
         </Link>
-        <div className="flex items-center gap-3">
-          {saveMessage && (
-            <span className={`text-sm ${saveMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
-              {saveMessage.text}
-            </span>
-          )}
-          <button
-            onClick={handleSave}
-            disabled={!isDirty || saving}
-            className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3">
+            {saveMessage && (
+              <span className={`text-sm ${saveMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                {saveMessage.text}
+              </span>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={!isDirty || saving}
+              className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+          {/* For the call where a student cannot get into their own
+              application. Sends from the app's sender, not Supabase's. */}
+          <div className="flex items-center gap-3">
+            {linkMessage && (
+              <span className={`text-sm ${linkMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                {linkMessage.text}
+              </span>
+            )}
+            <button
+              onClick={handleSendMagicLink}
+              disabled={sendingLink || !student.email}
+              title={
+                student.email
+                  ? `Email a one-click sign-in link to ${student.email}`
+                  : "This student has no email address on file"
+              }
+              className="px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {sendingLink ? "Sending..." : "Send Sign-In Link"}
+            </button>
+          </div>
         </div>
       </div>
 

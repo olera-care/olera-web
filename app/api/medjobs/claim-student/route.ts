@@ -13,7 +13,7 @@ import { validateClaimToken } from "@/lib/claim-tokens";
  *  2. Resolves the existing Supabase auth user for the email
  *  3. Establishes a session by verifying a fresh magic-link OTP server-side,
  *     writing auth cookies onto the redirect response
- *  4. Redirects to the destination URL (e.g., /portal/medjobs/profile)
+ *  4. Redirects to the destination URL (e.g., /portal/medjobs)
  *
  * This provides 15-day link expiry (vs 1-hour Supabase magic link default),
  * matching how provider and family claim links work.

@@ -286,7 +286,7 @@ export function generateMedJobsStudentInterviewUrl(
  * so students opening emails days later still get one-click sign-in.
  *
  * @param email - Student's email for token generation
- * @param destination - Path to redirect to after auth (e.g., "/portal/medjobs/profile")
+ * @param destination - Path to redirect to after auth (e.g., "/portal/medjobs")
  * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
  */
 export function generateStudentPortalUrl(

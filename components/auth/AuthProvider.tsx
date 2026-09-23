@@ -443,10 +443,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
               // Determine final destination
               // New user (onboarding_completed=false) + no deferred action → /welcome
-              // EXCEPT for provider routes - providers don't need family onboarding
+              // EXCEPT for provider and MedJobs routes — neither needs family
+              // onboarding. /welcome asks a care seeker what kind of care they
+              // are looking for, which is the wrong question for a student who
+              // clicked a link to finish a caregiving application, and it puts
+              // a page they have to get past between them and the thing they
+              // came for.
               const hasDeferredAction = !!getDeferredAction()?.action;
-              const isProviderRoute = redirectTo.startsWith("/provider");
-              const finalDestination = (isNewUser && !hasDeferredAction && !isProviderRoute)
+              const skipsWelcome =
+                redirectTo.startsWith("/provider") || redirectTo.startsWith("/portal/medjobs");
+              const finalDestination = (isNewUser && !hasDeferredAction && !skipsWelcome)
                 ? `/welcome?next=${encodeURIComponent(redirectTo)}`
                 : redirectTo;
 

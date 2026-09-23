@@ -158,6 +158,16 @@ const SWEEP_SEARCH: Record<SweepKind, (campus: string) => Record<string, string>
         `${campus} faculty directory biology OR nursing OR "health sciences" OR "public health" professor email`,
       ),
   }),
+  // Who to ask, rather than who to write to. Chairs and industry-relations
+  // offices are listed in different places from faculty, and finding them is
+  // the part of this task that takes the time.
+  permission: (campus) => ({
+    permission_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} department chair OR "industry relations" OR "corporate relations" OR "employer relations" contact`,
+      ),
+  }),
 };
 
 const day = (iso: string | null): string =>
@@ -677,7 +687,7 @@ export async function GET() {
     // one to do, which means a campus created tomorrow gets the task with no
     // backfill and nothing to remember in the campus-creation path. The only
     // row this ever reads is the completed one.
-    for (const kind of ["map", "advisor", "org", "event", "professor"] as const) {
+    for (const kind of ["map", "advisor", "org", "event", "professor", "permission"] as const) {
       const sweep = SWEEPS[kind];
       const row = (siteTasksByCampus.get(campus.id) ?? []).find(
         (t) => t.task_type === sweep.taskType,
@@ -864,6 +874,31 @@ export async function GET() {
           ? `${uni.name}, ${uni.city}, ${uni.state}`
           : null;
 
+    // Who approved our contacting faculty here, if anybody has. Read off the
+    // completed permission task rather than stored on the campus: the task
+    // is the record of the asking, and a second copy would be a second thing
+    // to keep in step.
+    const permissionRow = (siteTasksByCampus.get(campus.id) ?? []).find(
+      (t) => t.task_type === "faculty_permission" && t.status === "completed",
+    );
+    const permissionPayload = (permissionRow?.payload ?? {}) as {
+      fields?: Record<string, string>;
+      action?: number;
+    };
+    const approver = (permissionPayload.fields?.approver ?? "").trim();
+    // Action 0 is "Approved — we may name them". Every other outcome either
+    // withheld the name or did not grant anything, and naming somebody who
+    // asked not to be named is the one mistake this whole task exists to
+    // avoid.
+    const facultyPermission =
+      approver && permissionPayload.action === 0
+        ? {
+            approver,
+            title: (permissionPayload.fields?.approver_title ?? "").trim(),
+            named: true,
+          }
+        : null;
+
     // The advisors dot, read off the advising offices rather than off a
     // campus_channels row that nothing on this board writes to. A campus
     // whose offices had all been emailed still showed grey, because logging
@@ -883,6 +918,7 @@ export async function GET() {
       // Badged on the board. A teaching campus that looks like a real one is
       // a trap for whoever opens the board next and starts working it.
       isDemo: campus.is_demo === true,
+      facultyPermission,
       mapsDestination,
       channels,
       records,

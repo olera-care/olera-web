@@ -1658,7 +1658,7 @@ Dr. Logan DuBose's office · Olera`,
         email: {
           subject: "For your students: paid caregiving shifts near {university}",
           body: `Dear {first},
-
+{approval}
 I am writing once, with something that may suit some of your students.
 
 The Student Caregiver Program places pre-health students into paid caregiving shifts with licensed local home care agencies near {university}. They help older adults with supervision, medication reminders, transfers, companionship and personal care — hands-on experience, paid, arranged around a class timetable, and the kind of thing an admissions committee asks about.
@@ -1737,6 +1737,51 @@ Dr. Logan DuBose's office · Olera`,
         steps: ["Do the thing.", "Log what it was."],
         textarea: "What it was",
         actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "confirm-they-shared-it" }],
+      },
+      {
+        branch: "permission",
+        title: "Ask permission to contact faculty",
+        what: "One approach to whoever can say yes on behalf of the institution — a department chair, industry or corporate relations, or a communications office.",
+        why: "Naming who approved us changes a faculty email more than any other word in it. It is not a gate: the emails go out either way, and this makes the next ones land better.",
+        steps: [
+          "Find the chair, industry-relations or communications contact for the departments we are writing to.",
+          "Ask two things: may we contact faculty, and may we say you approved it.",
+          "Type their name and title. Every professor email after this reads better for it.",
+        ],
+        link: { key: "permission_search_url", label: "Find who can approve this" },
+        inputs: [
+          { key: "approver", label: "Who approved it", type: "text" },
+          { key: "approver_title", label: "Their title", type: "text" },
+        ],
+        email: {
+          subject: "Contacting faculty about a paid student programme at {university}",
+          body: `Dear {first},
+
+I am writing from Dr. Logan DuBose's office before contacting any faculty, so that we do it the way you would want it done.
+
+We run the Student Caregiver Program: pre-health students take paid caregiving shifts with licensed local home care agencies near {university}, arranged around their classes. It gives them hands-on experience with older adults before they apply to professional school.
+
+We would like to write once to a small number of faculty whose students it may suit, asking them to use their own judgement about whether to pass it on. One email each, once a term.
+
+One-pager: {flyer}
+
+Two questions:
+
+  · Are you comfortable with us contacting faculty directly?
+  · If so, may we say you were happy for us to get in touch?
+
+If you would rather we did not, say so and we will leave faculty alone here.
+
+With thanks,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
+        actions: [
+          { label: "Approved — we may name them", outcome: "goal", delay: 0, ticks: ["pathway", "approved"] },
+          { label: "Approved — do not name them", outcome: "goal", delay: 0, ticks: ["pathway"] },
+          { label: "No reply", outcome: "goal", delay: 0 },
+          { label: "Refused — do not contact faculty", outcome: "closed", delay: 0 },
+        ],
       },
     ],
   },

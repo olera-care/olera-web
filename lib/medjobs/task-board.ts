@@ -36,7 +36,17 @@ export const SWEEP_PREFIX = "sweep:";
  * has it to do, which means a campus created tomorrow gets both with no
  * backfill and nothing to remember in the campus-creation path.
  */
-export type SweepKind = "map" | "advisor" | "org" | "event" | "professor";
+export type SweepKind =
+  | "map"
+  | "advisor"
+  | "org"
+  | "event"
+  | "professor"
+  // Not a sweep in the sense of finding things — it finds one fact. It rides
+  // the same machinery because it is the same shape: one task per campus,
+  // derived rather than seeded, gone once it is done, and never attached to
+  // a record.
+  | "permission";
 
 export const SWEEPS: Record<
   SweepKind,
@@ -47,6 +57,7 @@ export const SWEEPS: Record<
   org: { taskType: "org_sweep", section: "orgs", branch: "orgsweep" },
   event: { taskType: "event_sweep", section: "events", branch: "eventsweep" },
   professor: { taskType: "professor_sweep", section: "professors", branch: "professorsweep" },
+  permission: { taskType: "faculty_permission", section: "professors", branch: "permission" },
 };
 
 /** The sections a sweep fills. Each one's records are student_outreach rows,
@@ -267,6 +278,15 @@ export interface BoardUniversity {
   mapsDestination: string | null;
   /** A teaching campus. Badged on the board, and out of every rollup. */
   isDemo?: boolean;
+  /**
+   * Who approved our contacting faculty here, when somebody has.
+   *
+   * A department chair, industry relations, or a communications office —
+   * recorded once for the campus and read by every professor email after
+   * it. Absent means nobody has been asked, or nobody said yes, and the
+   * email goes out on its own terms.
+   */
+  facultyPermission?: { approver: string; title: string; named: boolean } | null;
   /** Straight from campus_channels — the dots keep their current meaning. */
   channels: Partial<Record<"st3" | "st4" | "st5" | "st6" | "st7", ChannelStatus>>;
   records: Record<SectionKey, BoardRecord[]>;

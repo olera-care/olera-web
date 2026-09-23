@@ -129,6 +129,10 @@ const STAKEHOLDER_SECTION: Record<string, SectionKey> = {
   student_org: "orgs",
   professor: "professors",
   dept_head: "professors",
+  // Must match the board's copy. It did not: the board learned about events
+  // and this did not, so an event record rendered fine and answered "that
+  // record has no ladder" the moment anybody logged anything on it.
+  event: "events",
 };
 
 const sectionOf = (row: { kind: string; stakeholder_type?: string | null }): SectionKey | null =>
@@ -697,7 +701,16 @@ export async function POST(req: Request) {
       completed_at: new Date().toISOString(),
       completed_by: user.id,
       created_by: user.id,
-      payload: { found, added: made },
+      // The fields the rung asked for, kept with the task that asked. The
+      // permission task's whole output is two of them — who approved it and
+      // their title — and without this the completion threw them away and
+      // every professor email after it went out cold.
+      payload: {
+        found,
+        added: made,
+        fields: (body.fields ?? {}) as Record<string, string>,
+        action: Number(body.actionIndex),
+      },
       notes: (body.note ?? "").trim() || null,
     };
     const { error } = existingRow

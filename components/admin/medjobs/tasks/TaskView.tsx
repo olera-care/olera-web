@@ -64,6 +64,7 @@ export default function TaskView({
   record,
   task,
   onOpenRecord,
+  permission,
   onAct,
   onDefer,
   onStop,
@@ -84,6 +85,8 @@ export default function TaskView({
   record: BoardRecord;
   task: BoardTask;
   onOpenRecord: () => void;
+  /** Who approved contacting faculty at this campus, when anybody has. */
+  permission?: { approver: string; title: string; named: boolean } | null;
   onAct: (actionIndex: number) => void;
   onDefer: (days: number) => void;
   onStop: (reason: string) => void;
@@ -176,7 +179,13 @@ export default function TaskView({
     contact: record.contact || record.name,
     first: (record.contact || "there").split(" ")[0],
     role: record.role,
-    approver: task.fields?.approver || "your department",
+    approver: permission?.approver || task.fields?.approver || "your department",
+    // A whole line, or nothing at all. The alternative was two versions of
+    // the same email, one naming an approver and one not, which is two
+    // things to keep in step and one of them always goes stale.
+    approval: permission
+      ? `\n${permission.approver}${permission.title ? `, ${permission.title},` : ""} was happy for us to get in touch.\n`
+      : "",
     flyer,
   };
 

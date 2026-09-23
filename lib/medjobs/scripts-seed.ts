@@ -287,7 +287,7 @@ const READS_FIRST: Partial<Record<SectionKey, string[]>> = {
   advisors: ["advisorsweep"],
   orgs: ["orgsweep"],
   events: ["eventsweep"],
-  professors: ["professorsweep"],
+  professors: ["professorsweep", "permission"],
 };
 
 /**

@@ -7,6 +7,40 @@
 
 ## Current Focus
 
+### 2026-09-23 — Managed Ads: two steps, and the email finally lands on the pitch (`apply-flow-two-steps` #2089, 4 commits, NOT merged)
+
+**Three merged to staging overnight** (#2057 nudge rewrite, #2064 scratchpad, #2085 dismissal instrumentation). This entry covers what came after.
+
+**The finding that drove it.** `ff_pitch` (the Find Families no-leads state) converts **9.8%** of providers who see it. It had been shown to **51 people in six months** — and the reason is not obscurity. Nothing routed anyone to `/provider/matches` in its empty state:
+
+- Providers **with** nearby families → the find_families email → the family LIST, not the pitch.
+- Providers **without** → the managed-ads digest → `/provider/boost`, which is **not a pitch at all**. It is the apply form, and step one was a week picker.
+
+So the email opened with a true local-demand number and landed the provider on a calendar. The component docstring claims the pitch is "shared between the boost page and Find Families" — **that is stale**; the boost page does not import it.
+
+**What shipped to the branch**
+
+1. **The apply flow lost step one.** It asked which week and which channels. 68 providers reached it, 30 reached step two — a **56% drop**, the largest in the funnel. **15 of 18 requests picked the soonest week.** Happy Mountain asked for the week of 28 Sep on 31 Aug and was launched **7 Sep, 21 days early** — the only informative answer the question ever produced, overridden. Counter that survives: 13 of 16 launches landed inside the requested week, so **the field is useful and the question is not**. Launch and channels are now defaulted and editable inline on Confirm, which already rendered both read-only. **Step indices deliberately left at 1 and 2** so `managed_ads_step_viewed` keeps emitting the same names and the change is measurable.
+2. **The digest points at `/provider/matches`.** Every recipient has `nearbySeekers.length === 0` by construction (`useManagedAds` requires `!findFamiliesUrl`), so they are guaranteed to land on the pitch. CTA changed from "Get my launch plan" (promised a form) to "See how this works".
+3. **"You fund a small local campaign" is gone** — untrue since 10 July, across 3,837 sends. Replaced with Olera builds and runs it, plus the offer stated plainly.
+4. **`ff_pitch` and `ff_banner` now fire `ads_touchpoint_*`.** The funnel's Shown stage cannot split by source; the touchpoint breakdown can, and the pitch page was the one surface missing from it. Without this the change would have moved a number with nothing on any admin page to explain it.
+
+**Pre-test caught a blank page.** Removing step 0 left the mobile Back link guarded at `step > 0`. The flow starts at 1, so it rendered on the **first screen** and `setStep(step-1)` led to a step with no JSX: eyebrow, sticky Continue, nothing else. One tap, on mobile, where the digest is about to send 2,000 providers. **tsc and eslint both passed on it** — it came from reading the seam where the deleted block had been.
+
+#### Open
+
+- **Never actually run.** Everything is reading plus static checks. The path that fails silently is submit: `submit()` bails on a null week and the picker that set it is gone; an effect defaults it, but a failed submit shows no error.
+- **Expect the 9.8% to fall.** It came from 51 providers who navigated to that page deliberately. Email arrivals are not the same population. Above the dashboard banner's 3.3% the change still pays for itself several times over.
+- **Measurement trap:** both digest variants now use `action=matches`, so `one_click_access action=ads` falls to ~zero. That is this change, not the email dying. Variant is still separable via `email_log.metadata.variant`.
+- `ManagedAdsCTA` has two variants (`banner`, `empty`) and both report as `ff_banner`; pre-existing conflation, left alone for series continuity.
+- The stale `ManagedAdsPitch` docstring still claims the boost page shares it.
+- Both A/B variants still return **identical copy**.
+- `canAdvance` is now permanently true, so two `disabled={!canAdvance}` props are dead.
+
+**Not merged.** #2089, 4 commits, Vercel green.
+
+---
+
 ### 2026-09-22 (night) — Managed Ads: the pitch that works reaches 8 providers, the one that doesn't reaches 158 (`ads-pitch-surfaces` #2057, 6 commits, NOT merged)
 
 **The finding that started it.** Trial signups for Managed Ads are entirely in-product. 20 of 23 requests in company history came from a pitch surface inside the app; 6 came from an email sent to 2,055 providers. Measured from `provider_activity`, 120 days:

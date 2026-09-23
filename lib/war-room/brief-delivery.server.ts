@@ -4,7 +4,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
 import { pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
 import { closeExchange } from "@/lib/war-room/conversation.server";
-import { loadLookupGaps } from "@/lib/war-room/lookups.server";
+import { loadBlindSpots, loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
 
 /**
@@ -87,6 +87,7 @@ export function buildWarRoomBriefText(input: {
   costUsd: number | null;
   question?: FounderQuestion | null;
   unanswerable?: string[];
+  blindSpots?: string[];
 }): string {
   const { run, siteUrl } = input;
   const date = shortDate(run.created_at);
@@ -155,6 +156,14 @@ export function buildWarRoomBriefText(input: {
   // thrown away: the scan's "no probe fits" choice was skipped by this brief,
   // and a question Cortex could not answer in Slack left no trace. A lookup
   // nobody knows is missing never gets built.
+  // Where my copy is behind the real thing. Shown every morning it is true,
+  // because a stale reader otherwise looks exactly like a quiet company.
+  if (input.blindSpots?.length) {
+    lines.push("", "*Where my copy is behind*");
+    for (const item of input.blindSpots.slice(0, 5)) lines.push(`• ${item}`);
+    if (input.blindSpots.length > 5) lines.push(`_…and ${input.blindSpots.length - 5} more on the Cortex page._`);
+  }
+
   if (input.unanswerable?.length) {
     lines.push("", "*What I could not look up*");
     for (const item of input.unanswerable.slice(0, 4)) lines.push(`• ${item}`);
@@ -230,9 +239,11 @@ export async function deliverWarRoomBrief(
     let watching = 0;
     let question: FounderQuestion | null = null;
     let unanswerable: string[] = [];
+    let blindSpots: string[] = [];
     if (run.status !== "failed") {
       unanswerable = await loadUnanswerable(db, (state as { last_success_at?: string | null } | null)?.last_success_at ?? null)
         .catch(() => []);
+      blindSpots = await loadBlindSpots(db).catch(() => []);
       // Never ask on a failed scan. There is no fresh read behind the question,
       // and the only useful message on a failure is that it failed.
       question = await pickQuestionForFounder(db).catch(() => null);
@@ -275,6 +286,7 @@ export async function deliverWarRoomBrief(
       costUsd: warRoomScanCost(run)?.usd ?? null,
       question,
       unanswerable,
+      blindSpots,
     });
 
     // Prefer a DM. The shared webhook posts to the operations channel, where

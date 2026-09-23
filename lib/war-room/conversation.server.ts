@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { BANGKOK, inEastern, LOOKUP_TOOLS, runLookup } from "@/lib/war-room/lookups.server";
+import { BANGKOK, inEastern, loadBlindSpots, LOOKUP_TOOLS, runLookup } from "@/lib/war-room/lookups.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -269,7 +269,7 @@ async function buildConversationContext(
   focusInvestigationId?: string | null,
   question?: string,
 ): Promise<string> {
-  const [investigations, proposals, model, matches, sources, refreshed] = await Promise.all([
+  const [investigations, proposals, model, matches, sources, refreshed, blindSpots] = await Promise.all([
     db.from("war_room_investigations")
       .select("id, title, status, domain, impact, likely_cause, unknowns, occurrence_count")
       .in("status", ["investigating", "watchlist", "decision_ready"])
@@ -283,6 +283,7 @@ async function buildConversationContext(
     question ? searchRecord(db, question) : Promise.resolve([] as SourceItemRow[]),
     ingestedCounts(db),
     lastIngested(db),
+    loadBlindSpots(db).catch(() => [] as string[]),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
@@ -304,6 +305,9 @@ async function buildConversationContext(
       oleraWrittenRecord: refreshed.archive,
       note: "Refreshed only when the daily scan runs. Work written up or shipped after these times is not in the record yet.",
     },
+    // Where the copy is known to be behind the source. When a search comes up
+    // empty, this is what separates "it was not said" from "I cannot see it".
+    "Where my copy is behind": blindSpots,
     // Stated explicitly so Cortex can distinguish "this did not happen" from
     // "I cannot see where that would be recorded". Those are different answers
     // and only one of them is honest when a reader is not ingested.
@@ -361,6 +365,8 @@ When the record does not contain the answer, distinguish two very different case
 If the relevant source IS ingested and simply holds nothing, say the record shows nothing and that you would expect it to.
 
 If the relevant source IS ingested but the question is about something recent, check when the daily copies were last refreshed. When the event could postdate the last refresh, say when the record was last refreshed rather than implying it did not happen.
+
+When a search of the written record or Slack comes up empty, check where your copy is behind before saying something does not exist, and say which channel or source is stale. Names in the record are full names; the founder may use a short, misspelled or voice-dictated form, so match loosely on part of a name and on a channel's topic rather than its exact name.
 
 If the relevant source is NOT ingested, say you cannot see it. Read what Cortex can and cannot see before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
 

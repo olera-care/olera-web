@@ -250,9 +250,12 @@ export async function GET(request: NextRequest) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
         // Generate one-click sign-in URL with 15-day HMAC token
+        // /portal/medjobs, not /portal/medjobs/profile — there is no such
+        // route and never has been, so every profile-completeness nudge sent
+        // students to a 404. The portal page is where a profile is filled in.
         const magicLink = generateStudentPortalUrl(
           student.email!,
-          "/portal/medjobs/profile",
+          "/portal/medjobs",
           siteUrl
         );
 

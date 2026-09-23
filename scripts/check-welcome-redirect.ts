@@ -21,8 +21,23 @@ const ROOT = process.cwd();
 const SEARCH = ["app", "components", "lib"];
 const HELPER = "lib/auth/welcome-redirect.ts";
 
-/** Sending somebody to the interstitial, in any of the ways it is written. */
-const SENDS_TO_WELCOME = /["'`]\/welcome\?next=/;
+/**
+ * Sending somebody to the interstitial, in any of the ways it is written.
+ *
+ * The first version of this only matched the literal "/welcome?next=, and so
+ * sailed past lib/supabase/middleware.ts, which builds the same redirect with
+ *
+ *   url.pathname = "/welcome";
+ *   url.search = `?next=${...}`;
+ *
+ * That file was the one actually sending students to the questionnaire, and it
+ * runs server-side before any of the four client paths — so all four could be
+ * correct and the bug remained. Match any /welcome literal, then narrow to
+ * files that also redirect, so pages that merely style or link the route are
+ * left alone.
+ */
+const SENDS_TO_WELCOME =
+  /(?:router\.(?:push|replace)\(|location\.(?:assign|replace)\(|location\.href\s*=|\.pathname\s*=|(?:finalDestination|welcomeUrl|redirectTo|destination|nextPath|url)\s*=)\s*`?["'`]?\/welcome(["'`?])/;
 const IMPORTS_RULE = /from\s+["'](@\/lib\/auth\/welcome-redirect|\.\.?\/[^"']*welcome-redirect)["']/;
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -43,6 +58,9 @@ for (const dir of SEARCH) {
     const rel = relative(ROOT, file);
     if (rel === HELPER) continue;
     const src = readFileSync(file, "utf8");
+    // Navigating TO /welcome, not merely comparing a path against it: the
+    // navbar and the welcome page itself both mention the route and neither
+    // sends anybody anywhere.
     if (!SENDS_TO_WELCOME.test(src)) continue;
     if (!IMPORTS_RULE.test(src)) {
       problems.push(

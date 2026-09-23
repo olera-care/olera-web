@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { skipsWelcome } from "@/lib/auth/welcome-redirect";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -100,19 +101,39 @@ export async function updateSession(request: NextRequest) {
             return supabaseResponse;
           }
 
-          // Check if user has a provider profile to route them correctly
-          const { data: providerProfile } = await supabase
+          // A destination belonging to somebody who is not a care seeker never
+          // gets the care-seeker questionnaire. This guard runs server-side and
+          // before everything, which is why the four client-side copies of this
+          // rule could all be correct and a student still land on /welcome.
+          if (skipsWelcome(pathname)) {
+            return supabaseResponse;
+          }
+
+          // Which kind of account this is. "caregiver" is in the list for
+          // history only — nothing creates that type; students are "student".
+          // Leaving students out is what made this branch treat every one of
+          // them as a family.
+          const { data: ownProfile } = await supabase
             .from("business_profiles")
-            .select("id, slug, source_provider_id, claim_state")
+            .select("id, slug, source_provider_id, claim_state, type")
             .eq("account_id", account.id)
-            .in("type", ["organization", "caregiver"])
+            .in("type", ["organization", "caregiver", "student"])
             .limit(1)
             .maybeSingle();
+          const providerProfile =
+            ownProfile && ownProfile.type !== "student" ? ownProfile : null;
 
           const url = request.nextUrl.clone();
           const originalPath = request.nextUrl.pathname + request.nextUrl.search;
 
-          if (providerProfile) {
+          if (ownProfile?.type === "student") {
+            // A student's onboarding is their MedJobs profile, not the
+            // care-seeker questionnaire. Anywhere in /portal that is not
+            // theirs sends them to the portal that is. No loop: a request for
+            // /portal/medjobs already returned above.
+            url.pathname = "/portal/medjobs";
+            url.search = "";
+          } else if (providerProfile) {
             // Claimed providers skip onboarding — allow through to destination
             if (providerProfile.claim_state === "claimed") {
               return supabaseResponse;

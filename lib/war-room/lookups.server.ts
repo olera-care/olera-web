@@ -726,6 +726,16 @@ export const LOOKUP_TOOLS = [
     },
   },
   {
+    name: "read_document",
+    description: "Read the full text of a document someone shared in Slack (Word, PDF, text), found by part of its file name, channel or sharer. Use when asked to summarize or explain a shared file; search_record only returns short excerpts.",
+    input_schema: {
+      type: "object" as const,
+      properties: { query: { type: "string", description: "Part of the file name, channel, or who shared it." } },
+      required: ["query"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "nothing_fits",
     description: "Only for questions about Olera's own data. Call this when no lookup can answer such a question, before telling the founder you cannot see something. Never call it for questions about the outside world; use web search for those. Record what data would have answered it. It is shown to the founder as a list of lookups worth building.",
     input_schema: {
@@ -773,6 +783,8 @@ export async function runLookup(db: SupabaseClient, name: string, input: Record<
           author: typeof input.author === "string" ? input.author : undefined,
           days: typeof input.days === "number" ? clampDays(input.days, 30, 1, 365) : undefined,
         }));
+      case "read_document":
+        return inEastern(await readSharedDocument(db, String(input.query ?? "")));
       case "nothing_fits":
         await recordLookupGap(db, { question: String(input.question ?? ""), needed: String(input.needed ?? "") });
         return { recorded: true, note: "Tell the founder plainly what you could not see and that it has been noted as a lookup to build." };
@@ -820,6 +832,10 @@ export async function loadBlindSpots(db: SupabaseClient): Promise<string[]> {
           : `#${result.channel}: I hold nothing from it, though it has messages.`);
       }
     }
+  }
+  const attachmentError = (history?.metadata as { attachment_error?: string } | null)?.attachment_error;
+  if (attachmentError) {
+    spots.push(`Shared documents are not being read (${attachmentError}), so I can see that a file was shared but not what it says.`);
   }
   const authorError = (history?.metadata as { author_lookup_error?: string } | null)?.author_lookup_error;
   if (authorError) {
@@ -933,5 +949,38 @@ export async function searchStoredRecord(
       excerpt: (row.content ?? "").slice(0, 700),
       url: row.source_url,
     })),
+  };
+}
+
+/**
+ * The full text of a shared document, for summarising it. Documents are stored
+ * as their own items (source_kind "attachment") when the Slack copy reads the
+ * message they were shared with; search returns only excerpts.
+ */
+export async function readSharedDocument(db: SupabaseClient, query: string) {
+  const words = searchWords(query);
+  const { data, error } = await db.from("war_room_source_items")
+    .select("title, content, source_group, occurred_at, source_url, metadata")
+    .eq("source_kind", "attachment")
+    .order("occurred_at", { ascending: false })
+    .limit(200);
+  if (error) return { unavailable: `Could not read documents: ${error.message}` };
+  type Row = { title: string | null; content: string | null; source_group: string | null; occurred_at: string | null; source_url: string | null; metadata: { file_name?: string; author_name?: string | null } | null };
+  const rows = (data ?? []) as Row[];
+  if (!rows.length) return { found: false, note: "No shared document has been read yet. Documents are read when the daily scan copies the message they were shared with." };
+  const ranked = rows.map((row) => {
+    const hay = `${row.title ?? ""} ${row.source_group ?? ""} ${row.metadata?.author_name ?? ""}`.toLowerCase();
+    return { row, score: words.filter((word) => hay.includes(word)).length };
+  }).sort((a, b) => b.score - a.score);
+  const best = ranked[0];
+  if (!best || best.score === 0) return { found: false, documentsAvailable: rows.slice(0, 10).map((row) => row.title) };
+  return {
+    found: true,
+    file: best.row.metadata?.file_name ?? best.row.title,
+    where: `#${best.row.source_group}`,
+    sharedBy: best.row.metadata?.author_name ?? "not recorded",
+    sharedAt: best.row.occurred_at,
+    url: best.row.source_url,
+    text: best.row.content,
   };
 }

@@ -821,6 +821,10 @@ export async function loadBlindSpots(db: SupabaseClient): Promise<string[]> {
       }
     }
   }
+  const authorError = (history?.metadata as { author_lookup_error?: string } | null)?.author_lookup_error;
+  if (authorError) {
+    spots.push(`Slack author names are not being stored (${authorError})${authorError.includes("scope") ? "; the Slack app needs the users:read permission" : ""}, so I cannot find a message by who wrote it.`);
+  }
   const threadFailures = results.filter((result) => result.threadError);
   if (threadFailures.length) {
     spots.push(`Slack thread replies failed in ${threadFailures.length} channel(s) (${threadFailures[0].threadError}); replies inside threads are invisible to me.`);

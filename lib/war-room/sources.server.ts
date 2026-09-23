@@ -142,6 +142,9 @@ export function slackContent(message: SlackMessage) {
  * the self-check below still reports the rest.
  */
 const slackNameCache = new Map<string, string | null>();
+// The first reason a name lookup failed, reported by the self-check. Swallowed,
+// a missing users:read scope would look exactly like people without names.
+let slackNameError: string | null = null;
 async function slackUserName(token: string, userId: string | undefined): Promise<string | null> {
   if (!userId) return null;
   if (slackNameCache.has(userId)) return slackNameCache.get(userId) ?? null;
@@ -150,10 +153,28 @@ async function slackUserName(token: string, userId: string | undefined): Promise
     const name = payload.user?.profile?.real_name || payload.user?.real_name || payload.user?.profile?.display_name || null;
     slackNameCache.set(userId, name);
     return name;
-  } catch {
+  } catch (error) {
+    slackNameError ??= error instanceof Error ? error.message : String(error);
     slackNameCache.set(userId, null);
     return null;
   }
+}
+
+/**
+ * Slack writes a mention as <@U013S7E67RN>. Stored raw, Cortex could not say
+ * who was tagged and, asked, guessed: it named "Louis Fisher" for a message
+ * addressed to Logan and TJ. Resolved to names at ingestion, through the same
+ * cached lookup as authors; an unresolvable id is left as it was.
+ */
+async function resolveMentions(token: string, text: string | undefined): Promise<string | undefined> {
+  if (!text || !text.includes("<@")) return text;
+  const ids = [...new Set([...text.matchAll(/<@([A-Z0-9]+)(?:\|[^>]*)?>/g)].map((match) => match[1]))];
+  let resolved = text;
+  for (const id of ids) {
+    const name = await slackUserName(token, id);
+    if (name) resolved = resolved.replace(new RegExp(`<@${id}(?:\\|[^>]*)?>`, "g"), `@${name}`);
+  }
+  return resolved;
 }
 
 type SlackMessage = {
@@ -222,6 +243,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
       channel_index: lastIndex,
       channels_read: results.length,
       threads_read: THREAD_FETCHES_PER_SCAN - threadBudget.remaining,
+      ...(slackNameError ? { author_lookup_error: slackNameError } : {}),
       results,
     },
   });
@@ -236,10 +258,20 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
 
 /** One channel's bounded page. Never throws: a channel the bot cannot read must not stop the rest. */
 async function slackApi<T>(token: string, method: string, body: Record<string, unknown>): Promise<T> {
+  // Form-encoded, not JSON. Slack accepts JSON bodies only on some methods.
+  // conversations.history tolerated it, so ingestion looked healthy, while
+  // conversations.replies and users.info rejected every call with
+  // `invalid_arguments` -- 20 of 20 thread reads and every author lookup on
+  // the 2026-09-23 scan. Form encoding is accepted by every Web API method.
+  const form = new URLSearchParams();
+  for (const [key, value] of Object.entries(body)) {
+    if (value === undefined || value === null) continue;
+    form.set(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+  }
   const response = await fetch(`https://slack.com/api/${method}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=utf-8" },
-    body: JSON.stringify(body),
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
     signal: AbortSignal.timeout(20_000),
   });
   const payload = await response.json() as { ok?: boolean; error?: string } & T;
@@ -343,7 +375,9 @@ async function backfillSlackChannel(
     const newestInSlack = (payload.messages ?? []).find(usable)?.ts ?? null;
     const top = (payload.messages ?? []).filter(usable);
     const items: SourceItemInput[] = [];
-    for (const message of top) items.push(slackItem(channel, message, await slackUserName(token, message.user)));
+    for (const message of top) {
+      items.push(slackItem(channel, { ...message, text: await resolveMentions(token, message.text) }, await slackUserName(token, message.user)));
+    }
 
     // Open the busiest threads. A thread with more replies is where a decision
     // got made; a thread with one is usually an acknowledgement.
@@ -382,7 +416,7 @@ async function backfillSlackChannel(
         for (const reply of (thread.messages ?? []).filter(usable)) {
           if (reply.ts === parent.ts) continue;
           replies += 1;
-          items.push(slackItem(channel, reply, await slackUserName(token, reply.user)));
+          items.push(slackItem(channel, { ...reply, text: await resolveMentions(token, reply.text) }, await slackUserName(token, reply.user)));
         }
       } catch (threadFailure) {
         // One unreadable thread must not cost the rest of the channel -- but it
@@ -448,7 +482,7 @@ export async function ingestSlackEventEvidence(
     source_group: channel.label,
     source_kind: event.thread_ts ? "thread_reply" : "channel_message",
     title: authorName ? `#${channel.label} · ${authorName}` : `#${channel.label} conversation`,
-    content: slackContent(event),
+    content: slackContent({ ...event, text: token ? await resolveMentions(token, event.text) : event.text }),
     source_url: slackMessageUrl(channel.id, event.ts as string),
     occurred_at: occurredAt,
     last_edited_at: null,

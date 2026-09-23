@@ -171,6 +171,9 @@ type Found = {
   email: string;
   website: string;
   address: string;
+  /** Campus events only. Free text, because "Thursday week 3" is a real
+   *  answer and a date picker would refuse it. */
+  date: string;
   others: Array<{ id?: string; contact: string; role: string; phone: string; email: string }>;
 };
 
@@ -197,6 +200,7 @@ function cleanFound(raw: unknown): Found[] {
         email: str(r.email, 200),
         website: str(r.website, 500),
         address: str(r.address, 500),
+        date: str(r.date, 100),
         others: (Array.isArray(r.others) ? r.others : []).slice(0, 20).map((o) => {
           const x = (o ?? {}) as Record<string, unknown>;
           return {
@@ -224,6 +228,7 @@ async function createFound(
     email?: string;
     website?: string;
     address?: string;
+    date?: string;
     others?: Array<{ contact?: string; role?: string; phone?: string; email?: string }>;
   },
   userId: string,
@@ -256,6 +261,7 @@ async function createFound(
   if (provider) research.manual_entry = true;
   if (found.website?.trim()) research.website = found.website.trim();
   if (found.address?.trim()) research.address = found.address.trim();
+  if (found.date?.trim()) research.date = found.date.trim();
 
   const { data, error } = await db
     .from("student_outreach")
@@ -357,6 +363,7 @@ async function applyFound(
   for (const [key, value] of [
     ["website", f.website],
     ["address", f.address],
+    ["date", f.date],
   ] as const) {
     if (value) research[key] = value;
     else delete research[key];

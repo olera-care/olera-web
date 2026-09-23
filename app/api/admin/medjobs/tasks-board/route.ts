@@ -498,6 +498,7 @@ export async function GET() {
         olera_provider_id?: string;
         website?: string;
         address?: string;
+        date?: string;
         flagged_on?: string;
       };
       const edited = (research.website ?? "").trim();
@@ -544,6 +545,9 @@ export async function GET() {
         flaggedOn: research.flagged_on ?? null,
         address: editedAddr || addrFromDirectory,
         addressEdited: Boolean(editedAddr),
+        // Campus events only. Empty everywhere else, and the form that would
+        // have asked for it is not shown there.
+        date: (research.date ?? "").trim(),
         others: othersOf.get(row.id) ?? [],
         // Position is derived from the work in flight, not stored twice. The
         // lowest open rung leads, so a block reads top down.

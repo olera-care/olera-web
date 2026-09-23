@@ -5,8 +5,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Touchpoint analytics for Ad Boost pitch surfaces.
  *
  * Queries provider_activity for ads_touchpoint_* events and aggregates
- * by touchpoint (post_edit, post_question, leads_page, hero_managed_ads,
- * hero_views_to_ads) to show which surfaces drive engagement.
+ * by touchpoint (ff_pitch, ff_banner, post_edit, post_question, leads_page,
+ * hero_managed_ads, hero_views_to_ads) to show which surfaces drive engagement.
  *
  * GET ?from=YYYY-MM-DD&to=YYYY-MM-DD — returns touchpoint stats for date range.
  *
@@ -21,6 +21,8 @@ interface TouchpointRow {
 }
 
 const TOUCHPOINT_LABELS: Record<string, string> = {
+  ff_pitch: "Find Families pitch (no leads)",
+  ff_banner: "Find Families banner",
   post_edit: "Post-edit nudge",
   post_question: "After answering question",
   leads_page: "Leads page nudge",

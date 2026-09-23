@@ -995,7 +995,14 @@ export async function GET(request: NextRequest) {
           )
         : null;
       const marketUrl = generateProviderPortalUrl(providerSlug, bp.email, "market");
-      const adsUrl = generateProviderPortalUrl(providerSlug, bp.email, "ads");
+      // Point at /provider/matches, not /provider/boost. Every provider who
+      // receives this variant has nearbySeekers.length === 0 by construction
+      // (useManagedAds requires !findFamiliesUrl), so they are guaranteed to
+      // land on the Find Families empty state, which IS the pitch — the surface
+      // that converts 9.8% of the providers who see it, against 0.3% for this
+      // email's current destination. /provider/boost is one click further on,
+      // behind that page's own CTA, instead of being the landing page.
+      const adsUrl = generateProviderPortalUrl(providerSlug, bp.email, "matches");
       // Managed Ads leads the no-leads cohort (mirrors the dashboard hero — it's
       // the one lever that GENERATES demand vs. waiting on an empty local funnel).
       // Below real inbound (question/lead) and below the trust-forward cold

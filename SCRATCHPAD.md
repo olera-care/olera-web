@@ -7,6 +7,102 @@
 
 ## Current Focus
 
+### 2026-09-23 (later) — Ad Boost pre-flight for seven: the landing pages were the finding, and Meta-to-provider-page turns out to be 6x cheaper and untested (`channel-name-precision` #2095 merged, prod data fixes, NO campaigns launched)
+
+**#2095 merged and live.** `both` → `google_meta` across `BOOST_CHANNELS`, `normalizeBoostChannel()`, and migration `250`. Ten rows moved, zero `both` remain. `'both'` deliberately left in the CHECK for one release cycle so an older deploy cannot fail an insert.
+
+Then `/ad-boost-setup` on the seven queued providers. It stopped at its own Phase 0 gate and never touched an ad account, which turned out to be the right outcome for reasons the gate was not designed to catch.
+
+**Where I was wrong, and it would have shipped as a defect report.** My first pre-flight said all seven had a null `care_types[0]` hero chip and zero trust signals. That was a **failed join** — I queried `olera-providers`, which has no row for these slugs. `care_types` is fully populated on all seven. The lesson is the one already in this file: a left join that returns all-NULL looks exactly like a data defect, and the difference is one `has_row` column.
+
+**The photo check the skill insists on.** Downloaded all 24 images into a contact sheet, then screenshotted all seven live pages at phone width. Of seven providers, **one** (Rosemonte) has authentic photographs of what it sells. HomeWell has three genuine staff photos, EXIF orientation 6, which browsers rotate upright. The other five have no real photograph:
+
+- **Senior Services** — 2 images, 117×120 and 87×70, and the wordmark is **"Seniors Helping Seniors®"**, a different franchise. The hero is a blurred upscale of a competitor's logo.
+- **Living Angels** — one photo of a business card on a granite countertop. Hero crops mid-email.
+- **Caring Senior Service** — a 10001×4818 banner that crops to "Cari…", plus a dementia flyer with a QR code.
+- **Wescastle** — five marketing flyers, stock models, phone burnt into the pixels.
+- **LumiWell** — logo plus a stock team cutout.
+
+Three heroes carry a **phone number burnt into the image**. We pay for the click, the family reads the number off the hero and calls direct. That is outcome-blindness made literal, and no amount of UTM discipline sees it.
+
+**The finding worth more than the spend, now FIXED in prod.** Four of the seven have no `source_provider_id` — self-signup, never matched to a directory listing. No directory row means no `place_id`, which means no `google_reviews_data`, which means **the star rating never renders**. Three of those four have real Google ratings:
+
+| Provider | Google | Page showed |
+|---|---|---|
+| Caring Senior Service | 5.0 ★ 10 reviews | nothing |
+| Wescastle | 5.0 ★ 10 reviews | nothing |
+| HomeWell East TN | 5.0 ★ 5 reviews | nothing |
+| LumiWell | no rating | nothing (correct) |
+
+**25 five-star reviews invisible** on the exact pages Ad Boost was about to buy clicks to. Neither `scripts/seed-google-reviews.sh` nor `scripts/backfill-highlights-data.js` can reach them — both key off `olera-providers.place_id`, which these rows do not have. There is no existing tool for a business_profiles-only provider.
+
+Fixed by hand: resolved `place_id` via Places v1 `searchText`, built `google_reviews_data` + `google_metadata` in the shape `rosemonte-assisted-living-home` already renders, and hydrated all three. Also backfilled `lat`/`lng` for Caring Senior and Wescastle, which had none — organic Find Families matching keys off it, so they were invisible to it regardless of ads. TJ pasted the SQL (writes are classifier-blocked in auto mode; SQL to `~/Desktop/adboost-preflight-fixes.sql`).
+
+**Verified live, and it paid twice.** All three now render 5.0 with stars, the review count, and a "What families are saying" block with five bodies. Caring Senior and Wescastle also picked up a **"Highly Rated"** chip for free — Tier 2 of the highlights waterfall (≥4.5★ / 10+ reviews) fired the moment the data existed. HomeWell has 5 reviews so it correctly did not qualify.
+
+**The channel recommendation, which is not what the skill would have done.** The skill has **no Meta track** — Phase 2G is Google, 2N is Nextdoor — but the channel is now `google_meta`. TJ's steer was to not confine ourselves to what the skill covers. The recommendation is to **split by whether the market has search volume**, not to pick one channel for all seven:
+
+- Google Search needs someone to type the query, and the skill's own hard rule is 3-5 head terms or the campaign silently delivers nothing (Eligible, ad approved, zero impressions — what cost Miracle-Lightstar two dead days in August). Plattsburgh ~19k, Little Egg Harbor ~20k and Oak Ridge ~31k plausibly have near-zero monthly volume for `home care {city}`. **Check in Keyword Planner during setup rather than assume.**
+- Meta does not need query volume, targets geography plus age and interest, and runs ~$1 CPC against Google's measured **$4.57**. On $50 that is ~50 clicks versus ~11.
+- The North Star is **providers subscribing**, not family leads. What converted Hoop Cares was a post-launch progress update. A provider shown 11 visitors does not subscribe; one shown 50 visitors and two questions might. Visible activity per dollar is the right metric for this goal and it is **not** cost-per-qualified-lead.
+- **The tension, stated rather than hidden:** cheap clicks do not become leads. Graceful bought 134 Nextdoor clicks at $0.37 and returned zero contactable leads, and no channel separates after the click (p=1.0). The claim is that Meta produces the dashboard activity the subscription pitch runs on, not better leads.
+
+**One provider should not launch. `senior-services-home-care-plattsburgh-ny` — hold.** Competitor's wordmark at 117×120, one Google review, smallest market. Every dimension is the weakest in the batch. Hold until they upload one real photo.
+
+| Channel | Providers | Spend |
+|---|---|---|
+| Google | Caring Senior (Louisville), Wescastle (Atlanta), LumiWell (Fresno), Rosemonte (Phoenix) | $200 |
+| Meta | Living Angels (Little Egg Harbor), HomeWell (Oak Ridge) | $100 |
+| Hold | Senior Services (Plattsburgh) | $0 |
+
+TJ approved **$50/provider, two-week flights, $350**; this spends $300 of it.
+
+#### The recommendation changed twice, and the second time was the important one
+
+**First recommendation: split by market size.** Google for the four real metros, Meta for the three small towns, on the theory that `home care {city}` has no volume in Plattsburgh or Oak Ridge.
+
+**Then I pressure-tested it and withdrew the split.** Two things broke it. `personal care assistance` with no geo was the highest-volume keyword in Miracle-Lightstar's July flight at 149 impressions and 7.38% CTR, and geo-targeting already constrains where a city-less term serves, so a small market can run on city-less service terms plus a tight radius. The volume problem I was solving with Meta is solvable on Google. And I argued Meta's only arm that ever cleared the $76 bar is the instant form, which is Meta-native and bypasses the provider page, so Meta's proven success mode was structurally unavailable for a traffic campaign. Revised to all-six-on-Google.
+
+**Then TJ asked a question I had not checked: have we ever run ads to provider pages on both platforms?** The answer overturned the second recommendation as well.
+
+**We have. Once. And we paused it while it was working.**
+
+Hoop Cares campaign `120251511370050487`, "Hoop Cares - Pascagoula - Sep 2026 - Meta", was a **traffic arm pointing at the provider page**, not the instant form. It ran alongside her Google campaign in the same city in the same window, which makes it an accidental within-provider paired test:
+
+| | Meta traffic arm | Google |
+|---|---|---:|
+| Spend | $7.23 (19 Sep read) | $16.50 all-time |
+| Impressions | 595 | 113 |
+| Link clicks | 19 | 7 |
+| Landing page views | 15 | — |
+| **Cost per link click** | **$0.38** | **$2.36** |
+
+**Roughly one sixth the cost to the same page**, and 15 of 19 link clicks became landing-page views, so they were real arrivals rather than misclicks. The audit called it "our cheapest traffic, cheaper than anything in the city programme" and flagged for three consecutive days that it was live and spending with no `ad_campaign_requests` row.
+
+It was paused 20 Sep **not because it failed** but because the instant form was better still ($9.85/lead on n=3, whole CI below the $76 bar) and two Olera campaigns should not bid into the same audience. It produced zero inquiries, but 19 link clicks at the programme's ~2.7% provider-page inquiry rate expects **0.5**. Zero is on-spec. Lifetime spend $9.76 over nine days. **It was never run to a conclusion.**
+
+**The reasoning error worth keeping.** I concluded "Meta's only proven arm bypasses the provider page" by reasoning forward from the instant-form result, without ever checking whether a traffic arm had run. It had, for nine days, at six times the efficiency of the channel I was about to recommend exclusively. Programme history is a query, not an inference — the `ad_campaign_log` entries were sitting there the whole time.
+
+**Final plan: both arms on all six, $25 Google + $25 Meta, same dates, same page, shared campaign tag, `utm_medium=paid_search` vs `paid_social`.** $300 total, unchanged.
+
+- **The Google half loses almost nothing at $25.** Pascagoula's own budget simulator: six times the budget buys five more clicks a month, and the campaign sat at 37% utilisation reading Eligible rather than budget-limited. Google in these markets is capped by auction depth, not our spend.
+- **Within-provider pairing is the only design that answers the question at this n.** Three-and-three across six providers confounds channel with provider. Both arms per provider controls for provider, geography, page quality and season at once, which is the comparison `cheap_clicks_not_quality` could not make at p=1.0.
+- **It is what the rows already say.** All seven are `channel=google_meta`. Running Google only would make the field a lie on day one, which is exactly the confusion #2095 existed to remove.
+
+
+#### Open
+
+- **TJ approved both-arms on 23 Sep.** Build not yet started; neither ad account touched at time of writing.
+- **GATE, unresolved: the Meta arm's destination URL is not recorded anywhere.** `ad_campaign_log` has its clicks, impressions and landing-page views but never states where `120251511370050487` pointed. The Charlotte city ad pointed at the `olera.care` homepage and invalidated that whole leg, so this is a live failure mode, not a hypothetical. **Confirm the URL in Ads Manager before treating $0.38 as a clean provider-page number. If it pointed elsewhere, the paired comparison above collapses and all-six-on-Google is correct after all.**
+- **Three rows still carry `-nextdoor-sep26-qna` campaign tags** with `flight_end_date` already past (21-22 Sep) — HomeWell, LumiWell, Rosemonte. They were moved off Nextdoor but the tag was never rewritten. The locked invariant requires the tag match the ad URL character-for-character, so these must be rewritten before launch.
+- **The skill needs a Phase 2M Meta track** written from the September city-ads work, including that scripted field writes silently revert despite "All edits saved" — type them, then reload to verify.
+- **Rosemonte is `assisted_living`** and must get the separate negative list. The home-care shared list contains `assisted living`, `senior living`, `retirement community` — its core intent.
+- **No tool exists to hydrate reviews for a business_profiles-only provider.** Fixed three by hand; the general case is unbuilt. Four of seven in this batch were affected, so the population is not small.
+- **Caring Senior Service has three different phone numbers**: `5028605244` in the DB, `(502) 385-3743` on Google, `502-503-4708` on its own flyer. Not chased.
+- LumiWell's `website` is `www.lumiwell.org/homecare` with no scheme; Living Angels' `website` is a Facebook share link; Living Angels' `zip` is stored `8087` with the leading zero stripped.
+- **Photo gate says `ready` on all seven** — that was a deliberate release citing Hoop Cares (launched with a logo and two flyers, became the only paying customer), not an oversight. Not re-litigated.
+
+
 ### 2026-09-23 — Managed Ads: two steps, and the email finally lands on the pitch (`apply-flow-two-steps` #2089, 4 commits, NOT merged)
 
 **Three merged to staging overnight** (#2057 nudge rewrite, #2064 scratchpad, #2085 dismissal instrumentation). This entry covers what came after.

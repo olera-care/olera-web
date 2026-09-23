@@ -116,7 +116,7 @@ type Routing = {
   can_route: boolean;
   qualification_reply: string | null;
   pool: { provider_id: string; name: string; position: number; enabled: boolean; already_offered: boolean }[];
-  last_reached_call: { summary: string; detail: string | null; author: string | null; occurred_at: string } | null;
+  care_summary: string | null;
 };
 
 /**
@@ -139,19 +139,17 @@ function RoutingPanel({
   citySlug: string | null;
   onRouted: () => void | Promise<void>;
 }) {
-  const call = routing?.last_reached_call ?? null;
-  // NOT prefilled on its own. When a family never texted back, this text is
-  // what the provider is shown as their reply (exchange.server.ts), and a call
-  // note is written for us: it can carry another agency's rate or a caller's
-  // aside. So the note is one click away, and the person saving reads it first.
-  const [need, setNeed] = useState("");
+  // Starts from the care details already recorded from calls: structured
+  // fields, never the call notes, because this text reaches providers (see
+  // careSummary in the route). Editable before it is saved.
+  const [need, setNeed] = useState(() => routing?.care_summary ?? "");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
 
   // "Save and route" answers the qualification hold. It does nothing useful
   // for a lead that every provider has already passed on, so it is not shown.
   const canQualify = Boolean(routing?.can_route) && plan.state === "held" && routing?.status !== "unfilled";
-  const showCandidates = plan.state === "held" && plan.candidates.length > 0;
+  const showCandidates = Boolean(routing?.can_route) && plan.state === "held" && plan.candidates.length > 0;
 
   async function act(body: Record<string, unknown>, fallback: string) {
     setBusy(true);
@@ -164,19 +162,20 @@ function RoutingPanel({
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
+      // Every outcome startOrAdvance can return, named. A blanket "Offered."
+      // would be false for most of them, and this line is the only thing that
+      // tells the caller whether a provider was actually asked.
       const r = d.result as { action?: string; providerName?: string } | undefined;
-      setMsg({
-        tone: "ok",
-        text:
-          d.message ??
-          (r?.action === "offered"
-            ? `Offered to ${r.providerName ?? "the provider"}.`
-            : r?.action === "parked"
-              ? "Saved. It goes out when their morning opens."
-              : r?.action === "noop"
-                ? "Nothing changed. An offer may already be open; check the list above."
-                : fallback),
-      });
+      const said: Record<string, { tone: "ok" | "err"; text: string }> = {
+        offered: { tone: "ok", text: `Offered to ${r?.providerName ?? "the provider"}.` },
+        parked: { tone: "ok", text: "Saved. It goes to a provider when their morning opens." },
+        unfilled: { tone: "err", text: "Nobody left on call who has not already seen it. Nothing was sent." },
+        closed: { tone: "err", text: "This lead is closed or already taken. Nothing was sent." },
+        held: { tone: "err", text: "Still held. Nothing was sent; the reason is above." },
+        escalated: { tone: "err", text: "Still waiting on their reply. Nothing was sent." },
+        noop: { tone: "err", text: "Nothing was sent. An offer may already be open, or they have opted out." },
+      };
+      setMsg(d.message ? { tone: "ok", text: d.message } : r?.action && said[r.action] ? said[r.action] : { tone: "ok", text: fallback });
       await onRouted();
     } catch (e) {
       setMsg({ tone: "err", text: e instanceof Error ? e.message : "Did not save" });
@@ -215,17 +214,16 @@ function RoutingPanel({
           <label htmlFor="routing-need" className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">
             What they need
           </label>
+          {routing?.qualification_reply && (
+            <p className="mt-1 text-[13px] text-gray-700">
+              On file: &ldquo;{routing.qualification_reply}&rdquo;
+            </p>
+          )}
           <p className="mt-0.5 text-[12px] text-gray-500">
             The provider sees this as what the family told us, so keep it to who needs care, what kind, and where.
           </p>
-          {call && !need && (
-            <button
-              type="button"
-              onClick={() => setNeed((call.detail ?? call.summary).slice(0, 2000))}
-              className="mt-1 text-[12px] font-medium text-teal-700 underline-offset-2 hover:underline"
-            >
-              Start from {call.author ? `${call.author}’s` : "the last"} call note, {fmt(call.occurred_at)}
-            </button>
+          {routing?.care_summary && need === routing.care_summary && (
+            <p className="mt-0.5 text-[12px] text-gray-500">Filled from the care details recorded on their calls.</p>
           )}
           <textarea
             id="routing-need"
@@ -291,7 +289,10 @@ function RoutingPanel({
               </option>
             ))}
           </select>
-          <span className="text-[12px] text-gray-500">Skips the order. Use it when you know who should have it.</span>
+          <span className="text-[12px] text-gray-500">
+            Sends now, even outside their morning hours
+            {plan.state === "held" ? " and before we know what they need" : ""}. Use Save and route unless you have a reason.
+          </span>
         </div>
       )}
 

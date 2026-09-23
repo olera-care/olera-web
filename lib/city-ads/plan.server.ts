@@ -157,7 +157,10 @@ export async function getRoutingPlan(
       candidates: [],
     };
   }
-  if (lead.archived_at) {
+  // Same rule as the relay (startOrAdvance): only new, offered and unfilled
+  // leads can move. A lead marked "not a fit" used to read as held, with a
+  // list of providers it was about to go to.
+  if (lead.archived_at || !["new", "offered", "unfilled"].includes(lead.status)) {
     return { state: "closed", reason: "This lead is closed. Nothing further goes out.", nextAt: null, steps, candidates: [] };
   }
 

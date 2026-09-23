@@ -477,3 +477,34 @@ export function heardCanonical(field: HeardField, value: string): string | null 
   if (!unique.length) return null;
   return (HEARD_MULTI.includes(field) ? unique : unique.slice(0, 1)).join(",");
 }
+
+/**
+ * The care details recorded from calls, as one line a provider can act on.
+ *
+ * NOT the call notes. A family who never texted back has this saved text shown
+ * to providers as their reply (exchange.server.ts), and notes are written for
+ * us: Helen Garner's only "reached" note is a call to Assisting Hands quoting
+ * their hourly rate, which would have gone to their competitor. These fields
+ * are the structured who, what and where the log form already extracts, and a
+ * person has usually corrected them. Budget is left out on purpose.
+ */
+export function careSummary(heard: Heard | null): string | null {
+  const f = heard?.fields;
+  if (!f) return null;
+  const v = (k: keyof typeof f) => {
+    const raw = f[k]?.value?.trim();
+    return raw ? heardDisplay(k, raw) : null;
+  };
+  const who = v("care_for");
+  const rel = v("relationship");
+  const parts = [
+    who || rel ? `For ${rel ? `their ${rel}` : ""}${rel && who ? ", " : ""}${who ?? ""}` : null,
+    v("care_type"),
+    v("care_zip"),
+    v("hours"),
+    v("transfers") ? `transfers: ${v("transfers")}` : null,
+    v("starts") ? `starts ${v("starts")}` : null,
+    v("payment"),
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ").slice(0, 2000) : null;
+}

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { getRoutingPlan } from "@/lib/city-ads/plan.server";
+import { cityLeadBlocked } from "@/lib/city-ads/messages.server";
 import { extractHeard, saveHeard, summariseManual } from "@/lib/seeker-touches/extract.server";
+import { careSummary, type Heard } from "@/lib/seeker-touches/types";
 import { HEARD_FIELDS, FAMILY_TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type FamilyTouchInput, type HeardField } from "@/lib/seeker-touches/types";
 import {
   loadSeekerRelationships,
@@ -76,7 +78,7 @@ function md(body: string): NextResponse {
  * routed from /admin/city-ads, so a caller finished a good call, left for
  * another page, found the family again and typed what they heard a second
  * time. This returns the lead's routing state, the city's providers for "Offer
- * to…", and the last call where somebody actually reached them, which is what
+ * to…", and the care details already recorded for the family, which is what
  * the "what they need" box starts from. The actions themselves stay on
  * /api/admin/city-ads, so there is still exactly one routing code path.
  */
@@ -89,7 +91,7 @@ async function loadRouting(seekerId: string, leadId: string) {
     .maybeSingle();
   if (!lead) return null;
 
-  const [{ data: poolRows }, { data: offerRows }, { data: heardRows }] = await Promise.all([
+  const [{ data: poolRows }, { data: offerRows }, { data: profile }] = await Promise.all([
     // Test providers are left out: a real family offered to the test listing
     // reaches nobody.
     db
@@ -99,13 +101,7 @@ async function loadRouting(seekerId: string, leadId: string) {
       .eq("is_test", false)
       .order("position", { ascending: true }),
     db.from("city_lead_offers").select("provider_id").eq("lead_id", leadId),
-    db
-      .from("family_touches")
-      .select("summary, detail, author, occurred_at")
-      .eq("seeker_id", seekerId)
-      .eq("reached", true)
-      .order("occurred_at", { ascending: false })
-      .limit(1),
+    db.from("business_profiles").select("metadata").eq("id", seekerId).maybeSingle(),
   ]);
 
   const pool = (poolRows ?? []) as { provider_id: string; position: number; enabled: boolean }[];
@@ -116,8 +112,12 @@ async function loadRouting(seekerId: string, leadId: string) {
   const nameOf = new Map((names ?? []).map((n) => [n.id as string, (n.display_name as string | null) ?? "a provider"]));
   const offered = new Set((offerRows ?? []).map((o) => o.provider_id as string));
 
+  // The same check every city-ads action runs first (archived, test, stopped,
+  // or on do_not_contact). Without it an opted-out family showed the buttons,
+  // and pressing one came back as a vague "nothing was sent".
+  const blocked = await cityLeadBlocked(db, leadId);
   const closed =
-    Boolean(lead.archived_at) || ["client", "no_fit", "stopped", "redirected", "unreachable"].includes(lead.status);
+    blocked || ["client", "no_fit", "stopped", "redirected", "unreachable"].includes(lead.status);
 
   return {
     lead_id: lead.id as string,
@@ -133,9 +133,10 @@ async function loadRouting(seekerId: string, leadId: string) {
       enabled: p.enabled,
       already_offered: offered.has(p.provider_id),
     })),
-    last_reached_call: (heardRows?.[0] as { summary: string; detail: string | null; author: string | null; occurred_at: string } | undefined) ?? null,
+    care_summary: careSummary((profile?.metadata as { care_details?: Heard | null } | null)?.care_details ?? null),
   };
 }
+
 
 export async function GET(request: NextRequest) {
   const gate = await requireAdmin();

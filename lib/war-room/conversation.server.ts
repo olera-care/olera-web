@@ -295,7 +295,10 @@ async function loadManagedAdsLedger(db: SupabaseClient) {
   // card bounced while the admin page still showed one.
   const isPaying = (row: LedgerRow) => row.plan_status === "active" || row.plan_status === "past_due";
   const rows = (data ?? []) as LedgerRow[];
-  const day = (iso: string | null) => (iso ? iso.slice(0, 10) : null);
+  // The Eastern calendar day, like every other time Cortex sees. Cut from the
+  // UTC string, a request made at 9:08 PM ET on Sep 22 read as Sep 23 beside
+  // times that said Sep 22.
+  const day = (iso: string | null) => (iso ? EASTERN_DAY.format(new Date(iso)) : null);
   // Did the provider ask, or did Olera create the row? A campaign row is not
   // proof of a provider request. On 2026-09-16 three rows were created in the
   // same second at 4 AM Eastern -- TJ's Nextdoor question pilot, drafts Olera
@@ -337,7 +340,14 @@ async function loadManagedAdsLedger(db: SupabaseClient) {
       .map((row) => ({ name: row.display_name, subscribedOn: day(row.subscribed_at), planStatus: row.plan_status })),
     recentActivity: rows.map((row) => ({
       name: row.display_name,
-      status: row.status,
+      // Plain words, not the raw status. Reading "requested" on the pilot
+      // drafts, it told the founder they had "gone live".
+      state: ({
+        requested: "requested, not live yet",
+        pending_profile: "waiting on the provider's profile, not live",
+        live: "live",
+        ended: "ended",
+      } as Record<string, string>)[row.status] ?? row.status,
       paying: isPaying(row),
       planStatus: row.plan_status,
       providerAsked: providerAsked(row),
@@ -501,7 +511,7 @@ const ADS_EVENTS = [
 ] as const;
 const ENGAGEMENT_ROW_CAP = 10_000;
 
-type PromotionTime = { number: number; title: string; mergedAt: string | null };
+type PromotionTime = { number: number; title: string; mergedAt: string | null; carried?: Array<{ title: string }> };
 
 async function loadAdsEngagement(db: SupabaseClient, promotions: PromotionTime[]) {
   const now = Date.now();
@@ -574,6 +584,9 @@ async function loadAdsEngagement(db: SupabaseClient, promotions: PromotionTime[]
       return {
         promotion: promotion.number,
         title: promotion.title,
+        // What it carried, so the right release is judged. Given titles only,
+        // Cortex dated the ads nudge from a later Cortex-only promotion.
+        carried: (promotion.carried ?? []).map((pull) => pull.title),
         liveSince: promotion.mergedAt,
         hoursLive: Math.round((now - at) / 3_600_000),
         sinceItWentLive: summarize(at, now),
@@ -621,6 +634,7 @@ const EASTERN = new Intl.DateTimeFormat("en-US", {
 const BANGKOK = new Intl.DateTimeFormat("en-US", {
   timeZone: "Asia/Bangkok", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
 });
+const EASTERN_DAY = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", month: "short", day: "numeric" });
 const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
 function inEastern(value: unknown): unknown {
@@ -747,11 +761,11 @@ Lead with the answer. Do not restate the question. Call people by the names in t
 
 Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
 
-Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from the Managed Ads subscriptions. They are read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. A campaign row is not a provider request: the counts separate campaigns the provider asked for from ones Olera created without a request, such as a pilot, and the team's note says why. Never call an Olera-created campaign a provider request. Use their counts for any count or "this week" question rather than counting rows yourself, and give the dates. If they are unavailable, say you could not read them.
+Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from the Managed Ads subscriptions. They are read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. A campaign row is not a provider request: the counts separate campaigns the provider asked for from ones Olera created without a request, such as a pilot, and the team's note says why. Never call an Olera-created campaign a provider request. Say a campaign is live only when its state says live; "created" is not "live", and a draft is not running. Use their counts for any count or "this week" question rather than counting rows yourself, and give the dates. If they are unavailable, say you could not read them.
 
 Questions about what was built, shipped, merged or deployed are answered from the shipped work first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production, and which promotion carried it, are already worked out on each pull (inProduction, reachedProductionIn); never recompute them from timestamps. To say what a promotion shipped, use that promotion's carried list and carriedCount exactly. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If it is unavailable, say you could not read it.
 
-Questions about whether providers have seen, used, tapped or dismissed something, or whether a change "is working", are answered from the provider engagement. Counts and names are already worked out; never count or compare yourself. To judge a release, compare what happened since it went live with the same hours one week earlier, and say how many hours it has been live. Test profiles are already excluded. For week-on-week, use the direction already given; never judge up or down yourself. A request that was later deleted is not a request; say it was withdrawn or deleted. Engagement is not revenue: a tap is not a request and a request is not a subscription, so say which one you are reporting.
+Questions about whether providers have seen, used, tapped or dismissed something, or whether a change "is working", are answered from the provider engagement. Counts and names are already worked out; never count or compare yourself. To judge a change, first find the release whose carried list contains it; never assume the latest release. Then compare what happened since it went live with the same hours one week earlier, and say how many hours it has been live. Test profiles are already excluded. For week-on-week, use the direction already given; never judge up or down yourself. A request that was later deleted is not a request; say it was withdrawn or deleted. Engagement is not revenue: a tap is not a request and a request is not a subscription, so say which one you are reporting.
 
 All times in the record are already in US Eastern (ET), which is how the business runs. The founder lives in Bangkok; his local time is given under the current time. Never convert time zones yourself, and never quote a raw timestamp.
 

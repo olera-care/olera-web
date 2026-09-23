@@ -363,6 +363,7 @@ export default function FindJobsBoard() {
                     provider={provider}
                     variant="student"
                     campus={student.campus || undefined}
+                    showProviderName={true}
                     isRequested={requested.has(provider.id)}
                     canRequest={!!student.profileId}
                     requestLabel={

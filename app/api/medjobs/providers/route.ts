@@ -99,18 +99,35 @@ function getMedjobsProviders(campus: string, scope: "near" | "all"): Promise<Pro
 
         const meta = (row.metadata ?? {}) as Record<string, unknown>;
 
-        // Check MedJobs interest indicators
-        const hasAcceptedTerms = typeof meta.interview_terms_accepted_at === "string";
-        const hasCompletedEligibility = typeof meta.medjobs_eligibility_completed_at === "string";
-        const sourceProviderId = typeof meta.source_provider_id === "string" ? meta.source_provider_id : null;
+        // Check MedJobs interest indicators (non-empty strings only)
+        const hasAcceptedTerms =
+          typeof meta.interview_terms_accepted_at === "string" &&
+          meta.interview_terms_accepted_at !== "";
+        const hasCompletedEligibility =
+          typeof meta.medjobs_eligibility_completed_at === "string" &&
+          meta.medjobs_eligibility_completed_at !== "";
+        const sourceProviderId =
+          typeof meta.source_provider_id === "string" && meta.source_provider_id !== ""
+            ? meta.source_provider_id
+            : null;
 
         // Check if enrolled via staffing outreach (match by source_provider_id only)
         // Note: staffing_outreach.provider_id references olera-providers.provider_id,
         // NOT business_profiles.id. The link is via metadata.source_provider_id.
         const isEnrolledViaOutreach = !!sourceProviderId && outreachProviderIds.has(sourceProviderId);
 
-        // Skip if no MedJobs interest
+        // Determine if this is a verified/real provider:
+        // - Claimed profiles (real person verified ownership), OR
+        // - Enrolled via outreach (we vetted them during campaigns)
+        const isClaimed = row.claim_state === "claimed";
+        const isVerifiedProvider = isClaimed || isEnrolledViaOutreach;
+
+        // Skip if no MedJobs interest OR not a verified provider
+        // This filters out test accounts and unverified directory listings
         if (!hasAcceptedTerms && !hasCompletedEligibility && !isEnrolledViaOutreach) {
+          continue;
+        }
+        if (!isVerifiedProvider) {
           continue;
         }
 

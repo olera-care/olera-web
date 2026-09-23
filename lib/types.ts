@@ -462,6 +462,24 @@ export interface StudentMetadata {
   // Certifications (collected via EditCertificationsModal)
   certifications?: string[];       // CNA, BLS, First Aid, etc.
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // LEGACY FIELDS — No longer collected via new portal modals, but may exist in
+  // database records from older profiles. Keep for backwards compatibility.
+  // ════════════════════════════════════════════════════════════════════════════
+  /** @deprecated No longer collected. Legacy data only. */
+  years_caregiving?: number;
+  /** @deprecated No longer collected. Legacy data only. */
+  care_experience_types?: string[];
+  /** @deprecated No longer collected. Legacy data only. */
+  languages?: string[];
+  /** @deprecated No longer collected. Legacy data only. */
+  hours_per_week_range?: string;
+  /** @deprecated No longer collected. Legacy data only. */
+  duration_commitment?: string;
+  /** @deprecated No longer collected. Legacy data only. */
+  availability_types?: string[];
+  // ════════════════════════════════════════════════════════════════════════════
+
   // Experience timeline (collected via EditBackgroundModal)
   experience_entries?: Array<{
     id: string;           // unique id for React keys

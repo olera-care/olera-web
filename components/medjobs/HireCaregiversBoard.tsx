@@ -55,7 +55,8 @@ function matchesAvailability(c: CandidateData, val: string): boolean {
   if (!val) return true;
   const meta = c.metadata;
   if (val === "prn") return !!meta.prn_willing;
-  if (val === "full_time") return /30|40|full/i.test(meta.hours_per_week_range ?? "");
+  // Note: "full_time" filter no longer supported since hours_per_week_range is not collected
+  if (val === "full_time") return false;
   return (meta.availability_types ?? []).includes(val);
 }
 

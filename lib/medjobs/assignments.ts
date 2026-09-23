@@ -30,8 +30,8 @@ import { SECTION_ORDER, type SectionKey } from "./ladders";
  */
 export const ROSTER: readonly string[] = [
   "logan@olera.care",
-  "grazy@olera.care",
-  "sarah@olera.care",
+  "graize@olera.care",
+  "sara@olera.care",
   "chantel@olera.care",
 ];
 

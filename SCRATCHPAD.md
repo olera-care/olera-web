@@ -7,7 +7,7 @@
 
 ## Current Focus
 
-### 2026-09-23 (later) — Ad Boost pre-flight for seven: the landing pages were the finding, not the campaigns (`channel-name-precision` #2095 merged, then prod data fixes, NO campaigns launched)
+### 2026-09-23 (later) — Ad Boost pre-flight for seven: the landing pages were the finding, and Meta-to-provider-page turns out to be 6x cheaper and untested (`channel-name-precision` #2095 merged, prod data fixes, NO campaigns launched)
 
 **#2095 merged and live.** `both` → `google_meta` across `BOOST_CHANNELS`, `normalizeBoostChannel()`, and migration `250`. Ten rows moved, zero `both` remain. `'both'` deliberately left in the CHECK for one release cycle so an older deploy cannot fail an insert.
 
@@ -57,9 +57,43 @@ Fixed by hand: resolved `place_id` via Places v1 `searchText`, built `google_rev
 
 TJ approved **$50/provider, two-week flights, $350**; this spends $300 of it.
 
+#### The recommendation changed twice, and the second time was the important one
+
+**First recommendation: split by market size.** Google for the four real metros, Meta for the three small towns, on the theory that `home care {city}` has no volume in Plattsburgh or Oak Ridge.
+
+**Then I pressure-tested it and withdrew the split.** Two things broke it. `personal care assistance` with no geo was the highest-volume keyword in Miracle-Lightstar's July flight at 149 impressions and 7.38% CTR, and geo-targeting already constrains where a city-less term serves, so a small market can run on city-less service terms plus a tight radius. The volume problem I was solving with Meta is solvable on Google. And I argued Meta's only arm that ever cleared the $76 bar is the instant form, which is Meta-native and bypasses the provider page, so Meta's proven success mode was structurally unavailable for a traffic campaign. Revised to all-six-on-Google.
+
+**Then TJ asked a question I had not checked: have we ever run ads to provider pages on both platforms?** The answer overturned the second recommendation as well.
+
+**We have. Once. And we paused it while it was working.**
+
+Hoop Cares campaign `120251511370050487`, "Hoop Cares - Pascagoula - Sep 2026 - Meta", was a **traffic arm pointing at the provider page**, not the instant form. It ran alongside her Google campaign in the same city in the same window, which makes it an accidental within-provider paired test:
+
+| | Meta traffic arm | Google |
+|---|---|---:|
+| Spend | $7.23 (19 Sep read) | $16.50 all-time |
+| Impressions | 595 | 113 |
+| Link clicks | 19 | 7 |
+| Landing page views | 15 | — |
+| **Cost per link click** | **$0.38** | **$2.36** |
+
+**Roughly one sixth the cost to the same page**, and 15 of 19 link clicks became landing-page views, so they were real arrivals rather than misclicks. The audit called it "our cheapest traffic, cheaper than anything in the city programme" and flagged for three consecutive days that it was live and spending with no `ad_campaign_requests` row.
+
+It was paused 20 Sep **not because it failed** but because the instant form was better still ($9.85/lead on n=3, whole CI below the $76 bar) and two Olera campaigns should not bid into the same audience. It produced zero inquiries, but 19 link clicks at the programme's ~2.7% provider-page inquiry rate expects **0.5**. Zero is on-spec. Lifetime spend $9.76 over nine days. **It was never run to a conclusion.**
+
+**The reasoning error worth keeping.** I concluded "Meta's only proven arm bypasses the provider page" by reasoning forward from the instant-form result, without ever checking whether a traffic arm had run. It had, for nine days, at six times the efficiency of the channel I was about to recommend exclusively. Programme history is a query, not an inference — the `ad_campaign_log` entries were sitting there the whole time.
+
+**Final plan: both arms on all six, $25 Google + $25 Meta, same dates, same page, shared campaign tag, `utm_medium=paid_search` vs `paid_social`.** $300 total, unchanged.
+
+- **The Google half loses almost nothing at $25.** Pascagoula's own budget simulator: six times the budget buys five more clicks a month, and the campaign sat at 37% utilisation reading Eligible rather than budget-limited. Google in these markets is capped by auction depth, not our spend.
+- **Within-provider pairing is the only design that answers the question at this n.** Three-and-three across six providers confounds channel with provider. Both arms per provider controls for provider, geography, page quality and season at once, which is the comparison `cheap_clicks_not_quality` could not make at p=1.0.
+- **It is what the rows already say.** All seven are `channel=google_meta`. Running Google only would make the field a lie on day one, which is exactly the confusion #2095 existed to remove.
+
+
 #### Open
 
-- **Blocked on TJ:** go/no-go on the split above. Nothing has been launched and neither ad account has been touched.
+- **TJ approved both-arms on 23 Sep.** Build not yet started; neither ad account touched at time of writing.
+- **GATE, unresolved: the Meta arm's destination URL is not recorded anywhere.** `ad_campaign_log` has its clicks, impressions and landing-page views but never states where `120251511370050487` pointed. The Charlotte city ad pointed at the `olera.care` homepage and invalidated that whole leg, so this is a live failure mode, not a hypothetical. **Confirm the URL in Ads Manager before treating $0.38 as a clean provider-page number. If it pointed elsewhere, the paired comparison above collapses and all-six-on-Google is correct after all.**
 - **Three rows still carry `-nextdoor-sep26-qna` campaign tags** with `flight_end_date` already past (21-22 Sep) — HomeWell, LumiWell, Rosemonte. They were moved off Nextdoor but the tag was never rewritten. The locked invariant requires the tag match the ad URL character-for-character, so these must be rewritten before launch.
 - **The skill needs a Phase 2M Meta track** written from the September city-ads work, including that scripted field writes silently revert despite "All edits saved" — type them, then reload to verify.
 - **Rosemonte is `assisted_living`** and must get the separate negative list. The home-care shared list contains `assisted living`, `senior living`, `retirement community` — its core intent.

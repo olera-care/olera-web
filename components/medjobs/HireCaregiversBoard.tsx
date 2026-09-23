@@ -9,7 +9,7 @@ import Select from "@/components/ui/Select";
 import Modal from "@/components/ui/Modal";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES, isSampleSlug } from "@/lib/medjobs/demo-candidate";
-import CandidateDetailPanel from "@/components/medjobs/CandidateDetailPanel";
+import CandidateBottomSheet from "@/components/medjobs/CandidateBottomSheet";
 import ScheduleInterviewModal, { type JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import { DEMAND_PROFILE_KEY, type DemandProfile } from "@/lib/medjobs/eligibility";
@@ -55,7 +55,8 @@ function matchesAvailability(c: CandidateData, val: string): boolean {
   if (!val) return true;
   const meta = c.metadata;
   if (val === "prn") return !!meta.prn_willing;
-  if (val === "full_time") return /30|40|full/i.test(meta.hours_per_week_range ?? "");
+  // Note: "full_time" filter no longer supported since hours_per_week_range is not collected
+  if (val === "full_time") return false;
   return (meta.availability_types ?? []).includes(val);
 }
 
@@ -314,11 +315,18 @@ export default function HireCaregiversBoard() {
                     onMouseEnter={() => setHoveredId(c.id)}
                     onMouseLeave={() => setHoveredId(null)}
                     onClick={(e) => {
-                      // Plain click opens the inline panel; cmd/ctrl-click opens
-                      // the full profile in a new tab.
+                      // Cmd/ctrl-click always opens in new tab
                       if (e.metaKey || e.ctrlKey) return;
                       e.preventDefault();
-                      setSelectedCandidate(c);
+
+                      // Desktop (lg+): open profile directly in new tab
+                      // Mobile: open bottom sheet for quick preview
+                      const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+                      if (isDesktop) {
+                        window.open(`/medjobs/candidates/${c.slug}`, "_blank");
+                      } else {
+                        setSelectedCandidate(c);
+                      }
                     }}
                     className={`cursor-pointer rounded-2xl transition-shadow ${
                       selectedCandidate?.id === c.id ? "ring-2 ring-primary-500 shadow-md" : ""
@@ -337,21 +345,12 @@ export default function HireCaregiversBoard() {
           )}
         </div>
 
+        {/* Desktop: Always show the map (no panel - cards open in new tab) */}
         <div className="hidden lg:block">
           <div className="sticky top-24 h-[calc(100vh-7rem)]">
-            {selectedCandidate ? (
-              <div className="w-full h-full rounded-2xl shadow-sm border border-gray-200 bg-white overflow-y-auto">
-                <CandidateDetailPanel
-                  candidate={selectedCandidate}
-                  onClose={() => setSelectedCandidate(null)}
-                  onSchedule={() => openSchedule(selectedCandidate)}
-                />
-              </div>
-            ) : (
-              <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
-                <CampusMap providers={mapCards} hoveredProviderId={hoveredId} onMarkerHover={setHoveredId} campusCenter={campusCenter} />
-              </div>
-            )}
+            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
+              <CampusMap providers={mapCards} hoveredProviderId={hoveredId} onMarkerHover={setHoveredId} campusCenter={campusCenter} />
+            </div>
           </div>
         </div>
       </div>
@@ -436,22 +435,15 @@ export default function HireCaregiversBoard() {
         </div>
       </Modal>
 
-      {/* Mobile: Candidate detail bottom sheet (hidden on desktop where inline panel is used) */}
-      <div className="lg:hidden">
-        <Modal
-          isOpen={!!selectedCandidate && !isSampleSlug(selectedCandidate?.slug ?? "")}
+      {/* Mobile: Candidate bottom sheet with full profile + inline scheduling */}
+      {selectedCandidate && !isSampleSlug(selectedCandidate.slug) && (
+        <CandidateBottomSheet
+          isOpen={!!selectedCandidate}
           onClose={() => setSelectedCandidate(null)}
-          size="fullscreen"
-        >
-          {selectedCandidate && (
-            <CandidateDetailPanel
-              candidate={selectedCandidate}
-              onClose={() => setSelectedCandidate(null)}
-              onSchedule={() => openSchedule(selectedCandidate)}
-            />
-          )}
-        </Modal>
-      </div>
+          candidate={selectedCandidate}
+          jobDetails={jobDetails}
+        />
+      )}
     </div>
   );
 }

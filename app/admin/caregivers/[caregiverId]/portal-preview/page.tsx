@@ -7,8 +7,6 @@ import Image from "next/image";
 import type { StudentMetadata } from "@/lib/types";
 import {
   getTrackLabel,
-  formatHoursPerWeek,
-  formatDuration,
   hasVideo,
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
@@ -260,25 +258,24 @@ export default function AdminPortalPreviewPage() {
       <div className="mt-6">
         <CaregiverSectionCard
           title="Availability"
-          
+
           id="availability"
         >
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            {meta.commitment_statement && (
               <div>
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Hours/Week</span>
-                <p className="text-sm text-gray-900 mt-1">{formatHoursPerWeek(meta) || "—"}</p>
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Commitment Statement</span>
+                <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{meta.commitment_statement}</p>
               </div>
-              <div>
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Duration</span>
-                <p className="text-sm text-gray-900 mt-1">{formatDuration(meta) || "—"}</p>
-              </div>
-            </div>
+            )}
             {meta.availability_notes && (
               <div>
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Notes</span>
                 <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{meta.availability_notes}</p>
               </div>
+            )}
+            {!meta.commitment_statement && !meta.availability_notes && (
+              <p className="text-sm text-gray-500">No availability details provided</p>
             )}
           </div>
         </CaregiverSectionCard>

@@ -6,8 +6,6 @@ import type { Metadata } from "next";
 import type { StudentMetadata } from "@/lib/types";
 import {
   getTrackLabel,
-  formatHoursPerWeek,
-  formatDuration,
   SEASON_LABELS,
   getSeasonalStatusLabel,
   hasVideo,
@@ -210,8 +208,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
   const meta = (profile.metadata || {}) as StudentMetadata;
   const trackLabel = getTrackLabel(meta);
-  const hoursLabel = formatHoursPerWeek(meta);
-  const durationLabel = formatDuration(meta);
   const videoAvailable = hasVideo(meta);
   const youtubeId = videoAvailable ? getYouTubeId(meta.video_intro_url!) : null;
   // Samples + own profile show the full name; others see first name only.
@@ -236,19 +232,17 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const candidateIsVerified = !!(meta.drivers_license_url && meta.car_insurance_url);
 
   // Build highlight chips (max 4, most important only)
-  const highlights: string[] = [];
-  if (hoursLabel) highlights.push(hoursLabel);
-  if (durationLabel) highlights.push(durationLabel);
-  if (meta.years_caregiving && meta.years_caregiving > 0) highlights.push(`${meta.years_caregiving}+ yr experience`);
   const actualCerts = getActualCertifications(meta.certifications);
+  const highlights: string[] = [];
   if (actualCerts.length > 0) highlights.push(actualCerts[0]);
+  if (meta.seeking_status === "actively_looking") highlights.push("Ready to start");
   const displayHighlights = highlights.slice(0, 4);
 
   // Check if sections have content
   const hasAbout = !!(meta.why_caregiving || profile.description || meta.intended_professional_school);
   const hasCommitments = !!(meta.acknowledgments_completed || meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing);
   const hasScenarios = meta.scenario_responses && meta.scenario_responses.length > 0;
-  const hasReferences = meta.references && meta.references.length > 0;
+  const hasExperience = meta.experience_entries && meta.experience_entries.length > 0;
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
@@ -417,26 +411,12 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                   Availability
                 </h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {hoursLabel && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500 mb-1">Hours per Week</dt>
-                      <dd className="text-lg font-semibold text-gray-900">{hoursLabel}</dd>
-                    </div>
-                  )}
-                  {durationLabel && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500 mb-1">Commitment</dt>
-                      <dd className="text-lg font-semibold text-gray-900">{durationLabel}</dd>
-                    </div>
-                  )}
-                  {meta.seeking_status === "actively_looking" && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500 mb-1">Status</dt>
-                      <dd className="text-lg font-semibold text-emerald-600">Ready to start</dd>
-                    </div>
-                  )}
-                </div>
+                {meta.seeking_status === "actively_looking" && (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-100 mb-6">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-sm font-semibold text-emerald-700">Ready to start</span>
+                  </div>
+                )}
 
                 {/* Year-Round Availability */}
                 {meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 && (
@@ -483,6 +463,16 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     </p>
                   </div>
                 )}
+
+                {/* Availability Notes */}
+                {meta.availability_notes && (
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-medium text-gray-500 mb-2">Additional Notes</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {meta.availability_notes}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* ── Qualifications Section ── */}
@@ -506,48 +496,12 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   </div>
                 )}
 
-                {/* Education & Experience Grid */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {meta.university && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
-                      <dd className="text-base font-semibold text-gray-900">{meta.university}</dd>
-                      {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{getMajorLabel(meta.major)}</dd>}
-                    </div>
-                  )}
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 mb-1">Caregiving Experience</dt>
-                    <dd className="text-base font-semibold text-gray-900">
-                      {meta.years_caregiving && meta.years_caregiving > 0
-                        ? `${meta.years_caregiving}+ years`
-                        : "New to caregiving"}
-                    </dd>
-                  </div>
-                  {(meta.languages?.length ?? 0) > 0 && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500 mb-1">Languages</dt>
-                      <dd className="text-base font-semibold text-gray-900">{meta.languages!.join(", ")}</dd>
-                    </div>
-                  )}
-                  {meta.gpa && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500 mb-1">GPA</dt>
-                      <dd className="text-base font-semibold text-gray-900">{meta.gpa.toFixed(1)}</dd>
-                    </div>
-                  )}
-                </div>
-
-                {/* Care Types */}
-                {(meta.care_experience_types?.length ?? 0) > 0 && (
-                  <div className="mt-6">
-                    <dt className="text-sm font-medium text-gray-500 mb-2">Care Experience</dt>
-                    <dd className="flex flex-wrap gap-2">
-                      {meta.care_experience_types!.map((type) => (
-                        <span key={type} className="px-3 py-1.5 bg-gray-50 text-gray-700 rounded-lg text-sm font-medium border border-gray-100">
-                          {type}
-                        </span>
-                      ))}
-                    </dd>
+                {/* Education */}
+                {meta.university && (
+                  <div className="mb-6">
+                    <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
+                    <dd className="text-base font-semibold text-gray-900">{meta.university}</dd>
+                    {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{getMajorLabel(meta.major)}</dd>}
                   </div>
                 )}
 
@@ -586,6 +540,36 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   </div>
                 )}
               </div>
+
+              {/* ── Experience Section ── */}
+              {hasExperience && (
+                <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
+                    Experience
+                  </h2>
+                  <div className="space-y-4">
+                    {meta.experience_entries!
+                      .slice()
+                      .sort((a, b) => (b.start_date > a.start_date ? 1 : -1))
+                      .map((entry) => (
+                        <div key={entry.id} className="bg-gray-50 rounded-xl px-5 py-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-base font-semibold text-gray-900">{entry.title}</p>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border bg-gray-100 text-gray-700 border-gray-200">
+                              {entry.tag === "paid" ? "Paid" : entry.tag === "volunteer" ? "Volunteer" : entry.tag === "family" ? "Family" : entry.tag === "clinical" ? "Clinical" : entry.tag === "internship" ? "Internship" : "Other"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {formatExperienceDate(entry.start_date)} – {entry.end_date ? formatExperienceDate(entry.end_date) : "Present"}
+                          </p>
+                          {entry.description && (
+                            <p className="text-sm text-gray-600 mt-2 leading-relaxed">{entry.description}</p>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
               {/* ── Commitments Section ── */}
               {hasCommitments && (
@@ -662,36 +646,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
                       <p className="text-sm text-gray-600">
                         <span className="font-medium text-gray-900">Career Goal:</span>{" "}
                         {INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}
-                        {meta.graduation_year && ` · Graduating ${meta.graduation_year}`}
                       </p>
                     )}
                   </div>
-                </div>
-              )}
-
-              {/* ── References Section ── */}
-              {hasReferences && (
-                <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
-                    References
-                  </h2>
-                  <div className="space-y-4">
-                    {meta.references!.map((ref, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-semibold text-gray-500">{ref.name.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{ref.name}</p>
-                          <p className="text-xs text-gray-500">{ref.relationship}</p>
-                          {ref.note && <p className="text-xs text-gray-400 mt-1 italic">{ref.note}</p>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
-                    Contact details available after scheduling an interview.
-                  </p>
                 </div>
               )}
 
@@ -851,4 +808,11 @@ function CommitmentItem({ text }: { text: string }) {
       <p className="text-sm text-gray-700 leading-relaxed">{text}</p>
     </div>
   );
+}
+
+function formatExperienceDate(ym: string): string {
+  const [year, month] = ym.split("-");
+  if (!month) return year;
+  const date = new Date(Number(year), Number(month) - 1);
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }

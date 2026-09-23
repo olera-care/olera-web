@@ -6,8 +6,6 @@ import type { StudentMetadata } from "@/lib/types";
 import {
   getTrackLabel,
   formatAvailability,
-  formatHoursPerWeek,
-  formatDuration,
   hasVideo,
 } from "@/lib/medjobs-helpers";
 
@@ -61,8 +59,6 @@ export default function CandidateRow({
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
   const availLabel = formatAvailability(meta);
-  const hoursLabel = formatHoursPerWeek(meta);
-  const durationLabel = formatDuration(meta);
   const certs = meta.certifications || [];
   const videoAvailable = hasVideo(meta);
   const location = [candidate.city, candidate.state].filter(Boolean).join(", ");
@@ -120,26 +116,10 @@ export default function CandidateRow({
           {location && (
             <>
               <span>{location}</span>
-              <span className="text-gray-300" aria-hidden="true">&middot;</span>
+              {availLabel && <span className="text-gray-300" aria-hidden="true">&middot;</span>}
             </>
           )}
-          {availLabel && (
-            <>
-              <span>{availLabel}</span>
-              {(hoursLabel || durationLabel) && (
-                <span className="text-gray-300" aria-hidden="true">&middot;</span>
-              )}
-            </>
-          )}
-          {hoursLabel && (
-            <>
-              <span>{hoursLabel}</span>
-              {durationLabel && (
-                <span className="text-gray-300" aria-hidden="true">&middot;</span>
-              )}
-            </>
-          )}
-          {durationLabel && <span>{durationLabel}</span>}
+          {availLabel && <span>{availLabel}</span>}
         </div>
 
         {/* Certs + badges */}

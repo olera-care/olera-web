@@ -244,10 +244,7 @@ export function getProfileItems(
   return [
     { key: "photo", label: "Profile photo", done: hasPhoto, category: "profile" },
     { key: "schedule", label: "Semester schedule", done: !!meta.course_schedule_grid, category: "profile" },
-    { key: "commitment", label: "Availability & commitment", done: !!(meta.hours_per_week_range && meta.commitment_statement && meta.commitment_statement.length >= 50), category: "profile" },
-    { key: "experience", label: "Experience level", done: meta.years_caregiving != null, category: "profile" },
-    { key: "care_types", label: "Care types", done: (meta.care_experience_types?.length ?? 0) > 0, category: "profile" },
-    { key: "languages", label: "Languages", done: (meta.languages?.length ?? 0) > 0, category: "profile" },
+    { key: "commitment", label: "Availability & commitment", done: !!(meta.commitment_statement && meta.commitment_statement.length >= 50), category: "profile" },
     { key: "why", label: "Why I want to be a caregiver", done: !!(meta.why_caregiving && meta.why_caregiving.length >= 100), category: "profile" },
     { key: "scenarios", label: "Screening questions", done: scenarios.length >= SCENARIO_QUESTIONS.length && scenarios.every((s) => (s.answer?.length ?? 0) >= 50), category: "profile" },
     { key: "resume", label: "Resume", done: !!meta.resume_url, category: "profile" },

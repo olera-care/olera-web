@@ -45,6 +45,7 @@ const EMAIL_TYPE_OPTIONS = [
   { value: "student_welcome", label: "Student Welcome" },
   { value: "student_account_created", label: "Student Account Created" },
   { value: "student_returning", label: "Student Returning" },
+  { value: "student_magic_link", label: "Student Sign-In Link" },
   { value: "student_profile_incomplete_nudge", label: "Student Profile Incomplete" },
   { value: "medjobs_review_nudge", label: "MedJobs Review Nudge" },
   { value: "medjobs_profile_approved", label: "MedJobs Profile Approved" },

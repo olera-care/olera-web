@@ -967,24 +967,34 @@ export default function UnifiedAuthModal({
             // Pass current page as ?next= so they return here after onboarding
             const currentPath = window.location.pathname + window.location.search;
 
-            // Query fresh provider profile from DB (cached `profiles` state may be stale
-            // after sign-out + sign-up of a different account)
-            let freshProviderProfile = null;
+            // Query fresh profiles from DB (cached `profiles` state may be stale
+            // after sign-out + sign-up of a different account).
+            //
+            // Both kinds that have somewhere of their own to land. Only
+            // organizations were looked up before, so a student who had not
+            // finished onboarding fell through to /welcome — the care-seeker
+            // questionnaire — which is neither where they were going nor a
+            // page that makes sense to them.
+            let freshProviderProfile: { id: string; slug?: string | null; source_provider_id?: string | null } | null = null;
+            let hasStudentProfile = false;
             try {
               const { createBrowserClient } = await import("@supabase/ssr");
               const sb = createBrowserClient(
                 process.env.NEXT_PUBLIC_SUPABASE_URL!,
                 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
               );
-              const { data: orgProfile } = await sb
+              const { data: rows } = await sb
                 .from("business_profiles")
-                .select("id, slug, source_provider_id")
+                .select("id, slug, source_provider_id, type, is_active")
                 .eq("account_id", freshAccount.id)
-                .eq("type", "organization")
-                .eq("is_active", true)
-                .limit(1)
-                .maybeSingle();
-              freshProviderProfile = orgProfile;
+                .in("type", ["organization", "student"]);
+              // A provider still has to be live to be sent to its onboard page.
+              // A student does not: theirs is inactive until an admin approves
+              // it, and the whole point of sending them to the portal is to
+              // finish the profile that gets it approved.
+              freshProviderProfile =
+                (rows ?? []).find((r) => r.type === "organization" && r.is_active) ?? null;
+              hasStudentProfile = (rows ?? []).some((r) => r.type === "student");
             } catch {
               // Non-blocking - fall through to family welcome
             }
@@ -993,6 +1003,9 @@ export default function UnifiedAuthModal({
               // Route providers to their onboard page
               const slug = freshProviderProfile.slug || freshProviderProfile.source_provider_id || freshProviderProfile.id;
               router.push(`/provider/${slug}/onboard?next=${encodeURIComponent(currentPath)}`);
+            } else if (hasStudentProfile) {
+              // Route students to the portal where the application is filled in
+              router.push("/portal/medjobs");
             } else {
               // Route families to family welcome page
               router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);

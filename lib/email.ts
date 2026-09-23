@@ -183,6 +183,10 @@ const SUPPRESSION_EXEMPT_TYPES = new Set<string>([
   "verification_rejected",
   "verification_pending_review",
   "student_account_created",
+  // An admin sending a stuck student their sign-in link by hand. This is the
+  // way back in for somebody who cannot receive a login code, so a stale
+  // bounce on their address must not be what stops it.
+  "student_magic_link",
 ]);
 
 // Resend AUP deliverability thresholds live in a dependency-free module so client

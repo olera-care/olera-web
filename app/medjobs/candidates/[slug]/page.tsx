@@ -15,6 +15,7 @@ import {
   getActualCertifications,
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
+import ResumeSection from "./ResumeSection";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { getSampleBySlug, isSampleSlug } from "@/lib/medjobs/demo-candidate";
 
@@ -80,6 +81,51 @@ async function checkHasFullAccess(): Promise<boolean> {
     // contact). The old pilot + verified blurring is removed. See
     // docs/medjobs/PROVIDER_FUNNEL_BUILD_PLAN.md.
     return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Check if the current provider has an existing interview with this student */
+async function checkHasInterviewWithStudent(studentProfileId: string): Promise<boolean> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    // Get the account ID
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account) return false;
+
+    // Get the provider's organization profile
+    const { data: providerProfile } = await supabase
+      .from("business_profiles")
+      .select("id")
+      .eq("account_id", account.id)
+      .eq("type", "organization")
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+
+    if (!providerProfile) return false;
+
+    // Check if there's any active interview between this provider and the student
+    // Exclude cancelled interviews - they don't grant resume access
+    const { data: interview } = await supabase
+      .from("interviews")
+      .select("id")
+      .eq("provider_profile_id", providerProfile.id)
+      .eq("student_profile_id", studentProfileId)
+      .neq("status", "cancelled")
+      .limit(1)
+      .maybeSingle();
+
+    return !!interview;
   } catch {
     return false;
   }
@@ -172,6 +218,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
   let profile: ProfileView;
   let providerHasFullAccess = false;
   let isOwnProfile = false;
+  let hasExistingInterview = false;
 
   if (sample) {
     profile = {
@@ -204,6 +251,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
     if (!data) notFound();
     profile = data as ProfileView;
+
+    // Check if provider has an existing interview with this student
+    hasExistingInterview = await checkHasInterviewWithStudent(profile.id);
   }
 
   const meta = (profile.metadata || {}) as StudentMetadata;
@@ -648,41 +698,16 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* ── Documents Section (Profile Owner / Paid Providers Only) ── */}
-              {canViewFullProfile && resumeUrl && (
-                <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
-                    Documents
-                  </h2>
-                  <div className="space-y-3">
-                    {resumeUrl && (
-                      <a
-                        href={resumeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors group"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors">Resume</p>
-                          <p className="text-xs text-gray-500">View or download PDF</p>
-                        </div>
-                        <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                      </a>
-                    )}
-                  </div>
-                  {isOwnProfile && (
-                    <p className="mt-4 text-xs text-gray-400">
-                      Only you and verified, subscribed providers can see this section.
-                    </p>
-                  )}
-                </div>
+              {/* ── Documents Section ── */}
+              {/* Show resume to profile owner or providers (gated by interview in ResumeSection) */}
+              {resumeUrl && canViewFullProfile && (
+                <ResumeSection
+                  resumeUrl={resumeUrl}
+                  studentId={profile.id}
+                  studentDisplayName={profile.display_name || "This candidate"}
+                  hasExistingInterview={hasExistingInterview}
+                  isOwnProfile={isOwnProfile}
+                />
               )}
             </div>
 

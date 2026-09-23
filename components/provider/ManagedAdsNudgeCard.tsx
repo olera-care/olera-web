@@ -171,6 +171,10 @@ export default function ManagedAdsNudgeCard({
               trackProviderEvent(providerSlug, "ads_touchpoint_dismissed", {
                 touchpoint: source,
                 provider_name: providerName,
+                // The funnel splits every stage by variant off this key. Without
+                // it each dismissal buckets as "unassigned" and the dismissed
+                // column of the per-variant table is wrong.
+                managed_ads_variant: assignedVariant ?? "unassigned",
               });
             }
             onDismiss();

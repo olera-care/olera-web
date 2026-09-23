@@ -13,7 +13,6 @@ import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/email";
 import { invitationReceivedEmail, invitationSentEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert } from "@/lib/slack";
-import { HOURS_LABELS } from "@/lib/medjobs/job-postings";
 
 function getSupabaseAdmin() {
   return createClient(
@@ -149,8 +148,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to send invitation" }, { status: 500 });
     }
 
-    const hoursLabel = HOURS_LABELS[posting.hoursPerWeek] || posting.hoursPerWeek;
-
     // Fire-and-forget: email to student (skip if unsubscribed)
     if (studentProfile.email && !studentMeta.nudges_unsubscribed) {
       try {
@@ -161,8 +158,6 @@ export async function POST(req: NextRequest) {
             studentName: studentProfile.display_name,
             providerName: providerProfile.display_name,
             jobTitle: posting.title,
-            hoursLabel,
-            payRange: `$${posting.payMin}–$${posting.payMax}/hr`,
             unsubscribeId: studentProfileId,
           }),
           emailType: "invitation_received",

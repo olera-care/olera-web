@@ -4474,11 +4474,8 @@ export function interviewProposedEmail(opts: {
   alternativeTime?: string | null;
   notes: string | null;
   viewUrl: string;
-  /** Hourly rate offered (e.g., 22 for $22/hr) — shown as headline if provided. */
-  hourlyRate?: number;
 }): string {
   const safeProposerName = escapeHtml(opts.proposerName);
-  const rateDisplay = opts.hourlyRate != null ? `$${opts.hourlyRate}/hr` : null;
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an interview request</h1>
@@ -4487,7 +4484,6 @@ export function interviewProposedEmail(opts: {
     </p>
     <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
       <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
-      ${rateDisplay ? `<p style="font-size:20px;font-weight:700;color:#199087;margin:0 0 12px;line-height:1.2;">${rateDisplay}</p>` : ""}
       <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
         <strong>Format:</strong> ${escapeHtml(opts.interviewType)}
       </p>

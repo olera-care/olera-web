@@ -23,7 +23,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * dollars and takes two minutes.
  */
 
-const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-haiku-4-5-20251001";
+// Sonnet, not Haiku. On 2026-09-23 Haiku, given a live ledger listing eight
+// campaign requests, named six and invented "three were repeat requests"; and
+// asked about subscriptions "besides Hoop Cares" it agreed she subscribed this
+// week when her date sat outside the window. Sonnet corrected the premise and
+// listed all eight. A question costs cents; a confident wrong answer to the
+// founder costs the channel.
+const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-sonnet-5";
 const MAX_ANSWER_TOKENS = 700;
 
 /**
@@ -226,12 +232,84 @@ async function ingestedCounts(db: SupabaseClient): Promise<Record<string, number
   return Object.fromEntries(sources.map((source, i) => [source, counts[i].count ?? 0]));
 }
 
+/**
+ * The Managed Ads ledger, read live.
+ *
+ * On 2026-09-23 the founder asked "have any providers subscribed to managed ads
+ * in the past week besides Hoop Cares?" Cortex answered from Slack: it said a
+ * subscription notification would land in a DM it cannot read, then reported
+ * that none of 93 channel messages mentioned one. The answer happened to be
+ * right, and the reasoning was wrong: a subscription is a row in
+ * `ad_campaign_requests`, not a message. This context carried no product data
+ * at all, so the one number the north star counts could only be guessed at from
+ * chatter.
+ *
+ * Small on purpose: every paying provider, and every request, subscription or
+ * ending in the last thirty days. Enough to answer "who pays" and "what changed
+ * this week" without sending the scan's operating pack.
+ */
+const LEDGER_WINDOW_DAYS = 30;
+
+async function loadManagedAdsLedger(db: SupabaseClient) {
+  const since = new Date(Date.now() - LEDGER_WINDOW_DAYS * 86_400_000).toISOString();
+  const { data, error } = await db.from("ad_campaign_requests")
+    .select("display_name, status, plan_status, created_at, subscribed_at, ended_at, updated_at")
+    .is("deleted_at", null)
+    .or(`plan_status.in.(active,past_due),created_at.gte.${since},subscribed_at.gte.${since},ended_at.gte.${since},and(plan_status.eq.canceled,updated_at.gte.${since})`)
+    .order("created_at", { ascending: false })
+    .limit(40);
+  // A failed read must say so. Returning an empty ledger would read as "nobody
+  // pays", which is the confident wrong answer this block exists to replace.
+  if (error) return { readFailed: `Could not read the Managed Ads ledger: ${error.message}` };
+  type LedgerRow = { display_name: string | null; status: string; plan_status: string | null; created_at: string; subscribed_at: string | null; ended_at: string | null; updated_at: string | null };
+  // Paying means what the admin revenue chip means: active or past_due. A
+  // failed card is still a subscriber until Stripe cancels, and counting only
+  // "active" would have Cortex report zero paying providers the day Hoop Cares'
+  // card bounced while the admin page still showed one.
+  const isPaying = (row: LedgerRow) => row.plan_status === "active" || row.plan_status === "past_due";
+  const rows = (data ?? []) as LedgerRow[];
+  const day = (iso: string | null) => (iso ? iso.slice(0, 10) : null);
+  // Counted here, not by the model. Given only the rows it said "three
+  // providers requested" and then listed four, and called a subscription eight
+  // days old "in the past week".
+  const within = (iso: string | null, days: number) =>
+    Boolean(iso && Date.now() - new Date(iso).getTime() <= days * 86_400_000);
+  // Names, not only numbers. With bare counts it still wrote that Hoop Cares
+  // subscribed "in the past week" beside a seven-day count of zero; an empty
+  // list is harder to talk past than a 0.
+  const names = (keep: (row: LedgerRow) => boolean) => rows.filter(keep).map((row) => row.display_name ?? "unnamed");
+  const counts = (days: number) => ({
+    requested: names((row) => within(row.created_at, days)),
+    subscribed: names((row) => within(row.subscribed_at, days)),
+    ended: names((row) => within(row.ended_at, days)),
+    canceled: names((row) => row.plan_status === "canceled" && within(row.updated_at, days)),
+  });
+  return {
+    asOf: new Date().toISOString(),
+    windowDays: LEDGER_WINDOW_DAYS,
+    counts: { last7Days: counts(7), last30Days: counts(LEDGER_WINDOW_DAYS) },
+    payingProviders: rows.filter(isPaying)
+      .map((row) => ({ name: row.display_name, subscribedOn: day(row.subscribed_at), planStatus: row.plan_status })),
+    recentActivity: rows.map((row) => ({
+      name: row.display_name,
+      status: row.status,
+      paying: isPaying(row),
+      planStatus: row.plan_status,
+      // The webhook stamps no cancellation date; updated_at is the closest.
+      canceledAround: row.plan_status === "canceled" ? day(row.updated_at) : null,
+      requestedOn: day(row.created_at),
+      subscribedOn: day(row.subscribed_at),
+      endedOn: day(row.ended_at),
+    })),
+  };
+}
+
 async function buildConversationContext(
   db: SupabaseClient,
   focusInvestigationId?: string | null,
   question?: string,
 ): Promise<string> {
-  const [investigations, proposals, model, matches, sources] = await Promise.all([
+  const [investigations, proposals, model, matches, sources, managedAds] = await Promise.all([
     db.from("war_room_investigations")
       .select("id, title, status, domain, impact, likely_cause, unknowns, occurrence_count")
       .in("status", ["investigating", "watchlist", "decision_ready"])
@@ -244,6 +322,7 @@ async function buildConversationContext(
     db.from("war_room_company_models").select("north_star, targets, constraints").eq("key", "olera").maybeSingle(),
     question ? searchRecord(db, question) : Promise.resolve([] as SourceItemRow[]),
     ingestedCounts(db),
+    loadManagedAdsLedger(db),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
@@ -263,7 +342,9 @@ async function buildConversationContext(
       oleraWrittenRecord: `${sources.archive} stored`,
       directMessages: "NEVER ingested, and never can be. A Slack bot cannot read direct messages between two people; no permission grants it. This includes the founder's own DMs.",
       email: "NEVER ingested.",
+      managedAdsSubscriptions: "LIVE. Read from the database at the moment of this question; see managedAds.",
     },
+    managedAds,
     recordMatches: matches.map((row) => ({
       source: row.source,
       title: row.title,
@@ -306,6 +387,8 @@ Write for a phone screen. No markdown headers, no bullet lists, no tables. Two o
 Lead with the answer. Do not restate the question. Do not offer to help further.
 
 Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
+
+Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from managedAds. It is read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. Use managedAds.counts for any count or "this week" question rather than counting rows yourself, and give the dates. If managedAds.readFailed is set, say you could not read it.
 
 If the record shows something the founder appears to have wrong, say so directly in one sentence.`;
 

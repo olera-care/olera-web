@@ -73,7 +73,7 @@ export async function detectMaterialChange(db: SupabaseClient): Promise<Material
     // receipt is not a decision.
     db.from("war_room_proposal_events")
       .select("id", { count: "exact", head: true })
-      .in("event_type", ["approved", "rejected", "completed"])
+      .in("event_type", ["approved", "rejected", "completed", "parked"])
       .not("actor", "in", "(cortex,war-room)")
       .gte("created_at", since),
     // Revenue moved: somebody subscribed, churned, or a new campaign opened.

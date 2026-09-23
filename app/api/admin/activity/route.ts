@@ -70,6 +70,7 @@ const PROVIDER_ACTION_EVENT_TYPES = [
   "managed_ads_cta_clicked",
   "managed_ads_boost_viewed",
   "managed_ads_requested",
+  "managed_ads_not_now",
   "your_market_viewed",
   "your_market_playbook_clicked",
   // Ad pitch touchpoint tracking

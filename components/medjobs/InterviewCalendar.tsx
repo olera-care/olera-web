@@ -12,7 +12,6 @@ import type { Placement } from "@/lib/medjobs/placements";
 import type { JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
 import {
   COVERAGE_OPTIONS,
-  DEMAND_SHAPE_OPTIONS,
   PRN_OPTIONS,
   REQUIREMENT_OPTIONS,
 } from "@/lib/medjobs/hiring-needs-questions";
@@ -964,16 +963,13 @@ function InterviewDetailModal({
         {perspective === "student" && (() => {
           const jobDetails = (interview.metadata as { job_details?: JobDetails } | undefined)?.job_details;
           if (!jobDetails) return null;
-          const { hourly_rate, job_description, coverage_buckets, demand_shape, prn_open, requirements } = jobDetails;
-          const hasAnyDetail = hourly_rate != null || job_description || (coverage_buckets && coverage_buckets.length > 0) || demand_shape || prn_open || (requirements && Object.values(requirements).some(Boolean));
+          const { job_description, coverage_buckets, prn_open, requirements } = jobDetails;
+          const hasAnyDetail = job_description || (coverage_buckets && coverage_buckets.length > 0) || prn_open || (requirements && Object.values(requirements).some(Boolean));
           if (!hasAnyDetail) return null;
 
           const shiftsLabels = (coverage_buckets ?? []).map(
             (b) => COVERAGE_OPTIONS.find((o) => o.value === b)?.label ?? b
           );
-          const shapeLabel = demand_shape
-            ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand_shape)?.label
-            : null;
           const prnLabel = prn_open
             ? PRN_OPTIONS.find((o) => o.value === prn_open)?.label
             : null;
@@ -985,11 +981,6 @@ function InterviewDetailModal({
             <div className="pt-2">
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Job Details</p>
               <div className="space-y-3 text-sm">
-                {hourly_rate != null && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold text-primary-600">${hourly_rate}/hr</span>
-                  </div>
-                )}
                 {job_description && (
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Description</p>
@@ -1004,12 +995,6 @@ function InterviewDetailModal({
                         <span key={s} className="rounded-full border border-gray-200 px-2.5 py-0.5 text-xs text-gray-700">{s}</span>
                       ))}
                     </div>
-                  </div>
-                )}
-                {shapeLabel && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Staffing pattern</p>
-                    <p className="text-gray-700">{shapeLabel}</p>
                   </div>
                 )}
                 {prnLabel && (

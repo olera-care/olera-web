@@ -13,7 +13,6 @@ import type { DirectoryProvider } from "@/lib/types";
 import { DEMAND_PROFILE_KEY, type DemandProfile } from "@/lib/medjobs/eligibility";
 import {
   COVERAGE_OPTIONS,
-  DEMAND_SHAPE_OPTIONS,
   PRN_OPTIONS,
   REQUIREMENT_OPTIONS,
   REQUIREMENTS_KEY,
@@ -78,17 +77,13 @@ export default function AdminDirectoryDetailPage() {
 
   // Hiring defaults state (stored in business_profiles.metadata)
   type Bucket = DemandProfile["coverage_buckets"][number];
-  const [hiringRate, setHiringRate] = useState<number | undefined>(undefined);
   const [hiringDescription, setHiringDescription] = useState("");
   const [hiringBuckets, setHiringBuckets] = useState<Bucket[]>([]);
-  const [hiringShape, setHiringShape] = useState<DemandProfile["demand_shape"] | undefined>(undefined);
   const [hiringPrn, setHiringPrn] = useState<DemandProfile["prn_open"] | undefined>(undefined);
   const [hiringReqs, setHiringReqs] = useState<MedjobsRequirements>({});
   const [originalHiring, setOriginalHiring] = useState<{
-    rate?: number;
     description?: string;
     buckets?: Bucket[];
-    shape?: DemandProfile["demand_shape"];
     prn?: DemandProfile["prn_open"];
     reqs?: MedjobsRequirements;
   }>({});
@@ -159,17 +154,13 @@ export default function AdminDirectoryDetailPage() {
       } | null;
       if (hiringData) {
         const { demand, requirements } = hiringData;
-        setHiringRate(demand?.hourly_rate);
         setHiringDescription(demand?.job_description ?? "");
         setHiringBuckets((demand?.coverage_buckets as Bucket[] | undefined) ?? []);
-        setHiringShape(demand?.demand_shape);
         setHiringPrn(demand?.prn_open);
         setHiringReqs(requirements ?? {});
         setOriginalHiring({
-          rate: demand?.hourly_rate,
           description: demand?.job_description ?? "",
           buckets: (demand?.coverage_buckets as Bucket[] | undefined) ?? [],
-          shape: demand?.demand_shape,
           prn: demand?.prn_open,
           reqs: requirements ?? {},
         });
@@ -360,10 +351,8 @@ export default function AdminDirectoryDetailPage() {
     staffImage !== (originalStaff.image || "");
 
   const isHiringDirty =
-    hiringRate !== originalHiring.rate ||
     hiringDescription !== (originalHiring.description ?? "") ||
     JSON.stringify([...hiringBuckets].sort()) !== JSON.stringify([...(originalHiring.buckets ?? [])].sort()) ||
-    hiringShape !== originalHiring.shape ||
     hiringPrn !== originalHiring.prn ||
     JSON.stringify(hiringReqs) !== JSON.stringify(originalHiring.reqs ?? {});
 
@@ -378,14 +367,11 @@ export default function AdminDirectoryDetailPage() {
     const id = canonicalProviderId ?? providerId;
     try {
       const demand: Partial<DemandProfile> = {
-        hourly_rate: hiringRate,
         job_description: hiringDescription.trim() || undefined,
         coverage_buckets: hiringBuckets.length > 0 ? hiringBuckets : undefined,
-        demand_shape: hiringShape,
         prn_open: hiringPrn,
       };
-      // Check if any demand field is actually set (not just truthy - 0 is a valid hourly rate)
-      const hasDemand = demand.hourly_rate != null || demand.job_description || (demand.coverage_buckets && demand.coverage_buckets.length > 0) || demand.demand_shape || demand.prn_open;
+      const hasDemand = demand.job_description || (demand.coverage_buckets && demand.coverage_buckets.length > 0) || demand.prn_open;
       const hasReqs = Object.values(hiringReqs).some(Boolean);
       const res = await fetch(`/api/admin/directory/${id}`, {
         method: "PATCH",
@@ -399,10 +385,8 @@ export default function AdminDirectoryDetailPage() {
       });
       if (res.ok) {
         setOriginalHiring({
-          rate: hiringRate,
           description: hiringDescription.trim(),
           buckets: hiringBuckets,
-          shape: hiringShape,
           prn: hiringPrn,
           reqs: hiringReqs,
         });
@@ -1148,26 +1132,8 @@ export default function AdminDirectoryDetailPage() {
           <p className="text-sm text-gray-500 mb-4">
             Pre-fill interview invitations with these defaults. Students see full job details in their portal.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Hourly Rate</label>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">$</span>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.5}
-                  value={hiringRate ?? ""}
-                  onChange={(e) => setHiringRate(e.target.value ? Number(e.target.value) : undefined)}
-                  placeholder="e.g. 22"
-                  className="w-24 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
-                <span className="text-gray-500 text-sm">/hr</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="mt-4">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Job Description</label>
             <textarea
               value={hiringDescription}
@@ -1188,26 +1154,6 @@ export default function AdminDirectoryDetailPage() {
                   onClick={() => toggleHiringBucket(o.value)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                     hiringBuckets.includes(o.value)
-                      ? "bg-primary-50 border-primary-300 text-primary-700"
-                      : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Staffing Pattern</label>
-            <div className="flex flex-wrap gap-2">
-              {DEMAND_SHAPE_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  onClick={() => setHiringShape(o.value)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                    hiringShape === o.value
                       ? "bg-primary-50 border-primary-300 text-primary-700"
                       : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
                   }`}

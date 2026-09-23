@@ -1409,8 +1409,6 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       studentName: SAMPLE_STUDENT.studentName,
       providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
       jobTitle: SAMPLE_MEDJOBS_PROVIDER.jobTitle,
-      hoursLabel: SAMPLE_MEDJOBS_PROVIDER.hoursLabel,
-      payRange: SAMPLE_MEDJOBS_PROVIDER.payRange,
       unsubscribeId: "sample-id",
     }),
   },

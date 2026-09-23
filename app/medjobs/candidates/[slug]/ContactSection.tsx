@@ -66,10 +66,8 @@ export default function ContactSection({
     const requirements = providerMeta[REQUIREMENTS_KEY] as MedjobsRequirements | undefined;
     if (!demand && !requirements) return undefined;
     return {
-      hourly_rate: demand?.hourly_rate,
       job_description: demand?.job_description,
       coverage_buckets: demand?.coverage_buckets,
-      demand_shape: demand?.demand_shape,
       prn_open: demand?.prn_open,
       requirements,
     };

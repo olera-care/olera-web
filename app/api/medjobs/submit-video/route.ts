@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please provide a valid YouTube or Loom URL" }, { status: 400 });
     }
 
-    // Update metadata with video URL and activate profile
+    // Update metadata with video URL (does NOT activate profile - requires admin approval)
     const updatedMetadata = {
       ...existingMetadata,
       video_intro_url: videoUrl.trim(),
@@ -89,7 +89,6 @@ export async function POST(req: NextRequest) {
       .from("business_profiles")
       .update({
         metadata: updatedMetadata,
-        is_active: true,
       })
       .eq("id", profile.id);
 

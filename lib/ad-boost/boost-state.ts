@@ -20,18 +20,27 @@ import type { AdBoostEligibility } from "./eligibility";
 /** Channel options shown to providers (label lookup shared by the boost page
  *  and the extracted campaign views). */
 export const BOOST_CHANNELS = [
-  { value: "both", label: "Google + Meta" },
+  { value: "google_meta", label: "Google + Meta" },
   { value: "google", label: "Google only" },
   { value: "meta", label: "Meta only" },
 ] as const;
+
+/** Legacy value for google_meta. "both" said how many channels, not which ones,
+ *  and read as the opposite of its meaning on rows being moved off Nextdoor.
+ *  Migration 250 rewrites stored rows; this covers anything written by an older
+ *  deploy mid-rollout, and any inbound payload from a cached client bundle. */
+export function normalizeBoostChannel(channel: string | null): string | null {
+  return channel === "both" ? "google_meta" : channel;
+}
 
 /** Provider choice stays intentionally limited to the proven Google/Meta
  * offer. Admins can still assign an experimental channel to a real campaign,
  * and live/results views must name it accurately. */
 export function boostChannelLabel(channel: string | null): string | null {
-  const providerChoice = BOOST_CHANNELS.find((option) => option.value === channel);
+  const normalized = normalizeBoostChannel(channel);
+  const providerChoice = BOOST_CHANNELS.find((option) => option.value === normalized);
   if (providerChoice) return providerChoice.label;
-  if (channel === "nextdoor") return "Nextdoor";
+  if (normalized === "nextdoor") return "Nextdoor";
   return null;
 }
 

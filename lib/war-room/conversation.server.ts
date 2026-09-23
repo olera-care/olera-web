@@ -112,6 +112,11 @@ export async function closeExchange(db: SupabaseClient): Promise<void> {
 export type MessageKind = "question" | "answer";
 
 const INTERROGATIVE = /^(what|why|how|when|who|where|which|can|could|should|would|is|are|was|were|do|does|did|tell me|show me|explain|give me|remind me|any|status)\b/i;
+// Asking Cortex to do something is conversation, never an answer. On
+// 2026-09-23 "I want to send Logan a note about this..." -- a request to draft
+// a message -- had no question mark, was filed as the founder's answer to a
+// brief question about Navigator pick quality, and nothing was drafted.
+const REQUEST = /^(i want|i'd like|i would like|i need|i'm thinking|please|help|draft|write|send|make|create|find|pull|look up|check|compare|summari[sz]e|let's|lets|can you|could you|would you)\b/i;
 
 /**
  * Question or answer?
@@ -127,7 +132,44 @@ export function classifyMessage(text: string): MessageKind {
   if (!body) return "answer";
   if (body.endsWith("?")) return "question";
   if (INTERROGATIVE.test(body)) return "question";
+  if (REQUEST.test(body)) return "question";
   return "answer";
+}
+
+/**
+ * Does this message actually answer the question the brief asked?
+ *
+ * The lexical test above only says "not obviously a question". That was the
+ * whole gate for filing a top-level DM as evidence, so any statement -- an
+ * idea, a note to self, a request phrased without a verb up front -- was
+ * written into an investigation's record in the founder's name. A reply in
+ * the brief's own thread is explicit and skips this; everything else must
+ * look like an answer to that specific question. Unsure means no: a missed
+ * answer can be re-sent in the thread, a misfiled one silently steers scans.
+ */
+export async function answersOpenAsk(db: SupabaseClient, text: string): Promise<boolean> {
+  if (!process.env.ANTHROPIC_API_KEY) return false;
+  const { data } = await db.from("war_room_investigation_events")
+    .select("details")
+    .eq("event_type", "founder_asked")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const asked = (data?.details as { question?: string; title?: string } | null) ?? null;
+  if (!asked?.question) return false;
+  try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const verdict = await anthropic.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 5,
+      system: "You judge whether a founder's Slack message is a direct answer to a specific question his assistant asked him. Reply with exactly ANSWER or OTHER. It is ANSWER only if the message clearly responds to that question's subject. Requests, new topics, ideas, notes, and anything unrelated are OTHER. If unsure, OTHER.",
+      messages: [{ role: "user", content: `QUESTION HE WAS ASKED:\n${asked.question}\n\nHIS MESSAGE:\n${text.slice(0, 1_500)}` }],
+    });
+    const word = verdict.content.find((block): block is Anthropic.TextBlock => block.type === "text")?.text.trim().toUpperCase() ?? "";
+    return word.startsWith("ANSWER");
+  } catch {
+    return false;
+  }
 }
 
 type InvestigationRow = {

@@ -87,6 +87,8 @@ import {
   interviewConfirmedEmail,
   interviewCancelledEmail,
   interviewReminderEmail,
+  interviewScheduledConfirmationEmail,
+  interviewRequestEmail,
 } from "@/lib/email-templates";
 import { renderEmail as renderProviderOutreachEmail } from "@/lib/provider-outreach/email-utils";
 import {
@@ -1487,6 +1489,44 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       durationMinutes: SAMPLE_INTERVIEW.durationMinutes,
       location: SAMPLE_INTERVIEW.location,
       viewUrl: SAMPLE_INTERVIEW.providerViewUrl,
+    }),
+  },
+  {
+    id: "interview_scheduled_confirmation",
+    audience: "provider",
+    group: "MedJobs · Interviews",
+    label: "Interview request sent (provider confirmation)",
+    subject: `Interview request sent to ${SAMPLE_STUDENT.studentName.split(" ")[0]}`,
+    emailType: "interview_scheduled_confirmation",
+    timing: "Immediately after provider schedules an interview",
+    who: "Provider who just scheduled an interview with a student.",
+    why: "Confirm their request was sent and explain next steps (student will confirm).",
+    render: () => interviewScheduledConfirmationEmail({
+      studentFirstName: SAMPLE_STUDENT.studentName.split(" ")[0],
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      proposedTime: SAMPLE_INTERVIEW.proposedTime,
+      alternativeTime: SAMPLE_INTERVIEW.alternativeTime,
+      notes: SAMPLE_INTERVIEW.notes,
+      viewUrl: SAMPLE_INTERVIEW.providerViewUrl,
+    }),
+  },
+  {
+    id: "interview_request_sent_quick",
+    audience: "provider",
+    group: "MedJobs · Interviews",
+    label: "Interview request sent (unauthenticated flow)",
+    subject: `Interview request sent to ${SAMPLE_STUDENT.studentName}`,
+    emailType: "interview_request_sent",
+    timing: "When unauthenticated provider schedules via quick flow",
+    who: "Provider who scheduled without an account (via quick schedule modal).",
+    why: "Confirm their request was sent and provide magic link to manage it.",
+    render: () => interviewRequestEmail({
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      studentName: SAMPLE_STUDENT.studentName,
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      dateTime: SAMPLE_INTERVIEW.proposedTime,
+      notes: SAMPLE_INTERVIEW.notes,
+      magicLinkUrl: SAMPLE_INTERVIEW.magicLinkUrl,
     }),
   },
   {

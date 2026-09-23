@@ -242,6 +242,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const hasAbout = !!(meta.why_caregiving || profile.description || meta.intended_professional_school);
   const hasCommitments = !!(meta.acknowledgments_completed || meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing);
   const hasScenarios = meta.scenario_responses && meta.scenario_responses.length > 0;
+  const hasExperience = meta.experience_entries && meta.experience_entries.length > 0;
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
@@ -462,6 +463,16 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     </p>
                   </div>
                 )}
+
+                {/* Availability Notes */}
+                {meta.availability_notes && (
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-medium text-gray-500 mb-2">Additional Notes</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {meta.availability_notes}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* ── Qualifications Section ── */}
@@ -529,6 +540,36 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   </div>
                 )}
               </div>
+
+              {/* ── Experience Section ── */}
+              {hasExperience && (
+                <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
+                    Experience
+                  </h2>
+                  <div className="space-y-4">
+                    {meta.experience_entries!
+                      .slice()
+                      .sort((a, b) => (b.start_date > a.start_date ? 1 : -1))
+                      .map((entry) => (
+                        <div key={entry.id} className="bg-gray-50 rounded-xl px-5 py-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-base font-semibold text-gray-900">{entry.title}</p>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border bg-gray-100 text-gray-700 border-gray-200">
+                              {entry.tag === "paid" ? "Paid" : entry.tag === "volunteer" ? "Volunteer" : entry.tag === "family" ? "Family" : entry.tag === "clinical" ? "Clinical" : entry.tag === "internship" ? "Internship" : "Other"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {formatExperienceDate(entry.start_date)} – {entry.end_date ? formatExperienceDate(entry.end_date) : "Present"}
+                          </p>
+                          {entry.description && (
+                            <p className="text-sm text-gray-600 mt-2 leading-relaxed">{entry.description}</p>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
               {/* ── Commitments Section ── */}
               {hasCommitments && (
@@ -767,4 +808,11 @@ function CommitmentItem({ text }: { text: string }) {
       <p className="text-sm text-gray-700 leading-relaxed">{text}</p>
     </div>
   );
+}
+
+function formatExperienceDate(ym: string): string {
+  const [year, month] = ym.split("-");
+  if (!month) return year;
+  const date = new Date(Number(year), Number(month) - 1);
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }

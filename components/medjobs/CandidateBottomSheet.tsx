@@ -69,6 +69,13 @@ function formatTimeSlot(time24: string): string {
   return minutes === 0 ? `${hour12}:00 ${period}` : `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
 }
 
+function formatExperienceDate(ym: string): string {
+  const [year, month] = ym.split("-");
+  if (!month) return year;
+  const date = new Date(Number(year), Number(month) - 1);
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Schedule Grid Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -171,6 +178,7 @@ export default function CandidateBottomSheet({
   const hasAbout = !!(meta.why_caregiving || candidate.description || meta.intended_professional_school);
   const hasCommitments = !!(meta.acknowledgments_completed || meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing);
   const hasScenarios = !!(meta.scenario_responses && meta.scenario_responses.length > 0);
+  const hasExperience = !!(meta.experience_entries && meta.experience_entries.length > 0);
 
   // Mount tracking for portal
   useEffect(() => {
@@ -373,6 +381,7 @@ export default function CandidateBottomSheet({
               hasAbout={hasAbout}
               hasCommitments={hasCommitments}
               hasScenarios={hasScenarios}
+              hasExperience={hasExperience}
             />
           )}
 
@@ -466,6 +475,7 @@ interface ProfileContentProps {
   hasAbout: boolean;
   hasCommitments: boolean;
   hasScenarios: boolean;
+  hasExperience: boolean;
 }
 
 function ProfileContent({
@@ -480,6 +490,7 @@ function ProfileContent({
   hasAbout,
   hasCommitments,
   hasScenarios,
+  hasExperience,
 }: ProfileContentProps) {
   return (
     <div className="px-5 py-5 space-y-6">
@@ -623,6 +634,16 @@ function ProfileContent({
             </p>
           </div>
         )}
+
+        {/* Availability Notes */}
+        {meta.availability_notes && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <h4 className="text-xs font-medium text-gray-500 mb-2">Additional Notes</h4>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              {meta.availability_notes}
+            </p>
+          </div>
+        )}
       </Section>
 
       {/* Qualifications */}
@@ -668,6 +689,37 @@ function ProfileContent({
           </div>
         )}
       </Section>
+
+      {/* Experience */}
+      {hasExperience && (
+        <Section title="Experience">
+          <div className="space-y-3">
+            {meta.experience_entries!
+              .slice()
+              .sort((a, b) => (b.start_date > a.start_date ? 1 : -1))
+              .slice(0, 3)
+              .map((entry) => (
+                <div key={entry.id} className="bg-gray-50 rounded-xl px-4 py-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium text-gray-900">{entry.title}</p>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-gray-100 text-gray-700 border-gray-200">
+                      {entry.tag === "paid" ? "Paid" : entry.tag === "volunteer" ? "Volunteer" : entry.tag === "family" ? "Family" : entry.tag === "clinical" ? "Clinical" : entry.tag === "internship" ? "Internship" : "Other"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {formatExperienceDate(entry.start_date)} – {entry.end_date ? formatExperienceDate(entry.end_date) : "Present"}
+                  </p>
+                  {entry.description && (
+                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{entry.description}</p>
+                  )}
+                </div>
+              ))}
+            {meta.experience_entries!.length > 3 && (
+              <p className="text-xs text-gray-400">+{meta.experience_entries!.length - 3} more</p>
+            )}
+          </div>
+        </Section>
+      )}
 
       {/* About */}
       {hasAbout && (

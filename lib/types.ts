@@ -490,6 +490,14 @@ export interface StudentMetadata {
   transportation?: boolean;
   /** @deprecated Legacy. */
   willing_to_relocate?: boolean;
+  /** @deprecated Legacy. */
+  availability_type?: string;
+  /** @deprecated Legacy. */
+  available_start?: string;
+  /** @deprecated Legacy. */
+  hours_per_week?: number;
+  /** @deprecated Legacy. */
+  max_commute_miles?: number;
   // Review workflow fields (used by admin)
   review_requested_at?: string;
   rejected_at?: string;

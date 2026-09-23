@@ -8,8 +8,6 @@ import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import type { JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
 import {
   getTrackLabel,
-  formatHoursPerWeek,
-  formatDuration,
   getActualCertifications,
   hasVideo,
   getYouTubeId,
@@ -164,8 +162,6 @@ export default function CandidateBottomSheet({
   const meta = candidate.metadata;
   const firstName = candidate.display_name.split(" ")[0];
   const trackLabel = getTrackLabel(meta);
-  const hoursLabel = formatHoursPerWeek(meta);
-  const durationLabel = formatDuration(meta);
   const certs = getActualCertifications(meta.certifications);
   const videoAvailable = hasVideo(meta);
   const youtubeId = videoAvailable ? getYouTubeId(meta.video_intro_url!) : null;
@@ -175,7 +171,6 @@ export default function CandidateBottomSheet({
   const hasAbout = !!(meta.why_caregiving || candidate.description || meta.intended_professional_school);
   const hasCommitments = !!(meta.acknowledgments_completed || meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing);
   const hasScenarios = !!(meta.scenario_responses && meta.scenario_responses.length > 0);
-  const hasReferences = !!(meta.references && meta.references.length > 0);
 
   // Mount tracking for portal
   useEffect(() => {
@@ -371,8 +366,6 @@ export default function CandidateBottomSheet({
               meta={meta}
               firstName={firstName}
               trackLabel={trackLabel}
-              hoursLabel={hoursLabel}
-              durationLabel={durationLabel}
               certs={certs}
               videoAvailable={videoAvailable}
               youtubeId={youtubeId}
@@ -380,7 +373,6 @@ export default function CandidateBottomSheet({
               hasAbout={hasAbout}
               hasCommitments={hasCommitments}
               hasScenarios={hasScenarios}
-              hasReferences={hasReferences}
             />
           )}
 
@@ -467,8 +459,6 @@ interface ProfileContentProps {
   meta: CandidateData["metadata"];
   firstName: string;
   trackLabel: string | null;
-  hoursLabel: string | null;
-  durationLabel: string | null;
   certs: string[];
   videoAvailable: boolean;
   youtubeId: string | null;
@@ -476,7 +466,6 @@ interface ProfileContentProps {
   hasAbout: boolean;
   hasCommitments: boolean;
   hasScenarios: boolean;
-  hasReferences: boolean;
 }
 
 function ProfileContent({
@@ -484,8 +473,6 @@ function ProfileContent({
   meta,
   firstName,
   trackLabel,
-  hoursLabel,
-  durationLabel,
   certs,
   videoAvailable,
   youtubeId,
@@ -493,7 +480,6 @@ function ProfileContent({
   hasAbout,
   hasCommitments,
   hasScenarios,
-  hasReferences,
 }: ProfileContentProps) {
   return (
     <div className="px-5 py-5 space-y-6">
@@ -587,26 +573,12 @@ function ProfileContent({
 
       {/* Availability */}
       <Section title="Availability">
-        <div className="grid grid-cols-2 gap-3">
-          {hoursLabel && (
-            <div className="bg-gray-50 rounded-lg px-3 py-2.5">
-              <dt className="text-xs text-gray-500 font-medium">Hours/Week</dt>
-              <dd className="text-sm font-semibold text-gray-900 mt-0.5">{hoursLabel}</dd>
-            </div>
-          )}
-          {durationLabel && (
-            <div className="bg-gray-50 rounded-lg px-3 py-2.5">
-              <dt className="text-xs text-gray-500 font-medium">Commitment</dt>
-              <dd className="text-sm font-semibold text-gray-900 mt-0.5">{durationLabel}</dd>
-            </div>
-          )}
-          {meta.seeking_status === "actively_looking" && (
-            <div className="bg-emerald-50 rounded-lg px-3 py-2.5">
-              <dt className="text-xs text-emerald-600 font-medium">Status</dt>
-              <dd className="text-sm font-semibold text-emerald-700 mt-0.5">Ready to start</dd>
-            </div>
-          )}
-        </div>
+        {meta.seeking_status === "actively_looking" && (
+          <div className="bg-emerald-50 rounded-lg px-3 py-2.5 inline-flex items-center gap-2 mb-4">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-sm font-semibold text-emerald-700">Ready to start</span>
+          </div>
+        )}
 
         {/* Year-Round Availability */}
         {meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 && (
@@ -655,45 +627,11 @@ function ProfileContent({
 
       {/* Qualifications */}
       <Section title="Qualifications">
-        <div className="grid grid-cols-2 gap-3">
-          {meta.university && (
-            <div>
-              <dt className="text-xs text-gray-500 font-medium">University</dt>
-              <dd className="text-sm font-semibold text-gray-900 mt-0.5">{meta.university}</dd>
-              {meta.major && <dd className="text-xs text-gray-500">{getMajorLabel(meta.major)}</dd>}
-            </div>
-          )}
-          <div>
-            <dt className="text-xs text-gray-500 font-medium">Experience</dt>
-            <dd className="text-sm font-semibold text-gray-900 mt-0.5">
-              {meta.years_caregiving && meta.years_caregiving > 0 ? `${meta.years_caregiving}+ years` : "New"}
-            </dd>
-          </div>
-          {(meta.languages?.length ?? 0) > 0 && (
-            <div>
-              <dt className="text-xs text-gray-500 font-medium">Languages</dt>
-              <dd className="text-sm font-semibold text-gray-900 mt-0.5">{meta.languages!.join(", ")}</dd>
-            </div>
-          )}
-          {meta.gpa && (
-            <div>
-              <dt className="text-xs text-gray-500 font-medium">GPA</dt>
-              <dd className="text-sm font-semibold text-gray-900 mt-0.5">{meta.gpa.toFixed(1)}</dd>
-            </div>
-          )}
-        </div>
-
-        {/* Care Experience Types */}
-        {(meta.care_experience_types?.length ?? 0) > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <dt className="text-xs text-gray-500 font-medium mb-2">Care Experience</dt>
-            <div className="flex flex-wrap gap-1.5">
-              {meta.care_experience_types!.map((type) => (
-                <span key={type} className="px-2.5 py-1 bg-gray-50 text-gray-700 rounded-lg text-xs font-medium border border-gray-100">
-                  {type}
-                </span>
-              ))}
-            </div>
+        {meta.university && (
+          <div className="mb-4">
+            <dt className="text-xs text-gray-500 font-medium">University</dt>
+            <dd className="text-sm font-semibold text-gray-900 mt-0.5">{meta.university}</dd>
+            {meta.major && <dd className="text-xs text-gray-500">{getMajorLabel(meta.major)}</dd>}
           </div>
         )}
 
@@ -753,7 +691,6 @@ function ProfileContent({
             <p className="text-xs text-gray-600 mt-3">
               <span className="font-medium text-gray-900">Career Goal:</span>{" "}
               {INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}
-              {meta.graduation_year && ` · Graduating ${meta.graduation_year}`}
             </p>
           )}
         </Section>
@@ -789,26 +726,6 @@ function ProfileContent({
               </div>
             ))}
           </div>
-        </Section>
-      )}
-
-      {/* References */}
-      {hasReferences && (
-        <Section title="References">
-          <div className="space-y-3">
-            {meta.references!.map((ref, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-semibold text-gray-500">{ref.name.charAt(0)}</span>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{ref.name}</p>
-                  <p className="text-xs text-gray-500">{ref.relationship}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-gray-400">Contact details available after scheduling.</p>
         </Section>
       )}
 

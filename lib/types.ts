@@ -456,18 +456,13 @@ export interface StudentMetadata {
   university?: string;
   university_id?: string;         // FK to medjobs_universities
   campus?: string;
-  major?: string;
-  graduation_year?: number;
-  gpa?: number;
+  major?: string;                 // Program track display value
   program_track?: StudentProgramTrack;
 
-  // Experience
+  // Certifications (collected via EditCertificationsModal)
   certifications?: string[];       // CNA, BLS, First Aid, etc.
-  years_caregiving?: number;
-  care_experience_types?: string[];  // "dementia", "post_surgical", "mobility", etc.
-  languages?: string[];
 
-  // Experience timeline (resume-style entries)
+  // Experience timeline (collected via EditBackgroundModal)
   experience_entries?: Array<{
     id: string;           // unique id for React keys
     title: string;        // role / job title
@@ -477,18 +472,9 @@ export interface StudentMetadata {
     tag: "paid" | "volunteer" | "family" | "clinical" | "internship" | "other";
   }>;
 
-  // Availability
-  availability_type?: "part_time" | "full_time" | "flexible" | "summer_only" | "weekends";
-  hours_per_week?: number;
-  available_start?: string;        // ISO date
-  transportation?: boolean;
-  willing_to_relocate?: boolean;
-  max_commute_miles?: number;
-
   // Media
   resume_url?: string;
   video_intro_url?: string;
-  linkedin_url?: string;
 
   // Documents (private, PII)
   drivers_license_url?: string;
@@ -500,36 +486,35 @@ export interface StudentMetadata {
   total_verified_hours?: number;
   verified_care_types?: string[];
 
-  // New structured fields (Phase 1)
+  // Career path (collected during signup)
   intended_professional_school?: IntendedProfessionalSchool;
-  availability_types?: string[];        // multi-select: "in_between_classes", "evenings", "weekends", "overnights"
-  seasonal_availability?: string[];     // "summer", "winter_break", "fall_semester", "spring_semester"
-  duration_commitment?: string;         // "1_semester", "multiple_semesters", "1_plus_year"
-  hours_per_week_range?: string;        // "5-10", "10-15", "15-20", "20+"
+
+  // Availability profile (collected during signup)
+  availability_profile?: {
+    coverage_buckets?: string[];  // "day", "evening", "overnight", "weekend"
+  };
+
+  // Application status
   acknowledgments_completed?: boolean;
   acknowledgment_date?: string;
   application_completed?: boolean;
 
-  // Motivation & Personal Statement
+  // Motivation (collected via EditWhyModal)
   why_caregiving?: string;
-  personal_statement?: string;
 
-  // Course Schedule (legacy grid)
-  course_schedule_description?: string;
+  // Course Schedule
   course_schedule_grid?: string;      // JSON serialized ScheduleGrid (day-slot toggles)
   course_schedule_semester?: string;  // e.g. "Fall 2026"
 
   // Weekly availability — precise time ranges per day
   availability_schedule?: Record<string, Array<{ start: string; end: string }>>; // day → [{start: "09:00", end: "14:00"}]
 
-  // Availability & Commitment
+  // Availability & Commitment (collected via EditAvailabilityModal)
   commitment_statement?: string;        // Required free-text on commitment to shifts
   availability_notes?: string;          // Free-text: finals, breaks, travel, constraints
   schedule_update_date?: string;        // Next date schedule needs updating (ISO date)
-  summer_availability?: string;         // Legacy — migrated to year_round_availability
-  winter_availability?: string;         // Legacy — migrated to year_round_availability
 
-  // Year-round availability (structured)
+  // Year-round availability (structured, collected via EditAvailabilityModal)
   year_round_availability?: {
     spring?: { status: string; year: number; notes?: string };
     summer?: { status: string; year: number; notes?: string };
@@ -541,41 +526,38 @@ export interface StudentMetadata {
   drivers_license_expiration?: string;  // ISO date
   car_insurance_expiration?: string;    // ISO date
 
-  // Commitments & Pledges
+  // Commitments & Pledges (collected via EditAvailabilityModal)
   ncns_pledge?: boolean;
   school_balance_pledge?: boolean;
   advance_notice_pledge?: boolean;
   prn_willing?: boolean;
 
-  // Skills (matches job-posting SKILLS for matching)
-  skills?: string[];
-
-  // Scenario Responses
+  // Scenario Responses (collected via EditScenarioModal)
   scenario_responses?: Array<{
     question: string;
     answer: string;
   }>;
 
-  // References
-  references?: Array<{
-    name: string;
-    relationship: string;
-    note?: string;
-  }>;
-
-  // Social Links
-  instagram_url?: string;
-  facebook_url?: string;
-  tiktok_url?: string;
-
   // Status
   profile_completeness?: number;   // 0-100
   seeking_status?: "actively_looking" | "open" | "not_looking";
+
+  // Eligibility timestamps
+  student_eligibility_completed?: string;
+  platform_terms?: string;
 
   // Notification preferences (activity-based, user-controllable)
   whatsapp_opted_in?: boolean;
   whatsapp_opted_in_at?: string;
   notification_prefs?: NotificationPrefs;
+
+  // Attribution
+  referral?: {
+    campus?: string;
+    partner?: string;
+    channel?: string;
+    captured_at?: string;
+  };
 }
 
 // ── Interview Scheduling ──

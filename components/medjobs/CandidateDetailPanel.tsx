@@ -4,8 +4,6 @@ import Image from "next/image";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import {
   getTrackLabel,
-  formatHoursPerWeek,
-  formatDuration,
   formatAvailability,
   getMajorLabel,
   getActualCertifications,
@@ -30,8 +28,6 @@ export default function CandidateDetailPanel({
   const meta = candidate.metadata;
   const firstName = candidate.display_name.split(" ")[0];
   const trackLabel = getTrackLabel(meta);
-  const hoursLabel = formatHoursPerWeek(meta);
-  const durationLabel = formatDuration(meta);
   const availabilityLabel = formatAvailability(meta);
   const isDemo = candidate.slug.startsWith("sample-");
 
@@ -129,29 +125,10 @@ export default function CandidateDetailPanel({
         )}
 
         {/* Availability */}
-        {(hoursLabel || durationLabel || availabilityLabel) && (
+        {availabilityLabel && (
           <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Availability</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {hoursLabel && (
-                <div>
-                  <p className="text-xs text-gray-500">Hours/week</p>
-                  <p className="text-sm font-semibold text-gray-900">{hoursLabel}</p>
-                </div>
-              )}
-              {durationLabel && (
-                <div>
-                  <p className="text-xs text-gray-500">Commitment</p>
-                  <p className="text-sm font-semibold text-gray-900">{durationLabel}</p>
-                </div>
-              )}
-            </div>
-            {availabilityLabel && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-500">Available</p>
-                <p className="text-sm font-medium text-gray-700 mt-0.5">{availabilityLabel}</p>
-              </div>
-            )}
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Availability</h3>
+            <p className="text-sm font-medium text-gray-700">{availabilityLabel}</p>
           </div>
         )}
 
@@ -172,44 +149,11 @@ export default function CandidateDetailPanel({
           ) : null;
         })()}
 
-        {/* Care experience types */}
-        {(meta.care_experience_types?.length ?? 0) > 0 && (
+        {/* Program (Qualifications) */}
+        {meta.major && (
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Care Experience</h3>
-            <div className="flex flex-wrap gap-1.5">
-              {meta.care_experience_types!.map((type) => (
-                <span key={type} className="px-2.5 py-1 bg-gray-50 text-gray-700 rounded-lg text-xs font-medium border border-gray-100">
-                  {type}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Qualifications */}
-        {(meta.major || (meta.years_caregiving != null && meta.years_caregiving > 0) || (meta.languages?.length ?? 0) > 0) && (
-          <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Qualifications</h3>
-            <div className="space-y-2.5">
-              {meta.major && (
-                <div>
-                  <p className="text-xs text-gray-500">Program</p>
-                  <p className="text-sm font-medium text-gray-900">{getMajorLabel(meta.major)}</p>
-                </div>
-              )}
-              {meta.years_caregiving != null && meta.years_caregiving > 0 && (
-                <div>
-                  <p className="text-xs text-gray-500">Caregiving Experience</p>
-                  <p className="text-sm font-medium text-gray-900">{meta.years_caregiving}+ years</p>
-                </div>
-              )}
-              {(meta.languages?.length ?? 0) > 0 && (
-                <div>
-                  <p className="text-xs text-gray-500">Languages</p>
-                  <p className="text-sm font-medium text-gray-900">{meta.languages!.join(", ")}</p>
-                </div>
-              )}
-            </div>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Program</h3>
+            <p className="text-sm font-medium text-gray-900">{getMajorLabel(meta.major)}</p>
           </div>
         )}
 

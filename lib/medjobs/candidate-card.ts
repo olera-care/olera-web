@@ -7,7 +7,7 @@
 
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import type { ProviderCardData } from "@/lib/types/provider";
-import { getTrackLabel, formatHoursPerWeek, hasVideo } from "@/lib/medjobs-helpers";
+import { getTrackLabel, hasVideo } from "@/lib/medjobs-helpers";
 
 const AVAIL_LABELS: Record<string, string> = {
   in_between_classes: "Between classes",
@@ -54,7 +54,6 @@ export function candidateToCardFormat(
 ): ProviderCardData {
   const meta = c.metadata;
   const track = getTrackLabel(meta) || "Pre-health student";
-  const hours = formatHoursPerWeek(meta);
   const verifiedHours = meta.total_verified_hours ?? 0;
   const certs = meta.certifications || [];
   const avail = (meta.availability_types ?? []).map((t) => AVAIL_LABELS[t] || t);
@@ -63,7 +62,6 @@ export function candidateToCardFormat(
   if (verifiedHours > 0) highlights.push(`${verifiedHours} hrs verified`);
   if (hasVideo(meta)) highlights.push("Video intro");
   if (avail.length) highlights.push(avail.slice(0, 2).join(", "));
-  if (hours) highlights.push(hours);
   if (certs[0]) highlights.push(certs[0].split(" (")[0]);
 
   const location = [c.city, c.state].filter(Boolean).join(", ");

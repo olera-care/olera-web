@@ -112,31 +112,6 @@ export function formatAvailability(meta: StudentMetadata): string | null {
   return null;
 }
 
-/** Format hours per week — prefers range, falls back to exact */
-export function formatHoursPerWeek(meta: StudentMetadata): string | null {
-  if (meta.hours_per_week_range) {
-    return `${meta.hours_per_week_range} hrs/wk`;
-  }
-  if (meta.hours_per_week) {
-    return `${meta.hours_per_week} hrs/wk`;
-  }
-  return null;
-}
-
-/** Format duration commitment */
-export function formatDuration(meta: StudentMetadata): string | null {
-  if (!meta.duration_commitment) return null;
-  const labels: Record<string, string> = {
-    "1_semester": "1 semester",
-    "multiple_semesters": "Multiple semesters",
-    "1_plus_year": "1+ year",
-    "less_than_3_months": "Less than 3 months",
-    "3_to_6_months": "3–6 months",
-    "6_to_12_months": "6–12 months",
-  };
-  return labels[meta.duration_commitment] || meta.duration_commitment.replace(/_/g, " ");
-}
-
 /** Check if student has submitted intro video */
 export function hasVideo(meta: StudentMetadata): boolean {
   return !!meta.video_intro_url;

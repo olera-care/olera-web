@@ -40,6 +40,121 @@ const SECTION_ORDER: SectionKey[] = [
 ];
 
 /**
+ * The document before the ladders.
+ *
+ * Everything here is true of the job whatever campus you are on and whatever
+ * rung you are standing on — the tools, what each one is for, and what to do
+ * on your first day. It sits above Providers because it is what somebody
+ * reads before they have a task to read about, and it is what every
+ * onboarding points at rather than a memo that has to be rewritten each time.
+ *
+ * Seeded as a situation, not a rung, because there is no ladder behind it.
+ * Position 0 puts it first: the rungs start at 10.
+ */
+const GENERAL: Omit<SeedSection, "kind" | "section" | "rungKey">[] = [
+  {
+    slug: "general-starter-pack",
+    title: "Starter pack",
+    position: 0,
+    callScript: null,
+    emailSubject: null,
+    emailBody: null,
+    instructions: `WHAT THIS IS
+
+Every MedJobs Program Coordinator works from the same five tools. This is
+what each one is for, so you know where a thing belongs before you go
+looking for it.
+
+
+OLERA ADMIN — WHERE THE WORK LIVES
+
+The Universities tab in the admin portal is your workspace. Every task you
+do — outreach to providers, advising offices, student orgs, professors,
+campus events, and students — starts and gets logged there.
+
+If it isn't logged in Admin, it didn't happen. The campus dots, the funnel,
+and everyone else's view of your campus all read from what you log.
+
+
+GMAIL AND GOOGLE CALENDAR — WHERE YOU WRITE
+
+Your [name]@olera.care Google Workspace account is for all MedJobs email.
+Not a personal address, not a shared inbox. Providers and universities reply
+to the person who wrote to them, and the reply has to land somewhere you'll
+see it. Your Olera calendar is your primary calendar for meetings.
+
+
+ZOOM WORKPLACE — YOUR WORK PHONE
+
+You have a direct Olera work number on your Zoom account. Install Zoom
+Workplace on your desktop and your phone and sign in on both.
+
+- Outbound calls go out from that number. Give it to students, providers and
+  university contacts for callbacks.
+- Calls to your direct number ring only you. If you don't answer, the caller
+  leaves a personal voicemail you manage in Zoom.
+- Record a greeting in your own voice. A default greeting on a number you
+  just asked a provider to call back reads as a wrong number.
+- Calls to the main Olera number where the caller picks MedJobs ring the
+  MedJobs team, not only you.
+
+
+CALENDLY — HOW PEOPLE BOOK YOU
+
+Your Calendly page is wired to your Olera Google Calendar, so it only offers
+times you actually have. Send the link instead of trading availability. It
+saves a round of email on every meeting.
+
+
+ZOOM MEETINGS — WHERE MEETINGS HAPPEN
+
+Your Zoom account is connected to Calendly. Anything booked through your
+link gets a Zoom meeting created and attached to the calendar invitation
+automatically — you don't have to make one. Use the same account for
+internal meetings and anything you set up by hand.
+
+
+HOW THEY FIT TOGETHER
+
+Admin is where you manage the work. Gmail is how you write. Zoom Workplace
+is your phone. Calendly is how people book you. Zoom Meetings is where the
+meeting happens.
+
+
+YOUR SIGNATURE
+
+Every MedJobs email goes out with the same signature, so a provider who
+hears from two of us sees one program:
+
+  [Headshot]
+  [Name]
+  Olera MedJobs
+  Program Coordinator
+  [name]@olera.care
+  Call: [direct number]
+  Schedule a meeting: [Calendly link]
+
+
+YOUR FIRST DAY
+
+1. Sign in to Olera Admin and open the Universities tab.
+2. Sign in to Gmail and Google Calendar on your @olera.care account.
+3. Install Zoom Workplace on your desktop and your phone, and sign in.
+4. Record your voicemail greeting.
+5. Open your Calendly page and book a test meeting with yourself. Confirm
+   the Zoom link appears on the invitation.
+6. Set your email signature.
+
+Tell whoever onboarded you if any of the six won't work. Don't work around it.`,
+    notes: `NOT LIVE YET — TEXTING
+
+SMS on the work numbers is waiting on carrier registration. Until it clears,
+signatures say "Call:". When it clears it becomes "Call/Text:", coordinators
+can text contacts from the same number in Zoom, and this note comes out.`,
+  },
+];
+
+/**
  * The situations no rung covers.
  *
  * Written from the calls that worked, and meant to be edited afterwards —
@@ -317,7 +432,12 @@ export const READS_FIRST_ANCHORS: ReadonlyArray<[string, string]> = Object.entri
 
 /** Every section the document should have, rungs first, in reading order. */
 export function seedSections(): SeedSection[] {
-  const out: SeedSection[] = [];
+  const out: SeedSection[] = GENERAL.map((g) => ({
+    ...g,
+    kind: "situation" as const,
+    section: "general",
+    rungKey: null,
+  }));
   let position = 0;
 
   for (const section of SECTION_ORDER) {

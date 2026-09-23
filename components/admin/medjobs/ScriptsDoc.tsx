@@ -17,6 +17,9 @@ import type { ScriptRow, SuggestionRow } from "@/app/api/admin/medjobs/scripts/r
  */
 
 const SECTION_LABEL: Record<string, string> = {
+  // Not a ladder. The starter pack sits above Providers because it is what
+  // somebody reads before they have a task to read about.
+  general: "General",
   providers: "Providers",
   students: "Students",
   jobboard: "Job boards",
@@ -26,8 +29,10 @@ const SECTION_LABEL: Record<string, string> = {
   professors: "Professors",
 };
 
+// Section first, so a situation that names one groups under it rather than
+// falling to the end with the situations that name none.
 const groupLabel = (row: ScriptRow) =>
-  row.kind === "situation" ? "Situations" : SECTION_LABEL[row.section ?? ""] ?? "Other";
+  SECTION_LABEL[row.section ?? ""] ?? (row.kind === "situation" ? "Situations" : "Other");
 
 interface Draft {
   instructions: string;

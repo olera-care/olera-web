@@ -69,6 +69,15 @@ export default function ManagedAdsPitch({
       source: "ff_pitch",
       managed_ads_variant: assignedVariant,
     });
+    // Also the touchpoint series. The funnel's Shown stage counts pitch views
+    // across every surface and cannot split them; the touchpoint breakdown can,
+    // and this page was the one surface missing from it. Without this, routing
+    // the ads digest here moves a number on the admin page with nothing to
+    // attribute it to.
+    trackProviderEvent(providerSlug, "ads_touchpoint_viewed", {
+      touchpoint: "ff_pitch",
+      provider_name: providerName,
+    });
   }, [assignedVariant, providerName, providerSlug]);
 
   const trackCta = () => {
@@ -77,6 +86,10 @@ export default function ManagedAdsPitch({
         provider_name: providerName,
         source: "ff_pitch",
         managed_ads_variant: assignedVariant ?? "direct_reach",
+      });
+      trackProviderEvent(providerSlug, "ads_touchpoint_clicked", {
+        touchpoint: "ff_pitch",
+        provider_name: providerName,
       });
     }
   };

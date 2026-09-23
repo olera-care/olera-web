@@ -37,6 +37,10 @@ export default function ManagedAdsCTA({
         source: "ff_banner",
         managed_ads_variant: assignedVariant ?? "direct_reach",
       });
+      trackProviderEvent(providerSlug, "ads_touchpoint_clicked", {
+        touchpoint: "ff_banner",
+        provider_name: providerName,
+      });
     }
   };
 

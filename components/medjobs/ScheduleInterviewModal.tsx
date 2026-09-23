@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import { EMPLOYER_AGREEMENT_URL, type DemandProfile } from "@/lib/medjobs/eligibility";
@@ -246,6 +247,7 @@ export default function ScheduleInterviewModal({
   const [error, setError] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
@@ -323,7 +325,8 @@ export default function ScheduleInterviewModal({
       if (data.isPendingVerification && onScheduledUnverified) {
         onScheduledUnverified();
       }
-      onScheduled();
+      // Show success state instead of closing immediately
+      setShowSuccess(true);
     } catch {
       setError("Network error.");
     } finally {
@@ -367,6 +370,47 @@ export default function ScheduleInterviewModal({
 
   if (showUpgradeModal) {
     return <UpgradeModal creditsUsed={3} onClose={onClose} />;
+  }
+
+  // Success state - show confirmation before closing
+  if (showSuccess) {
+    return (
+      <Modal isOpen onClose={onScheduled} size="lg" hideHeader>
+        <div className="py-8 px-4 text-center">
+          {/* Success icon */}
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {isStudentInitiated ? "Interview requested!" : "Interview scheduled!"}
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            {isStudentInitiated
+              ? `${firstName} will be notified of your request.`
+              : `${firstName} will receive your invitation and can confirm or suggest a different time.`}
+          </p>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={onScheduled}
+              className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+            >
+              Done
+            </button>
+            <Link
+              href="/provider/caregivers"
+              className="block w-full py-3 text-sm font-medium text-primary-700 hover:text-primary-800 transition-colors"
+            >
+              View all interviews &rarr;
+            </Link>
+          </div>
+        </div>
+      </Modal>
+    );
   }
 
   return (

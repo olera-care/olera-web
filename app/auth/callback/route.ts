@@ -6,6 +6,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { welcomeEmail } from "@/lib/email-templates";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sanitizeDisplayName, validateReturnUrl } from "@/lib/validation";
+import { skipsWelcome } from "@/lib/auth/welcome-redirect";
 
 /**
  * GET /auth/callback
@@ -256,7 +257,9 @@ export async function GET(request: NextRequest) {
           next.includes("/provider/") || // User was on a provider page (likely doing an action)
           next.includes("id=");
 
-        if (hasTaskAction || isTaskUrl) {
+        // A provider or MedJobs destination belongs to somebody who is not a
+        // care seeker, so /welcome is the wrong page to put in front of it.
+        if (hasTaskAction || isTaskUrl || skipsWelcome(next)) {
           // Let user complete their task, skip welcome redirect
           // If we tracked save nudge conversion, add marker to URL so client doesn't duplicate
           if (saveNudgeTracked) {

@@ -14,6 +14,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { setDeferredAction, getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { skipsWelcome } from "@/lib/auth/welcome-redirect";
 
 export type AuthModalView = "sign-in" | "sign-up";
 
@@ -442,17 +443,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               }
 
               // Determine final destination
-              // New user (onboarding_completed=false) + no deferred action → /welcome
-              // EXCEPT for provider and MedJobs routes — neither needs family
-              // onboarding. /welcome asks a care seeker what kind of care they
-              // are looking for, which is the wrong question for a student who
-              // clicked a link to finish a caregiving application, and it puts
-              // a page they have to get past between them and the thing they
-              // came for.
+              // New user (onboarding_completed=false) + no deferred action → /welcome,
+              // unless the destination belongs to somebody who is not a care
+              // seeker. skipsWelcome holds that rule for every sign-in path.
               const hasDeferredAction = !!getDeferredAction()?.action;
-              const skipsWelcome =
-                redirectTo.startsWith("/provider") || redirectTo.startsWith("/portal/medjobs");
-              const finalDestination = (isNewUser && !hasDeferredAction && !skipsWelcome)
+              const finalDestination = (isNewUser && !hasDeferredAction && !skipsWelcome(redirectTo))
                 ? `/welcome?next=${encodeURIComponent(redirectTo)}`
                 : redirectTo;
 

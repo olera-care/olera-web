@@ -345,18 +345,28 @@ async function loadRecentlyShipped() {
   const repository = process.env.WAR_ROOM_GITHUB_REPOSITORY;
   if (!token || !repository) return { readFailed: "GitHub is not configured for Cortex, so what shipped cannot be read." };
   const since = Date.now() - SHIPPED_WINDOW_DAYS * 86_400_000;
-  type PullRow = { number: number; title: string; merged_at: string | null; updated_at: string; user: { login: string } | null };
+  // One budget for the whole read. The Slack route has thirty seconds for
+  // everything, and up to ten sequential GitHub calls at eight seconds each
+  // could outlast it and leave the founder with no reply at all.
+  const deadline = Date.now() + 8_000;
+  let partial = false;
+  type PullRow = { number: number; title: string; merged_at: string | null; updated_at: string; user: { login: string } | null; head: { ref: string } | null };
   // Paged until the pulls are older than the window. One page of fifty was the
   // first version, and staging takes more than fifty merges a week: it counted
   // Efua's week as nine when GitHub has fourteen.
   const read = async (base: string) => {
     const pulls: PullRow[] = [];
     for (let page = 1; page <= 5; page += 1) {
+      const remaining = deadline - Date.now();
+      if (remaining < 500) {
+        partial = true;
+        break;
+      }
       const response = await fetch(
         `https://api.github.com/repos/${repository}/pulls?state=closed&base=${base}&sort=updated&direction=desc&per_page=100&page=${page}`,
         {
           headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
-          signal: AbortSignal.timeout(8_000),
+          signal: AbortSignal.timeout(remaining),
         },
       );
       if (!response.ok) throw new Error(`GitHub ${response.status}`);
@@ -368,7 +378,7 @@ async function loadRecentlyShipped() {
     }
     return pulls
       .filter((pull) => pull.merged_at && new Date(pull.merged_at).getTime() >= since)
-      .map((pull) => ({ number: pull.number, title: pull.title, mergedAt: pull.merged_at, author: pull.user?.login ?? null }));
+      .map((pull) => ({ number: pull.number, title: pull.title, mergedAt: pull.merged_at, author: pull.user?.login ?? null, fromBranch: pull.head?.ref ?? null }));
   };
   try {
     const [toStaging, toProduction] = await Promise.all([read("staging"), read("main")]);
@@ -379,13 +389,23 @@ async function loadRecentlyShipped() {
     // the newest promotion is live. That holds while main is only ever
     // reached through staging; a hotfix straight to main does not break it.
     const latestPromotion = toProduction
+      .filter((pull) => pull.fromBranch === "staging")
       .map((pull) => pull.mergedAt as string)
       .sort()
       .at(-1) ?? null;
-    const merged = toStaging.map((pull) => ({
-      ...pull,
-      inProduction: Boolean(latestPromotion && (pull.mergedAt as string) < latestPromotion),
-    }));
+    // Which promotion carried each merge: the first one to land after it.
+    // Without this, "what went to production today?" named four of the five
+    // pulls a promotion carried and credited all of them to one author.
+    // Only staging -> main merges carry staging work; a hotfix to main does not.
+    const promotions = toProduction.filter((pull) => pull.fromBranch === "staging").sort((a, b) => (a.mergedAt as string).localeCompare(b.mergedAt as string));
+    const merged = toStaging.map((pull) => {
+      const carrier = promotions.find((promotion) => (promotion.mergedAt as string) > (pull.mergedAt as string));
+      return {
+        ...pull,
+        inProduction: Boolean(carrier),
+        reachedProductionIn: carrier ? { promotion: carrier.number, at: carrier.mergedAt } : null,
+      };
+    });
     // Grouped by person with the count beside the list, so the two cannot
     // disagree. A separate tally and a flat list produced "6" beside nine.
     const byAuthor: Record<string, { count: number; pulls: typeof merged }> = {};
@@ -397,6 +417,7 @@ async function loadRecentlyShipped() {
     }
     return {
       windowDays: SHIPPED_WINDOW_DAYS,
+      ...(partial ? { incomplete: "GitHub was slow and only part of the week was read. Say the list may be missing older merges; do not present counts as complete." } : {}),
       totalMergedToStaging: merged.length,
       latestPromotionToProduction: latestPromotion,
       mergedByAuthor: byAuthor,
@@ -509,7 +530,7 @@ Never end your reply with a question. Your replies are delivered into the same c
 
 Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from managedAds. It is read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. Use managedAds.counts for any count or "this week" question rather than counting rows yourself, and give the dates. If managedAds.readFailed is set, say you could not read it.
 
-Questions about what was built, shipped, merged or deployed are answered from shipped first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production is the inProduction value, already worked out; never recompute it from timestamps. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If shipped.readFailed is set, say you could not read it.
+Questions about what was built, shipped, merged or deployed are answered from shipped first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production, and which promotion carried it, are already worked out on each pull (inProduction, reachedProductionIn); never recompute them from timestamps. To say what a promotion shipped, list every pull whose reachedProductionIn names it. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If shipped.readFailed is set, say you could not read it.
 
 If the record shows something the founder appears to have wrong, say so directly in one sentence.`;
 

@@ -484,6 +484,16 @@ export interface StudentMetadata {
   availability_types?: string[];
   /** @deprecated No longer collected via portal. Used in admin panel. */
   skills?: string[];
+  /** @deprecated Legacy. */
+  seasonal_availability?: string[];
+  /** @deprecated Legacy. */
+  transportation?: boolean;
+  /** @deprecated Legacy. */
+  willing_to_relocate?: boolean;
+  // Review workflow fields (used by admin)
+  review_requested_at?: string;
+  rejected_at?: string;
+  rejection_reason?: string;
   // ════════════════════════════════════════════════════════════════════════════
 
   // Experience timeline (collected via EditBackgroundModal)

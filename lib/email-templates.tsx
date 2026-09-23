@@ -207,14 +207,15 @@ export function providerManagedAdsEmail(opts: {
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your local market</p>
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${headline}</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${elsewhere}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;re testing a simple way to help local agencies show up earlier. You fund a small local campaign, Olera runs it, sends interested families straight to your Olera page, and shows you exactly what happened.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;re testing a simple way to help local agencies show up earlier. Olera builds the campaign, runs it, sends interested families straight to your Olera page, and shows you exactly what happened.</p>
+    <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 18px;line-height:1.65;">Your first campaign is on us: $50 of ads, free.</p>
     <div style="margin:0 0 22px;">
       <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No per-lead fee.</p>
       <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No resold inquiries.</p>
       <p style="font-size:15px;font-weight:600;color:#111827;margin:0;line-height:1.5;">No bidding against other agencies for the same family.</p>
     </div>
     <p style="font-size:15px;color:#374151;margin:0 0 28px;line-height:1.65;">Just your own campaign, pointed at your own page.</p>
-    <div>${button("Get my launch plan →", opts.ctaUrl)}</div>
+    <div>${button("See how this works →", opts.ctaUrl)}</div>
     ${authorBylineBlock()}
     <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>

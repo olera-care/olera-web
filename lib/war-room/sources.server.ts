@@ -236,10 +236,20 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
 
 /** One channel's bounded page. Never throws: a channel the bot cannot read must not stop the rest. */
 async function slackApi<T>(token: string, method: string, body: Record<string, unknown>): Promise<T> {
+  // Form-encoded, not JSON. Slack accepts JSON bodies only on some methods.
+  // conversations.history tolerated it, so ingestion looked healthy, while
+  // conversations.replies and users.info rejected every call with
+  // `invalid_arguments` -- 20 of 20 thread reads and every author lookup on
+  // the 2026-09-23 scan. Form encoding is accepted by every Web API method.
+  const form = new URLSearchParams();
+  for (const [key, value] of Object.entries(body)) {
+    if (value === undefined || value === null) continue;
+    form.set(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+  }
   const response = await fetch(`https://slack.com/api/${method}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=utf-8" },
-    body: JSON.stringify(body),
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
     signal: AbortSignal.timeout(20_000),
   });
   const payload = await response.json() as { ok?: boolean; error?: string } & T;

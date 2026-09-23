@@ -641,6 +641,16 @@ function ProfileContent({
             </div>
           </details>
         )}
+
+        {/* Commitment Statement */}
+        {meta.commitment_statement && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <h4 className="text-xs font-medium text-gray-500 mb-2">Commitment Statement</h4>
+            <p className="text-sm text-gray-700 leading-relaxed italic">
+              &ldquo;{meta.commitment_statement}&rdquo;
+            </p>
+          </div>
+        )}
       </Section>
 
       {/* Qualifications */}
@@ -672,6 +682,20 @@ function ProfileContent({
             </div>
           )}
         </div>
+
+        {/* Care Experience Types */}
+        {(meta.care_experience_types?.length ?? 0) > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <dt className="text-xs text-gray-500 font-medium mb-2">Care Experience</dt>
+            <div className="flex flex-wrap gap-1.5">
+              {meta.care_experience_types!.map((type) => (
+                <span key={type} className="px-2.5 py-1 bg-gray-50 text-gray-700 rounded-lg text-xs font-medium border border-gray-100">
+                  {type}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Certifications */}
         {certs.length > 0 && (

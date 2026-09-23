@@ -8,6 +8,7 @@ import DateRangePopover, {
 } from "@/components/admin/DateRangePopover";
 import {
   ONBOARDING_MESSAGES,
+  BUILDING_MESSAGES,
   SOURCE_LABELS,
   summarizeRecipients,
   type Source,
@@ -332,6 +333,84 @@ export default function ProviderCommsReportView({
               </p>
             )}
           </section>
+
+          <section className="mt-8" aria-labelledby="building-heading">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2
+                  id="building-heading"
+                  className="text-lg font-semibold text-gray-900"
+                >
+                  Building journey
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Conditional messages based on missing profile components.
+                  Providers only receive emails for sections they haven't
+                  completed.
+                </p>
+              </div>
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b bg-gray-50 text-xs text-gray-500">
+                  <tr>
+                    {[
+                      "Message",
+                      "Attempts",
+                      "Delivered",
+                      "Opened",
+                      "Clicked",
+                      "CTR",
+                      "Suppressed",
+                      "Failed",
+                    ].map((title) => (
+                      <th key={title} className="px-4 py-3 font-medium">
+                        {title}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {BUILDING_MESSAGES.map((definition) => (
+                    <tr key={definition.type} className="border-b last:border-0">
+                      <td className="min-w-64 px-4 py-4">
+                        <span className="font-medium text-teal-800">
+                          {definition.label}
+                        </span>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {definition.timing}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-600">
+                          Goal: {definition.action}
+                        </p>
+                        <Link
+                          className="mt-2 inline-block text-xs text-teal-700 hover:underline"
+                          href={`/admin/automations/${definition.automation}#email-samples`}
+                        >
+                          Preview & run history →
+                        </Link>
+                      </td>
+                      {[0, 0, 0, 0, "—", 0, 0].map((value, i) => (
+                        <td
+                          key={i}
+                          className="px-4 py-4 tabular-nums text-gray-800"
+                        >
+                          {value}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-gray-500">
+              Building emails are triggered by missing profile data, not a fixed
+              sequence. Each provider receives only the emails relevant to their
+              incomplete sections. Providers graduate to Growth once they reach
+              the target profile completion threshold.
+            </p>
+          </section>
+
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             <section className="rounded-xl border border-gray-200 bg-white p-5">
               <h2 className="font-semibold text-gray-900">

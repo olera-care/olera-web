@@ -787,3 +787,160 @@ export function generateCityOfferUrl(offerId: string, baseUrl?: string): string 
   const base = (baseUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care").replace(/\/$/, "");
   return `${base}/p/offer/${generateCityOfferToken(offerId)}`;
 }
+
+/**
+ * ── Provider availability tokens ────────────────────────────────────────────
+ *
+ * One-click availability self-report from building emails. Provider clicks
+ * "Yes, we're accepting new clients" or "No, not right now" — the landing page
+ * POSTs on mount (scanner-safe) and stamps metadata.accepting_new_clients.
+ * Same HMAC scheme, distinct "avail:" signature domain.
+ */
+
+export type AvailabilityValue = "yes" | "no";
+
+interface AvailabilityTokenPayload {
+  profileId: string;
+  value: AvailabilityValue;
+  email: string;
+  expiresAt: number;
+}
+
+function availabilitySignatureData(p: AvailabilityTokenPayload): string {
+  return `avail:${p.profileId}:${p.value}:${p.email}:${p.expiresAt}`;
+}
+
+function generateAvailabilitySignature(p: AvailabilityTokenPayload): string {
+  return hmacSignature(availabilitySignatureData(p), TOKEN_SECRET);
+}
+
+export function generateAvailabilityToken(
+  profileId: string,
+  value: AvailabilityValue,
+  email: string,
+): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: AvailabilityTokenPayload = { profileId, value, email, expiresAt };
+  const tokenData = { ...payload, signature: generateAvailabilitySignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateAvailabilityToken(
+  token: string,
+):
+  | { valid: true; profileId: string; value: AvailabilityValue; email: string }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as AvailabilityTokenPayload & {
+      signature: string;
+    };
+    const { profileId, value, email, expiresAt, signature } = tokenData;
+    if (!profileId || !value || !email || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (!["yes", "no"].includes(value)) {
+      return { valid: false, error: "Invalid availability value" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    if (!signatureMatches(availabilitySignatureData({ profileId, value, email, expiresAt }), signature)) {
+      return { valid: false, error: "Invalid token signature" };
+    }
+    return { valid: true, profileId, value, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+export function generateAvailabilityUrls(
+  profileId: string,
+  email: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care",
+): { yes: string; no: string } {
+  const yesToken = generateAvailabilityToken(profileId, "yes", email);
+  const noToken = generateAvailabilityToken(profileId, "no", email);
+  return {
+    yes: `${baseUrl}/provider/availability?tok=${yesToken}`,
+    no: `${baseUrl}/provider/availability?tok=${noToken}`,
+  };
+}
+
+/**
+ * ── Provider services confirm tokens ──────────────────────────────────────
+ *
+ * One-click service confirmation from building emails. Provider clicks
+ * "Yes, confirm" to add category-specific services to their profile.
+ * Same HMAC scheme, distinct "svc:" signature domain.
+ */
+
+interface ServicesTokenPayload {
+  profileId: string;
+  services: string[];
+  email: string;
+  expiresAt: number;
+}
+
+function servicesSignatureData(p: ServicesTokenPayload): string {
+  return `svc:${p.profileId}:${p.services.join(",")}:${p.email}:${p.expiresAt}`;
+}
+
+function generateServicesSignature(p: ServicesTokenPayload): string {
+  return hmacSignature(servicesSignatureData(p), TOKEN_SECRET);
+}
+
+export function generateServicesConfirmToken(
+  profileId: string,
+  services: string[],
+  email: string,
+): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: ServicesTokenPayload = { profileId, services, email, expiresAt };
+  const tokenData = { ...payload, signature: generateServicesSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateServicesConfirmToken(
+  token: string,
+):
+  | { valid: true; profileId: string; services: string[]; email: string }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as ServicesTokenPayload & {
+      signature: string;
+    };
+    const { profileId, services, email, expiresAt, signature } = tokenData;
+    if (!profileId || !Array.isArray(services) || !email || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    if (!signatureMatches(servicesSignatureData({ profileId, services, email, expiresAt }), signature)) {
+      return { valid: false, error: "Invalid token signature" };
+    }
+    return { valid: true, profileId, services, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+export function generateServicesUrls(
+  profileId: string,
+  services: string[],
+  email: string,
+  slug: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care",
+): { confirm: string; edit: string } {
+  const confirmToken = generateServicesConfirmToken(profileId, services, email);
+  return {
+    confirm: `${baseUrl}/provider/services/confirm?tok=${confirmToken}`,
+    edit: generateCompletionUrl(slug, email, "services"),
+  };
+}

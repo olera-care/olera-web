@@ -6286,6 +6286,198 @@ export function providerWelcomeEmail(opts: {
 }
 
 /**
+ * Building Email 1: Payment & insurance. Sent 5 days after the notification
+ * setup nudge (onboarding email 4). Only fires when accepted_payments is empty.
+ *
+ * CTA deep-links to /api/claim-complete?section=payment, which authenticates
+ * the provider and opens the payment editor on arrival.
+ */
+export function buildingPaymentInsuranceEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  paymentUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Payment is one of the biggest factors families consider when choosing a care provider.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Whether you accept private pay, Medicaid, or other payment options, adding this information helps families understand if ${name} is a fit.
+    </p>
+    <div style="margin:0 0 24px;">${button("Add your payment options", opts.paymentUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      The more we know about ${name}, the easier it is to match you with qualified families looking for care.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Help the right families find you.");
+}
+
+/**
+ * Building Email 3: Facility Manager.
+ * Asks providers to add their facility manager (name, photo, bio).
+ * Skips if profile >= 80% complete or facility manager already filled out.
+ * CTA deep links to /provider?edit=owner via claim-complete auth.
+ */
+export function buildingFacilityManagerEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  ctaUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Families aren\u2019t just choosing a provider. They\u2019re choosing who they trust with their loved one\u2019s care.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Adding a facility manager to your Olera page puts a face behind ${name} and helps families get to know who\u2019s leading your community.
+    </p>
+    <div style="margin:0 0 24px;">${button("Introduce your team \u2192", opts.ctaUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Share their name, photo, and a little about their background to build trust before a family ever reaches out.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Help families get to know your team.");
+}
+
+/**
+ * Building Email 5: Photos (final building email).
+ * Asks facility-based providers to add photos of their community.
+ * Only sent to assisted living, memory care, nursing homes, independent living.
+ * Skips if provider already has 3+ photos.
+ * After this email is sent, provider graduates to growth stage.
+ */
+export function buildingPhotosEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  photoCount: number;
+  ctaUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
+  const photoText = opts.photoCount === 1 ? "1 photo" : `${opts.photoCount} photos`;
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Families want to see where their loved one will be living.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Right now, your page has ${photoText}. Adding photos of your apartments, team, amenities, and everyday life can strengthen your profile and help families get to know ${name}.
+    </p>
+    <div style="margin:0 0 24px;">${button("Add photos to my page \u2192", opts.ctaUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      You can upload them straight from your phone. It only takes a few minutes.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Give families more reasons to choose you.");
+}
+
+/** Provider category type for the care services email template. */
+export type ProviderCategory = "home_health_agency" | "home_care_agency" | "assisted_living" | "memory_care" | "nursing_home" | "independent_living";
+
+/**
+ * Building Email 4: Care Services.
+ * Shows 3 category-specific services and asks provider to confirm or edit.
+ * "Yes, confirm" writes services instantly via signed token landing page.
+ * "Edit services" opens the care services editor in the portal.
+ * Skips if profile >= 80% complete or care_types already filled.
+ */
+export function buildingCareServicesEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  services: string[];
+  category: ProviderCategory;
+  confirmUrl: string;
+  editUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
+  const serviceItems = opts.services.map((s) =>
+    `<p style="font-size:15px;color:#374151;font-weight:600;margin:0 0 10px;line-height:1.6;">&#10003;&nbsp;&nbsp;${escapeHtml(s)}</p>`
+  ).join("\n            ");
+  const confirmButton = `<a href="${opts.confirmUrl}" style="display:inline-block;padding:14px 28px;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;">Yes, confirm</a>`;
+  const editButton = `<a href="${opts.editUrl}" style="display:inline-block;padding:14px 28px;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;border:1.5px solid #e5e7eb;">Edit services</a>`;
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Help us match ${name} with families looking for the services you offer.
+    </p>
+    <div style="background:#f7f8fa;border-radius:10px;padding:20px 24px;margin:0 0 6px;">
+      <p style="font-size:15px;color:#374151;margin:0 0 14px;line-height:1.4;">We think these services may apply to ${name}:</p>
+      ${serviceItems}
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">Are these correct?</p>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+      <td>${confirmButton}</td>
+      <td width="12"></td>
+      <td>${editButton}</td>
+    </tr></table>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Help us match you with the right families.");
+}
+
+/**
+ * Building Email 2: Availability check.
+ * Universal — every provider gets this. Two buttons (Yes / No) link to
+ * /provider/availability?tok=<signed_token> which POSTs on mount (scanner-safe)
+ * and sets metadata.accepting_new_clients.
+ */
+export function buildingAvailabilityEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  city: string | null;
+  yesUrl: string;
+  noUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const cityText = opts.city ? ` in ${escapeHtml(opts.city)}` : "";
+  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
+  const yesButton = `<a href="${opts.yesUrl}" style="display:block;padding:14px 0;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;box-shadow:0 2px 4px rgba(25,128,135,0.25);">Yes, I am</a>`;
+  const noButton = `<a href="${opts.noUrl}" style="display:block;padding:14px 0;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;border:1px solid #d1d5db;box-shadow:0 1px 3px rgba(0,0,0,0.06);">Not right now</a>`;
+  const preheader = opts.city
+    ? `Families in ${opts.city} are looking for care.`
+    : "Families are looking for care in your area.";
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Keeping your availability up to date helps us match ${name} with families actively looking for care${cityText}.
+    </p>
+    <div style="background:#f7f8fa;border-radius:12px;padding:28px 24px;margin:0 0 24px;border:1px solid #eef0f3;">
+      <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.4;text-align:center;">
+        Are you currently accepting new clients?
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td width="50%" style="padding-right:6px;">${yesButton}</td>
+        <td width="50%" style="padding-left:6px;">${noButton}</td>
+      </tr></table>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      One quick update helps us understand your current capacity and connect you with families when you\u2019re ready to accept new clients.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    ${offRampBlock(opts.providerSlug)}
+  `, preheader);
+}
+
+/**
  * Celebration email sent when provider receives their FIRST ever lead.
  * Reinforces value, tips for responding.
  */

@@ -181,6 +181,26 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/building-payment-insurance",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/building-availability",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/building-facility-manager",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/building-care-services",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/building-photos",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/provider-growth-meeting-reminders",
       "schedule": "0 * * * *"
     },

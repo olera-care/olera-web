@@ -56,7 +56,7 @@ export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
 
   return (
     <CaregiverSectionCard
-      title="Availability"
+      title="Weekly Schedule"
       isComplete={hasSchedule}
       id="schedule"
       onEdit={onEdit}

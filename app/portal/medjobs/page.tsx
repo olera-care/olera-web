@@ -1583,34 +1583,34 @@ function StudentPortalContent({
             <ResumeCard meta={meta} profileId={profile.id} onEdit={() => setEditingSection("resume")} />
 
             {/* Video Introduction Card — Final step to go live */}
-            <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 p-6">
+            <section id="verification" className="bg-white rounded-2xl border border-gray-200/80 p-6">
               {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-lg font-semibold text-gray-900">Video Introduction</h2>
+              <div className="flex items-start justify-between gap-3 mb-5">
+                <h3 className="text-xl sm:text-[24px] font-display font-bold text-gray-900">Video Introduction</h3>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleOpenVerificationModal}
+                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+                    aria-label="Edit verification"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                  </button>
                   {videoAvailable ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-success-50 text-success-700">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
-                      Complete
+                      Done
                     </span>
                   ) : (
-                    <span className="text-xs text-amber-600 font-medium">
-                      Video required
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-700">
+                      0%
                     </span>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleOpenVerificationModal}
-                  className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
-                  aria-label="Edit verification"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                  </svg>
-                </button>
               </div>
 
               {/* Video Content */}
@@ -1723,7 +1723,7 @@ function StudentPortalContent({
                   </div>
                 </div>
               )}
-            </div>
+            </section>
           </div>
 
           {/* ── Sidebar (1/3) — hidden on mobile, shown on lg+ ── */}

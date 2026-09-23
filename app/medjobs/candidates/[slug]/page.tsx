@@ -406,10 +406,23 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* ── Availability Section ── */}
-              <div className={`py-8 px-6 sm:px-8 ${videoAvailable ? "border-t border-gray-200" : ""}`}>
+              {/* ── Weekly Schedule Section ── */}
+              {meta.course_schedule_grid && (
+                <div className={`py-8 px-6 sm:px-8 ${videoAvailable ? "border-t border-gray-200" : ""}`}>
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
+                    Weekly Schedule
+                    {meta.course_schedule_semester && (
+                      <span className="text-base font-normal text-gray-500 ml-2">({meta.course_schedule_semester})</span>
+                    )}
+                  </h2>
+                  <ScheduleGrid grid={meta.course_schedule_grid} />
+                </div>
+              )}
+
+              {/* ── Availability & Commitment Section ── */}
+              <div className={`py-8 px-6 sm:px-8 ${(videoAvailable || meta.course_schedule_grid) ? "border-t border-gray-200" : ""}`}>
                 <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
-                  Availability
+                  Availability & Commitment
                 </h2>
                 {meta.seeking_status === "actively_looking" && (
                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-100 mb-6">
@@ -420,7 +433,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
                 {/* Year-Round Availability */}
                 {meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 && (
-                  <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="mb-6">
                     <h3 className="text-sm font-medium text-gray-500 mb-3">Year-Round Availability</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {(["spring", "summer", "fall", "winter"] as const).map((season) => {
@@ -437,26 +450,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   </div>
                 )}
 
-                {/* Schedule Grid */}
-                {meta.course_schedule_grid && (
-                  <details open className="mt-6 pt-6 border-t border-gray-100 group">
-                    <summary className="flex items-center justify-between cursor-pointer list-none hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors">
-                      <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                        View Class Schedule {meta.course_schedule_semester && `(${meta.course_schedule_semester})`}
-                      </span>
-                      <svg className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <div className="mt-4">
-                      <ScheduleGrid grid={meta.course_schedule_grid} />
-                    </div>
-                  </details>
-                )}
-
                 {/* Commitment Statement */}
                 {meta.commitment_statement && (
-                  <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className={`${meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 ? "mt-6 pt-6 border-t border-gray-100" : ""}`}>
                     <h3 className="text-sm font-medium text-gray-500 mb-2">Commitment Statement</h3>
                     <p className="text-sm text-gray-700 leading-relaxed italic">
                       &ldquo;{meta.commitment_statement}&rdquo;

@@ -69,7 +69,7 @@ export default function EditScheduleModal({
 
   const headerContent = (
     <div>
-      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Weekly Availability</h2>
+      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900">Weekly Schedule</h2>
     </div>
   );
 

@@ -5,7 +5,7 @@ import type { StudentMetadata } from "@/lib/types";
  *
  * Organized into 9 sections that match the portal page structure:
  * 1. Profile Overview (name, email, phone, university, location, photo)
- * 2. Weekly Availability (schedule grid)
+ * 2. Weekly Schedule (schedule grid)
  * 3. Availability & Commitment (statement, seasonal availability)
  * 4. Why I Want to Be a Caregiver
  * 5. Screening Questions (3 scenario questions)
@@ -90,12 +90,12 @@ export function getSectionCompleteness(
   const verificationDone = verificationItems.filter((i) => i.done).length;
   const verificationPercent = Math.round((verificationDone / verificationItems.length) * 100);
 
-  // 3. Weekly Availability
+  // 3. Weekly Schedule
   const hasAvailabilitySchedule = meta.availability_schedule
     ? Object.values(meta.availability_schedule).some((slots) => Array.isArray(slots) && slots.length > 0)
     : false;
   const scheduleItems = [
-    { key: "schedule", label: "Weekly availability", done: hasAvailabilitySchedule || !!meta.course_schedule_grid },
+    { key: "schedule", label: "Weekly schedule", done: hasAvailabilitySchedule || !!meta.course_schedule_grid },
   ];
   const scheduleDone = scheduleItems.filter((i) => i.done).length;
   const schedulePercent = Math.round((scheduleDone / scheduleItems.length) * 100);
@@ -154,7 +154,7 @@ export function getSectionCompleteness(
 
   return [
     { id: "overview", label: "Profile Overview", percent: overviewPercent, done: overviewPercent === 100, items: overviewItems },
-    { id: "schedule", label: "Weekly Availability", percent: schedulePercent, done: schedulePercent === 100, items: scheduleItems },
+    { id: "schedule", label: "Weekly Schedule", percent: schedulePercent, done: schedulePercent === 100, items: scheduleItems },
     { id: "availability", label: "Availability & Commitment", percent: availabilityPercent, done: availabilityPercent === 100, items: availabilityItems },
     { id: "why", label: "Why I Want to Be a Caregiver", percent: whyPercent, done: whyPercent === 100, items: whyItems },
     { id: "scenarios", label: "Screening Questions", percent: scenariosPercent, done: scenariosPercent === 100, items: scenarioItems },

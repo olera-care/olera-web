@@ -6,7 +6,7 @@ import { captureFounderAnswer, findAskByThread, findOpenAsk } from "@/lib/war-ro
 import { answerFounderQuestion, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
 
-export const maxDuration = 30;
+export const maxDuration = 90;
 
 type SlackEventsEnvelope = {
   type?: string;

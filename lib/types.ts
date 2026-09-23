@@ -467,6 +467,10 @@ export interface StudentMetadata {
   // database records from older profiles. Keep for backwards compatibility.
   // ════════════════════════════════════════════════════════════════════════════
   /** @deprecated No longer collected. Legacy data only. */
+  graduation_year?: number;
+  /** @deprecated No longer collected. Legacy data only. */
+  gpa?: number;
+  /** @deprecated No longer collected. Legacy data only. */
   years_caregiving?: number;
   /** @deprecated No longer collected. Legacy data only. */
   care_experience_types?: string[];
@@ -478,6 +482,8 @@ export interface StudentMetadata {
   duration_commitment?: string;
   /** @deprecated No longer collected. Legacy data only. */
   availability_types?: string[];
+  /** @deprecated No longer collected via portal. Used in admin panel. */
+  skills?: string[];
   // ════════════════════════════════════════════════════════════════════════════
 
   // Experience timeline (collected via EditBackgroundModal)

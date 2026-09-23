@@ -1203,6 +1203,17 @@ function StudentPortalContent({
           }
         });
     }
+
+    // Send Slack notification when profile reaches 100% (one-time, proactive admin alert)
+    if (completenessPercent === 100) {
+      fetch("/api/medjobs/notify-completeness", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: profile.id, completenessPercent }),
+      }).catch(() => {
+        // Silent fail - notification is best-effort
+      });
+    }
   }, [completenessPercent, storedCompleteness, profile.id]);
 
   // Convert sections to items format for guided onboarding hook

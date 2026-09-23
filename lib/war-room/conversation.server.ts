@@ -400,6 +400,13 @@ async function buildConversationContext(
   }));
 }
 
+/**
+ * Brief mode: the source material for a visual, not a chat reply. The routine
+ * that draws the visual cannot see Olera's record, so everything it needs must
+ * be in this text; the phone-screen brevity rules would starve it.
+ */
+const BRIEF_MODE = `BRIEF MODE. This output is not shown to the founder as a chat reply. It is handed to a designer who will turn it into a one-page visual and who cannot see Olera's record. The phone-screen rules above do not apply. Use your lookups to gather the real source material (for a shared document, read it in full), then write a complete, structured brief: every section, figure, name and date that matters, with headings and lists. Up to about 1,500 words. Do not describe the visual or its layout, and do not claim to have made anything; supply the content only. The rules about Olera facts, time zones and names still apply.`;
+
 const CONVERSATION_SYSTEM = `You are Cortex, the operating system for Olera, answering its founder in a Slack DM.
 
 Two kinds of question reach you, and they have different rules.
@@ -419,6 +426,8 @@ If the relevant source IS ingested but the question is about something recent, c
 Before saying a message or document is not there, call search_record at least twice with different wording: the subject, parts of the person's name, the channel's topic. When a search of the written record or Slack comes up empty, check where your copy is behind before saying something does not exist, and say which channel or source is stale. Names in the record are full names; the founder may use a short, misspelled or voice-dictated form, so match loosely on part of a name and on a channel's topic rather than its exact name.
 
 If the relevant source is NOT ingested, say you cannot see it. Read what Cortex can and cannot see before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
+
+You can only reply with text in this chat. You cannot create, draw or attach images, charts, files, pages or documents, you cannot send messages to anyone else, and you cannot run the founder's Claude slash commands such as /visualize. Never say you made, attached, sent or saved something; if he asks for one of those, say in one sentence that you cannot do that from Slack yet, then give the best text version. On 2026-09-23, asked to "/visualize" a document, you replied that you had "made a one-page visual" and that it was "attached above". Nothing was attached. Describing an action you did not take is the most damaging error you can make.
 
 Write for a phone screen. No markdown headers, no bullet lists, no tables. Two or three short paragraphs at most, and one is often right. Slack bold is single asterisks.
 
@@ -447,7 +456,9 @@ export async function answerFounderQuestion(
   question: string,
   focusInvestigationId?: string | null,
   priorTurn?: ConversationTurn | null,
+  options: { mode?: "reply" | "brief" } = {},
 ): Promise<{ answered: boolean; reply: string; costUsd?: number }> {
+  const brief = options.mode === "brief";
   if (!process.env.ANTHROPIC_API_KEY) {
     return { answered: false, reply: "I cannot answer questions right now: no model key is configured." };
   }
@@ -485,11 +496,11 @@ export async function answerFounderQuestion(
       const outOfBudget = round === MAX_LOOKUP_ROUNDS || Date.now() > deadline;
       message = await anthropic.messages.create({
         model: CONVERSATION_MODEL,
-        max_tokens: MAX_ANSWER_TOKENS,
+        max_tokens: brief ? 12_000 : MAX_ANSWER_TOKENS,
         // Adaptive thinking stays on: it is what made Sonnet correct a wrong
         // premise instead of agreeing with it. Medium, not low: at low it said "five PRs" and listed seven.
         ...(SUPPORTS_ADAPTIVE ? { thinking: { type: "adaptive" as const }, output_config: { effort: "medium" as const } } : {}),
-        system: CONVERSATION_SYSTEM,
+        system: brief ? `${CONVERSATION_SYSTEM}\n\n${BRIEF_MODE}` : CONVERSATION_SYSTEM,
         tools,
         // Out of rounds or time: no more lookups, answer from what is in hand.
         tool_choice: outOfBudget ? { type: "none" } : { type: "auto" },

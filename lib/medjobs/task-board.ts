@@ -14,6 +14,7 @@ import {
   type LadderAction,
   type SectionKey,
 } from "./ladders";
+import type { Assignments } from "./assignments";
 
 export type ChannelStatus = "not_yet" | "in_progress" | "live" | "not_available";
 
@@ -361,6 +362,13 @@ export interface BoardUniversity {
   /** Straight from campus_channels — the dots keep their current meaning. */
   channels: Partial<Record<"st3" | "st4" | "st5" | "st6" | "st7", ChannelStatus>>;
   records: Record<SectionKey, BoardRecord[]>;
+  /**
+   * Who owns each task type here. A missing key is unassigned.
+   *
+   * Read-only on the board: the assign route is the only thing that writes
+   * one, and the board refetches after it does.
+   */
+  assignments?: Assignments;
 }
 
 /** Why a record was stopped. The one list, so the reasons stay comparable. */
@@ -515,6 +523,23 @@ export const readyCount = (u: BoardUniversity): number =>
   allRecords(u).reduce((n, r) => n + recordReady(r), 0);
 
 /**
+ * Tasks waiting in just these task types.
+ *
+ * What the board's Tasks column shows under a My work filter: how much is
+ * waiting *for you* here. The seven section columns beside it are deliberately
+ * not filtered — they describe the university, which is the same fact whoever
+ * is looking.
+ */
+export const readyCountIn = (
+  u: BoardUniversity,
+  sections: readonly SectionKey[],
+): number =>
+  sections.reduce(
+    (n, s) => n + (u.records[s] ?? []).reduce((m, r) => m + recordReady(r), 0),
+    0,
+  );
+
+/**
  * Providers who have said they are ready to receive a student.
  *
  * The one number the provider funnel exists to produce, so it is what the
@@ -553,16 +578,23 @@ export const doneToday = (u: BoardUniversity): number => {
 export function nextReady(
   u: BoardUniversity,
   prefer?: BoardRecord | null,
+  /**
+   * Walk only these task types. Under a My work filter, "Start the next task"
+   * must not hand somebody a record in a section that is not theirs — which
+   * is also why the record in hand is only preferred when it is in scope.
+   */
+  only?: readonly SectionKey[],
 ): { record: BoardRecord; task: BoardTask } | null {
+  const scope = only ?? SECTION_ORDER;
   const scan = (r: BoardRecord) => {
     const t = r.tasks.find(isReady);
     return t ? { record: r, task: t } : null;
   };
-  if (prefer) {
+  if (prefer && scope.includes(prefer.section)) {
     const hit = scan(prefer);
     if (hit) return hit;
   }
-  for (const section of SECTION_ORDER)
+  for (const section of scope)
     for (const r of u.records[section] ?? []) {
       if (r === prefer) continue;
       const hit = scan(r);

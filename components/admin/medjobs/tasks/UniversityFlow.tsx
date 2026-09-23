@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { LADDERS, SECTION_ORDER, rungAt, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
+import { sectionsFor, type Person } from "@/lib/medjobs/assignments";
 import {
   canReopen,
   complete,
@@ -12,7 +13,7 @@ import {
   doneToday,
   isCheck,
   nextReady,
-  readyCount,
+  readyCountIn,
   reopen,
   revive,
   type BoardRecord,
@@ -95,9 +96,15 @@ export default function UniversityFlow({
   onClose,
   onChanged,
   onReload,
+  people,
+  filterId,
 }: {
   university: BoardUniversity;
   onClose: () => void;
+  /** The MedJobs team, for the assignee chips. */
+  people: Person[];
+  /** Whose work to foreground inside this university, or null for everyone's. */
+  filterId: string | null;
   /**
    * An in-memory change. The board behind only needs to recount, and must
    * NOT refetch: task progress is not persisted yet, so a reload here would
@@ -112,6 +119,12 @@ export default function UniversityFlow({
    */
   onReload: () => void | Promise<void>;
 }) {
+  // The task types in front of this operator. Everything when unfiltered.
+  // The header count, the progress bar and "Start the next task" all read
+  // from it, so a filtered drawer never hands over somebody else's record.
+  // Computed before the effects because the resume effect below needs it.
+  const mine = sectionsFor(university.assignments, filterId);
+
   const [view, setView] = useState<View>({ kind: "summary" });
   /**
    * True while the operator is working tasks in a row rather than browsing.
@@ -285,7 +298,7 @@ export default function UniversityFlow({
   useEffect(() => {
     if (!resume.current) return;
     resume.current = false;
-    go(nextReady(university));
+    go(nextReady(university, null, mine));
     // Only when a new board arrives; go() and the rest are read fresh.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [university]);
@@ -494,7 +507,7 @@ export default function UniversityFlow({
     ? { name: university.name, destination: university.mapsDestination }
     : null;
 
-  const left = readyCount(university);
+  const left = readyCountIn(university, mine);
   const done = doneToday(university);
   const pct = Math.round((done / Math.max(1, done + left)) * 100);
 
@@ -715,12 +728,22 @@ export default function UniversityFlow({
       ) : (
         <SummaryView
           university={university}
+          people={people}
+          filterId={filterId}
+          onAssign={(section, personId) => {
+            void send(
+              { op: "assign_section", campusId: university.id, section, adminUserId: personId },
+              personId
+                ? `${people.find((p) => p.id === personId)?.name ?? "Assigned"} now owns ${LADDERS[section].label.toLowerCase()}`
+                : `${LADDERS[section].label} unassigned`,
+            );
+          }}
           open={openSections}
           onToggle={(k) => setOpenSections((o) => ({ ...o, [k]: !o[k] }))}
           cameFrom={cameFrom}
           onStart={() => {
             setRunning(true);
-            go(nextReady(university));
+            go(nextReady(university, null, mine));
           }}
           onOpenRecord={(r) => {
             setRunning(false);

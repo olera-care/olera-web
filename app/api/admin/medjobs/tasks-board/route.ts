@@ -24,6 +24,14 @@ import {
   type ChannelStatus,
   type ExtraContact,
 } from "@/lib/medjobs/task-board";
+import {
+  byName,
+  firstName,
+  isAssignableSection,
+  onRoster,
+  type Assignments,
+  type Person as TeamMember,
+} from "@/lib/medjobs/assignments";
 
 /**
  * The Tasks tab, as one read.
@@ -176,7 +184,8 @@ const day = (iso: string | null): string =>
 export async function GET() {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!(await getAdminUser(user.id))) {
+  const admin = await getAdminUser(user.id);
+  if (!admin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -190,6 +199,8 @@ export async function GET() {
     contactsRes,
     outreachTasksRes,
     siteTasksRes,
+    assignmentsRes,
+    adminsRes,
   ] =
     await Promise.all([
       db.from("student_outreach_campuses").select("id, slug, name, is_demo").order("name"),
@@ -233,6 +244,11 @@ export async function GET() {
         .in("status", ["pending", "completed"])
         .order("due_at", { ascending: true })
         .order("id", { ascending: true }),
+      db.from("medjobs_assignments").select("campus_id, admin_user_id, section"),
+      // Everyone, then narrowed to the MedJobs team below. admin_users holds
+      // engineers and old accounts too, and a dropdown of fifteen names is a
+      // dropdown nobody reads.
+      db.from("admin_users").select("id, email"),
     ]);
 
   const firstError =
@@ -242,7 +258,9 @@ export async function GET() {
     outreachRes.error ??
     contactsRes.error ??
     outreachTasksRes.error ??
-    siteTasksRes.error;
+    siteTasksRes.error ??
+    assignmentsRes.error ??
+    adminsRes.error;
   if (firstError) {
     return NextResponse.json({ error: firstError.message }, { status: 500 });
   }
@@ -467,6 +485,33 @@ export async function GET() {
   }
 
   // ── build one university at a time ────────────────────────────────
+  // ── who owns what ───────────────────────────────────────────────────
+  // The team, and the pairs they hold. Anybody in admin_users who is not on
+  // the roster is left out of both, so an assignment written before somebody
+  // left simply stops resolving and the section reads as unassigned rather
+  // than naming a person who is gone.
+  const people = new Map<string, TeamMember>();
+  for (const row of adminsRes.data ?? []) {
+    const email = typeof row.email === "string" ? row.email.trim() : "";
+    if (!onRoster(email)) continue;
+    people.set(row.id as string, {
+      id: row.id as string,
+      email: email.toLowerCase(),
+      name: firstName(email),
+    });
+  }
+
+  const assignedAt = new Map<string, Assignments>();
+  for (const row of assignmentsRes.data ?? []) {
+    const person = people.get(row.admin_user_id as string);
+    const section = String(row.section ?? "");
+    if (!person || !isAssignableSection(section)) continue;
+    const campus = row.campus_id as string;
+    const current = assignedAt.get(campus) ?? {};
+    current[section] = person;
+    assignedAt.set(campus, current);
+  }
+
   const universities: BoardUniversity[] = (campusesRes.data ?? []).map((campus) => {
     const channels: BoardUniversity["channels"] = {};
     for (const ch of channelsRes.data ?? []) {
@@ -926,6 +971,7 @@ export async function GET() {
       mapsDestination,
       channels,
       records,
+      assignments: assignedAt.get(campus.id) ?? {},
     };
   });
 
@@ -934,7 +980,17 @@ export async function GET() {
     SECTION_ORDER.some((s) => (u.records[s] ?? []).length > 0),
   );
 
-  return NextResponse.json({ universities: withSomething });
+  // The roster goes with the board so the dropdowns and the My work filter
+  // have names without a second round trip. Alphabetical, so the menu reads
+  // the same way every time.
+  return NextResponse.json({
+    universities: withSomething,
+    people: [...people.values()].sort(byName),
+    // Who is reading. Lets the board pin "My work" at the top of the filter
+    // without a second call, and is null for an admin who is not on the
+    // MedJobs team — they get Everyone and the named people, no "mine".
+    me: people.get(admin.id) ?? null,
+  });
 }
 
 /** Kinds we know how to place, exported so the tab can say what it skipped. */

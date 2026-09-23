@@ -214,6 +214,13 @@ export default function ProviderBoostPage() {
 
   // Next four Mondays — "select next week to set up".
   const weekOptions = useMemo(() => nextMondays(4), []);
+  // The apply flow no longer asks which week (2026-09-23). 15 of 18 requests
+  // picked the soonest option, and the one provider who deliberately chose four
+  // weeks out was launched 21 days early anyway. Default it here; Confirm lets
+  // them change it. submit() bails on a null week, so this must always be set.
+  useEffect(() => {
+    if (!selectedWeek && weekOptions.length > 0) setSelectedWeek(weekOptions[0].value);
+  }, [selectedWeek, weekOptions]);
 
   const submit = async () => {
     if (!selectedWeek) return;
@@ -825,7 +832,14 @@ function ApplyExperience({
   managedAdsVariant: "direct_reach" | "local_plan";
   onSubmit: () => void;
 }) {
-  const [step, setStep] = useState(0); // 0 Timing · 1 First campaign · 2 Confirm
+  // Step 0 (Timing) was removed 2026-09-23; it cost 56% of everyone who entered
+  // the flow to ask a question 15 of 18 providers answered "soonest". The
+  // indices are left as they were on purpose, so managed_ads_step_viewed keeps
+  // emitting "first_campaign" and "confirm" with the same names and the funnel
+  // stays comparable across the change.
+  const [step, setStep] = useState(1); // 1 First campaign · 2 Confirm
+  /** Which Confirm row is being edited inline, if any. */
+  const [editingRow, setEditingRow] = useState<"week" | "channel" | null>(null);
   const mobileNavVariant = useMobileNavVariant();
   const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
@@ -856,7 +870,7 @@ function ApplyExperience({
     });
   }, [step, provider, eligible, managedAdsVariant]);
 
-  const canAdvance = step === 0 ? !!selectedWeek : true;
+  const canAdvance = true;
 
   return (
     <div className="grid lg:grid-cols-[1fr_360px] gap-10 lg:gap-16 items-start">
@@ -879,102 +893,6 @@ function ApplyExperience({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
           Managed Ads
         </p>
-
-        {/* ── Step 0: Timing & channel ── */}
-        {step === 0 && (
-          <div>
-            <h1 className="font-display font-bold text-[clamp(1.75rem,4vw,2.5rem)] text-gray-900 leading-[1.1] tracking-tight">
-              When should we start?
-            </h1>
-            <p className="mt-3 text-gray-500 leading-relaxed max-w-lg">
-              We&apos;ll run ads to bring families to your page.{" "}
-              <span className="font-semibold text-primary-600">Your first campaign is on us.</span>
-            </p>
-            <p className="mt-2 text-sm text-gray-400">
-              {(() => {
-                const category = humanCategoryLabel(provider.category);
-                const place =
-                  demand.scope === "city" && provider.city
-                    ? provider.city
-                    : provider.state
-                      ? provider.state
-                      : "your area";
-                const timeframe = demand.windowDays === 7 ? "this week" : `in the last ${demand.windowDays} days`;
-
-                return demand.count >= 5 ? (
-                  <>
-                    {demand.count} families in {place} searched for {category} {timeframe}.
-                  </>
-                ) : (
-                  <>
-                    Families in {place} are searching for {category}.
-                  </>
-                );
-              })()}
-            </p>
-
-            <fieldset className="mt-8">
-              <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Start week</legend>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {weekOptions.map((w) => {
-                  const active = selectedWeek === w.value;
-                  return (
-                    <button
-                      key={w.value}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setSelectedWeek(w.value)}
-                      className={`rounded-2xl border px-3 py-4 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
-                        active
-                          ? "border-primary-500 bg-primary-50/70"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
-                      }`}
-                    >
-                      <span className={`block text-xs uppercase tracking-wide ${active ? "text-primary-600" : "text-gray-400"}`}>
-                        Week of
-                      </span>
-                      <span className={`block text-base font-semibold mt-0.5 ${active ? "text-primary-700" : "text-gray-900"}`}>
-                        {w.label.replace("Week of ", "")}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-
-            <fieldset className="mt-8">
-              <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Where we&apos;ll advertise</legend>
-              <div className="flex flex-wrap gap-2.5">
-                {CHANNELS.map((c) => {
-                  const active = channel === c.value;
-                  const isRecommended = c.value === "both";
-                  return (
-                    <button
-                      key={c.value}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setChannel(c.value)}
-                      className={`relative rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
-                        active
-                          ? "border-primary-500 bg-primary-50/70 text-primary-700"
-                          : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
-                      }`}
-                    >
-                      {c.label}
-                      {isRecommended && (
-                        <span className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                          active ? "bg-primary-600 text-white" : "bg-primary-100 text-primary-700"
-                        }`}>
-                          Recommended
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          </div>
-        )}
 
         {/* ── Step 1: First campaign ── */}
         {step === 1 && (
@@ -1051,17 +969,6 @@ function ApplyExperience({
               </p>
             </div>
 
-            {/* Back link - desktop only */}
-            <button
-              type="button"
-              onClick={() => setStep(0)}
-              className="hidden sm:inline-flex items-center gap-1.5 mt-8 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-              </svg>
-              Back
-            </button>
           </div>
         )}
 
@@ -1077,9 +984,63 @@ function ApplyExperience({
                 : "We'll queue this now, help you get the page ready, and send the plan before anything goes live."}
             </p>
 
+            {/* Launch and channels are answered by default and changed here,
+                where the provider can see what they apply to. The old step 0
+                asked both before anyone had been told what they get. */}
             <dl className="mt-7 overflow-hidden rounded-2xl border border-gray-200/80 divide-y divide-gray-100">
-              <ReviewRow label="Launch" value={weekLabel ?? "—"} />
-              <ReviewRow label="Advertising on" value={channelLabel} />
+              <ReviewRow
+                label="Launch"
+                value={weekLabel ?? "—"}
+                editing={editingRow === "week"}
+                onToggleEdit={() => setEditingRow(editingRow === "week" ? null : "week")}
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {weekOptions.map((w) => {
+                    const active = selectedWeek === w.value;
+                    return (
+                      <button
+                        key={w.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => { setSelectedWeek(w.value); setEditingRow(null); }}
+                        className={`rounded-xl border px-3 py-3 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                          active ? "border-primary-500 bg-primary-50/70" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
+                        }`}
+                      >
+                        <span className={`block text-[11px] uppercase tracking-wide ${active ? "text-primary-600" : "text-gray-400"}`}>Week of</span>
+                        <span className={`block text-sm font-semibold mt-0.5 ${active ? "text-primary-700" : "text-gray-900"}`}>
+                          {w.label.replace("Week of ", "")}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </ReviewRow>
+              <ReviewRow
+                label="Advertising on"
+                value={channelLabel}
+                editing={editingRow === "channel"}
+                onToggleEdit={() => setEditingRow(editingRow === "channel" ? null : "channel")}
+              >
+                <div className="flex flex-wrap gap-2.5">
+                  {CHANNELS.map((c) => {
+                    const active = channel === c.value;
+                    return (
+                      <button
+                        key={c.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => { setChannel(c.value); setEditingRow(null); }}
+                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                          active ? "border-primary-500 bg-primary-50/70 text-primary-700" : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </ReviewRow>
               <ReviewRow label="Campaign" value={introStop.label} />
             </dl>
 
@@ -1175,21 +1136,46 @@ function ApplyExperience({
             )}
           </button>
         )}
-        {step === 0 && (
-          <p className="text-sm text-gray-400 text-center mt-3">
-            Next: your first campaign, on us
-          </p>
-        )}
       </div>
     </div>
   );
 }
 
-function ReviewRow({ label, value }: { label: string; value: string }) {
+/** A confirm row. With `onToggleEdit` it carries a Change link and reveals
+ *  `children` as an inline editor, so a default can be overridden without
+ *  leaving the step or reintroducing a question nobody wanted asked up front. */
+function ReviewRow({
+  label,
+  value,
+  editing = false,
+  onToggleEdit,
+  children,
+}: {
+  label: string;
+  value: string;
+  editing?: boolean;
+  onToggleEdit?: () => void;
+  children?: React.ReactNode;
+}) {
   return (
-    <div className="flex items-baseline justify-between gap-4 px-4 py-3.5">
-      <dt className="text-sm text-gray-500">{label}</dt>
-      <dd className="text-sm font-medium text-gray-900 text-right">{value}</dd>
+    <div className="px-4 py-3.5">
+      <div className="flex items-baseline justify-between gap-4">
+        <dt className="text-sm text-gray-500">{label}</dt>
+        <dd className="flex items-baseline gap-3 text-sm font-medium text-gray-900 text-right">
+          {value}
+          {onToggleEdit && (
+            <button
+              type="button"
+              onClick={onToggleEdit}
+              aria-expanded={editing}
+              className="text-sm font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+            >
+              {editing ? "Done" : "Change"}
+            </button>
+          )}
+        </dd>
+      </div>
+      {editing && children && <div className="mt-3.5">{children}</div>}
     </div>
   );
 }
@@ -1222,12 +1208,12 @@ function CampaignSummary({
   return (
     <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
-        {step >= 1 ? "Your launch plan" : "Your plan so far"}
+        Your launch plan
       </p>
 
       <dl className="mt-4 space-y-3">
         <div className="flex items-baseline justify-between gap-4">
-          <dt className="text-sm text-gray-500">{step >= 1 ? "Launch" : "Start week"}</dt>
+          <dt className="text-sm text-gray-500">Launch</dt>
           <dd className={`text-sm font-medium text-right ${weekLabel ? "text-gray-900" : "text-gray-300"}`}>
             {weekLabel ?? "Pick a week"}
           </dd>
@@ -1280,11 +1266,6 @@ function CampaignSummary({
               </svg>
             )}
           </button>
-        )}
-        {step === 0 && (
-          <p className="mt-3 text-sm text-gray-400 text-center">
-            Next: your first campaign, on us
-          </p>
         )}
       </div>
     </div>

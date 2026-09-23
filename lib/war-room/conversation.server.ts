@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { BANGKOK, inEastern, loadBlindSpots, LOOKUP_TOOLS, runLookup } from "@/lib/war-room/lookups.server";
+import { BANGKOK, inEastern, loadBlindSpots, LOOKUP_TOOLS, runLookup, searchStoredRecord } from "@/lib/war-room/lookups.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -130,6 +130,55 @@ export function classifyMessage(text: string): MessageKind {
   return "answer";
 }
 
+/**
+ * Does this message actually answer the question the brief asked?
+ *
+ * The lexical test above only says "not obviously a question". That was the
+ * whole gate for filing a top-level DM as evidence, so any statement -- an
+ * idea, a note to self, a request phrased without a verb up front -- was
+ * written into an investigation's record in the founder's name. A reply in
+ * the brief's own thread is explicit and skips this; everything else must
+ * look like an answer to that specific question. Unsure means no: a missed
+ * answer can be re-sent in the thread, a misfiled one silently steers scans.
+ */
+export async function answersOpenAsk(db: SupabaseClient, text: string): Promise<boolean> {
+  const { data } = await db.from("war_room_investigation_events")
+    .select("details")
+    .eq("event_type", "founder_asked")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const asked = (data?.details as { question?: string; title?: string } | null) ?? null;
+  if (!asked?.question) return false;
+  return judgedAnAnswer(asked.question, text);
+}
+
+/**
+ * The judgement itself, separate so it can be tested against any question.
+ *
+ * A word list is not enough in either direction. "I want to send Logan a
+ * note" is a request; "I want it closed, not worth a plan" is a verdict on the
+ * recurrence question and must be recorded. A first version that treated every
+ * "I want" / "let's" / "please" as a request would have silently dropped
+ * exactly the verdicts the recurrence question exists to collect.
+ */
+export async function judgedAnAnswer(question: string, text: string): Promise<boolean> {
+  if (!process.env.ANTHROPIC_API_KEY) return false;
+  try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const verdict = await anthropic.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 5,
+      system: "You judge whether a founder's Slack message is a direct answer to a specific question his assistant asked him. Reply with exactly ANSWER or OTHER. It is ANSWER if the message responds to that question's subject, including a short decision about it such as 'close it', 'drop it', 'make a plan', or 'keep raising it', however it is phrased. It is OTHER if it asks the assistant to do something unrelated, raises a new topic or idea, or is unrelated. If unsure, OTHER.",
+      messages: [{ role: "user", content: `QUESTION HE WAS ASKED:\n${question}\n\nHIS MESSAGE:\n${text.slice(0, 1_500)}` }],
+    });
+    const word = verdict.content.find((block): block is Anthropic.TextBlock => block.type === "text")?.text.trim().toUpperCase() ?? "";
+    return word.startsWith("ANSWER");
+  } catch {
+    return false;
+  }
+}
+
 type InvestigationRow = {
   id: string;
   title: string;
@@ -214,16 +263,17 @@ type ProposalRow = {
  * conversation with a person could possibly live.
  */
 async function searchRecord(db: SupabaseClient, question: string): Promise<SourceItemRow[]> {
-  const terms = searchTermsFrom(question);
-  if (!terms.length) return [];
-  const filter = terms.flatMap((t) => [`title.ilike.*${t}*`, `content.ilike.*${t}*`]).join(",");
-  const { data, error } = await db.from("war_room_source_items")
-    .select("source, title, content, source_url, occurred_at")
-    .or(filter)
-    .order("occurred_at", { ascending: false, nullsFirst: false })
-    .limit(12);
-  if (error) return [];
-  return (data ?? []) as SourceItemRow[];
+  // Ranked by words matched, not recency. The recency-ordered version cut the
+  // one right answer at position fourteen; see searchStoredRecord.
+  const result = await searchStoredRecord(db, { query: question, limit: 10 });
+  if (!("matches" in result) || !result.matches) return [];
+  return result.matches.map((match) => ({
+    source: match.where?.startsWith("#") ? "slack" : "archive",
+    title: `${match.where ?? ""}${match.author && match.author !== "not recorded" ? ` · ${match.author}` : ""}`,
+    content: match.excerpt,
+    source_url: match.url,
+    occurred_at: match.when,
+  })) as SourceItemRow[];
 }
 
 /**
@@ -366,7 +416,7 @@ If the relevant source IS ingested and simply holds nothing, say the record show
 
 If the relevant source IS ingested but the question is about something recent, check when the daily copies were last refreshed. When the event could postdate the last refresh, say when the record was last refreshed rather than implying it did not happen.
 
-When a search of the written record or Slack comes up empty, check where your copy is behind before saying something does not exist, and say which channel or source is stale. Names in the record are full names; the founder may use a short, misspelled or voice-dictated form, so match loosely on part of a name and on a channel's topic rather than its exact name.
+Before saying a message or document is not there, call search_record at least twice with different wording: the subject, parts of the person's name, the channel's topic. When a search of the written record or Slack comes up empty, check where your copy is behind before saying something does not exist, and say which channel or source is stale. Names in the record are full names; the founder may use a short, misspelled or voice-dictated form, so match loosely on part of a name and on a channel's topic rather than its exact name.
 
 If the relevant source is NOT ingested, say you cannot see it. Read what Cortex can and cannot see before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
 
@@ -385,6 +435,8 @@ Questions about whether providers have seen, used, tapped or dismissed something
 Questions about which providers to follow up with, nurture toward subscribing, or who received the most leads are answered with the providers lookup; for anything about selling Managed Ads, set ads_fit_only. Its order is his own ranking, so to him it is "your order": engagement first (replied to Olera, then replied to families, then active in the product), then leads delivered. Keep that order, say briefly why each name ranks where it does, and leave out providers who already pay when he asks who is next to nurture. A reply sent to the founder's own inbox is not recorded unless it was logged, so "has not replied to Olera" means none on record.
 
 All times in the record are already in US Eastern (ET), which is how the business runs. The founder lives in Bangkok; his local time is given under the current time. Never convert time zones yourself, and never quote a raw timestamp.
+
+Slack mentions written like <@U013S7E67RN> are user IDs you cannot resolve. Never guess who they are; say "two people were tagged" or leave them out. Name someone only when the record names them.
 
 Refer to a provider by its name, or as "they". Never give a business or its owner a gender you were not told. Do not comment on which calendar day something falls on in one time zone or another.
 

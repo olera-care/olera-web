@@ -711,6 +711,21 @@ export const LOOKUP_TOOLS = [
     },
   },
   {
+    name: "search_record",
+    description: "Search the stored copy of Slack channel messages and Olera's written record (SCRATCHPAD, docs), ranked by how many of your words each item matches. Try more than one phrasing when the first misses: partial or alternative names, the channel's topic words, the subject. Optional channel and author hints (any part of a name). Authors are only recorded on newer Slack messages.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "Words to look for: subject, names, distinctive terms." },
+        channel: { type: "string", description: "Part of a channel name or topic, e.g. 'care nav' or 'study'." },
+        author: { type: "string", description: "Any part of the author's name." },
+        days: { type: "integer", minimum: 1, maximum: 365, description: "Only the last N days." },
+      },
+      required: ["query"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "nothing_fits",
     description: "Only for questions about Olera's own data. Call this when no lookup can answer such a question, before telling the founder you cannot see something. Never call it for questions about the outside world; use web search for those. Record what data would have answered it. It is shown to the founder as a list of lookups worth building.",
     input_schema: {
@@ -751,6 +766,13 @@ export async function runLookup(db: SupabaseClient, name: string, input: Record<
         if (!isWarRoomProbeId(input.probe) || input.probe === "none") return { unavailable: "No such probe." };
         return inEastern(await runWarRoomProbe(db, input.probe));
       }
+      case "search_record":
+        return inEastern(await searchStoredRecord(db, {
+          query: String(input.query ?? ""),
+          channel: typeof input.channel === "string" ? input.channel : undefined,
+          author: typeof input.author === "string" ? input.author : undefined,
+          days: typeof input.days === "number" ? clampDays(input.days, 30, 1, 365) : undefined,
+        }));
       case "nothing_fits":
         await recordLookupGap(db, { question: String(input.question ?? ""), needed: String(input.needed ?? "") });
         return { recorded: true, note: "Tell the founder plainly what you could not see and that it has been noted as a lookup to build." };
@@ -799,6 +821,10 @@ export async function loadBlindSpots(db: SupabaseClient): Promise<string[]> {
       }
     }
   }
+  const authorError = (history?.metadata as { author_lookup_error?: string } | null)?.author_lookup_error;
+  if (authorError) {
+    spots.push(`Slack author names are not being stored (${authorError})${authorError.includes("scope") ? "; the Slack app needs the users:read permission" : ""}, so I cannot find a message by who wrote it.`);
+  }
   const threadFailures = results.filter((result) => result.threadError);
   if (threadFailures.length) {
     spots.push(`Slack thread replies failed in ${threadFailures.length} channel(s) (${threadFailures[0].threadError}); replies inside threads are invisible to me.`);
@@ -821,4 +847,91 @@ export async function loadBlindSpots(db: SupabaseClient): Promise<string[]> {
     spots.push(`The written record (SCRATCHPAD and docs) has not refreshed for ${days(Date.now() - new Date(archive.last_success_at).getTime())} days.`);
   }
   return spots;
+}
+
+/**
+ * Search the stored record, ranked by how much of the question each item
+ * matches.
+ *
+ * The first search matched any single word and kept the twelve newest hits.
+ * Asked about "the message from Minh Huet about the feedback from the cares
+ * study", the right item -- Minh-Nguyet's Sep 17 post in #care-nav-study-team,
+ * matching "feedback", "study" and "care" -- ranked fourteenth behind recent
+ * chatter that merely contained "message", and was cut. Cortex then told the
+ * founder, confidently, that it was not there.
+ *
+ * Now: words are loosely stemmed ("cares" finds "care"), filler is dropped,
+ * each candidate is scored by distinct words matched across its text, title,
+ * channel and author, and the model can call this again with other phrasings,
+ * a channel hint or an author hint. Names are matched on any part, since the
+ * founder may type or dictate a short or misheard form.
+ */
+const SEARCH_FILLER = new Set([
+  "the", "and", "about", "from", "that", "this", "with", "what", "when", "where", "which", "who", "why", "how",
+  "you", "your", "know", "message", "messages", "said", "say", "tell", "did", "does", "any", "there", "their",
+  "have", "has", "was", "were", "are", "for", "into", "some", "something", "thing", "things", "got", "get",
+]);
+
+function stem(word: string) {
+  return word.length > 4 ? word.replace(/(ings|ing|ies|es|s)$/, "") : word;
+}
+
+export function searchWords(text: string): string[] {
+  return [...new Set(text.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/[\s-]+/)
+    .filter((word) => word.length >= 3 && !SEARCH_FILLER.has(word))
+    .map(stem)
+    .filter((word) => word.length >= 3))].slice(0, 10);
+}
+
+export async function searchStoredRecord(
+  db: SupabaseClient,
+  options: { query: string; channel?: string; author?: string; days?: number; limit?: number },
+) {
+  const words = searchWords(options.query);
+  const channelWords = options.channel ? searchWords(options.channel) : [];
+  const authorWords = options.author ? searchWords(options.author) : [];
+  const all = [...new Set([...words, ...channelWords, ...authorWords])];
+  if (!all.length) return { matches: [], note: "Nothing to search for." };
+  // One candidate list per word, not one list for all of them. A single
+  // recency-ordered list lets common words fill every slot with recent
+  // chatter, so an older item matching only the rarer, telling words -- the
+  // case that hid Minh-Nguyet's feedback -- falls outside it again as the
+  // record grows. Per word, a rare word always brings back its matches.
+  const perWord = await Promise.all(all.map(async (word) => {
+    let request = db.from("war_room_source_items")
+      .select("id, source, source_group, title, content, source_url, occurred_at, metadata")
+      .or(`title.ilike.*${word}*,content.ilike.*${word}*,source_group.ilike.*${word}*`)
+      .order("occurred_at", { ascending: false, nullsFirst: false })
+      .limit(150);
+    if (options.days) request = request.gte("occurred_at", new Date(Date.now() - options.days * 86_400_000).toISOString());
+    return request;
+  }));
+  const failed = perWord.find((result) => result.error);
+  if (failed?.error) return { unavailable: `Could not search the record: ${failed.error.message}` };
+  const byId = new Map<string, unknown>();
+  for (const result of perWord) for (const row of (result.data ?? []) as Array<{ id: string }>) byId.set(row.id, row);
+  const data = [...byId.values()];
+  type Row = { source: string; source_group: string | null; title: string | null; content: string | null; source_url: string | null; occurred_at: string | null; metadata: { author_name?: string | null } | null };
+  const scored = ((data ?? []) as Row[]).map((row) => {
+    const author = (row.metadata?.author_name ?? "").toLowerCase();
+    const group = (row.source_group ?? "").toLowerCase();
+    const haystack = `${row.title ?? ""} ${row.content ?? ""} ${group} ${author}`.toLowerCase();
+    let score = words.filter((word) => haystack.includes(word)).length;
+    if (channelWords.length && channelWords.some((word) => group.includes(word))) score += 2;
+    if (authorWords.length && authorWords.some((word) => author.includes(word))) score += 3;
+    return { row, score, author: row.metadata?.author_name ?? null };
+  }).filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || (b.row.occurred_at ?? "").localeCompare(a.row.occurred_at ?? ""));
+  return {
+    searchedFor: all,
+    candidates: scored.length,
+    matches: scored.slice(0, options.limit ?? 8).map(({ row, score, author }) => ({
+      where: row.source === "slack" ? `#${row.source_group}` : row.source_group,
+      author: author ?? (row.source === "slack" ? "not recorded" : null),
+      when: row.occurred_at,
+      wordsMatched: score,
+      excerpt: (row.content ?? "").slice(0, 700),
+      url: row.source_url,
+    })),
+  };
 }

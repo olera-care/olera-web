@@ -3,7 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendSlackDirectMessage } from "@/lib/slack";
 import { ingestSlackEventEvidence, verifySlackRequest } from "@/lib/war-room/sources.server";
 import { captureFounderAnswer, findAskByThread, findOpenAsk } from "@/lib/war-room/founder-loop.server";
-import { answerFounderQuestion, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
+import { answerFounderQuestion, answersOpenAsk, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
 
 export const maxDuration = 90;
@@ -165,7 +165,10 @@ export async function POST(request: NextRequest) {
       // A question is not an answer. Filing one as evidence writes it into the
       // record attributed to the founder and hands it to the next scan, which
       // is worse than doing nothing.
-      const looksLikeAnswer = classifyMessage(payload.event.text) === "answer";
+      // Filed as evidence only when it is plainly an answer: typed in the
+      // brief's thread, or judged to answer the brief's actual question.
+      const looksLikeAnswer = classifyMessage(payload.event.text) === "answer"
+        && (Boolean(addressed) || await answersOpenAsk(db, payload.event.text));
       if (!looksLikeAnswer || openExchange) {
         const answer = await answerFounderQuestion(
           db,

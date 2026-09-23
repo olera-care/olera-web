@@ -174,8 +174,8 @@ export default function CandidateBottomSheet({
   // Check if sections have content
   const hasAbout = !!(meta.why_caregiving || candidate.description || meta.intended_professional_school);
   const hasCommitments = !!(meta.acknowledgments_completed || meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing);
-  const hasScenarios = meta.scenario_responses && meta.scenario_responses.length > 0;
-  const hasReferences = meta.references && meta.references.length > 0;
+  const hasScenarios = !!(meta.scenario_responses && meta.scenario_responses.length > 0);
+  const hasReferences = !!(meta.references && meta.references.length > 0);
 
   // Mount tracking for portal
   useEffect(() => {

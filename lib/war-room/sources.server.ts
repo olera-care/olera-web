@@ -1,5 +1,6 @@
 import { createHash, createHmac, timingSafeEqual } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { attachmentKind, downloadSlackFile, extractAttachmentText, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_CHARS, type AttachmentFile } from "@/lib/war-room/attachments.server";
 import type { WarRoomIntegrationStatus, WarRoomProposalEvidence } from "@/lib/war-room/types";
 
 type SourceItemInput = {
@@ -78,7 +79,10 @@ async function upsertSourceItems(db: SupabaseClient, items: SourceItemInput[]) {
   const rows = items.map((item) => ({
     ...item,
     title: bounded(item.title, 300),
-    content: bounded(item.content),
+    // Documents keep up to their own cap; the 6,000 for messages would have cut
+    // a shared report to its first pages. The scan still reads only 900
+    // characters of any item, so this costs nothing per scan.
+    content: bounded(item.content, item.source_kind === "attachment" ? MAX_ATTACHMENT_CHARS : MAX_SOURCE_CONTENT),
     content_hash: contentHash(item),
     ingested_at: now,
     updated_at: now,
@@ -145,6 +149,58 @@ const slackNameCache = new Map<string, string | null>();
 // The first reason a name lookup failed, reported by the self-check. Swallowed,
 // a missing users:read scope would look exactly like people without names.
 let slackNameError: string | null = null;
+
+// Attachments downloaded per scan, and the first reason one could not be read.
+// Bounded because each is a download plus a parse inside the scan's shared
+// deadline; already-stored files are skipped, so the budget goes to new ones.
+const ATTACHMENTS_PER_SCAN = 8;
+let attachmentBudget = ATTACHMENTS_PER_SCAN;
+let attachmentError: string | null = null;
+
+async function attachmentItems(
+  db: SupabaseClient,
+  token: string,
+  channel: SlackChannelConfig,
+  messages: SlackMessage[],
+  deadline: number,
+): Promise<SourceItemInput[]> {
+  const candidates = messages.flatMap((message) => (message.files ?? []).map((file) => ({ message, file })))
+    .filter(({ file }) => file.id && attachmentKind(file) && (file.size ?? 0) <= MAX_ATTACHMENT_BYTES);
+  if (!candidates.length) return [];
+  const ids = candidates.map(({ file }) => `${channel.id}:file:${file.id}`);
+  const { data: stored } = await db.from("war_room_source_items").select("external_id").in("external_id", ids);
+  const have = new Set(((stored ?? []) as Array<{ external_id: string }>).map((row) => row.external_id));
+  const items: SourceItemInput[] = [];
+  for (const { message, file } of candidates) {
+    const externalId = `${channel.id}:file:${file.id}`;
+    if (have.has(externalId) || attachmentBudget <= 0 || Date.now() >= deadline - 5_000) continue;
+    attachmentBudget -= 1;
+    try {
+      const text = await extractAttachmentText(await downloadSlackFile(token, file), attachmentKind(file)!);
+      if (!text) continue;
+      const author = await slackUserName(token, message.user);
+      const fileName = file.title || file.name || "attachment";
+      const occurredAt = new Date(Number(message.ts) * 1_000).toISOString();
+      items.push({
+        source: "slack",
+        external_id: externalId,
+        source_group: channel.label,
+        source_kind: "attachment",
+        title: `#${channel.label} · ${fileName}${author ? ` · shared by ${author}` : ""}`,
+        content: text,
+        source_url: slackMessageUrl(channel.id, message.ts || ""),
+        occurred_at: occurredAt,
+        last_edited_at: null,
+        freshness: freshness(occurredAt),
+        trust: "context",
+        metadata: { channel_id: channel.id, file_id: file.id, file_name: fileName, message_ts: message.ts, author_name: author, user_id: message.user ?? null },
+      });
+    } catch (error) {
+      attachmentError ??= error instanceof Error ? error.message : String(error);
+    }
+  }
+  return items;
+}
 async function slackUserName(token: string, userId: string | undefined): Promise<string | null> {
   if (!userId) return null;
   if (slackNameCache.has(userId)) return slackNameCache.get(userId) ?? null;
@@ -184,7 +240,7 @@ type SlackMessage = {
   user?: string;
   bot_id?: string;
   subtype?: string;
-  files?: Array<{ name?: string; title?: string }>;
+  files?: AttachmentFile[];
   reply_count?: number;
   reactions?: Array<{ name?: string; count?: number }>;
 };
@@ -217,6 +273,8 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
   // number of channels.
   const deadline = Date.now() + 45_000;
   const threadBudget: ThreadBudget = { remaining: THREAD_FETCHES_PER_SCAN };
+  attachmentBudget = ATTACHMENTS_PER_SCAN;
+  attachmentError = null;
   const results: Array<{ channel: string; imported?: number; error?: string; threadsRead?: number; replies?: number; threadError?: string; newestInSlack?: string | null; newestStored?: string | null }> = [];
   let imported = 0;
   let lastIndex = previousIndex;
@@ -244,6 +302,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
       channels_read: results.length,
       threads_read: THREAD_FETCHES_PER_SCAN - threadBudget.remaining,
       ...(slackNameError ? { author_lookup_error: slackNameError } : {}),
+      ...(attachmentError ? { attachment_error: attachmentError } : {}),
       results,
     },
   });
@@ -426,6 +485,7 @@ async function backfillSlackChannel(
       }
     }
 
+    items.push(...await attachmentItems(db, token, channel, top, deadline));
     const importedCount = await upsertSourceItems(db, items);
     // The self-check. The channel's newest message against the newest one
     // Cortex holds for it. Every silent Slack failure found on 2026-09-23 --

@@ -30,7 +30,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // listed all eight. A question costs cents; a confident wrong answer to the
 // founder costs the channel.
 const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-sonnet-5";
-const MAX_ANSWER_TOKENS = 700;
+// Headroom for thinking, not a longer answer; length is set by the prompt.
+// Sonnet 5 thinks adaptively by default, and at 700 the first question after
+// the switch (2026-09-23, "do you know the recent work on the ads nudge")
+// spent all 700 tokens thinking and returned no text at all.
+const MAX_ANSWER_TOKENS = 4_000;
 
 /**
  * How long an exchange stays "in progress".
@@ -233,6 +237,24 @@ async function ingestedCounts(db: SupabaseClient): Promise<Record<string, number
 }
 
 /**
+ * When each reader last copied anything in.
+ *
+ * Slack, Notion and the written record are refreshed only by the daily scan.
+ * On 2026-09-23 the founder asked about ads-nudge work shipped the evening
+ * before; its write-up landed two hours after the last scan, and Cortex said
+ * five times over "I don't see anything in the record" -- true of a copy it
+ * never said was ten hours old.
+ */
+async function lastIngested(db: SupabaseClient): Promise<Record<string, string | null>> {
+  const sources = ["slack", "notion", "archive"] as const;
+  const rows = await Promise.all(sources.map((source) =>
+    db.from("war_room_source_items").select("ingested_at").eq("source", source)
+      .order("ingested_at", { ascending: false }).limit(1).maybeSingle()));
+  return Object.fromEntries(sources.map((source, i) =>
+    [source, (rows[i].data as { ingested_at?: string } | null)?.ingested_at ?? null]));
+}
+
+/**
  * The Managed Ads ledger, read live.
  *
  * On 2026-09-23 the founder asked "have any providers subscribed to managed ads
@@ -304,12 +326,94 @@ async function loadManagedAdsLedger(db: SupabaseClient) {
   };
 }
 
+/**
+ * What shipped, read live from GitHub.
+ *
+ * "Do you know the recent work we did on the ads nudge? I think we shipped
+ * that yesterday." The written record is a copy refreshed once a day, and that
+ * work was written up after the copy. But whether something shipped is not a
+ * matter of anyone writing it down: it is a merged pull request. Same lesson as
+ * the Managed Ads ledger, a fact with a system of record is read from it.
+ *
+ * Seven days of merges into staging, and the promotions to main that carried
+ * them to production. Titles only; a PR body is not needed to say what shipped.
+ */
+const SHIPPED_WINDOW_DAYS = 7;
+
+async function loadRecentlyShipped() {
+  const token = process.env.WAR_ROOM_GITHUB_TOKEN;
+  const repository = process.env.WAR_ROOM_GITHUB_REPOSITORY;
+  if (!token || !repository) return { readFailed: "GitHub is not configured for Cortex, so what shipped cannot be read." };
+  const since = Date.now() - SHIPPED_WINDOW_DAYS * 86_400_000;
+  type PullRow = { number: number; title: string; merged_at: string | null; updated_at: string; user: { login: string } | null };
+  // Paged until the pulls are older than the window. One page of fifty was the
+  // first version, and staging takes more than fifty merges a week: it counted
+  // Efua's week as nine when GitHub has fourteen.
+  const read = async (base: string) => {
+    const pulls: PullRow[] = [];
+    for (let page = 1; page <= 5; page += 1) {
+      const response = await fetch(
+        `https://api.github.com/repos/${repository}/pulls?state=closed&base=${base}&sort=updated&direction=desc&per_page=100&page=${page}`,
+        {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+          signal: AbortSignal.timeout(8_000),
+        },
+      );
+      if (!response.ok) throw new Error(`GitHub ${response.status}`);
+      const batch = (await response.json()) as PullRow[];
+      pulls.push(...batch);
+      // Sorted by last update, and a merge is an update, so once a page ends
+      // before the window nothing later can have merged inside it.
+      if (batch.length < 100 || new Date(batch[batch.length - 1].updated_at).getTime() < since) break;
+    }
+    return pulls
+      .filter((pull) => pull.merged_at && new Date(pull.merged_at).getTime() >= since)
+      .map((pull) => ({ number: pull.number, title: pull.title, mergedAt: pull.merged_at, author: pull.user?.login ?? null }));
+  };
+  try {
+    const [toStaging, toProduction] = await Promise.all([read("staging"), read("main")]);
+    // Worked out here, not by the model. Left to compare timestamps it said
+    // #2085 had not reached production when it merged 34 minutes before the
+    // promotion that carried it, and counted Efua's week as five, then seven.
+    // Promotions are merged from staging, so any staging merge earlier than
+    // the newest promotion is live. That holds while main is only ever
+    // reached through staging; a hotfix straight to main does not break it.
+    const latestPromotion = toProduction
+      .map((pull) => pull.mergedAt as string)
+      .sort()
+      .at(-1) ?? null;
+    const merged = toStaging.map((pull) => ({
+      ...pull,
+      inProduction: Boolean(latestPromotion && (pull.mergedAt as string) < latestPromotion),
+    }));
+    // Grouped by person with the count beside the list, so the two cannot
+    // disagree. A separate tally and a flat list produced "6" beside nine.
+    const byAuthor: Record<string, { count: number; pulls: typeof merged }> = {};
+    for (const pull of merged) {
+      const key = pull.author ?? "unknown";
+      byAuthor[key] ??= { count: 0, pulls: [] };
+      byAuthor[key].count += 1;
+      byAuthor[key].pulls.push(pull);
+    }
+    return {
+      windowDays: SHIPPED_WINDOW_DAYS,
+      totalMergedToStaging: merged.length,
+      latestPromotionToProduction: latestPromotion,
+      mergedByAuthor: byAuthor,
+      promotedToProduction: toProduction.map(({ number, title, mergedAt }) => ({ number, title, mergedAt })),
+    };
+  } catch (error) {
+    // Said, not swallowed: an empty list would read as "nothing shipped".
+    return { readFailed: `Could not read GitHub: ${error instanceof Error ? error.message : String(error)}` };
+  }
+}
+
 async function buildConversationContext(
   db: SupabaseClient,
   focusInvestigationId?: string | null,
   question?: string,
 ): Promise<string> {
-  const [investigations, proposals, model, matches, sources, managedAds] = await Promise.all([
+  const [investigations, proposals, model, matches, sources, managedAds, refreshed, shipped] = await Promise.all([
     db.from("war_room_investigations")
       .select("id, title, status, domain, impact, likely_cause, unknowns, occurrence_count")
       .in("status", ["investigating", "watchlist", "decision_ready"])
@@ -323,6 +427,8 @@ async function buildConversationContext(
     question ? searchRecord(db, question) : Promise.resolve([] as SourceItemRow[]),
     ingestedCounts(db),
     loadManagedAdsLedger(db),
+    lastIngested(db),
+    loadRecentlyShipped(),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
@@ -332,6 +438,15 @@ async function buildConversationContext(
     // Stated explicitly so Cortex can distinguish "this did not happen" from
     // "I cannot see where that would be recorded". Those are different answers
     // and only one of them is honest when a reader is not ingested.
+    now: new Date().toISOString(),
+    // Copies, not live reads. Anything written after these times is invisible
+    // until the next scan, and an answer of "nothing in the record" must say so.
+    lastRefreshed: {
+      slackChannelMessages: refreshed.slack,
+      notionPages: refreshed.notion,
+      oleraWrittenRecord: refreshed.archive,
+      note: "Refreshed only when the daily scan runs. Work written up or shipped after these times is not in the record yet.",
+    },
     whatIsIngested: {
       slackChannelMessages: sources.slack > 0
         ? `${sources.slack} stored`
@@ -343,8 +458,10 @@ async function buildConversationContext(
       directMessages: "NEVER ingested, and never can be. A Slack bot cannot read direct messages between two people; no permission grants it. This includes the founder's own DMs.",
       email: "NEVER ingested.",
       managedAdsSubscriptions: "LIVE. Read from the database at the moment of this question; see managedAds.",
+      shippedWork: "LIVE. Pull requests merged in the last 7 days, read from GitHub at the moment of this question; see shipped.",
     },
     managedAds,
+    shipped,
     recordMatches: matches.map((row) => ({
       source: row.source,
       title: row.title,
@@ -380,15 +497,19 @@ When the record does not contain the answer, distinguish two very different case
 
 If the relevant source IS ingested and simply holds nothing, say the record shows nothing and that you would expect it to.
 
+If the relevant source IS ingested but the question is about something recent, check lastRefreshed. When the event could postdate the last refresh, say when the record was last refreshed rather than implying it did not happen.
+
 If the relevant source is NOT ingested, say you cannot see it. Read the whatIsIngested block before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
 
 Write for a phone screen. No markdown headers, no bullet lists, no tables. Two or three short paragraphs at most, and one is often right. Slack bold is single asterisks.
 
-Lead with the answer. Do not restate the question. Do not offer to help further.
+Lead with the answer. Do not restate the question. Never name the fields of the record (managedAds, shipped, readFailed and so on); say what they mean. Do not offer to help further.
 
 Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
 
 Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from managedAds. It is read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. Use managedAds.counts for any count or "this week" question rather than counting rows yourself, and give the dates. If managedAds.readFailed is set, say you could not read it.
+
+Questions about what was built, shipped, merged or deployed are answered from shipped first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production is the inProduction value, already worked out; never recompute it from timestamps. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If shipped.readFailed is set, say you could not read it.
 
 If the record shows something the founder appears to have wrong, say so directly in one sentence.`;
 
@@ -407,6 +528,10 @@ export async function answerFounderQuestion(
     const message = await anthropic.messages.create({
       model: CONVERSATION_MODEL,
       max_tokens: MAX_ANSWER_TOKENS,
+      // Adaptive thinking stays on: it is what made Sonnet correct a wrong
+      // premise instead of agreeing with it. Medium, not low: at low it said "five PRs" and listed seven.
+      thinking: { type: "adaptive" },
+      output_config: { effort: "medium" },
       system: CONVERSATION_SYSTEM,
       messages: [{
         role: "user",

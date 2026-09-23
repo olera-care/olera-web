@@ -113,6 +113,34 @@ function byWorkedOrder(
   return a.step - b.step || a.round - b.round;
 }
 
+/**
+ * The search each sweep opens, built from the campus name.
+ *
+ * One place, because the keywords are the working knowledge — an operator
+ * who has to remember "OR \"career center\"" will search for the wrong thing
+ * on the campus where it matters.
+ */
+const SWEEP_SEARCH: Record<"map" | "advisor" | "org", (campus: string) => Record<string, string>> = {
+  map: (campus) => ({
+    maps_url:
+      "https://www.google.com/maps/search/" + encodeURIComponent(`home care near ${campus}`),
+  }),
+  advisor: (campus) => ({
+    advisor_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} pre-health advising OR "career center" OR "health professions" advisor`,
+      ),
+  }),
+  org: (campus) => ({
+    org_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} student organizations pre-med OR pre-nursing OR "pre-health" OR "health professions" club president`,
+      ),
+  }),
+};
+
 const day = (iso: string | null): string =>
   iso ? new Date(iso).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
 
@@ -630,7 +658,7 @@ export async function GET() {
     // one to do, which means a campus created tomorrow gets the task with no
     // backfill and nothing to remember in the campus-creation path. The only
     // row this ever reads is the completed one.
-    for (const kind of ["map", "advisor"] as const) {
+    for (const kind of ["map", "advisor", "org"] as const) {
       const sweep = SWEEPS[kind];
       const row = (siteTasksByCampus.get(campus.id) ?? []).find(
         (t) => t.task_type === sweep.taskType,
@@ -675,20 +703,11 @@ export async function GET() {
             // The rung renders this as its link. Building it here means the
             // operator does not retype the campus into a search box, and the
             // same search runs at every university.
-            fields:
-              kind === "map"
-                ? {
-                    maps_url:
-                      "https://www.google.com/maps/search/" +
-                      encodeURIComponent(`home care near ${campus.name}`),
-                  }
-                : {
-                    advisor_search_url:
-                      "https://www.google.com/search?q=" +
-                      encodeURIComponent(
-                        `${campus.name} pre-health advising OR "career center" OR "health professions" advisor`,
-                      ),
-                  },
+            // The search the operator would have typed, typed for them. It
+            // is the whole reason the rung is quick: the keywords are the
+            // part that takes a minute to get right and is got wrong once
+            // and then copied for a year.
+            fields: SWEEP_SEARCH[kind](campus.name),
           },
         ],
       });

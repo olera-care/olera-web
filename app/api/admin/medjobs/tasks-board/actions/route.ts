@@ -11,6 +11,7 @@ import {
   forwardStep,
   formatPhone,
   resolveNext,
+  type SweptSection,
 } from "@/lib/medjobs/task-board";
 import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
 import { handleStudentOp, type StudentOp, type StudentRow } from "./student";
@@ -209,7 +210,7 @@ function cleanFound(raw: unknown): Found[] {
 
 async function createFound(
   db: ReturnType<typeof getServiceClient>,
-  section: "providers" | "advisors",
+  section: SweptSection,
   campusId: string,
   found: {
     name: string;
@@ -225,8 +226,21 @@ async function createFound(
 ): Promise<{ id?: string; error?: string }> {
   const provider = section === "providers";
 
+  // One creator for all three swept sections, because all three are
+  // student_outreach rows. What differs is two columns and a label.
+  //
+  // The kind values are the ones migration 072 constrains the column to —
+  // 'student_org', 'advisor', 'professor', 'dept_head', 'provider'. Anything
+  // else is refused outright, so this is not a place to invent a word.
+  const KIND: Record<SweptSection, { kind: string; stakeholder: string | null; foundBy: string }> = {
+    providers: { kind: "provider", stakeholder: null, foundBy: "provider_map_sweep" },
+    advisors: { kind: "advisor", stakeholder: "advisor", foundBy: "advisor_sweep" },
+    orgs: { kind: "student_org", stakeholder: "student_org", foundBy: "org_sweep" },
+  };
+  const of = KIND[section];
+
   const research: Record<string, unknown> = {
-    found_by: provider ? "provider_map_sweep" : "advisor_sweep",
+    found_by: of.foundBy,
     added_by: userId,
     added_at: new Date().toISOString(),
   };
@@ -241,8 +255,8 @@ async function createFound(
     .from("student_outreach")
     .insert({
       campus_id: campusId,
-      kind: provider ? "provider" : "advisor",
-      stakeholder_type: provider ? null : "advisor",
+      kind: of.kind,
+      stakeholder_type: of.stakeholder,
       organization_name: found.name.slice(0, 200),
       status: "researched",
       cadence_day: 0,
@@ -427,9 +441,16 @@ async function applyFound(
  * list should be: no id means create, an id means update, and an id that
  * has dropped out of the list means the row was taken off on screen.
  */
+/** The student_outreach.kind each swept section is stored under. */
+const SWEPT_KIND: Record<SweptSection, string> = {
+  providers: "provider",
+  advisors: "advisor",
+  orgs: "student_org",
+};
+
 async function syncFound(
   db: ReturnType<typeof getServiceClient>,
-  section: "providers" | "advisors",
+  section: SweptSection,
   campusId: string,
   list: Found[],
   before: Found[],
@@ -462,7 +483,8 @@ async function syncFound(
     .from("student_outreach")
     .select("id, organization_name, status")
     .eq("campus_id", campusId)
-    .eq("kind", section === "providers" ? "provider" : "advisor");
+    // The same kind the creator writes, so the dedupe actually matches.
+    .eq("kind", SWEPT_KIND[section]);
   const byName = new Map(
     (existing ?? [])
       // Archived ones are off the board on purpose — usually because this

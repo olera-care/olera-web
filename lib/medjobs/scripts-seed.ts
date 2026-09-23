@@ -286,6 +286,8 @@ function rungInstructions(rung: { what?: string; why?: string; steps?: string[] 
 const READS_FIRST: Partial<Record<SectionKey, string[]>> = {
   advisors: ["advisorsweep"],
   orgs: ["orgsweep"],
+  events: ["eventsweep"],
+  professors: ["professorsweep"],
 };
 
 /**

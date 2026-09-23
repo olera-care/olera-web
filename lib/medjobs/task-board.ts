@@ -36,7 +36,7 @@ export const SWEEP_PREFIX = "sweep:";
  * has it to do, which means a campus created tomorrow gets both with no
  * backfill and nothing to remember in the campus-creation path.
  */
-export type SweepKind = "map" | "advisor" | "org";
+export type SweepKind = "map" | "advisor" | "org" | "event" | "professor";
 
 export const SWEEPS: Record<
   SweepKind,
@@ -45,11 +45,13 @@ export const SWEEPS: Record<
   map: { taskType: "provider_map_sweep", section: "providers", branch: "mapsweep" },
   advisor: { taskType: "advisor_sweep", section: "advisors", branch: "advisorsweep" },
   org: { taskType: "org_sweep", section: "orgs", branch: "orgsweep" },
+  event: { taskType: "event_sweep", section: "events", branch: "eventsweep" },
+  professor: { taskType: "professor_sweep", section: "professors", branch: "professorsweep" },
 };
 
 /** The sections a sweep fills. Each one's records are student_outreach rows,
  *  which is what lets one creator serve all three. */
-export type SweptSection = "providers" | "advisors" | "orgs";
+export type SweptSection = "providers" | "advisors" | "orgs" | "events" | "professors";
 
 export const sweepId = (kind: SweepKind, campusId: string) =>
   `${SWEEP_PREFIX}${kind}:${campusId}`;

@@ -13,6 +13,7 @@ import {
   channelFromRecords,
   resolveChannel,
   SWEEPS,
+  type SweepKind,
   sweepId,
   derivedStep,
   forwardStep,
@@ -48,6 +49,10 @@ const STAKEHOLDER_SECTION: Record<string, SectionKey> = {
   student_org: "orgs",
   professor: "professors",
   dept_head: "professors",
+  // An event is a record now, not a row in the activation ledger. It has a
+  // ladder of its own — inquire, assign a leader, prepare, attend — and that
+  // is what a student_outreach row is for.
+  event: "events",
 };
 
 const CHANNEL_SECTION: Record<string, SectionKey> = {
@@ -120,7 +125,7 @@ function byWorkedOrder(
  * who has to remember "OR \"career center\"" will search for the wrong thing
  * on the campus where it matters.
  */
-const SWEEP_SEARCH: Record<"map" | "advisor" | "org", (campus: string) => Record<string, string>> = {
+const SWEEP_SEARCH: Record<SweepKind, (campus: string) => Record<string, string>> = {
   map: (campus) => ({
     maps_url:
       "https://www.google.com/maps/search/" + encodeURIComponent(`home care near ${campus}`),
@@ -137,6 +142,20 @@ const SWEEP_SEARCH: Record<"map" | "advisor" | "org", (campus: string) => Record
       "https://www.google.com/search?q=" +
       encodeURIComponent(
         `${campus} student organizations pre-med OR pre-nursing OR "pre-health" OR "health professions" club president`,
+      ),
+  }),
+  event: (campus) => ({
+    event_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} career fair OR "health professions fair" OR "internship fair" OR "student involvement fair" schedule`,
+      ),
+  }),
+  professor: (campus) => ({
+    professor_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} faculty directory biology OR nursing OR "health sciences" OR "public health" professor email`,
       ),
   }),
 };
@@ -658,7 +677,7 @@ export async function GET() {
     // one to do, which means a campus created tomorrow gets the task with no
     // backfill and nothing to remember in the campus-creation path. The only
     // row this ever reads is the completed one.
-    for (const kind of ["map", "advisor", "org"] as const) {
+    for (const kind of ["map", "advisor", "org", "event", "professor"] as const) {
       const sweep = SWEEPS[kind];
       const row = (siteTasksByCampus.get(campus.id) ?? []).find(
         (t) => t.task_type === sweep.taskType,

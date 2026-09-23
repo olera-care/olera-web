@@ -236,6 +236,8 @@ async function createFound(
     providers: { kind: "provider", stakeholder: null, foundBy: "provider_map_sweep" },
     advisors: { kind: "advisor", stakeholder: "advisor", foundBy: "advisor_sweep" },
     orgs: { kind: "student_org", stakeholder: "student_org", foundBy: "org_sweep" },
+    events: { kind: "event", stakeholder: "event", foundBy: "event_sweep" },
+    professors: { kind: "professor", stakeholder: "professor", foundBy: "professor_sweep" },
   };
   const of = KIND[section];
 
@@ -446,6 +448,8 @@ const SWEPT_KIND: Record<SweptSection, string> = {
   providers: "provider",
   advisors: "advisor",
   orgs: "student_org",
+  events: "event",
+  professors: "professor",
 };
 
 async function syncFound(

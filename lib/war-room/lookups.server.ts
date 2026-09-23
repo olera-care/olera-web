@@ -712,7 +712,7 @@ export const LOOKUP_TOOLS = [
   },
   {
     name: "nothing_fits",
-    description: "Call this when no lookup can answer the question, before telling the founder you cannot see something. Record what data would have answered it. It is shown to the founder as a list of lookups worth building.",
+    description: "Only for questions about Olera's own data. Call this when no lookup can answer such a question, before telling the founder you cannot see something. Never call it for questions about the outside world; use web search for those. Record what data would have answered it. It is shown to the founder as a list of lookups worth building.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -760,4 +760,65 @@ export async function runLookup(db: SupabaseClient, name: string, input: Record<
   } catch (error) {
     return { unavailable: `The ${name} lookup failed: ${error instanceof Error ? error.message : String(error)}` };
   }
+}
+
+/**
+ * Where Cortex's copy of a source has fallen behind the source itself.
+ *
+ * Question-independent on purpose. The gap list only catches questions Cortex
+ * knows it failed; a reader returning the wrong slice fails silently, because
+ * from the inside it looks like a quiet day. On 2026-09-23 three such failures
+ * were found in one afternoon, all by the founder in Slack: the history read
+ * the oldest page of each channel, attachments were dropped, and the live
+ * feed had never delivered a channel message. Each would have shown up here.
+ */
+export async function loadBlindSpots(db: SupabaseClient): Promise<string[]> {
+  const { data } = await db.from("war_room_source_state")
+    .select("source_key, last_success_at, last_error, metadata")
+    .in("source_key", ["slack_history", "slack_events", "archive"]);
+  const rows = (data ?? []) as Array<{ source_key: string; last_success_at: string | null; last_error: string | null; metadata: Record<string, unknown> | null }>;
+  const byKey = new Map(rows.map((row) => [row.source_key, row]));
+  const spots: string[] = [];
+  const DAY = 86_400_000;
+  const days = (ms: number) => Math.round(ms / DAY);
+
+  const history = byKey.get("slack_history");
+  type Result = { channel: string; error?: string; newestInSlack?: string | null; newestStored?: string | null; threadError?: string; threadsRead?: number; replies?: number };
+  const results = ((history?.metadata as { results?: Result[] } | null)?.results ?? []);
+  for (const result of results) {
+    if (result.error) {
+      spots.push(`#${result.channel}: cannot read it (${result.error}); invite the Cortex app to the channel.`);
+      continue;
+    }
+    if (result.newestInSlack) {
+      const lag = new Date(result.newestInSlack).getTime() - (result.newestStored ? new Date(result.newestStored).getTime() : 0);
+      if (lag > DAY) {
+        spots.push(result.newestStored
+          ? `#${result.channel}: my copy is ${days(lag)} days behind the channel.`
+          : `#${result.channel}: I hold nothing from it, though it has messages.`);
+      }
+    }
+  }
+  const threadFailures = results.filter((result) => result.threadError);
+  if (threadFailures.length) {
+    spots.push(`Slack thread replies failed in ${threadFailures.length} channel(s) (${threadFailures[0].threadError}); replies inside threads are invisible to me.`);
+  }
+  if (history?.last_success_at && Date.now() - new Date(history.last_success_at).getTime() > 2 * DAY) {
+    spots.push(`Slack backfill has not succeeded for ${days(Date.now() - new Date(history.last_success_at).getTime())} days.`);
+  }
+
+  // The live feed stores a channel message the moment it is posted. If it has
+  // never recorded one, or not for days, every message between scans exists
+  // only if the daily backfill happens to reach it.
+  const events = byKey.get("slack_events");
+  if (!events?.last_success_at) {
+    spots.push("The live Slack feed has never delivered a channel message. Between daily scans I only see what the backfill reaches; the Slack app likely is not subscribed to channel message events.");
+  } else if (Date.now() - new Date(events.last_success_at).getTime() > 2 * DAY) {
+    spots.push(`The live Slack feed has delivered nothing for ${days(Date.now() - new Date(events.last_success_at).getTime())} days.`);
+  }
+  const archive = byKey.get("archive");
+  if (archive?.last_success_at && Date.now() - new Date(archive.last_success_at).getTime() > 2 * DAY) {
+    spots.push(`The written record (SCRATCHPAD and docs) has not refreshed for ${days(Date.now() - new Date(archive.last_success_at).getTime())} days.`);
+  }
+  return spots;
 }

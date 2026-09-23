@@ -37,6 +37,11 @@ export const NUDGE_EMAIL_TYPES = new Set<string>([
   "provider_followup_day3",
   "provider_followup_day6",
   "provider_followup", // Catch-all for any provider followup variants
+  "building_payment_insurance", // Building stage: payment & insurance nudge
+  "building_availability", // Building stage: availability check nudge
+  "building_facility_manager", // Building stage: facility manager nudge
+  "building_care_services", // Building stage: care services nudge
+  "building_photos", // Building stage: photos nudge (final building email)
 ]);
 
 /** True when this email_type is a governed nudge (subject to the per-provider weekly cap). */

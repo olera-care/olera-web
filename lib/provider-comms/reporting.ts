@@ -31,6 +31,46 @@ export const ONBOARDING_MESSAGES = [
 ] as const;
 export const ONBOARDING_EMAIL_TYPES = ONBOARDING_MESSAGES.map((m) => m.type);
 export type OnboardingType = (typeof ONBOARDING_MESSAGES)[number]["type"];
+
+export const BUILDING_MESSAGES = [
+  {
+    type: "building_payment_insurance",
+    label: "Payment & insurance",
+    timing: "5 days after notifications · business hours",
+    action: "List accepted payment and insurance options",
+    automation: "building-payment-insurance",
+  },
+  {
+    type: "building_availability",
+    label: "Availability check",
+    timing: "5 days after payment & insurance · business hours",
+    action: "Confirm whether accepting new clients",
+    automation: "building-availability",
+  },
+  {
+    type: "building_facility_manager",
+    label: "Facility Manager",
+    timing: "5 days after availability check · business hours",
+    action: "Add facility manager name, photo, and bio",
+    automation: "building-facility-manager",
+  },
+  {
+    type: "building_care_services",
+    label: "Care Services",
+    timing: "7 days after facility manager · business hours",
+    action: "Confirm or edit category-specific care services",
+    automation: "building-care-services",
+  },
+  {
+    type: "building_photos",
+    label: "Photos",
+    timing: "7 days after care services · business hours",
+    action: "Add photos of apartments, team, amenities",
+    automation: "building-photos",
+  },
+] as const;
+export const BUILDING_EMAIL_TYPES = BUILDING_MESSAGES.map((m) => m.type);
+export type BuildingType = (typeof BUILDING_MESSAGES)[number]["type"];
 export type Source = "outreach" | "unknown" | "unresolved";
 export const SOURCE_LABELS: Record<Source, string> = {
   outreach: "Outreach before claim",
@@ -113,6 +153,59 @@ export function outreachBeforeClaim(
       return Number.isFinite(at) && at <= claim;
     })
   );
+}
+export interface BuildingRecipient {
+  id: string;
+  providerKey: string;
+  providerName: string;
+  directoryId: string | null;
+  email: string;
+  type: BuildingType;
+  attemptedAt: string;
+  source: Source;
+  state: DeliveryState;
+  reason: string | null;
+  accepted: boolean;
+  delivered: boolean;
+  opened: boolean;
+  clicked: boolean;
+}
+export interface BuildingPerformance {
+  type: BuildingType;
+  attempts: number;
+  providers: number;
+  accepted: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  suppressed: number;
+  failed: number;
+  pending: number;
+  bounced: number;
+  complained: number;
+}
+export function summarizeBuildingRecipients(
+  rows: BuildingRecipient[],
+): BuildingPerformance[] {
+  return BUILDING_MESSAGES.map((message) => {
+    const group = rows.filter((row) => row.type === message.type);
+    const count = (state: DeliveryState) =>
+      group.filter((row) => row.state === state).length;
+    return {
+      type: message.type,
+      attempts: group.length,
+      providers: new Set(group.map((row) => row.providerKey)).size,
+      accepted: group.filter((row) => row.accepted).length,
+      delivered: group.filter((row) => row.delivered).length,
+      opened: group.filter((row) => row.opened).length,
+      clicked: group.filter((row) => row.clicked).length,
+      suppressed: count("suppressed"),
+      failed: count("failed"),
+      pending: count("pending"),
+      bounced: count("bounced"),
+      complained: count("complained"),
+    };
+  });
 }
 export interface Recipient {
   id: string;

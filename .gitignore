@@ -45,6 +45,9 @@ next-env.d.ts
 # Claude Code local files (keep commands tracked for team sharing)
 .claude/*
 !.claude/commands/
+# Skills a cloud routine must load: routines read skills only from the
+# cloned repository, never from a personal ~/.claude/skills folder.
+!.claude/skills/
 /.swc
 /.well-known/workflow/
 

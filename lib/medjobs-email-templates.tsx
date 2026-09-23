@@ -601,7 +601,7 @@ export function profileIncompleteNudgeEmail({
   magicLink?: string;
   unsubscribeId?: string;
 }): string {
-  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs/profile`;
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
   const safeName = escapeHtml(firstName(studentName, "there"));
   const itemsList = missingItems
     .map((item) => `<li>${escapeHtml(item)}</li>`)

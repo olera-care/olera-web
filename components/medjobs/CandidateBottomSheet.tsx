@@ -10,7 +10,6 @@ import {
   getTrackLabel,
   formatHoursPerWeek,
   formatDuration,
-  formatAvailability,
   getActualCertifications,
   hasVideo,
   getYouTubeId,
@@ -423,7 +422,10 @@ export default function CandidateBottomSheet({
           >
             <button
               type="button"
-              onClick={() => setView("schedule")}
+              onClick={() => {
+                setError(""); // Clear any previous errors
+                setView("schedule");
+              }}
               className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -746,6 +748,7 @@ function ProfileContent({
             )}
             {meta.ncns_pledge && <CommitmentItem text="No-call no-show pledge" />}
             {meta.school_balance_pledge && <CommitmentItem text="Maintains shifts during exams" />}
+            {meta.advance_notice_pledge && <CommitmentItem text="Keeps availability updated regularly" />}
             {meta.prn_willing && <CommitmentItem text="Open to PRN/as-needed" />}
           </div>
         </Section>
@@ -756,7 +759,7 @@ function ProfileContent({
         <Section title="Screening Responses">
           <div className="space-y-4">
             {meta.scenario_responses!.map((sr, i) => (
-              <div key={i} className="border-l-3 border-primary-200 pl-3">
+              <div key={i} className="border-l-4 border-primary-200 pl-3">
                 <p className="text-xs font-semibold text-gray-700 mb-1">&ldquo;{sr.question}&rdquo;</p>
                 <p className="text-sm text-gray-600 leading-relaxed">{sr.answer}</p>
               </div>

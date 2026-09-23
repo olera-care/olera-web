@@ -160,6 +160,23 @@ async function slackUserName(token: string, userId: string | undefined): Promise
   }
 }
 
+/**
+ * Slack writes a mention as <@U013S7E67RN>. Stored raw, Cortex could not say
+ * who was tagged and, asked, guessed: it named "Louis Fisher" for a message
+ * addressed to Logan and TJ. Resolved to names at ingestion, through the same
+ * cached lookup as authors; an unresolvable id is left as it was.
+ */
+async function resolveMentions(token: string, text: string | undefined): Promise<string | undefined> {
+  if (!text || !text.includes("<@")) return text;
+  const ids = [...new Set([...text.matchAll(/<@([A-Z0-9]+)(?:\|[^>]*)?>/g)].map((match) => match[1]))];
+  let resolved = text;
+  for (const id of ids) {
+    const name = await slackUserName(token, id);
+    if (name) resolved = resolved.replace(new RegExp(`<@${id}(?:\\|[^>]*)?>`, "g"), `@${name}`);
+  }
+  return resolved;
+}
+
 type SlackMessage = {
   ts?: string;
   thread_ts?: string;
@@ -358,7 +375,9 @@ async function backfillSlackChannel(
     const newestInSlack = (payload.messages ?? []).find(usable)?.ts ?? null;
     const top = (payload.messages ?? []).filter(usable);
     const items: SourceItemInput[] = [];
-    for (const message of top) items.push(slackItem(channel, message, await slackUserName(token, message.user)));
+    for (const message of top) {
+      items.push(slackItem(channel, { ...message, text: await resolveMentions(token, message.text) }, await slackUserName(token, message.user)));
+    }
 
     // Open the busiest threads. A thread with more replies is where a decision
     // got made; a thread with one is usually an acknowledgement.
@@ -397,7 +416,7 @@ async function backfillSlackChannel(
         for (const reply of (thread.messages ?? []).filter(usable)) {
           if (reply.ts === parent.ts) continue;
           replies += 1;
-          items.push(slackItem(channel, reply, await slackUserName(token, reply.user)));
+          items.push(slackItem(channel, { ...reply, text: await resolveMentions(token, reply.text) }, await slackUserName(token, reply.user)));
         }
       } catch (threadFailure) {
         // One unreadable thread must not cost the rest of the channel -- but it
@@ -463,7 +482,7 @@ export async function ingestSlackEventEvidence(
     source_group: channel.label,
     source_kind: event.thread_ts ? "thread_reply" : "channel_message",
     title: authorName ? `#${channel.label} · ${authorName}` : `#${channel.label} conversation`,
-    content: slackContent(event),
+    content: slackContent({ ...event, text: token ? await resolveMentions(token, event.text) : event.text }),
     source_url: slackMessageUrl(channel.id, event.ts as string),
     occurred_at: occurredAt,
     last_edited_at: null,

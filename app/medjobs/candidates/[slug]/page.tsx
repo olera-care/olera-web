@@ -648,7 +648,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* ── Documents Section (Profile Owner / Paid Providers Only) ── */}
+              {/* ── Documents Section (Profile Owner / Providers) ── */}
               {canViewFullProfile && resumeUrl && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
                   <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
@@ -679,7 +679,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   </div>
                   {isOwnProfile && (
                     <p className="mt-4 text-xs text-gray-400">
-                      Only you and verified, subscribed providers can see this section.
+                      Only you and providers can see this section.
                     </p>
                   )}
                 </div>

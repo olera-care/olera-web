@@ -4504,6 +4504,45 @@ export function interviewProposedEmail(opts: {
   `, `${opts.proposerName} wants to schedule an interview with you`);
 }
 
+/** Email sent to provider when they schedule an interview (confirmation that it was sent) */
+export function interviewScheduledConfirmationEmail(opts: {
+  studentFirstName: string;
+  interviewType: string;
+  proposedTime: string;
+  alternativeTime?: string | null;
+  notes: string | null;
+  viewUrl: string;
+}): string {
+  const safeStudentName = escapeHtml(opts.studentFirstName);
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Request Sent</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Your interview request to <strong>${safeStudentName}</strong> has been sent successfully.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Format:</strong> ${escapeHtml(opts.interviewType)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Proposed time:</strong> ${escapeHtml(opts.proposedTime)}
+      </p>
+      ${opts.alternativeTime ? `<p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;"><strong>Alternative time:</strong> ${escapeHtml(opts.alternativeTime)}</p>` : ""}
+      ${opts.notes ? `<p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Notes:</strong> ${escapeHtml(opts.notes)}</p>` : ""}
+    </div>
+    <div style="background:#fef3c7;border-radius:12px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;">
+        <strong>What happens next?</strong> ${safeStudentName} will review your request and confirm the interview time. We'll notify you as soon as they respond.
+      </p>
+    </div>
+    <div style="margin:0 0 24px;">${button("View Interview", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Interview request sent to ${opts.studentFirstName}`);
+}
+
 /** Email sent to both parties when an interview is confirmed */
 export function interviewConfirmedEmail(opts: {
   otherName: string;

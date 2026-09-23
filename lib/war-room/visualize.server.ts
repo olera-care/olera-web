@@ -20,12 +20,19 @@
  * how Slack lets a slash through, is accepted too.
  */
 
-const VISUALIZE = /^\s*\/?visuali[sz]e\b[\s:,-]*/i;
+const VISUALIZE = /^\s*\/?visuali[sz]e\b[\s:,*_~`-]*/i;
+
+// Slack delivers formatting as markup. The first live request, on 2026-09-23,
+// arrived as "*visualize Minh-Nguyet's feedback*" (bold), so the anchored match
+// failed and it was answered as an ordinary question. Wrapping bold, italic,
+// strike, code and quote markers are removed before matching.
+const SLACK_FORMATTING = /^[\s*_~`>]+|[\s*_~`]+$/g;
 
 /** The subject of a visualize request, "" when it refers to the last exchange, or null when it is not one. */
 export function visualizeSubject(text: string): string | null {
-  if (!VISUALIZE.test(text)) return null;
-  return text.replace(VISUALIZE, "").trim();
+  const plain = text.replace(SLACK_FORMATTING, "");
+  if (!VISUALIZE.test(plain)) return null;
+  return plain.replace(VISUALIZE, "").trim();
 }
 
 export type RoutineStart =

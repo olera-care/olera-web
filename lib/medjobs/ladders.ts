@@ -1439,28 +1439,6 @@ If two names turn out to be the same office, add it once. If you are not sure wh
     channel: "st5",
     steps: [
       {
-        name: "identify-the-student-orgs",
-        title: "Identify the student orgs",
-        what: "Find the pre-health and nursing student organisations.",
-        why: "Orgs reach students through channels we can't touch — group chats, meetings.",
-        steps: ["Search the university org directory.", "Add each one you find.", "Done — each starts its own outreach."],
-        fanout: ["Pre-Med Society", "Anesthesia SIG"],
-        actions: [{ label: "Done — start outreach", outcome: "fanout", delay: 0 }],
-      },
-      {
-        name: "identify-a-contact-at-the-org",
-        title: "Identify a contact at the org",
-        what: "Find the president or an officer.",
-        why: "Orgs have no general inbox that anyone reads.",
-        steps: [
-          "Check the org page and socials.",
-          "Add their name and what they are to the org — president, vice-president, outreach chair.",
-          "Add an email, and a phone if you can find one.",
-        ],
-        collects: ["contact", "role", "email", "phone"],
-        actions: [{ label: "Contact found", outcome: "next", delay: 0 }],
-      },
-      {
         name: "send-the-program-info",
         title: "Send the program info",
         what: "The first email to the officer you just named.",
@@ -1490,13 +1468,26 @@ Dr. Logan DuBose's office · Olera`,
       { name: "follow-up-1", rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "orgs") },
       {
         name: "confirm-the-flyer-went-out-or-a-presentation-is-booked",
-        title: "Confirm the flyer went out or a presentation is booked",
+        title: "Confirm the flyer went out",
         what: "Either outcome counts — they circulate it, or they let us present.",
         why: "This is the goal for an org, and it resets every semester.",
         steps: ["Ask which one they'll do.", "Confirm it happened or is booked.", "Log it."],
         actions: [
-          { label: "Flyer circulated", outcome: "goal", delay: 0 },
+          { label: "Flyer circulated", outcome: "next", delay: 0 },
+          { label: "They will not circulate it", outcome: "next", delay: 0 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
+        ],
+      },
+      {
+        name: "book-a-presentation",
+        title: "Book a presentation",
+        what: "Ten minutes at one of their meetings.",
+        why: "A flyer in a group chat is read by whoever scrolls past. A presentation is the whole room.",
+        steps: ["Ask which meeting suits.", "Confirm the date.", "Put it in the calendar."],
+        inputs: [{ key: "presentation_at", label: "Presentation date and time", type: "datetime-local" }],
+        actions: [
           { label: "Presentation booked", outcome: "goal", delay: 0 },
+          { label: "They do not want one", outcome: "goal", delay: 0 },
         ],
       },
       {
@@ -1522,6 +1513,29 @@ Dr. Logan DuBose's office · Olera`,
         },
         actions: [{ label: "Logged", outcome: "goal", delay: 0 }],
       },
+      {
+        branch: "orgsweep",
+        title: "Identify the student orgs and leaders",
+        link: { key: "org_search_url", label: "Search for student orgs" },
+        what: "Find the pre-health and nursing student organisations, and who runs them.",
+        why: "Orgs reach students through channels we cannot touch — group chats, meetings. There is no general inbox, so the officer's name is the address.",
+        steps: [
+          "Open the search below and work the university's org directory.",
+          "Add each org with its president or officer — name, role, email, phone.",
+          "Finish when the list is complete. Each one starts its own outreach.",
+        ],
+        foundNoun: "Org",
+        actions: [{ label: "All student orgs added for this area", outcome: "fanout", delay: 0 }],
+      },
+      {
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever the org asked for that no rung covers.",
+        why: "Nobody can guess in advance what a student organisation will need.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "send-the-program-info" }],
+      },
     ],
   },
 
@@ -1529,87 +1543,98 @@ Dr. Logan DuBose's office · Olera`,
     label: "Campus events",
     goal: "attended",
     channel: "st6",
+    emptyNote: "Find the fairs and events worth being at, or set one up.",
     steps: [
       {
-        name: "research-career-fairs-and-events",
-        title: "Research career fairs and events",
-        what: "Find the events where we could meet students face to face.",
-        why: "One good fair beats a hundred cold emails.",
-        steps: ["Search the university events calendar.", "Add each event worth attending.", "Done."],
-        fanout: ["Fall Career Fair"],
-        actions: [{ label: "Done — add events", outcome: "fanout", delay: 0 }],
-      },
-      {
-        name: "sign-up-for-the-event",
-        title: "Sign up for the event",
-        what: "Register Olera as an exhibitor or attendee.",
-        why: "Fairs fill up and close registration early.",
-        steps: ["Find the registration.", "Sign up.", "Log it."],
-        actions: [{ label: "Signed up", outcome: "next", delay: 0 }],
-      },
-      {
-        name: "ask-the-advisor-about-other-events",
-        title: "Ask the advisor about other events",
-        what: "Find the events that aren't listed online.",
-        why: "Advisors know about things the calendar never shows, and can help us run our own.",
-        steps: ["Email the advising office.", "Ask what's coming and whether we could host something.", "Log what they say."],
-        email: {
-          subject: "Anything coming up we should be at? — {university}",
-          body: `Hi {first},
-
-We are looking at which {university} events are worth attending this term for the Student Caregiver Program — career fairs, pre-health nights, anything where we would meet students face to face.
-
-Two questions:
-
-  1. Is there anything coming up that is not on the public calendar?
-  2. Would you ever co-host a short info session with us?
-
-We bring the material and the people; you bring the room and the students.
-
-Thank you,
-[your name]
-Dr. Logan DuBose's office · Olera`,
-        },
-        actions: [{ label: "Logged", outcome: "next", delay: 0 }],
-      },
-      {
-        name: "set-the-event-up",
-        title: "Set the event up",
-        what: "Lock the logistics — date, place, table, whatever it needs.",
-        why: "An event nobody set up doesn't happen.",
-        steps: ["Confirm date and location.", "Sort the logistics.", "Log it."],
-        inputs: [
-          { key: "event_at", label: "Event date and time", type: "datetime-local" },
-          { key: "event_place", label: "Location" },
+        name: "inquire-about-participating",
+        title: "Inquire about participating",
+        what: "Ask the organiser whether we can have a table, a slot, or a mention.",
+        why: "Most fairs have a form and a deadline, and both are easy to miss by a week.",
+        steps: ["Find who runs it.", "Ask what participating involves and what it costs.", "Log what they say."],
+        textarea: "What they said",
+        actions: [
+          { label: "We're in", outcome: "next", delay: 0 },
+          { label: "Waiting to hear", outcome: "repeat", delay: 7 },
+          { label: "Not this one", outcome: "archive", delay: 0 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
         ],
-        actions: [{ label: "Set up", outcome: "next", delay: 0 }],
+      },
+      {
+        name: "assign-a-leader",
+        title: "Assign a leader",
+        what: "One person owns this event end to end.",
+        why: "An event with no name against it is an event nobody prepares for and two people turn up to.",
+        steps: ["Pick who is running it.", "Tell them.", "Type their name."],
+        inputs: [{ key: "leader", label: "Who owns this event", type: "text" }],
+        actions: [{ label: "Leader assigned", outcome: "next", delay: 0 }],
       },
       {
         name: "prepare-for-the-event",
         title: "Prepare for the event",
-        what: "Everything needed before the day.",
-        why: "Turning up unprepared wastes the slot.",
-        steps: ["Assign a team member to lead.", "Build the collateral — deck, agenda, flyers."],
-        inputs: [{ key: "lead", label: "Who's leading" }],
-        actions: [{ label: "Ready for the day", outcome: "next", delay: 0 }],
+        what: "Everything that has to exist before the day.",
+        why: "Turning up with nothing to hand anybody is the commonest way an event produces no applications.",
+        steps: [
+          "Build or pull the collateral — flyers, a one-pager, the QR.",
+          "Attach it to this record so whoever goes can find it.",
+          "Confirm the logistics: time, place, table, parking.",
+        ],
+        textarea: "What is ready and what is not",
+        actions: [
+          { label: "Ready", outcome: "next", delay: 0 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
+        ],
       },
       {
         name: "attend-and-document",
         title: "Attend and document",
-        what: "Go, then write down what happened.",
-        why: "If we don't record it we can't tell which events are worth repeating.",
-        steps: ["Attend.", "Note students spoken to and applications started."],
+        what: "Go, work it, and write down what happened.",
+        why: "An event nobody wrote up is an event we cannot decide about next season.",
+        steps: [
+          "Attend.",
+          "Note students spoken to and applications started.",
+          "Attach photos or anything worth keeping.",
+        ],
+        inputs: [
+          { key: "students_spoken_to", label: "Students spoken to", type: "number" },
+          { key: "applications_started", label: "Applications started", type: "number" },
+        ],
         textarea: "How it went",
-        actions: [{ label: "Log the event", outcome: "goal", delay: 0 }],
+        actions: [
+          { label: "Attended", outcome: "goal", delay: 120, goto: "what-s-coming-this-term-late-july" },
+          { label: "We did not go", outcome: "archive", delay: 0 },
+        ],
       },
       {
         name: "what-s-coming-this-term-late-july",
-        seasonal: true,
         title: "Seasonal check",
-        what: "Look ahead at the term's events.",
-        why: "Registration closes weeks before the event.",
-        steps: ["Check the calendar.", "Add anything worth attending."],
-        actions: [{ label: "Logged", outcome: "goal", delay: 0 }],
+        what: "What is on this season, and what should we run ourselves?",
+        why: "Fairs move, and the best slot is often one we create rather than join.",
+        steps: ["Check the calendar for the coming term.", "Add anything worth attending.", "Decide whether to host one."],
+        textarea: "What is coming",
+        actions: [{ label: "Logged", outcome: "goal", delay: 120, goto: "what-s-coming-this-term-late-july" }],
+      },
+      {
+        branch: "eventsweep",
+        title: "Research career fairs and events",
+        what: "Find the fairs, expos and involvement events worth being at.",
+        why: "A campus runs more of these than anybody remembers, and the good ones fill up early.",
+        steps: [
+          "Open the search below and work the university's events calendar.",
+          "Add each event worth attending, with whoever organises it.",
+          "Finish when the list is complete. Each one starts its own preparation.",
+        ],
+        link: { key: "event_search_url", label: "Search for campus events" },
+        foundNoun: "Event",
+        actions: [{ label: "All events added for this area", outcome: "fanout", delay: 0 }],
+      },
+      {
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever this event needed that no rung covers — an approval, a permit, a marketing ask.",
+        why: "Getting an event approved and in front of students throws up things nobody can list in advance.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "prepare-for-the-event" }],
       },
     ],
   },
@@ -1618,70 +1643,29 @@ Dr. Logan DuBose's office · Olera`,
     label: "Professors",
     goal: "emailed this season",
     channel: "st7",
+    emptyNote: "Find the faculty whose students fit, and write to them once.",
     steps: [
-      {
-        name: "get-permission-to-email-professors",
-        title: "Get permission to email professors",
-        what: "Written approval from the dean, department chair, or another person of authority.",
-        why: "We do not email professors cold. This is the gate for the whole section.",
-        steps: [
-          "Start with the dean or chair.",
-          "Call and email asking permission.",
-          "Type their name — it goes in the professor email.",
-        ],
-        script:
-          '"Hi, this is [your name] from Dr. DuBose\'s office. We run a Student Caregiver Program and we\'d like to let your faculty know about it — would you be comfortable authorising us to email them?"',
-        email: {
-          subject: "Permission to contact faculty about a student programme",
-          body: `Dear {first},
-
-I am writing from Dr. Logan DuBose's office to ask permission before contacting any faculty in your department.
-
-We run the Student Caregiver Program: pre-health students take paid caregiving shifts with licensed providers near {university}, built around their class schedule. It gives them real patient contact before professional school.
-
-We would like to let a small number of faculty know, so they can mention it to students for whom it fits. One email each, once a term — we do not contact faculty repeatedly.
-
-Overview: {flyer}
-
-May we have your approval to do that? If you would rather we did not, tell me and we will close the file on faculty outreach here.
-
-With thanks,
-[your name]
-Dr. Logan DuBose's office · Olera`,
-        },
-        inputs: [{ key: "approver", label: "Who gave permission" }],
-        actions: [
-          { label: "Permission granted", outcome: "next", delay: 0, ticks: ["pathway", "approved"] },
-          { label: "Refused — close this section", outcome: "closed", delay: 0 },
-        ],
-      },
-      {
-        name: "identify-professors-from-the-directory",
-        title: "Identify professors from the directory",
-        what: "List the professors whose students fit the program.",
-        why: "Targeting the right courses matters more than volume.",
-        steps: ["Open the department directory.", "Add each professor worth emailing.", "Done — each gets one email."],
-        fanout: ["Dr. Mehta · BIO 340", "Dr. Okafor · NUR 210"],
-        actions: [{ label: "Done — add professors", outcome: "fanout", delay: 0 }],
-      },
       {
         name: "email-flyer-and-class-visit",
         title: "Email — flyer and class visit",
         what: "One email asking them to share the flyer and offering a class visit.",
-        why: "Never more than one email per professor per season. That's the rule.",
-        steps: ["Copy the email — it already names who authorised us.", "Send it from your own inbox.", "Log it."],
+        why: "Never more than one email per professor per season. That is the rule, and it is what makes the next one welcome.",
+        steps: [
+          "Check the campus note first — a few universities restrict outside solicitation through their systems.",
+          "If an advising office has said we may name them, put their name in. If not, send it as it stands.",
+          "Send it from your own inbox, then log it.",
+        ],
         email: {
-          subject: "For your students: paid caregiving shifts (approved by {approver})",
+          subject: "For your students: paid caregiving shifts near {university}",
           body: `Dear {first},
+{approval}
+I am writing once, with something that may suit some of your students.
 
-{approver} approved us contacting faculty about this, so I am writing once with something that may suit your students.
+The Student Caregiver Program places pre-health students into paid caregiving shifts with licensed local home care agencies near {university}. They help older adults with supervision, medication reminders, transfers, companionship and personal care — hands-on experience, paid, arranged around a class timetable, and the kind of thing an admissions committee asks about.
 
-The Student Caregiver Program places pre-health students into paid caregiving shifts with licensed providers near {university}. Hands-on patient experience, paid, arranged around a class timetable — the kind of thing that strengthens a professional school application.
+Would you be comfortable sharing the one-pager with students you think it fits? {flyer}
 
-Two offers, take either or neither:
-
-  · Share the one-pager with your class: {flyer}
-  · We come and speak for ten minutes at the start of a session
+If it is easier, we are happy to come and speak for ten minutes at the start of a session instead.
 
 This is the only email you will get from me this term.
 
@@ -1689,7 +1673,24 @@ With thanks,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Log email sent", outcome: "goal", delay: 0 }],
+        actions: [
+          { label: "Log email sent", outcome: "next", delay: 7 },
+          { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
+        ],
+      },
+      {
+        name: "confirm-they-shared-it",
+        title: "Confirm they shared it",
+        what: "Did the flyer reach students?",
+        why: "Agreeing and sending are not the same thing, and this is the only number that says the channel works.",
+        steps: ["Ask how it went out — email, announcement, in class.", "Log what they say."],
+        textarea: "What they said",
+        actions: [
+          { label: "Yes, shared", outcome: "goal", delay: 120, goto: "message-professors-again-late-july" },
+          { label: "Class visit booked", outcome: "goal", delay: 120, goto: "message-professors-again-late-july" },
+          { label: "No reply", outcome: "goal", delay: 120, goto: "message-professors-again-late-july" },
+          { label: "Asked us not to write again", outcome: "archive", delay: 0 },
+        ],
       },
       {
         name: "message-professors-again-late-july",
@@ -1702,7 +1703,7 @@ Dr. Logan DuBose's office · Olera`,
           subject: "New term — Student Caregiver Program at {university}",
           body: `Dear {first},
 
-New term, so one note about the Student Caregiver Program: paid caregiving shifts for pre-health students with licensed providers near {university}, arranged around their classes.
+New term, so one note about the Student Caregiver Program: paid caregiving shifts for pre-health students with licensed local home care agencies near {university}, arranged around their classes.
 
 Current one-pager: {flyer}
 
@@ -1712,7 +1713,75 @@ With thanks,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Logged", outcome: "goal", delay: 0 }],
+        actions: [{ label: "Logged", outcome: "goal", delay: 120, goto: "message-professors-again-late-july" }],
+      },
+      {
+        branch: "professorsweep",
+        title: "Research professors from the directory",
+        what: "List the faculty whose students fit the program, with their department email.",
+        why: "Targeting the right courses matters far more than volume, and one wrong email costs more than ten right ones earn.",
+        steps: [
+          "Open the search below and work the department directory.",
+          "Add each professor worth writing to — name, department or course, email.",
+          "Finish when the list is complete. Each one gets one email.",
+        ],
+        link: { key: "professor_search_url", label: "Search the faculty directory" },
+        foundNoun: "Professor",
+        actions: [{ label: "All professors added for this area", outcome: "fanout", delay: 0 }],
+      },
+      {
+        branch: "errand",
+        title: "Something else",
+        what: "Whatever came back from a professor that no rung covers.",
+        why: "A reply asking for something specific is the best outcome this channel has, and it never fits a template.",
+        steps: ["Do the thing.", "Log what it was."],
+        textarea: "What it was",
+        actions: [{ label: "Done — back to the sequence", outcome: "next", delay: 0, goto: "confirm-they-shared-it" }],
+      },
+      {
+        branch: "permission",
+        title: "Ask permission to contact faculty",
+        what: "One approach to whoever can say yes on behalf of the institution — a department chair, industry or corporate relations, or a communications office.",
+        why: "Naming who approved us changes a faculty email more than any other word in it. It is not a gate: the emails go out either way, and this makes the next ones land better.",
+        steps: [
+          "Find the chair, industry-relations or communications contact for the departments we are writing to.",
+          "Ask two things: may we contact faculty, and may we say you approved it.",
+          "Type their name and title. Every professor email after this reads better for it.",
+        ],
+        link: { key: "permission_search_url", label: "Find who can approve this" },
+        inputs: [
+          { key: "approver", label: "Who approved it", type: "text" },
+          { key: "approver_title", label: "Their title", type: "text" },
+        ],
+        email: {
+          subject: "Contacting faculty about a paid student programme at {university}",
+          body: `Dear {first},
+
+I am writing from Dr. Logan DuBose's office before contacting any faculty, so that we do it the way you would want it done.
+
+We run the Student Caregiver Program: pre-health students take paid caregiving shifts with licensed local home care agencies near {university}, arranged around their classes. It gives them hands-on experience with older adults before they apply to professional school.
+
+We would like to write once to a small number of faculty whose students it may suit, asking them to use their own judgement about whether to pass it on. One email each, once a term.
+
+One-pager: {flyer}
+
+Two questions:
+
+  · Are you comfortable with us contacting faculty directly?
+  · If so, may we say you were happy for us to get in touch?
+
+If you would rather we did not, say so and we will leave faculty alone here.
+
+With thanks,
+[your name]
+Dr. Logan DuBose's office · Olera`,
+        },
+        actions: [
+          { label: "Approved — we may name them", outcome: "goal", delay: 0, ticks: ["pathway", "approved"] },
+          { label: "Approved — do not name them", outcome: "goal", delay: 0, ticks: ["pathway"] },
+          { label: "No reply", outcome: "goal", delay: 0 },
+          { label: "Refused — do not contact faculty", outcome: "closed", delay: 0 },
+        ],
       },
     ],
   },

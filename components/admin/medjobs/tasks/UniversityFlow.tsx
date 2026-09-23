@@ -528,6 +528,7 @@ export default function UniversityFlow({
           record={record}
           task={task}
           onOpenRecord={() => setView({ kind: "record", recordId: record.id })}
+          permission={university.facultyPermission ?? null}
           onAct={act}
           onDefer={(days) => {
             const persist = PERSISTED[record.section];

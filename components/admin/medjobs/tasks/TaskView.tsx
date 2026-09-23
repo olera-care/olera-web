@@ -25,6 +25,8 @@ import {
   type BoardRecord,
   type BoardTask,
   type FoundRecord,
+  FOUND_FIELDS,
+  type SweptSection,
 } from "@/lib/medjobs/task-board";
 
 /**
@@ -64,6 +66,7 @@ export default function TaskView({
   record,
   task,
   onOpenRecord,
+  permission,
   onAct,
   onDefer,
   onStop,
@@ -84,6 +87,8 @@ export default function TaskView({
   record: BoardRecord;
   task: BoardTask;
   onOpenRecord: () => void;
+  /** Who approved contacting faculty at this campus, when anybody has. */
+  permission?: { approver: string; title: string; named: boolean } | null;
   onAct: (actionIndex: number) => void;
   onDefer: (days: number) => void;
   onStop: (reason: string) => void;
@@ -176,7 +181,13 @@ export default function TaskView({
     contact: record.contact || record.name,
     first: (record.contact || "there").split(" ")[0],
     role: record.role,
-    approver: task.fields?.approver || "your department",
+    approver: permission?.approver || task.fields?.approver || "your department",
+    // A whole line, or nothing at all. The alternative was two versions of
+    // the same email, one naming an approver and one not, which is two
+    // things to keep in step and one of them always goes stale.
+    approval: permission
+      ? `\n${permission.approver}${permission.title ? `, ${permission.title},` : ""} was happy for us to get in touch.\n`
+      : "",
     flyer,
   };
 
@@ -437,6 +448,7 @@ export default function TaskView({
             <FoundList
               found={found}
               noun={rung.foundNoun ?? "one"}
+              fields={FOUND_FIELDS[record.section as SweptSection] ?? FOUND_FIELDS.providers}
               onChange={onFound}
               saving={saving}
             />
@@ -740,18 +752,10 @@ function flyerAudience(section: SectionKey): "student" | "advisor" | "provider" 
   return "provider";
 }
 
-/** The fields a found record carries, in the order the record shows them. */
-const FOUND_FIELDS: Array<{ key: keyof FoundRecord; label: string }> = [
-  { key: "contact", label: "Primary contact" },
-  { key: "role", label: "Role" },
-  { key: "phone", label: "Phone" },
-  { key: "email", label: "Email" },
-  { key: "website", label: "Website" },
-  { key: "address", label: "Address" },
-];
-
 const summarise = (f: FoundRecord) => {
-  const line = [f.contact, f.role, f.phone, f.email, f.website].filter(Boolean).join(" · ");
+  const line = [f.date, f.address, f.contact, f.role, f.phone, f.email, f.website]
+    .filter(Boolean)
+    .join(" · ");
   const more = (f.others ?? []).length;
   return more > 0 ? `${line}${line ? " · " : ""}+${more} more` : line;
 };
@@ -816,12 +820,16 @@ function PersonLine({
 function FoundList({
   found,
   noun,
+  fields,
   onChange,
   saving,
 }: {
   found: FoundRecord[];
   /** What one of these is called, for the empty form's first box. */
   noun: string;
+  /** What this section asks for. A student org has no postal address and a
+   *  professor has a department rather than one. */
+  fields: Array<{ key: keyof FoundRecord; label: string }>;
   onChange: (next: FoundRecord[]) => void;
   /** A write is in flight, so nothing that writes may be pressed. */
   saving?: boolean;
@@ -907,7 +915,7 @@ function FoundList({
           className="mb-1.5 w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-[14px] font-semibold text-gray-900 placeholder:font-normal placeholder:text-gray-400 focus:border-primary-600 focus:outline-none"
         />
         <div className="space-y-1.5">
-          {FOUND_FIELDS.map((f) => (
+          {fields.map((f) => (
             <label key={f.key} className="flex items-center gap-2.5">
               <span className="w-24 shrink-0 text-[12px] text-gray-500">{f.label}</span>
               <input

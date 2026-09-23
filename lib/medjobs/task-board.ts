@@ -36,15 +36,33 @@ export const SWEEP_PREFIX = "sweep:";
  * has it to do, which means a campus created tomorrow gets both with no
  * backfill and nothing to remember in the campus-creation path.
  */
-export type SweepKind = "map" | "advisor";
+export type SweepKind =
+  | "map"
+  | "advisor"
+  | "org"
+  | "event"
+  | "professor"
+  // Not a sweep in the sense of finding things — it finds one fact. It rides
+  // the same machinery because it is the same shape: one task per campus,
+  // derived rather than seeded, gone once it is done, and never attached to
+  // a record.
+  | "permission";
 
 export const SWEEPS: Record<
   SweepKind,
-  { taskType: string; section: "providers" | "advisors"; branch: string }
+  { taskType: string; section: SweptSection; branch: string }
 > = {
   map: { taskType: "provider_map_sweep", section: "providers", branch: "mapsweep" },
   advisor: { taskType: "advisor_sweep", section: "advisors", branch: "advisorsweep" },
+  org: { taskType: "org_sweep", section: "orgs", branch: "orgsweep" },
+  event: { taskType: "event_sweep", section: "events", branch: "eventsweep" },
+  professor: { taskType: "professor_sweep", section: "professors", branch: "professorsweep" },
+  permission: { taskType: "faculty_permission", section: "professors", branch: "permission" },
 };
+
+/** The sections a sweep fills. Each one's records are student_outreach rows,
+ *  which is what lets one creator serve all three. */
+export type SweptSection = "providers" | "advisors" | "orgs" | "events" | "professors";
 
 export const sweepId = (kind: SweepKind, campusId: string) =>
   `${SWEEP_PREFIX}${kind}:${campusId}`;
@@ -62,8 +80,12 @@ export function parseSweepId(id: string): { kind: SweepKind; campusId: string } 
   const cut = rest.indexOf(":");
   if (cut < 0) return { kind: "map", campusId: rest };
   const kind = rest.slice(0, cut);
-  if (kind !== "map" && kind !== "advisor") return { kind: "map", campusId: rest };
-  return { kind, campusId: rest.slice(cut + 1) };
+  // Asked of SWEEPS rather than listed here. It was listed here — "map" and
+  // "advisor" — so the three sweeps added after it parsed as a map sweep of
+  // a campus whose id was "org:<uuid>", and the server answered "invalid
+  // input syntax for type uuid". Every new sweep would have been born broken.
+  if (!(kind in SWEEPS)) return { kind: "map", campusId: rest };
+  return { kind: kind as SweepKind, campusId: rest.slice(cut + 1) };
 }
 
 /**
@@ -104,9 +126,74 @@ export interface FoundRecord {
   email?: string;
   website?: string;
   address?: string;
+  /**
+   * When it happens. Campus events only — everything else on this form is a
+   * standing thing with no date, and an event without one is a row nobody
+   * can act on.
+   */
+  date?: string;
   /** Everyone else listed on the page, beyond the one above. */
   others?: ExtraContact[];
 }
+
+/**
+ * What the add form asks for, per section.
+ *
+ * It asked the same six things everywhere, which is right for an agency and
+ * wrong for everyone else: a student org has no postal address, a professor
+ * has a department rather than one, and an event has a date and a place —
+ * neither of which had a field, so the date was going in the name.
+ */
+export const FOUND_FIELDS: Record<
+  SweptSection,
+  Array<{ key: keyof FoundRecord; label: string }>
+> = {
+  providers: [
+    { key: "contact", label: "Primary contact" },
+    { key: "role", label: "Role" },
+    { key: "phone", label: "Phone" },
+    { key: "email", label: "Email" },
+    { key: "website", label: "Website" },
+    { key: "address", label: "Address" },
+  ],
+  advisors: [
+    { key: "contact", label: "Primary contact" },
+    { key: "role", label: "Role" },
+    { key: "phone", label: "Phone" },
+    { key: "email", label: "Email" },
+    { key: "website", label: "Website" },
+    { key: "address", label: "Office" },
+  ],
+  // The officer is the address. An org has no postal one worth holding, and
+  // the handle people actually reach them on is more use than a web page.
+  orgs: [
+    { key: "contact", label: "President or officer" },
+    { key: "role", label: "Their role" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Phone" },
+    { key: "website", label: "Page or socials" },
+  ],
+  // The date first, because it is the thing that decides whether this event
+  // is worth anything to us, and the one nobody can look up later.
+  events: [
+    { key: "date", label: "Date" },
+    { key: "address", label: "Where" },
+    { key: "contact", label: "Organiser" },
+    { key: "role", label: "Their role" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Phone" },
+    { key: "website", label: "Event page" },
+  ],
+  // The professor's name is the record's name, so the contact line is their
+  // department and course — which is the whole basis for writing to them
+  // rather than to somebody else.
+  professors: [
+    { key: "role", label: "Department or course" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Phone" },
+    { key: "website", label: "Faculty page" },
+  ],
+};
 
 export interface BoardTask {
   id: string;
@@ -193,6 +280,8 @@ export interface BoardRecord {
    * disclosure in the UI: one contact is the normal case and two should not
    * cost the normal case any attention.
    */
+  /** Campus events only: when it happens. */
+  date?: string;
   others?: ExtraContact[];
   /**
    * Job board only. A channel is not a person, so none of the fields above
@@ -260,6 +349,15 @@ export interface BoardUniversity {
   mapsDestination: string | null;
   /** A teaching campus. Badged on the board, and out of every rollup. */
   isDemo?: boolean;
+  /**
+   * Who approved our contacting faculty here, when somebody has.
+   *
+   * A department chair, industry relations, or a communications office —
+   * recorded once for the campus and read by every professor email after
+   * it. Absent means nobody has been asked, or nobody said yes, and the
+   * email goes out on its own terms.
+   */
+  facultyPermission?: { approver: string; title: string; named: boolean } | null;
   /** Straight from campus_channels — the dots keep their current meaning. */
   channels: Partial<Record<"st3" | "st4" | "st5" | "st6" | "st7", ChannelStatus>>;
   records: Record<SectionKey, BoardRecord[]>;
@@ -488,10 +586,19 @@ export const LOCAL_PREFIX = "local-";
 export const DEMO_RECORD_PREFIX = "demo:";
 
 /** True when this record exists only in the page, with no row behind it. */
+/**
+ * The board's stand-in for a section with nothing in it yet — "new:<campus>:
+ * <section>". It looks like a record so the first rung has somewhere to
+ * render, but there is no row behind it, and treating it as one offered an
+ * attachment control that posted a non-uuid and failed in red on the screen.
+ */
+export const PLACEHOLDER_PREFIX = "new:";
+
 export const isSaved = (id: string): boolean =>
   !id.startsWith(LOCAL_PREFIX) &&
   !id.startsWith(SWEEP_PREFIX) &&
-  !id.startsWith(DEMO_RECORD_PREFIX);
+  !id.startsWith(DEMO_RECORD_PREFIX) &&
+  !id.startsWith(PLACEHOLDER_PREFIX);
 
 const newId = (): string => `${LOCAL_PREFIX}${Date.now().toString(36)}-${(seq += 1).toString(36)}`;
 

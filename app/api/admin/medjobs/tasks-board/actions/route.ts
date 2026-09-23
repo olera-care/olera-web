@@ -11,6 +11,7 @@ import {
   forwardStep,
   formatPhone,
   resolveNext,
+  type SweptSection,
 } from "@/lib/medjobs/task-board";
 import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
 import { handleStudentOp, type StudentOp, type StudentRow } from "./student";
@@ -128,6 +129,10 @@ const STAKEHOLDER_SECTION: Record<string, SectionKey> = {
   student_org: "orgs",
   professor: "professors",
   dept_head: "professors",
+  // Must match the board's copy. It did not: the board learned about events
+  // and this did not, so an event record rendered fine and answered "that
+  // record has no ladder" the moment anybody logged anything on it.
+  event: "events",
 };
 
 const sectionOf = (row: { kind: string; stakeholder_type?: string | null }): SectionKey | null =>
@@ -166,6 +171,9 @@ type Found = {
   email: string;
   website: string;
   address: string;
+  /** Campus events only. Free text, because "Thursday week 3" is a real
+   *  answer and a date picker would refuse it. */
+  date: string;
   others: Array<{ id?: string; contact: string; role: string; phone: string; email: string }>;
 };
 
@@ -192,6 +200,7 @@ function cleanFound(raw: unknown): Found[] {
         email: str(r.email, 200),
         website: str(r.website, 500),
         address: str(r.address, 500),
+        date: str(r.date, 100),
         others: (Array.isArray(r.others) ? r.others : []).slice(0, 20).map((o) => {
           const x = (o ?? {}) as Record<string, unknown>;
           return {
@@ -209,7 +218,7 @@ function cleanFound(raw: unknown): Found[] {
 
 async function createFound(
   db: ReturnType<typeof getServiceClient>,
-  section: "providers" | "advisors",
+  section: SweptSection,
   campusId: string,
   found: {
     name: string;
@@ -219,14 +228,30 @@ async function createFound(
     email?: string;
     website?: string;
     address?: string;
+    date?: string;
     others?: Array<{ contact?: string; role?: string; phone?: string; email?: string }>;
   },
   userId: string,
 ): Promise<{ id?: string; error?: string }> {
   const provider = section === "providers";
 
+  // One creator for all three swept sections, because all three are
+  // student_outreach rows. What differs is two columns and a label.
+  //
+  // The kind values are the ones migration 072 constrains the column to —
+  // 'student_org', 'advisor', 'professor', 'dept_head', 'provider'. Anything
+  // else is refused outright, so this is not a place to invent a word.
+  const KIND: Record<SweptSection, { kind: string; stakeholder: string | null; foundBy: string }> = {
+    providers: { kind: "provider", stakeholder: null, foundBy: "provider_map_sweep" },
+    advisors: { kind: "advisor", stakeholder: "advisor", foundBy: "advisor_sweep" },
+    orgs: { kind: "student_org", stakeholder: "student_org", foundBy: "org_sweep" },
+    events: { kind: "event", stakeholder: "event", foundBy: "event_sweep" },
+    professors: { kind: "professor", stakeholder: "professor", foundBy: "professor_sweep" },
+  };
+  const of = KIND[section];
+
   const research: Record<string, unknown> = {
-    found_by: provider ? "provider_map_sweep" : "advisor_sweep",
+    found_by: of.foundBy,
     added_by: userId,
     added_at: new Date().toISOString(),
   };
@@ -236,13 +261,14 @@ async function createFound(
   if (provider) research.manual_entry = true;
   if (found.website?.trim()) research.website = found.website.trim();
   if (found.address?.trim()) research.address = found.address.trim();
+  if (found.date?.trim()) research.date = found.date.trim();
 
   const { data, error } = await db
     .from("student_outreach")
     .insert({
       campus_id: campusId,
-      kind: provider ? "provider" : "advisor",
-      stakeholder_type: provider ? null : "advisor",
+      kind: of.kind,
+      stakeholder_type: of.stakeholder,
       organization_name: found.name.slice(0, 200),
       status: "researched",
       cadence_day: 0,
@@ -337,6 +363,7 @@ async function applyFound(
   for (const [key, value] of [
     ["website", f.website],
     ["address", f.address],
+    ["date", f.date],
   ] as const) {
     if (value) research[key] = value;
     else delete research[key];
@@ -427,9 +454,18 @@ async function applyFound(
  * list should be: no id means create, an id means update, and an id that
  * has dropped out of the list means the row was taken off on screen.
  */
+/** The student_outreach.kind each swept section is stored under. */
+const SWEPT_KIND: Record<SweptSection, string> = {
+  providers: "provider",
+  advisors: "advisor",
+  orgs: "student_org",
+  events: "event",
+  professors: "professor",
+};
+
 async function syncFound(
   db: ReturnType<typeof getServiceClient>,
-  section: "providers" | "advisors",
+  section: SweptSection,
   campusId: string,
   list: Found[],
   before: Found[],
@@ -462,7 +498,8 @@ async function syncFound(
     .from("student_outreach")
     .select("id, organization_name, status")
     .eq("campus_id", campusId)
-    .eq("kind", section === "providers" ? "provider" : "advisor");
+    // The same kind the creator writes, so the dedupe actually matches.
+    .eq("kind", SWEPT_KIND[section]);
   const byName = new Map(
     (existing ?? [])
       // Archived ones are off the board on purpose — usually because this
@@ -671,7 +708,16 @@ export async function POST(req: Request) {
       completed_at: new Date().toISOString(),
       completed_by: user.id,
       created_by: user.id,
-      payload: { found, added: made },
+      // The fields the rung asked for, kept with the task that asked. The
+      // permission task's whole output is two of them — who approved it and
+      // their title — and without this the completion threw them away and
+      // every professor email after it went out cold.
+      payload: {
+        found,
+        added: made,
+        fields: (body.fields ?? {}) as Record<string, string>,
+        action: Number(body.actionIndex),
+      },
       notes: (body.note ?? "").trim() || null,
     };
     const { error } = existingRow

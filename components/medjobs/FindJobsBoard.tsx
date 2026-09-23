@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import ProviderBottomSheet from "@/components/medjobs/ProviderBottomSheet";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import type { ProviderCard } from "@/app/api/medjobs/providers/route";
 
@@ -115,6 +116,7 @@ export default function FindJobsBoard() {
   const [loading, setLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<ProviderCard | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<ProviderCard | null>(null);
   const [requested, setRequested] = useState<Set<string>>(new Set());
 
   const fetchedRef = useRef(false);
@@ -340,7 +342,22 @@ export default function FindJobsBoard() {
                   key={provider.id}
                   onMouseEnter={() => setHoveredId(provider.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  className="rounded-2xl transition-shadow hover:shadow-md"
+                  onClick={(e) => {
+                    // Cmd/ctrl-click always opens in new tab (let Link handle it)
+                    if (e.metaKey || e.ctrlKey) return;
+                    e.preventDefault();
+
+                    // Desktop (lg+): open profile in new tab
+                    // Mobile: open bottom sheet for quick preview
+                    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+                    if (isDesktop) {
+                      const url = `/provider/${provider.slug}${student.campus ? `?campus=${student.campus}` : ""}`;
+                      window.open(url, "_blank");
+                    } else {
+                      setSelectedProvider(provider);
+                    }
+                  }}
+                  className="rounded-2xl transition-shadow hover:shadow-md cursor-pointer"
                 >
                   <BrowseCard
                     provider={provider}
@@ -380,6 +397,32 @@ export default function FindJobsBoard() {
           </div>
         </div>
       </div>
+
+      {/* Mobile: Provider Bottom Sheet */}
+      {selectedProvider && (
+        <ProviderBottomSheet
+          isOpen={!!selectedProvider}
+          onClose={() => setSelectedProvider(null)}
+          provider={selectedProvider}
+          campus={student.campus || undefined}
+          isRequested={requested.has(selectedProvider.id)}
+          canRequest={!!student.profileId}
+          requestLabel={
+            requested.has(selectedProvider.id)
+              ? "Interview Requested"
+              : student.isLive
+              ? "Request Interview"
+              : "Complete profile to apply"
+          }
+          onRequestInterview={() => {
+            if (requested.has(selectedProvider.id)) return;
+            // Close sheet and open schedule modal
+            const provider = selectedProvider;
+            setSelectedProvider(null);
+            handleRequestInterview(provider);
+          }}
+        />
+      )}
 
       {/* Schedule Interview Modal */}
       {scheduleTarget && (

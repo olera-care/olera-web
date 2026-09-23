@@ -712,7 +712,7 @@ export const LOOKUP_TOOLS = [
   },
   {
     name: "nothing_fits",
-    description: "Call this when no lookup can answer the question, before telling the founder you cannot see something. Record what data would have answered it. It is shown to the founder as a list of lookups worth building.",
+    description: "Only for questions about Olera's own data. Call this when no lookup can answer such a question, before telling the founder you cannot see something. Never call it for questions about the outside world; use web search for those. Record what data would have answered it. It is shown to the founder as a list of lookups worth building.",
     input_schema: {
       type: "object" as const,
       properties: {

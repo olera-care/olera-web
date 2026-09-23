@@ -348,9 +348,13 @@ async function buildConversationContext(
 
 const CONVERSATION_SYSTEM = `You are Cortex, the operating system for Olera, answering its founder in a Slack DM.
 
-Answer from the supplied record and your lookups only. Never invent a number, an owner, a date, or a status.
+Two kinds of question reach you, and they have different rules.
 
-You have lookups: named, read-only readers over Olera's systems of record. Call the ones the question needs before answering; they are live and outrank the written record. Call several at once when the question spans them. Never say you cannot see something until you have checked whether a lookup covers it; if none does, call nothing_fits with what would have answered it, then tell the founder plainly what you could not see and that it has been noted.
+About Olera -- its providers, families, revenue, campaigns, team, product, or anything in its record -- answer from the supplied record and your lookups only. Never invent a number, an owner, a date, or a status about Olera.
+
+About the world -- other companies, markets, technology, people in the news, how something works, whether a claim is true -- think freely, the way a sharp chief of staff would. Answer from what you know, and use web search for anything current, numeric, or checkable, since what you know can be out of date. Name your sources briefly and say how confident you are. Never refuse a question because it is not about Olera. Mention Olera only when there is a real, specific connection; never force one.
+
+You have lookups: named, read-only readers over Olera's systems of record. Call the ones the question needs before answering; they are live and outrank the written record. Call several at once when the question spans them. Never say you cannot see something until you have checked whether a lookup covers it; if none does and the question is about Olera, call nothing_fits with what would have answered it, then tell the founder plainly what you could not see and that it has been noted.
 
 When the record does not contain the answer, distinguish two very different cases and never blur them:
 
@@ -362,7 +366,7 @@ If the relevant source is NOT ingested, say you cannot see it. Read what Cortex 
 
 Write for a phone screen. No markdown headers, no bullet lists, no tables. Two or three short paragraphs at most, and one is often right. Slack bold is single asterisks.
 
-Lead with the answer. Do not restate the question. Call people by the names in the record and never derive a name from a username. Never quote the record's section names or field names; say what they mean. Do not offer to help further.
+Lead with the answer. Do not restate the question. You are talking to the founder: call him "you" and his rules "your", never "the founder". Call people by the names in the record and never derive a name from a username. Never quote the record's section names or field names; say what they mean. Do not offer to help further.
 
 Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
 
@@ -372,7 +376,7 @@ Questions about what was built, shipped, merged or deployed are answered with th
 
 Questions about whether providers have seen, used, tapped or dismissed something, or whether a change "is working", are answered with the ads_engagement lookup. Counts and names are already worked out; never count or compare yourself. To judge a change, first find the release whose carried list contains it; never assume the latest release. Then compare what happened since it went live with the same hours one week earlier, and say how many hours it has been live. Test profiles are already excluded. For week-on-week, use the direction already given; never judge up or down yourself. A request that was later deleted is not a request; say it was withdrawn or deleted. Engagement is not revenue: a tap is not a request and a request is not a subscription, so say which one you are reporting.
 
-Questions about which providers to follow up with, nurture toward subscribing, or who received the most leads are answered with the providers lookup; for anything about selling Managed Ads, set ads_fit_only. Its order is the founder's own: engagement first (replied to Olera, then replied to families, then active in the product), then leads delivered. Keep that order, say briefly why each name ranks where it does, and leave out providers who already pay when he asks who is next to nurture. A reply sent to the founder's own inbox is not recorded unless it was logged, so "has not replied to Olera" means none on record.
+Questions about which providers to follow up with, nurture toward subscribing, or who received the most leads are answered with the providers lookup; for anything about selling Managed Ads, set ads_fit_only. Its order is his own ranking, so to him it is "your order": engagement first (replied to Olera, then replied to families, then active in the product), then leads delivered. Keep that order, say briefly why each name ranks where it does, and leave out providers who already pay when he asks who is next to nurture. A reply sent to the founder's own inbox is not recorded unless it was logged, so "has not replied to Olera" means none on record.
 
 All times in the record are already in US Eastern (ET), which is how the business runs. The founder lives in Bangkok; his local time is given under the current time. Never convert time zones yourself, and never quote a raw timestamp.
 
@@ -406,6 +410,18 @@ export async function answerFounderQuestion(
     // Bounded twice: rounds, and a wall-clock budget inside the Slack route's
     // limit, after which it must answer with what it has.
     const deadline = Date.now() + LOOKUP_BUDGET_MS;
+    // Web search is a server tool: Anthropic runs it and returns results in the
+    // same response. On 2026-09-23 the founder asked whether Telegram really
+    // has about thirty employees and a billion users, and Cortex answered that
+    // Telegram "isn't a subject the Olera record would ever cover". The
+    // record-only rule exists to stop invented Olera numbers; it was never
+    // meant to make Cortex unable to think about the world.
+    const tools = [
+      ...LOOKUP_TOOLS,
+      SUPPORTS_ADAPTIVE
+        ? { type: "web_search_20260209" as const, name: "web_search" as const, max_uses: 3 }
+        : { type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 3 },
+    ];
     let message: Anthropic.Message | null = null;
     for (let round = 0; round <= MAX_LOOKUP_ROUNDS; round += 1) {
       const outOfBudget = round === MAX_LOOKUP_ROUNDS || Date.now() > deadline;
@@ -416,11 +432,16 @@ export async function answerFounderQuestion(
         // premise instead of agreeing with it. Medium, not low: at low it said "five PRs" and listed seven.
         ...(SUPPORTS_ADAPTIVE ? { thinking: { type: "adaptive" as const }, output_config: { effort: "medium" as const } } : {}),
         system: CONVERSATION_SYSTEM,
-        tools: LOOKUP_TOOLS,
+        tools,
         // Out of rounds or time: no more lookups, answer from what is in hand.
         tool_choice: outOfBudget ? { type: "none" } : { type: "auto" },
         messages,
       });
+      // A long server-side search can pause the turn; hand it back to continue.
+      if (message.stop_reason === "pause_turn") {
+        messages.push({ role: "assistant", content: message.content });
+        continue;
+      }
       if (message.stop_reason !== "tool_use") break;
       const calls = message.content.filter((block): block is Anthropic.ToolUseBlock => block.type === "tool_use");
       // Thinking and tool calls go back unchanged, as the API requires.
@@ -432,11 +453,25 @@ export async function answerFounderQuestion(
       })));
       messages.push({ role: "user", content: results });
     }
-    const reply = (message?.content ?? [])
-      .filter((block): block is Anthropic.TextBlock => block.type === "text")
-      .map((block) => block.text)
-      .join("\n")
-      .trim();
+    // Web search answers arrive as several text blocks split at each citation.
+    // Joined with newlines, sentences broke mid-line in Slack; they are one
+    // flow of prose, so they join with nothing.
+    const textBlocks = (message?.content ?? [])
+      .filter((block): block is Anthropic.TextBlock => block.type === "text");
+    let reply = textBlocks.map((block) => block.text).join("").replace(/\n{3,}/g, "\n\n").trim();
+    // Sources as Slack links, deduplicated, so a claim about the world can be
+    // checked from the phone.
+    const sources = new Map<string, string>();
+    for (const block of textBlocks) {
+      for (const citation of block.citations ?? []) {
+        if (citation.type === "web_search_result_location" && citation.url && !sources.has(citation.url)) {
+          sources.set(citation.url, (citation.title ?? citation.url).replace(/[|<>]/g, " ").slice(0, 60));
+        }
+      }
+    }
+    if (reply && sources.size) {
+      reply += `\n\n_Sources: ${[...sources].slice(0, 4).map(([url, title]) => `<${url}|${title}>`).join(" · ")}_`;
+    }
     // Deliberately not phrased as a question. Cortex's own replies land in this
     // same DM, and a reply ending in a question mark classifies as a question,
     // so this string -- the FAILURE path, the one most likely to recur -- would

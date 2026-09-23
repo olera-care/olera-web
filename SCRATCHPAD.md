@@ -7,6 +7,68 @@
 
 ## Current Focus
 
+### 2026-09-23 (later) — Ad Boost pre-flight for seven: the landing pages were the finding, not the campaigns (`channel-name-precision` #2095 merged, then prod data fixes, NO campaigns launched)
+
+**#2095 merged and live.** `both` → `google_meta` across `BOOST_CHANNELS`, `normalizeBoostChannel()`, and migration `250`. Ten rows moved, zero `both` remain. `'both'` deliberately left in the CHECK for one release cycle so an older deploy cannot fail an insert.
+
+Then `/ad-boost-setup` on the seven queued providers. It stopped at its own Phase 0 gate and never touched an ad account, which turned out to be the right outcome for reasons the gate was not designed to catch.
+
+**Where I was wrong, and it would have shipped as a defect report.** My first pre-flight said all seven had a null `care_types[0]` hero chip and zero trust signals. That was a **failed join** — I queried `olera-providers`, which has no row for these slugs. `care_types` is fully populated on all seven. The lesson is the one already in this file: a left join that returns all-NULL looks exactly like a data defect, and the difference is one `has_row` column.
+
+**The photo check the skill insists on.** Downloaded all 24 images into a contact sheet, then screenshotted all seven live pages at phone width. Of seven providers, **one** (Rosemonte) has authentic photographs of what it sells. HomeWell has three genuine staff photos, EXIF orientation 6, which browsers rotate upright. The other five have no real photograph:
+
+- **Senior Services** — 2 images, 117×120 and 87×70, and the wordmark is **"Seniors Helping Seniors®"**, a different franchise. The hero is a blurred upscale of a competitor's logo.
+- **Living Angels** — one photo of a business card on a granite countertop. Hero crops mid-email.
+- **Caring Senior Service** — a 10001×4818 banner that crops to "Cari…", plus a dementia flyer with a QR code.
+- **Wescastle** — five marketing flyers, stock models, phone burnt into the pixels.
+- **LumiWell** — logo plus a stock team cutout.
+
+Three heroes carry a **phone number burnt into the image**. We pay for the click, the family reads the number off the hero and calls direct. That is outcome-blindness made literal, and no amount of UTM discipline sees it.
+
+**The finding worth more than the spend, now FIXED in prod.** Four of the seven have no `source_provider_id` — self-signup, never matched to a directory listing. No directory row means no `place_id`, which means no `google_reviews_data`, which means **the star rating never renders**. Three of those four have real Google ratings:
+
+| Provider | Google | Page showed |
+|---|---|---|
+| Caring Senior Service | 5.0 ★ 10 reviews | nothing |
+| Wescastle | 5.0 ★ 10 reviews | nothing |
+| HomeWell East TN | 5.0 ★ 5 reviews | nothing |
+| LumiWell | no rating | nothing (correct) |
+
+**25 five-star reviews invisible** on the exact pages Ad Boost was about to buy clicks to. Neither `scripts/seed-google-reviews.sh` nor `scripts/backfill-highlights-data.js` can reach them — both key off `olera-providers.place_id`, which these rows do not have. There is no existing tool for a business_profiles-only provider.
+
+Fixed by hand: resolved `place_id` via Places v1 `searchText`, built `google_reviews_data` + `google_metadata` in the shape `rosemonte-assisted-living-home` already renders, and hydrated all three. Also backfilled `lat`/`lng` for Caring Senior and Wescastle, which had none — organic Find Families matching keys off it, so they were invisible to it regardless of ads. TJ pasted the SQL (writes are classifier-blocked in auto mode; SQL to `~/Desktop/adboost-preflight-fixes.sql`).
+
+**Verified live, and it paid twice.** All three now render 5.0 with stars, the review count, and a "What families are saying" block with five bodies. Caring Senior and Wescastle also picked up a **"Highly Rated"** chip for free — Tier 2 of the highlights waterfall (≥4.5★ / 10+ reviews) fired the moment the data existed. HomeWell has 5 reviews so it correctly did not qualify.
+
+**The channel recommendation, which is not what the skill would have done.** The skill has **no Meta track** — Phase 2G is Google, 2N is Nextdoor — but the channel is now `google_meta`. TJ's steer was to not confine ourselves to what the skill covers. The recommendation is to **split by whether the market has search volume**, not to pick one channel for all seven:
+
+- Google Search needs someone to type the query, and the skill's own hard rule is 3-5 head terms or the campaign silently delivers nothing (Eligible, ad approved, zero impressions — what cost Miracle-Lightstar two dead days in August). Plattsburgh ~19k, Little Egg Harbor ~20k and Oak Ridge ~31k plausibly have near-zero monthly volume for `home care {city}`. **Check in Keyword Planner during setup rather than assume.**
+- Meta does not need query volume, targets geography plus age and interest, and runs ~$1 CPC against Google's measured **$4.57**. On $50 that is ~50 clicks versus ~11.
+- The North Star is **providers subscribing**, not family leads. What converted Hoop Cares was a post-launch progress update. A provider shown 11 visitors does not subscribe; one shown 50 visitors and two questions might. Visible activity per dollar is the right metric for this goal and it is **not** cost-per-qualified-lead.
+- **The tension, stated rather than hidden:** cheap clicks do not become leads. Graceful bought 134 Nextdoor clicks at $0.37 and returned zero contactable leads, and no channel separates after the click (p=1.0). The claim is that Meta produces the dashboard activity the subscription pitch runs on, not better leads.
+
+**One provider should not launch. `senior-services-home-care-plattsburgh-ny` — hold.** Competitor's wordmark at 117×120, one Google review, smallest market. Every dimension is the weakest in the batch. Hold until they upload one real photo.
+
+| Channel | Providers | Spend |
+|---|---|---|
+| Google | Caring Senior (Louisville), Wescastle (Atlanta), LumiWell (Fresno), Rosemonte (Phoenix) | $200 |
+| Meta | Living Angels (Little Egg Harbor), HomeWell (Oak Ridge) | $100 |
+| Hold | Senior Services (Plattsburgh) | $0 |
+
+TJ approved **$50/provider, two-week flights, $350**; this spends $300 of it.
+
+#### Open
+
+- **Blocked on TJ:** go/no-go on the split above. Nothing has been launched and neither ad account has been touched.
+- **Three rows still carry `-nextdoor-sep26-qna` campaign tags** with `flight_end_date` already past (21-22 Sep) — HomeWell, LumiWell, Rosemonte. They were moved off Nextdoor but the tag was never rewritten. The locked invariant requires the tag match the ad URL character-for-character, so these must be rewritten before launch.
+- **The skill needs a Phase 2M Meta track** written from the September city-ads work, including that scripted field writes silently revert despite "All edits saved" — type them, then reload to verify.
+- **Rosemonte is `assisted_living`** and must get the separate negative list. The home-care shared list contains `assisted living`, `senior living`, `retirement community` — its core intent.
+- **No tool exists to hydrate reviews for a business_profiles-only provider.** Fixed three by hand; the general case is unbuilt. Four of seven in this batch were affected, so the population is not small.
+- **Caring Senior Service has three different phone numbers**: `5028605244` in the DB, `(502) 385-3743` on Google, `502-503-4708` on its own flyer. Not chased.
+- LumiWell's `website` is `www.lumiwell.org/homecare` with no scheme; Living Angels' `website` is a Facebook share link; Living Angels' `zip` is stored `8087` with the leading zero stripped.
+- **Photo gate says `ready` on all seven** — that was a deliberate release citing Hoop Cares (launched with a logo and two flyers, became the only paying customer), not an oversight. Not re-litigated.
+
+
 ### 2026-09-23 — Managed Ads: two steps, and the email finally lands on the pitch (`apply-flow-two-steps` #2089, 4 commits, NOT merged)
 
 **Three merged to staging overnight** (#2057 nudge rewrite, #2064 scratchpad, #2085 dismissal instrumentation). This entry covers what came after.

@@ -876,8 +876,11 @@ function ApplyExperience({
     <div className="grid lg:grid-cols-[1fr_360px] gap-10 lg:gap-16 items-start">
       {/* ─────────── LEFT: action spine ─────────── */}
       <div className="min-w-0">
-        {/* Mobile back link - above the banner for steps > 0 */}
-        {step > 0 && (
+        {/* Mobile back link. Guarded at > 1, not > 0: step 0 was removed and
+            there is no JSX for it, so setStep(0) from the first screen would
+            render a blank page with nothing but the eyebrow and a sticky
+            Continue. One tap from where the ads email now lands. */}
+        {step > 1 && (
           <button
             type="button"
             onClick={() => setStep(step - 1)}

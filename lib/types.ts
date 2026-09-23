@@ -631,7 +631,7 @@ export interface Interview {
       job_description?: string;
     };
     [key: string]: unknown;
-  } | null;
+  };
   created_at: string;
   updated_at: string;
 }

@@ -7,6 +7,7 @@ import { sendAdBoostRequestEmail } from "@/lib/ad-boost/notifications.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
 import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
 import { detectMedjobsCatchment } from "@/lib/provider-growth/medjobs-eligibility";
+import { normalizeBoostChannel } from "@/lib/ad-boost/boost-state";
 
 /**
  * Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — campaign request.
@@ -26,7 +27,10 @@ import { detectMedjobsCatchment } from "@/lib/provider-growth/medjobs-eligibilit
 // yet-actionable and is handled separately (it can still block a duplicate and
 // it auto-promotes when the provider crosses the completeness threshold).
 const OPEN_STATUSES = ["requested", "scheduled", "live"];
-const VALID_CHANNELS = ["google", "meta", "both"];
+// "both" stays accepted inbound for older client bundles; normalizeBoostChannel
+// rewrites it to google_meta before the value is stored.
+
+const VALID_CHANNELS = ["google", "meta", "google_meta", "both"];
 const DEMAND_WINDOW_DAYS = 7;
 // The intro's value event: the wrap-up ask arms at this many delivered leads.
 const WRAPUP_LEADS_THRESHOLD = 3;
@@ -253,7 +257,9 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-    channel = body.channel;
+    // Store the canonical value, so a cached client bundle still sending "both"
+    // never writes the legacy spelling to a new row.
+    channel = normalizeBoostChannel(body.channel);
   }
 
   // ── Validate optional intended budget ── (non-binding; seeds the concierge

@@ -98,7 +98,7 @@ export default function ProviderBoostPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
-  const [channel, setChannel] = useState<string>("both");
+  const [channel, setChannel] = useState<string>("google_meta");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   // True when returning from a completed Stripe Checkout (?subscribed=true).

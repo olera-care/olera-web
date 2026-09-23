@@ -13,6 +13,7 @@ import {
   channelFromRecords,
   resolveChannel,
   SWEEPS,
+  type SweepKind,
   sweepId,
   derivedStep,
   forwardStep,
@@ -48,6 +49,10 @@ const STAKEHOLDER_SECTION: Record<string, SectionKey> = {
   student_org: "orgs",
   professor: "professors",
   dept_head: "professors",
+  // An event is a record now, not a row in the activation ledger. It has a
+  // ladder of its own — inquire, assign a leader, prepare, attend — and that
+  // is what a student_outreach row is for.
+  event: "events",
 };
 
 const CHANNEL_SECTION: Record<string, SectionKey> = {
@@ -112,6 +117,58 @@ function byWorkedOrder(
   }
   return a.step - b.step || a.round - b.round;
 }
+
+/**
+ * The search each sweep opens, built from the campus name.
+ *
+ * One place, because the keywords are the working knowledge — an operator
+ * who has to remember "OR \"career center\"" will search for the wrong thing
+ * on the campus where it matters.
+ */
+const SWEEP_SEARCH: Record<SweepKind, (campus: string) => Record<string, string>> = {
+  map: (campus) => ({
+    maps_url:
+      "https://www.google.com/maps/search/" + encodeURIComponent(`home care near ${campus}`),
+  }),
+  advisor: (campus) => ({
+    advisor_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} pre-health advising OR "career center" OR "health professions" advisor`,
+      ),
+  }),
+  org: (campus) => ({
+    org_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} student organizations pre-med OR pre-nursing OR "pre-health" OR "health professions" club president`,
+      ),
+  }),
+  event: (campus) => ({
+    event_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} career fair OR "health professions fair" OR "internship fair" OR "student involvement fair" schedule`,
+      ),
+  }),
+  professor: (campus) => ({
+    professor_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} faculty directory biology OR nursing OR "health sciences" OR "public health" professor email`,
+      ),
+  }),
+  // Who to ask, rather than who to write to. Chairs and industry-relations
+  // offices are listed in different places from faculty, and finding them is
+  // the part of this task that takes the time.
+  permission: (campus) => ({
+    permission_search_url:
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(
+        `${campus} department chair OR "industry relations" OR "corporate relations" OR "employer relations" contact`,
+      ),
+  }),
+};
 
 const day = (iso: string | null): string =>
   iso ? new Date(iso).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
@@ -441,6 +498,7 @@ export async function GET() {
         olera_provider_id?: string;
         website?: string;
         address?: string;
+        date?: string;
         flagged_on?: string;
       };
       const edited = (research.website ?? "").trim();
@@ -487,6 +545,9 @@ export async function GET() {
         flaggedOn: research.flagged_on ?? null,
         address: editedAddr || addrFromDirectory,
         addressEdited: Boolean(editedAddr),
+        // Campus events only. Empty everywhere else, and the form that would
+        // have asked for it is not shown there.
+        date: (research.date ?? "").trim(),
         others: othersOf.get(row.id) ?? [],
         // Position is derived from the work in flight, not stored twice. The
         // lowest open rung leads, so a block reads top down.
@@ -630,7 +691,7 @@ export async function GET() {
     // one to do, which means a campus created tomorrow gets the task with no
     // backfill and nothing to remember in the campus-creation path. The only
     // row this ever reads is the completed one.
-    for (const kind of ["map", "advisor"] as const) {
+    for (const kind of ["map", "advisor", "org", "event", "professor", "permission"] as const) {
       const sweep = SWEEPS[kind];
       const row = (siteTasksByCampus.get(campus.id) ?? []).find(
         (t) => t.task_type === sweep.taskType,
@@ -675,20 +736,11 @@ export async function GET() {
             // The rung renders this as its link. Building it here means the
             // operator does not retype the campus into a search box, and the
             // same search runs at every university.
-            fields:
-              kind === "map"
-                ? {
-                    maps_url:
-                      "https://www.google.com/maps/search/" +
-                      encodeURIComponent(`home care near ${campus.name}`),
-                  }
-                : {
-                    advisor_search_url:
-                      "https://www.google.com/search?q=" +
-                      encodeURIComponent(
-                        `${campus.name} pre-health advising OR "career center" OR "health professions" advisor`,
-                      ),
-                  },
+            // The search the operator would have typed, typed for them. It
+            // is the whole reason the rung is quick: the keywords are the
+            // part that takes a minute to get right and is got wrong once
+            // and then copied for a year.
+            fields: SWEEP_SEARCH[kind](campus.name),
           },
         ],
       });
@@ -826,6 +878,31 @@ export async function GET() {
           ? `${uni.name}, ${uni.city}, ${uni.state}`
           : null;
 
+    // Who approved our contacting faculty here, if anybody has. Read off the
+    // completed permission task rather than stored on the campus: the task
+    // is the record of the asking, and a second copy would be a second thing
+    // to keep in step.
+    const permissionRow = (siteTasksByCampus.get(campus.id) ?? []).find(
+      (t) => t.task_type === "faculty_permission" && t.status === "completed",
+    );
+    const permissionPayload = (permissionRow?.payload ?? {}) as {
+      fields?: Record<string, string>;
+      action?: number;
+    };
+    const approver = (permissionPayload.fields?.approver ?? "").trim();
+    // Action 0 is "Approved — we may name them". Every other outcome either
+    // withheld the name or did not grant anything, and naming somebody who
+    // asked not to be named is the one mistake this whole task exists to
+    // avoid.
+    const facultyPermission =
+      approver && permissionPayload.action === 0
+        ? {
+            approver,
+            title: (permissionPayload.fields?.approver_title ?? "").trim(),
+            named: true,
+          }
+        : null;
+
     // The advisors dot, read off the advising offices rather than off a
     // campus_channels row that nothing on this board writes to. A campus
     // whose offices had all been emailed still showed grey, because logging
@@ -845,6 +922,7 @@ export async function GET() {
       // Badged on the board. A teaching campus that looks like a real one is
       // a trap for whoever opens the board next and starts working it.
       isDemo: campus.is_demo === true,
+      facultyPermission,
       mapsDestination,
       channels,
       records,

@@ -24,17 +24,8 @@ export default function AvailabilityCard({ meta, onEdit }: AvailabilityCardProps
   const hasPledges = meta.prn_willing || meta.advance_notice_pledge;
   const hasNotes = !!meta.availability_notes;
 
-  // Legacy fields (may be collected elsewhere)
-  const hasHours = !!meta.hours_per_week_range;
-  const hasDuration = !!meta.duration_commitment;
-
   // Consider complete if has statement OR has seasonal availability
   const hasCommitment = hasStatement || hasSeasonalAvailability;
-
-  // Format duration for display
-  const formatDuration = (d: string) => {
-    return d.replace(/_/g, " ").replace(/less than/, "<").replace(/to/g, "–").replace(/ months?/, "mo");
-  };
 
   const currentSeason = getCurrentSeasonKey();
 
@@ -59,7 +50,7 @@ export default function AvailabilityCard({ meta, onEdit }: AvailabilityCardProps
       id="availability"
       onEdit={onEdit}
     >
-      {!hasStatement && !hasSeasonalAvailability && !hasHours ? (
+      {!hasStatement && !hasSeasonalAvailability ? (
         <EmptyState
           message="No availability info"
           subMessage="Tell providers about your commitment to caregiving."
@@ -71,21 +62,9 @@ export default function AvailabilityCard({ meta, onEdit }: AvailabilityCardProps
         />
       ) : (
         <div className="space-y-4">
-          {/* Legacy detail pills (hours/duration if present) */}
-          {(hasHours || hasDuration) && (
-            <div className="flex flex-wrap gap-2.5">
-              {meta.hours_per_week_range && (
-                <DetailPill label="Hours/Week" value={meta.hours_per_week_range} />
-              )}
-              {meta.duration_commitment && (
-                <DetailPill label="Commitment" value={formatDuration(meta.duration_commitment)} />
-              )}
-            </div>
-          )}
-
           {/* Commitment statement preview */}
           {meta.commitment_statement && (
-            <div className={hasHours || hasDuration ? "pt-3 border-t border-gray-100" : ""}>
+            <div>
               <p className="text-[15px] text-gray-600 line-clamp-3">
                 {meta.commitment_statement}
               </p>

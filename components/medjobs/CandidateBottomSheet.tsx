@@ -79,6 +79,7 @@ function formatExperienceDate(ym: string): string {
 function formatLastUpdated(dateStr: string | undefined): string | null {
   if (!dateStr) return null;
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null; // Invalid date
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -661,7 +662,7 @@ function ProfileContent({
         {candidateIsVerified && (
           <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100 mb-4">
             <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
             </div>
@@ -741,33 +742,6 @@ function ProfileContent({
         </Section>
       )}
 
-      {/* About */}
-      {hasAbout && (
-        <Section title={`About ${firstName}`}>
-          {meta.why_caregiving && (
-            <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                Why I Want to Be a Caregiver
-              </h4>
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                {meta.why_caregiving}
-              </p>
-            </div>
-          )}
-          {candidate.description && !meta.why_caregiving && (
-            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-              {candidate.description}
-            </p>
-          )}
-          {meta.intended_professional_school && (
-            <p className="text-xs text-gray-600 mt-3">
-              <span className="font-medium text-gray-900">Career Goal:</span>{" "}
-              {INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}
-            </p>
-          )}
-        </Section>
-      )}
-
       {/* Commitments */}
       {hasCommitments && (
         <Section title={`${firstName}'s Commitments`}>
@@ -799,6 +773,33 @@ function ProfileContent({
               </div>
             ))}
           </div>
+        </Section>
+      )}
+
+      {/* About */}
+      {hasAbout && (
+        <Section title={`About ${firstName}`}>
+          {meta.why_caregiving && (
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Why I Want to Be a Caregiver
+              </h4>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                {meta.why_caregiving}
+              </p>
+            </div>
+          )}
+          {candidate.description && !meta.why_caregiving && (
+            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+              {candidate.description}
+            </p>
+          )}
+          {meta.intended_professional_school && (
+            <p className="text-xs text-gray-600 mt-3">
+              <span className="font-medium text-gray-900">Career Goal:</span>{" "}
+              {INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}
+            </p>
+          )}
         </Section>
       )}
 
@@ -1063,9 +1064,18 @@ function CommitmentItem({ text }: { text: string }) {
 
 function ResumeButton({ resumePath, profileId }: { resumePath: string; profileId: string }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleViewResume = async () => {
     if (loading) return;
+    setError(false);
+
+    // If it's already a full URL, open directly
+    if (resumePath.startsWith("http")) {
+      window.open(resumePath, "_blank");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/medjobs/get-document-url", {
@@ -1076,9 +1086,11 @@ function ResumeButton({ resumePath, profileId }: { resumePath: string; profileId
       if (res.ok) {
         const { url } = await res.json();
         window.open(url, "_blank");
+      } else {
+        setError(true);
       }
     } catch {
-      // Silently fail - user can try again
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -1092,15 +1104,15 @@ function ResumeButton({ resumePath, profileId }: { resumePath: string; profileId
       className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors group disabled:opacity-70"
     >
       <div className="w-9 h-9 rounded-lg bg-red-500 flex items-center justify-center flex-shrink-0">
-        <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>
       </div>
       <div className="flex-1 min-w-0 text-left">
         <p className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
-          {loading ? "Opening..." : "Resume"}
+          {loading ? "Opening..." : error ? "Unable to load" : "Resume"}
         </p>
-        <p className="text-xs text-gray-500">View or download PDF</p>
+        <p className="text-xs text-gray-500">{error ? "Tap to try again" : "View or download PDF"}</p>
       </div>
       <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />

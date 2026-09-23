@@ -900,7 +900,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       providerName: "Miracle-Lightstar LLC",
       ctaUrl: "https://olera.care/provider/boost?ref=email&eid=sample",
       setupWeek: "2026-07-06",
-      channel: "both",
+      channel: "google_meta",
     }),
   },
   {
@@ -1012,7 +1012,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => adBoostCampaignLaunchedEmail({
       providerName: "Franchil LLC",
       ctaUrl: "https://olera.care/provider/boost?ref=email&eid=sample",
-      channel: "both",
+      channel: "google_meta",
     }),
   },
   {

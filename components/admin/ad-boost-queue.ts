@@ -21,7 +21,7 @@ export interface ProviderCampaignGroup {
 const PLATFORM_ORDER: AdBoostPlatform[] = ["google", "meta", "nextdoor", "unassigned"];
 
 export function platformsForChannel(channel: string | null): AdBoostPlatform[] {
-  if (channel === "both") return ["google", "meta"];
+  if (channel === "google_meta" || channel === "both") return ["google", "meta"];
   if (channel === "google" || channel === "meta" || channel === "nextdoor") {
     return [channel];
   }

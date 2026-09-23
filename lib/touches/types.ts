@@ -178,6 +178,8 @@ export type RelationshipRow = ProviderContact & {
   last_touch: LastTouch | null;
   last_human_touch_at: string | null;
   human_touch_count: number;
+  /** When the provider last wrote to us (support@ email, text, or logged inbound touch). */
+  last_inbound_from_provider_at: string | null;
   open_action: OpenAction | null;
   days_quiet: number | null;
   flags: RelationshipFlag[];

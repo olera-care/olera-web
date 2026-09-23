@@ -4776,7 +4776,7 @@ function humanCategoryLabel(category: string | null): string {
 function formatAdBoostChannel(channel: string | null | undefined): string {
   if (channel === "google") return "Google";
   if (channel === "meta") return "Meta";
-  if (channel === "both") return "Google and Meta";
+  if (channel === "google_meta" || channel === "both") return "Google and Meta";
   if (channel === "nextdoor") return "Nextdoor";
   return "Google";
 }

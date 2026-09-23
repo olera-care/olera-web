@@ -148,7 +148,7 @@ export interface CampaignLead {
 }
 
 export const STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
-export const CHANNELS = ["", "google", "meta", "both", "nextdoor"];
+export const CHANNELS = ["", "google", "meta", "google_meta", "nextdoor"];
 
 export const STATUS_LABELS: Record<string, string> = {
   pending_profile: "Waiting on provider",
@@ -163,7 +163,7 @@ export const STATUS_LABELS: Record<string, string> = {
 export function channelLabel(channel: string | null): string | null {
   if (channel === "google") return "Google";
   if (channel === "meta") return "Meta";
-  if (channel === "both") return "Google + Meta";
+  if (channel === "google_meta" || channel === "both") return "Google + Meta";
   if (channel === "nextdoor") return "Nextdoor";
   return null;
 }
@@ -231,7 +231,7 @@ export function utmUrl(
       ? "paid_search"
       : channel === "meta" || channel === "nextdoor"
         ? "paid_social"
-        : channel === "both"
+        : channel === "google_meta" || channel === "both"
           ? "paid_media"
           : null;
   const params = new URLSearchParams({

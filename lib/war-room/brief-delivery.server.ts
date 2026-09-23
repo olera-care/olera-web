@@ -4,6 +4,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
 import { pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
 import { closeExchange } from "@/lib/war-room/conversation.server";
+import { loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
 
 /**
@@ -85,6 +86,7 @@ export function buildWarRoomBriefText(input: {
   watching: number;
   costUsd: number | null;
   question?: FounderQuestion | null;
+  unanswerable?: string[];
 }): string {
   const { run, siteUrl } = input;
   const date = shortDate(run.created_at);
@@ -149,6 +151,16 @@ export function buildWarRoomBriefText(input: {
     lines.push(`_Done? Mark it carried out in ${href} so its outcome gets measured._`);
   }
 
+  // What Cortex needed and did not have. Both halves existed before and were
+  // thrown away: the scan's "no probe fits" choice was skipped by this brief,
+  // and a question Cortex could not answer in Slack left no trace. A lookup
+  // nobody knows is missing never gets built.
+  if (input.unanswerable?.length) {
+    lines.push("", "*What I could not look up*");
+    for (const item of input.unanswerable.slice(0, 4)) lines.push(`• ${item}`);
+    lines.push("_Each is a lookup worth building._");
+  }
+
   // One question, never a list. This system's whole design is that it spends
   // its compute removing work before the founder sees it, and a brief ending in
   // six questions is a brief that gets none of them answered. Replying in the
@@ -166,6 +178,29 @@ export function buildWarRoomBriefText(input: {
   return lines.join("\n");
 }
 
+/**
+ * Questions Cortex could not answer with any lookup.
+ *
+ * Slack misses since the last brief, every day they occur. The scan's open
+ * cases whose next probe is "none" only on Mondays (Eastern): they persist
+ * across scans, so a daily list would repeat itself into noise.
+ */
+async function loadUnanswerable(db: SupabaseClient, lastBriefAt: string | null): Promise<string[]> {
+  const since = lastBriefAt ?? new Date(Date.now() - 86_400_000).toISOString();
+  const conversation = (await loadLookupGaps(db, since))
+    .map((gap) => `You asked: ${gap.question} Needed: ${gap.needed}`);
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short" }).format(new Date());
+  if (weekday !== "Mon") return conversation;
+  const { data } = await db.from("war_room_investigations")
+    .select("title, next_probe")
+    .in("status", ["investigating", "watchlist"])
+    .eq("next_probe->>kind", "none")
+    .limit(5);
+  const scan = ((data ?? []) as Array<{ title: string; next_probe: { question?: string } | null }>)
+    .map((row) => `${row.title}: ${row.next_probe?.question ?? "no lookup fits"}`);
+  return [...conversation, ...scan];
+}
+
 export async function deliverWarRoomBrief(
   db: SupabaseClient,
   runId: string,
@@ -175,7 +210,7 @@ export async function deliverWarRoomBrief(
     // the same brief twice, which is exactly the kind of noise that trains
     // someone to stop reading a channel.
     const { data: state } = await db.from("war_room_source_state")
-      .select("metadata")
+      .select("metadata, last_success_at")
       .eq("source_key", DELIVERY_STATE_KEY)
       .maybeSingle();
     if ((state?.metadata as { run_id?: string } | null)?.run_id === runId) {
@@ -194,7 +229,10 @@ export async function deliverWarRoomBrief(
     let open = 0;
     let watching = 0;
     let question: FounderQuestion | null = null;
+    let unanswerable: string[] = [];
     if (run.status !== "failed") {
+      unanswerable = await loadUnanswerable(db, (state as { last_success_at?: string | null } | null)?.last_success_at ?? null)
+        .catch(() => []);
       // Never ask on a failed scan. There is no fresh read behind the question,
       // and the only useful message on a failure is that it failed.
       question = await pickQuestionForFounder(db).catch(() => null);
@@ -236,6 +274,7 @@ export async function deliverWarRoomBrief(
       watching,
       costUsd: warRoomScanCost(run)?.usd ?? null,
       question,
+      unanswerable,
     });
 
     // Prefer a DM. The shared webhook posts to the operations channel, where

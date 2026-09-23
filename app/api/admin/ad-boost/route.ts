@@ -6,6 +6,7 @@ import { getCampaignReceipt } from "@/lib/ad-boost/receipts.server";
 import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notifications.server";
 import { sendAdBoostPhotoEmail } from "@/lib/ad-boost/photo-notifications.server";
 import { nextBusinessSlotEt } from "@/lib/send-window";
+import { normalizeBoostChannel } from "@/lib/ad-boost/boost-state";
 
 /**
  * Admin concierge queue for Provider Ad Boost (managed lead-gen).
@@ -32,7 +33,10 @@ import { nextBusinessSlotEt } from "@/lib/send-window";
  */
 
 const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
-const VALID_CHANNELS = ["google", "meta", "both", "nextdoor"];
+// "both" stays accepted inbound for older client bundles; normalizeBoostChannel
+// rewrites it to google_meta before the value is stored.
+
+const VALID_CHANNELS = ["google", "meta", "google_meta", "both", "nextdoor"];
 const VALID_BUDGET_TYPES = ["daily", "lifetime"];
 const VALID_PHOTO_READINESS = ["unreviewed", "update_requested", "review_requested", "ready"];
 
@@ -577,7 +581,7 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     } else {
-      update.channel = body.channel;
+      update.channel = normalizeBoostChannel(body.channel);
     }
   }
 

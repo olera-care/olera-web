@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import { getAnonSaves } from "@/lib/saved-providers";
 import { Suspense } from "react";
+import { skipsWelcome } from "@/lib/auth/welcome-redirect";
 
 /**
  * /auth/magic-link
@@ -329,7 +330,11 @@ function MagicLinkHandler() {
         if (pendingConnection) {
           // Guest connection flow - go to welcome with connection info
           finalDestination = `/welcome?connection=${pendingConnection.connectionId}&provider=${pendingConnection.providerSlug}`;
-        } else if (isNewUser && !hasDeferredAction) {
+        } else if (isNewUser && !hasDeferredAction && !skipsWelcome(next)) {
+          // skipsWelcome: a provider or MedJobs destination goes straight
+          // there. This branch had no exemption at all, so a student clicking
+          // a link to finish their application was handed the care-seeker
+          // questionnaire instead.
           finalDestination = `/welcome?next=${encodeURIComponent(next)}`;
         } else {
           finalDestination = next;

@@ -52,7 +52,7 @@ export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
 export const SECTION_LABELS: Record<CaregiverSectionId, string> = {
   overview: "Profile overview",
   verification: "Verification",
-  schedule: "Weekly availability",
+  schedule: "Weekly Schedule",
   availability: "Availability & commitment",
   why: "Why I want to be a caregiver",
   scenarios: "Screening questions",

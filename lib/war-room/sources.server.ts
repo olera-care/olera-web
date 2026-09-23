@@ -112,6 +112,50 @@ function slackMessageUrl(channel: string, ts: string) {
   return workspace ? `${workspace}/archives/${channel}/p${ts.replace(".", "")}` : null;
 }
 
+/**
+ * Which Slack messages are worth keeping.
+ *
+ * The first version dropped anything with a `subtype`, which quietly threw away
+ * every message with a file attached (`file_share`) -- and a shared document is
+ * usually the substance. On 2026-09-23 the founder asked about study feedback
+ * Minh-Nguyet posted as an attachment on Sep 17; it had been discarded by both
+ * the backfill and the live feed. Bot and join/leave noise still goes.
+ */
+const KEPT_SUBTYPES = new Set(["file_share", "thread_broadcast"]);
+
+export function usableSlackMessage(message: SlackMessage) {
+  if (!message.ts || message.bot_id) return false;
+  if (message.subtype && !KEPT_SUBTYPES.has(message.subtype)) return false;
+  return Boolean(message.text?.trim() || message.files?.length);
+}
+
+/** The text, plus the names of any attached files, so a search can find the document. */
+export function slackContent(message: SlackMessage) {
+  const files = (message.files ?? []).map((file) => file.title || file.name).filter(Boolean);
+  return [message.text?.trim() ?? "", files.length ? `[Attached: ${files.join("; ")}]` : ""].filter(Boolean).join("\n");
+}
+
+/**
+ * Author names, cached per scan. Stored so "the message from Minh" can be
+ * found: the record held only a user id, and a name search had nothing to
+ * match. Needs the users:read scope; without it this quietly returns nulls and
+ * the self-check below still reports the rest.
+ */
+const slackNameCache = new Map<string, string | null>();
+async function slackUserName(token: string, userId: string | undefined): Promise<string | null> {
+  if (!userId) return null;
+  if (slackNameCache.has(userId)) return slackNameCache.get(userId) ?? null;
+  try {
+    const payload = await slackApi<{ user?: { real_name?: string; profile?: { real_name?: string; display_name?: string } } }>(token, "users.info", { user: userId });
+    const name = payload.user?.profile?.real_name || payload.user?.real_name || payload.user?.profile?.display_name || null;
+    slackNameCache.set(userId, name);
+    return name;
+  } catch {
+    slackNameCache.set(userId, null);
+    return null;
+  }
+}
+
 type SlackMessage = {
   ts?: string;
   thread_ts?: string;
@@ -119,6 +163,7 @@ type SlackMessage = {
   user?: string;
   bot_id?: string;
   subtype?: string;
+  files?: Array<{ name?: string; title?: string }>;
   reply_count?: number;
   reactions?: Array<{ name?: string; count?: number }>;
 };
@@ -151,7 +196,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
   // number of channels.
   const deadline = Date.now() + 45_000;
   const threadBudget: ThreadBudget = { remaining: THREAD_FETCHES_PER_SCAN };
-  const results: Array<{ channel: string; imported?: number; error?: string; threadsRead?: number; replies?: number; threadError?: string }> = [];
+  const results: Array<{ channel: string; imported?: number; error?: string; threadsRead?: number; replies?: number; threadError?: string; newestInSlack?: string | null; newestStored?: string | null }> = [];
   let imported = 0;
   let lastIndex = previousIndex;
 
@@ -211,7 +256,7 @@ async function slackApi<T>(token: string, method: string, body: Record<string, u
  * a reply -- 38 of them in the first real ingestion, and not one genuine reply
  * among them.
  */
-function slackItem(channel: SlackChannelConfig, message: SlackMessage): SourceItemInput {
+function slackItem(channel: SlackChannelConfig, message: SlackMessage, authorName: string | null = null): SourceItemInput {
   const occurredAt = new Date(Number(message.ts) * 1_000).toISOString();
   const isReply = Boolean(message.thread_ts) && message.thread_ts !== message.ts;
   return {
@@ -219,8 +264,8 @@ function slackItem(channel: SlackChannelConfig, message: SlackMessage): SourceIt
     external_id: `${channel.id}:${message.ts}`,
     source_group: channel.label,
     source_kind: isReply ? "thread_reply" : "channel_message",
-    title: `#${channel.label} conversation`,
-    content: message.text || "",
+    title: authorName ? `#${channel.label} · ${authorName}` : `#${channel.label} conversation`,
+    content: slackContent(message),
     source_url: slackMessageUrl(channel.id, message.ts || ""),
     occurred_at: occurredAt,
     last_edited_at: null,
@@ -229,6 +274,7 @@ function slackItem(channel: SlackChannelConfig, message: SlackMessage): SourceIt
     metadata: {
       channel_id: channel.id,
       user_id: message.user ?? null,
+      author_name: authorName,
       thread_ts: message.thread_ts ?? null,
       reply_count: message.reply_count ?? 0,
       reactions: message.reactions ?? [],
@@ -277,18 +323,27 @@ async function backfillSlackChannel(
   oldest: string,
   deadline: number,
   budget: ThreadBudget,
-): Promise<{ imported?: number; error?: string; threadsRead?: number; replies?: number; threadError?: string }> {
+): Promise<{ imported?: number; error?: string; threadsRead?: number; replies?: number; threadError?: string; newestInSlack?: string | null; newestStored?: string | null }> {
   try {
     // Slack's custom-app history limit is intentionally respected here: one
     // allowlisted channel, one bounded page, per discovery run. Fresh messages
     // arrive through the Events API endpoint instead of repeated polling.
+    // The newest page, not the oldest. Passing `oldest` alone made Slack page
+    // forward from the start of the 90-day window, so every channel with more
+    // than fifteen messages in it was read from its oldest end, scan after scan:
+    // on 2026-09-23 the stored copy of #care-nav-study-team stopped on Jul 24
+    // while the channel ran to Sep 17. The window is applied here instead.
     const payload = await slackApi<{ messages?: SlackMessage[] }>(token, "conversations.history", {
-      channel: channel.id, oldest, limit: 15,
+      channel: channel.id, limit: 15,
     });
-    const usable = (message: SlackMessage) =>
-      Boolean(message.ts && message.text?.trim() && !message.bot_id && !message.subtype);
+    const usable = (message: SlackMessage) => usableSlackMessage(message) && Number(message.ts) >= Number(oldest);
+    // Compared against the newest message a person posted inside the window,
+    // so a bot-only channel or one quiet for three months is not reported as
+    // one Cortex cannot see.
+    const newestInSlack = (payload.messages ?? []).find(usable)?.ts ?? null;
     const top = (payload.messages ?? []).filter(usable);
-    const items = top.map((message) => slackItem(channel, message));
+    const items: SourceItemInput[] = [];
+    for (const message of top) items.push(slackItem(channel, message, await slackUserName(token, message.user)));
 
     // Open the busiest threads. A thread with more replies is where a decision
     // got made; a thread with one is usually an acknowledgement.
@@ -327,7 +382,7 @@ async function backfillSlackChannel(
         for (const reply of (thread.messages ?? []).filter(usable)) {
           if (reply.ts === parent.ts) continue;
           replies += 1;
-          items.push(slackItem(channel, reply));
+          items.push(slackItem(channel, reply, await slackUserName(token, reply.user)));
         }
       } catch (threadFailure) {
         // One unreadable thread must not cost the rest of the channel -- but it
@@ -337,10 +392,27 @@ async function backfillSlackChannel(
       }
     }
 
+    const importedCount = await upsertSourceItems(db, items);
+    // The self-check. The channel's newest message against the newest one
+    // Cortex holds for it. Every silent Slack failure found on 2026-09-23 --
+    // reading the oldest page, dropping attachments, a live feed that never
+    // delivered -- looked like a quiet channel from the inside. Only a
+    // comparison with Slack itself tells a quiet channel from a blind one.
+    const { data: stored } = await db.from("war_room_source_items")
+      .select("occurred_at")
+      .eq("source", "slack")
+      .eq("source_group", channel.label)
+      .order("occurred_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const newestStored = (stored as { occurred_at?: string } | null)?.occurred_at ?? null;
+    const newestInSlackIso = newestInSlack ? new Date(Number(newestInSlack) * 1_000).toISOString() : null;
     return {
-      imported: await upsertSourceItems(db, items),
+      imported: importedCount,
       threadsRead,
       replies,
+      newestInSlack: newestInSlackIso,
+      newestStored,
       ...(threadError ? { threadError } : {}),
     };
   } catch (error) {
@@ -364,18 +436,20 @@ export async function ingestSlackEventEvidence(
   event: SlackMessage & { channel?: string; type?: string; channel_type?: string },
 ) {
   const channel = slackChannels().find((candidate) => candidate.id === event.channel);
-  if (!channel || event.type !== "message" || !event.ts || !event.text?.trim() || event.bot_id || event.subtype) {
+  if (!channel || event.type !== "message" || !usableSlackMessage(event)) {
     return { accepted: false };
   }
   const occurredAt = new Date(Number(event.ts) * 1_000).toISOString();
+  const token = process.env.SLACK_BOT_TOKEN;
+  const authorName = token ? await slackUserName(token, event.user) : null;
   const imported = await upsertSourceItems(db, [{
     source: "slack",
     external_id: `${channel.id}:${event.ts}`,
     source_group: channel.label,
     source_kind: event.thread_ts ? "thread_reply" : "channel_message",
-    title: `#${channel.label} conversation`,
-    content: event.text,
-    source_url: slackMessageUrl(channel.id, event.ts),
+    title: authorName ? `#${channel.label} · ${authorName}` : `#${channel.label} conversation`,
+    content: slackContent(event),
+    source_url: slackMessageUrl(channel.id, event.ts as string),
     occurred_at: occurredAt,
     last_edited_at: null,
     freshness: "current",
@@ -384,6 +458,7 @@ export async function ingestSlackEventEvidence(
       channel_id: channel.id,
       channel_type: event.channel_type ?? null,
       user_id: event.user ?? null,
+      author_name: authorName,
       thread_ts: event.thread_ts ?? null,
     },
   }]);

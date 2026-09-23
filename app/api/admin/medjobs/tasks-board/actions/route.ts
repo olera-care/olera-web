@@ -13,6 +13,7 @@ import {
   resolveNext,
   type SweptSection,
 } from "@/lib/medjobs/task-board";
+import { firstName, isAssignableSection, onRoster } from "@/lib/medjobs/assignments";
 import { handleChannelOp, type ChannelOp, type ChannelRow } from "./channel";
 import { handleStudentOp, type StudentOp, type StudentRow } from "./student";
 
@@ -107,6 +108,20 @@ type Body =
        * they have all been removed.
        */
       others?: Array<{ id?: string; contact?: string; role?: string; phone?: string; email?: string }>;
+    }
+  | {
+      /**
+       * Give one task type at one campus to one person, or take it back.
+       *
+       * A null adminUserId unassigns. There is no "add a second owner": the
+       * unique index in migration 253 refuses it, and this writes over
+       * whatever was there so reassigning is one call rather than a delete
+       * and an insert somebody could half-finish.
+       */
+      op: "assign_section";
+      campusId: string;
+      section: string;
+      adminUserId: string | null;
     };
 
 const ARCHIVED_STATUS = "archived";
@@ -547,6 +562,68 @@ export async function POST(req: Request) {
   }
 
   const db = getServiceClient();
+
+  // ── who owns a task type ──────────────────────────────────────────────
+  // Campus-level, like create_record, so it is handled before the lookup
+  // below that expects a record id.
+  if (body.op === "assign_section") {
+    const campusId = (body.campusId ?? "").trim();
+    const section = (body.section ?? "").trim();
+    if (!campusId) return NextResponse.json({ error: "Missing campus" }, { status: 400 });
+    if (!isAssignableSection(section)) {
+      return NextResponse.json({ error: `Not a task type: ${section}` }, { status: 400 });
+    }
+
+    if (body.adminUserId === null) {
+      const { error } = await db
+        .from("medjobs_assignments")
+        .delete()
+        .eq("campus_id", campusId)
+        .eq("section", section);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ ok: true, assignee: null });
+    }
+
+    const adminUserId = (body.adminUserId ?? "").trim();
+    if (!adminUserId) return NextResponse.json({ error: "Missing person" }, { status: 400 });
+
+    // Checked against the roster here as well as in the dropdown. A stale tab
+    // holding a menu from before somebody left must not be able to assign
+    // them, and this is the only place that can actually stop it.
+    const { data: target, error: lookupError } = await db
+      .from("admin_users")
+      .select("id, email")
+      .eq("id", adminUserId)
+      .maybeSingle();
+    if (lookupError) return NextResponse.json({ error: lookupError.message }, { status: 500 });
+    if (!target || !onRoster(target.email as string)) {
+      return NextResponse.json({ error: "Not on the MedJobs team" }, { status: 400 });
+    }
+
+    // Upsert on the pair, so handing a section to somebody else is one write.
+    // Targeted at the unique constraint by name: a bare ON CONFLICT (column)
+    // would not match it.
+    const { error } = await db.from("medjobs_assignments").upsert(
+      {
+        campus_id: campusId,
+        section,
+        admin_user_id: adminUserId,
+        assigned_by: admin.id,
+        assigned_at: new Date().toISOString(),
+      },
+      { onConflict: "campus_id,section" },
+    );
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    return NextResponse.json({
+      ok: true,
+      assignee: {
+        id: adminUserId,
+        email: String(target.email).toLowerCase(),
+        name: firstName(String(target.email)),
+      },
+    });
+  }
 
   // ── a record typed in by hand ─────────────────────────────────────────
   // Handled before the lookup below, because this is the one op whose

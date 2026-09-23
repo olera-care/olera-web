@@ -10,6 +10,8 @@ import {
   type BoardRecord,
   type BoardUniversity,
 } from "@/lib/medjobs/task-board";
+import { sectionsFor, type Person } from "@/lib/medjobs/assignments";
+import AssigneeChip from "./AssigneeChip";
 
 /**
  * What a university looks like when you open it: the seven sections, how
@@ -43,6 +45,9 @@ export default function SummaryView({
   onStart,
   onOpenRecord,
   onAddRecord,
+  people,
+  onAssign,
+  filterId,
 }: {
   university: BoardUniversity;
   /**
@@ -59,6 +64,18 @@ export default function SummaryView({
   onOpenRecord: (record: BoardRecord) => void;
   /** Start a record nobody has in the directory. Providers only, for now. */
   onAddRecord: (section: SectionKey) => void;
+  /** The MedJobs team, for the assignee chips. */
+  people: Person[];
+  /** Null unassigns. */
+  onAssign: (section: SectionKey, personId: string | null) => void;
+  /**
+   * Whose work to foreground, or null for everyone's.
+   *
+   * Somebody else's sections are dimmed and held shut rather than hidden, so
+   * you can still see the campus has more going on without it competing for
+   * your eye.
+   */
+  filterId: string | null;
 }) {
   // Put the record you were just looking at back under your eyes. Centred
   // rather than at the top, because the rows either side are the context.
@@ -69,9 +86,12 @@ export default function SummaryView({
       ?.scrollIntoView({ block: "center", behavior: "auto" });
   }, [cameFrom]);
 
+  // The task types in front of you. Everything when nothing is filtered.
+  const mine = sectionsFor(university.assignments, filterId);
+
   return (
     <div className="px-5 py-4">
-      {SECTION_ORDER.some((s) => sectionReady(university, s) > 0) && (
+      {mine.some((s) => sectionReady(university, s) > 0) && (
         <button
           type="button"
           onClick={onStart}
@@ -90,30 +110,55 @@ export default function SummaryView({
           // to reveal the only thing in it is a click that buys nothing, so
           // the row opens the record and loses its triangle.
           const only = ladder.singleton && records.length === 1 ? records[0] : null;
-          const expanded = Boolean(open[key]);
+          // Somebody else's section under a filter stays shut, whatever the
+          // expanded state said before the filter was applied.
+          const inScope = mine.includes(key);
+          const expanded = Boolean(open[key]) && inScope;
           return (
-            <div key={key} className="rounded-lg border border-gray-200">
-              <button
-                type="button"
-                onClick={() => (only ? onOpenRecord(only) : onToggle(key))}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-left hover:bg-gray-50"
-              >
-                <span className="w-2.5 shrink-0 text-[10px] text-gray-400">
-                  {only ? "" : expanded ? "▾" : "▸"}
-                </span>
-                <span className="flex-1 text-[13.5px] font-medium text-gray-900">{ladder.label}</span>
-                {waiting > 0 ? (
-                  <span className="text-[12.5px] font-semibold tabular-nums text-warning-700">
-                    {waiting}
+            <div
+              key={key}
+              className={`rounded-lg border border-gray-200 ${inScope ? "" : "opacity-45"}`}
+            >
+              {/* A row, not a button. The chip is interactive and cannot be
+                  nested inside one — it is invalid markup, and the click
+                  would toggle the section instead of opening the menu. */}
+              <div className="flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 hover:bg-gray-50">
+                <button
+                  type="button"
+                  onClick={() => (only ? onOpenRecord(only) : onToggle(key))}
+                  className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+                >
+                  <span className="w-2.5 shrink-0 text-[10px] text-gray-400">
+                    {only ? "" : expanded ? "▾" : "▸"}
                   </span>
-                ) : only ? (
-                  // "1" is not news about a thing there is exactly one of.
-                  // Whether it is live is.
-                  only.state && <span className="text-[12px] text-success-700">{only.state}</span>
-                ) : records.length ? (
-                  <span className="text-[12px] text-gray-400">{records.length}</span>
-                ) : null}
-              </button>
+                  <span className="flex-1 truncate text-[13.5px] font-medium text-gray-900">
+                    {ladder.label}
+                  </span>
+                </button>
+                <AssigneeChip
+                  people={people}
+                  value={university.assignments?.[key] ?? null}
+                  onChange={(id) => onAssign(key, id)}
+                />
+                <button
+                  type="button"
+                  onClick={() => (only ? onOpenRecord(only) : onToggle(key))}
+                  aria-label={`${ladder.label} — ${waiting} waiting`}
+                  className="shrink-0 text-right"
+                >
+                  {waiting > 0 ? (
+                    <span className="text-[12.5px] font-semibold tabular-nums text-warning-700">
+                      {waiting}
+                    </span>
+                  ) : only ? (
+                    // "1" is not news about a thing there is exactly one of.
+                    // Whether it is live is.
+                    only.state && <span className="text-[12px] text-success-700">{only.state}</span>
+                  ) : records.length ? (
+                    <span className="text-[12px] text-gray-400">{records.length}</span>
+                  ) : null}
+                </button>
+              </div>
 
               {expanded && !only && (
                 <div className="border-t border-gray-100 px-3.5 pb-2">

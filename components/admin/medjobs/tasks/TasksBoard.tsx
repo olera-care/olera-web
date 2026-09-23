@@ -6,9 +6,16 @@ import { LADDERS, SECTION_ORDER, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   applications,
   readyCount,
+  readyCountIn,
   readyForStudents,
   type BoardUniversity,
 } from "@/lib/medjobs/task-board";
+import {
+  assignedPeople,
+  byName,
+  sectionsFor,
+  type Person,
+} from "@/lib/medjobs/assignments";
 import { demoUniversity, isDemoUniversity } from "@/lib/medjobs/demo-university";
 import UniversityFlow from "./UniversityFlow";
 
@@ -21,6 +28,9 @@ import UniversityFlow from "./UniversityFlow";
  * Clicking a row opens the university on its summary, from which one button
  * starts working through the tasks in a row.
  */
+
+/** Where the My work choice is remembered. */
+const FILTER_KEY = "medjobs.tasks.filter";
 
 const CHANNEL_OF: Partial<Record<SectionKey, "st3" | "st4" | "st5" | "st6" | "st7">> = {
   jobboard: "st3",
@@ -40,14 +50,52 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
   const [failed, setFailed] = useState<string | null>(null);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const [, force] = useState(0);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [me, setMe] = useState<Person | null>(null);
+  /**
+   * Whose work is in front of you, or null for everyone's.
+   *
+   * Remembered per browser, because somebody who works one slice of the
+   * board works it every morning and re-picking it each time is a tax. Read
+   * lazily and in a try/catch: storage throws in a private window, and a
+   * board that will not render because of a filter preference is worse than
+   * an unremembered filter.
+   */
+  const [filterId, setFilterId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(FILTER_KEY);
+      if (saved) setFilterId(saved);
+    } catch {
+      /* no storage, no memory. The board still works. */
+    }
+  }, []);
+
+  const chooseFilter = (id: string | null) => {
+    setFilterId(id);
+    try {
+      if (id) window.localStorage.setItem(FILTER_KEY, id);
+      else window.localStorage.removeItem(FILTER_KEY);
+    } catch {
+      /* the choice still applies to this sitting. */
+    }
+  };
 
   const load = useCallback(async () => {
     if (seed) return;
     try {
       const res = await fetch("/api/admin/medjobs/tasks-board");
-      const d = (await res.json()) as { universities: BoardUniversity[]; error?: string };
+      const d = (await res.json()) as {
+        universities: BoardUniversity[];
+        people?: Person[];
+        me?: Person | null;
+        error?: string;
+      };
       if (!res.ok) throw new Error(d.error ?? `Request failed (${res.status}).`);
       setBoard([...d.universities, demo.current!]);
+      setPeople(d.people ?? []);
+      setMe(d.me ?? null);
       setFailed(null);
     } catch (e) {
       setFailed(e instanceof Error ? e.message : "The board could not be loaded.");
@@ -78,16 +126,65 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
   // The teaching campus sits at the bottom whatever it has waiting on it. It
   // is not work, and sorting it up among the real universities by task count
   // is how somebody ends up practising on a campus they meant to work.
-  const rows = [...board].sort(
+  // How much is waiting for whoever is being shown. Unfiltered, that is
+  // every section, so this is the old readyCount by another name.
+  const waitingFor = (u: BoardUniversity) =>
+    readyCountIn(u, sectionsFor(u.assignments, filterId));
+
+  // Under a filter, a university the person owns nothing at drops out
+  // entirely. Forty campuses with thirty-five greyed is worse than five.
+  const visible = filterId
+    ? board.filter((u) => sectionsFor(u.assignments, filterId).length > 0)
+    : board;
+
+  const rows = [...visible].sort(
     (a, b) =>
       Number(isDemoUniversity(a)) - Number(isDemoUniversity(b)) ||
-      readyCount(b) - readyCount(a) ||
+      waitingFor(b) - waitingFor(a) ||
       a.name.localeCompare(b.name),
   );
   const open = board.find((u) => u.slug === openSlug) ?? null;
 
+  // Everyone, then you, then anybody else actually holding a pair. Built
+  // from the assignments rather than the roster so the menu stays short and
+  // nobody who is not working campuses clutters it.
+  const holders = new Map<string, Person>();
+  for (const u of board)
+    for (const p of assignedPeople(u.assignments)) holders.set(p.id, p);
+  if (me) holders.delete(me.id);
+  const others = [...holders.values()].sort(byName);
+  const filterName =
+    filterId === null
+      ? "Everyone"
+      : (me?.id === filterId ? me.name : others.find((p) => p.id === filterId)?.name) ??
+        // Somebody who held work when the choice was made and holds none now.
+        // Named plainly rather than silently reset, so an empty board has a
+        // reason on screen.
+        people.find((p) => p.id === filterId)?.name ??
+        "Someone";
+
   return (
     <>
+      {(me || others.length > 0) && (
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            Showing
+          </span>
+          <FilterMenu
+            label={filterName}
+            me={me}
+            others={others}
+            value={filterId}
+            onChange={chooseFilter}
+          />
+          {filterId && rows.length === 0 && (
+            <span className="text-[12px] text-gray-500">
+              Nothing assigned to {filterName} yet.
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full min-w-[54rem] border-collapse text-left">
           <thead>
@@ -103,7 +200,8 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
           </thead>
           <tbody>
             {rows.map((u) => {
-              const n = readyCount(u);
+              const n = waitingFor(u);
+              const on = assignedPeople(u.assignments);
               return (
                 <tr
                   key={u.slug}
@@ -123,6 +221,13 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
                         </span>
                       )}
                     </span>
+                    {/* Who is on this campus. Indented to clear the dot
+                        column so the names line up under the name. */}
+                    {on.length > 0 && (
+                      <span className="mt-0.5 block pl-4 text-[11.5px] text-gray-500">
+                        {on.map((p) => p.name).join(" · ")}
+                      </span>
+                    )}
                   </td>
                   <td className="py-2.5 pr-3 text-center text-[13px] font-semibold tabular-nums text-warning-700">
                     {n || <span className="text-gray-300">·</span>}
@@ -169,6 +274,8 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
       {open && (
         <UniversityFlow
           university={open}
+          people={people}
+          filterId={filterId}
           onClose={() => setOpenSlug(null)}
           onChanged={() => force((x) => x + 1)}
           onReload={load}
@@ -179,3 +286,89 @@ export default function TasksBoard({ seed }: { seed?: BoardUniversity[] }) {
 }
 
 const TH = "py-2 pr-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500";
+
+/**
+ * Whose work the board is showing.
+ *
+ * Everyone by default. Your own name is pinned above the rest and labelled,
+ * because "my work" is the reason most people open this and hunting for
+ * yourself in an alphabetical list is a small daily tax.
+ */
+function FilterMenu({
+  label,
+  me,
+  others,
+  value,
+  onChange,
+}: {
+  label: string;
+  me: Person | null;
+  others: Person[];
+  value: string | null;
+  onChange: (id: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const outside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", outside);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", outside);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+
+  const pick = (id: string | null) => {
+    setOpen(false);
+    onChange(id);
+  };
+  const row = (id: string | null, text: string) => (
+    <button
+      key={id ?? "everyone"}
+      type="button"
+      onClick={() => pick(id)}
+      className={`block w-full px-3 py-1.5 text-left text-[12.5px] hover:bg-gray-50 ${
+        value === id ? "font-semibold text-primary-700" : "text-gray-700"
+      }`}
+    >
+      {text}
+    </button>
+  );
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((s) => !s)}
+        className={`rounded-md border px-2.5 py-1 text-[12.5px] transition-colors ${
+          value
+            ? "border-primary-600 bg-primary-50 font-medium text-primary-700 hover:bg-primary-100"
+            : "border-gray-200 text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        {label} <span className="text-gray-400">▾</span>
+      </button>
+      {open && (
+        <div className="absolute left-0 z-30 mt-1 w-44 overflow-hidden rounded-md border border-gray-200 bg-white py-0.5 shadow-lg">
+          {row(null, "Everyone")}
+          {me && (
+            <>
+              <div className="my-0.5 border-t border-gray-100" />
+              {row(me.id, `My work (${me.name})`)}
+            </>
+          )}
+          {others.length > 0 && <div className="my-0.5 border-t border-gray-100" />}
+          {others.map((p) => row(p.id, p.name))}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -850,14 +850,34 @@ function ApplyExperience({
       ? provider.city
       : provider.state || null;
 
-  // In-flow funnel: one managed_ads_step_viewed per step per visit, so we can
-  // finally SEE where providers stop instead of guessing (step 0 fires too —
-  // it's the denominator the boost_viewed event can't give us per-flow).
+  // In-flow funnel: one managed_ads_step_viewed per step per session, so we can
+  // SEE where providers stop instead of guessing.
+  //
+  // The guard is sessionStorage, not just a ref. A ref only survives the mount
+  // that owns it, and this component remounts as boost state resolves — TJ's
+  // 23 Sep run fired first_campaign twice, 1.5s apart, and the entry step has
+  // averaged 1.82 events per provider across its whole history. Same pattern
+  // dashboard_arrival already uses, including the try/catch, because
+  // sessionStorage throws in Safari private mode.
   const trackedSteps = useRef<Set<number>>(new Set());
   useEffect(() => {
     if (isManagedAdsPreviewMode()) return;
     if (trackedSteps.current.has(step)) return;
+    const stepKey = `olera_ads_step_${provider.slug}_${APPLY_STEP_NAMES[step] ?? step}`;
+    try {
+      if (typeof window !== "undefined" && sessionStorage.getItem(stepKey)) {
+        trackedSteps.current.add(step);
+        return;
+      }
+    } catch {
+      // sessionStorage unavailable — the ref below still dedupes this mount
+    }
     trackedSteps.current.add(step);
+    try {
+      if (typeof window !== "undefined") sessionStorage.setItem(stepKey, "1");
+    } catch {
+      // non-fatal
+    }
     trackProviderEvent(provider.slug, "managed_ads_step_viewed", {
       provider_name: provider.displayName,
       step: APPLY_STEP_NAMES[step] ?? String(step),

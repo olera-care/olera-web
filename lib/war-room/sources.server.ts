@@ -142,6 +142,9 @@ export function slackContent(message: SlackMessage) {
  * the self-check below still reports the rest.
  */
 const slackNameCache = new Map<string, string | null>();
+// The first reason a name lookup failed, reported by the self-check. Swallowed,
+// a missing users:read scope would look exactly like people without names.
+let slackNameError: string | null = null;
 async function slackUserName(token: string, userId: string | undefined): Promise<string | null> {
   if (!userId) return null;
   if (slackNameCache.has(userId)) return slackNameCache.get(userId) ?? null;
@@ -150,7 +153,8 @@ async function slackUserName(token: string, userId: string | undefined): Promise
     const name = payload.user?.profile?.real_name || payload.user?.real_name || payload.user?.profile?.display_name || null;
     slackNameCache.set(userId, name);
     return name;
-  } catch {
+  } catch (error) {
+    slackNameError ??= error instanceof Error ? error.message : String(error);
     slackNameCache.set(userId, null);
     return null;
   }
@@ -222,6 +226,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
       channel_index: lastIndex,
       channels_read: results.length,
       threads_read: THREAD_FETCHES_PER_SCAN - threadBudget.remaining,
+      ...(slackNameError ? { author_lookup_error: slackNameError } : {}),
       results,
     },
   });

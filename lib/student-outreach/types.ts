@@ -801,12 +801,16 @@ export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
  * Use this anywhere a row's kind needs to be surfaced — falls back
  * gracefully when stakeholder_type is NULL (provider rows).
  */
-export const KIND_LABELS: Record<StakeholderType | "provider", string> = {
+// `event` is not a StakeholderType — the MedJobs task board writes it, the
+// legacy outreach drawer only has to name it. Widening the union instead
+// would make every Record<StakeholderType, …> in this file incomplete.
+export const KIND_LABELS: Record<StakeholderType | "provider" | "event", string> = {
   student_org: "Student Org",
   advisor: "Advising Office",
   professor: "Professor",
   dept_head: "Dept Head",
   provider: "Provider",
+  event: "Campus Event",
 };
 
 // v8.10.20: "Active Partner" → "Partner" everywhere admins see the

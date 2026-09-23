@@ -35,6 +35,10 @@ const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-so
 // the switch (2026-09-23, "do you know the recent work on the ads nudge")
 // spent all 700 tokens thinking and returned no text at all.
 const MAX_ANSWER_TOKENS = 4_000;
+// Adaptive thinking and effort are rejected outright by Haiku (400: "adaptive
+// thinking is not supported on this model"), so an env override back to Haiku
+// would have failed every answer. Sent only where the model accepts them.
+const SUPPORTS_ADAPTIVE = /^claude-(sonnet-(5|4-6)|opus|fable|mythos)/.test(CONVERSATION_MODEL);
 
 /**
  * How long an exchange stays "in progress".
@@ -340,6 +344,17 @@ async function loadManagedAdsLedger(db: SupabaseClient) {
  */
 const SHIPPED_WINDOW_DAYS = 7;
 
+// GitHub logins to the names people use, from docs/MERGE_PERMISSIONS.md. Given
+// only "tfalohun" the model called the founder "Tobi". An unmapped login is
+// passed through as-is rather than guessed at.
+const GITHUB_NAMES: Record<string, string> = {
+  tfalohun: "TJ",
+  logan447: "Logan",
+  Efuanyamekye: "Efua",
+  "chantel-stack": "Chantel",
+  jakub300: "Jakub",
+};
+
 async function loadRecentlyShipped() {
   const token = process.env.WAR_ROOM_GITHUB_TOKEN;
   const repository = process.env.WAR_ROOM_GITHUB_REPOSITORY;
@@ -378,7 +393,7 @@ async function loadRecentlyShipped() {
     }
     return pulls
       .filter((pull) => pull.merged_at && new Date(pull.merged_at).getTime() >= since)
-      .map((pull) => ({ number: pull.number, title: pull.title, mergedAt: pull.merged_at, author: pull.user?.login ?? null, fromBranch: pull.head?.ref ?? null }));
+      .map((pull) => ({ number: pull.number, title: pull.title, mergedAt: pull.merged_at, author: pull.user?.login ? (GITHUB_NAMES[pull.user.login] ?? pull.user.login) : null, fromBranch: pull.head?.ref ?? null }));
   };
   try {
     const [toStaging, toProduction] = await Promise.all([read("staging"), read("main")]);
@@ -421,7 +436,15 @@ async function loadRecentlyShipped() {
       totalMergedToStaging: merged.length,
       latestPromotionToProduction: latestPromotion,
       mergedByAuthor: byAuthor,
-      promotedToProduction: toProduction.map(({ number, title, mergedAt }) => ({ number, title, mergedAt })),
+      // Each promotion with everything it carried and the count, so "what went
+      // live today" is read off one list. Gathering it from per-pull fields,
+      // the model said five on two runs and four on the third.
+      promotedToProduction: toProduction.map(({ number, title, mergedAt, fromBranch }) => {
+        const carried = merged
+          .filter((pull) => pull.reachedProductionIn?.promotion === number)
+          .map((pull) => ({ number: pull.number, title: pull.title, author: pull.author }));
+        return { number, title, mergedAt, isHotfix: fromBranch !== "staging", carriedCount: carried.length, carried };
+      }),
     };
   } catch (error) {
     // Said, not swallowed: an empty list would read as "nothing shipped".
@@ -524,13 +547,13 @@ If the relevant source is NOT ingested, say you cannot see it. Read the whatIsIn
 
 Write for a phone screen. No markdown headers, no bullet lists, no tables. Two or three short paragraphs at most, and one is often right. Slack bold is single asterisks.
 
-Lead with the answer. Do not restate the question. Never name the fields of the record (managedAds, shipped, readFailed and so on); say what they mean. Do not offer to help further.
+Lead with the answer. Do not restate the question. Call people by the names in the record and never derive a name from a username. Never name the fields of the record (managedAds, shipped, readFailed and so on); say what they mean. Do not offer to help further.
 
 Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
 
 Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from managedAds. It is read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. Use managedAds.counts for any count or "this week" question rather than counting rows yourself, and give the dates. If managedAds.readFailed is set, say you could not read it.
 
-Questions about what was built, shipped, merged or deployed are answered from shipped first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production, and which promotion carried it, are already worked out on each pull (inProduction, reachedProductionIn); never recompute them from timestamps. To say what a promotion shipped, list every pull whose reachedProductionIn names it. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If shipped.readFailed is set, say you could not read it.
+Questions about what was built, shipped, merged or deployed are answered from shipped first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production, and which promotion carried it, are already worked out on each pull (inProduction, reachedProductionIn); never recompute them from timestamps. To say what a promotion shipped, use that promotion's carried list and carriedCount exactly. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If shipped.readFailed is set, say you could not read it.
 
 If the record shows something the founder appears to have wrong, say so directly in one sentence.`;
 
@@ -551,8 +574,7 @@ export async function answerFounderQuestion(
       max_tokens: MAX_ANSWER_TOKENS,
       // Adaptive thinking stays on: it is what made Sonnet correct a wrong
       // premise instead of agreeing with it. Medium, not low: at low it said "five PRs" and listed seven.
-      thinking: { type: "adaptive" },
-      output_config: { effort: "medium" },
+      ...(SUPPORTS_ADAPTIVE ? { thinking: { type: "adaptive" as const }, output_config: { effort: "medium" as const } } : {}),
       system: CONVERSATION_SYSTEM,
       messages: [{
         role: "user",

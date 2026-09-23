@@ -126,25 +126,30 @@ export default function SummaryView({
                 <button
                   type="button"
                   onClick={() => (only ? onOpenRecord(only) : onToggle(key))}
-                  className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+                  className="flex min-w-0 shrink items-center gap-2.5 text-left"
                 >
                   <span className="w-2.5 shrink-0 text-[10px] text-gray-400">
                     {only ? "" : expanded ? "▾" : "▸"}
                   </span>
-                  <span className="flex-1 truncate text-[13.5px] font-medium text-gray-900">
+                  <span className="truncate text-[13.5px] font-medium text-gray-900">
                     {ladder.label}
                   </span>
                 </button>
+                {/* Beside the name it belongs to, not out by the count. Who
+                    owns this reads as part of the label; against the number
+                    it read as another figure. */}
                 <AssigneeChip
                   people={people}
                   value={university.assignments?.[key] ?? null}
                   onChange={(id) => onAssign(key, id)}
                 />
+                {/* Takes the rest of the row so the gap between the chip and
+                    the count still toggles the section. */}
                 <button
                   type="button"
                   onClick={() => (only ? onOpenRecord(only) : onToggle(key))}
                   aria-label={`${ladder.label} — ${waiting} waiting`}
-                  className="shrink-0 text-right"
+                  className="flex-1 text-right"
                 >
                   {waiting > 0 ? (
                     <span className="text-[12.5px] font-semibold tabular-nums text-warning-700">

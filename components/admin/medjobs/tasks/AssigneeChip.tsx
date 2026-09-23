@@ -74,8 +74,10 @@ export default function AssigneeChip({
         {value ? value.name : "+ assign"}
       </button>
 
+      {/* Left-aligned: the chip sits beside the task type name now, so a
+          right-aligned menu would hang back over the label. */}
       {open && (
-        <div className="absolute right-0 z-30 mt-1 w-40 overflow-hidden rounded-md border border-gray-200 bg-white py-0.5 shadow-lg">
+        <div className="absolute left-0 z-30 mt-1 w-40 overflow-hidden rounded-md border border-gray-200 bg-white py-0.5 shadow-lg">
           {people.map((p) => (
             <button
               key={p.id}

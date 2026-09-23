@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { PROVIDER_EVENT_LABELS } from "@/lib/activity/provider-categories";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -279,22 +280,42 @@ const LEDGER_WINDOW_DAYS = 30;
 async function loadManagedAdsLedger(db: SupabaseClient) {
   const since = new Date(Date.now() - LEDGER_WINDOW_DAYS * 86_400_000).toISOString();
   const { data, error } = await db.from("ad_campaign_requests")
-    .select("display_name, status, plan_status, created_at, subscribed_at, ended_at, updated_at")
+    .select("display_name, provider_slug, status, plan_status, channel, admin_note, created_at, subscribed_at, ended_at, updated_at")
     .is("deleted_at", null)
     .or(`plan_status.in.(active,past_due),created_at.gte.${since},subscribed_at.gte.${since},ended_at.gte.${since},and(plan_status.eq.canceled,updated_at.gte.${since})`)
     .order("created_at", { ascending: false })
     .limit(40);
   // A failed read must say so. Returning an empty ledger would read as "nobody
   // pays", which is the confident wrong answer this block exists to replace.
-  if (error) return { readFailed: `Could not read the Managed Ads ledger: ${error.message}` };
-  type LedgerRow = { display_name: string | null; status: string; plan_status: string | null; created_at: string; subscribed_at: string | null; ended_at: string | null; updated_at: string | null };
+  if (error) return { unavailable: `Could not read the Managed Ads ledger: ${error.message}` };
+  type LedgerRow = { display_name: string | null; provider_slug: string | null; status: string; plan_status: string | null; channel: string | null; admin_note: string | null; created_at: string; subscribed_at: string | null; ended_at: string | null; updated_at: string | null };
   // Paying means what the admin revenue chip means: active or past_due. A
   // failed card is still a subscriber until Stripe cancels, and counting only
   // "active" would have Cortex report zero paying providers the day Hoop Cares'
   // card bounced while the admin page still showed one.
   const isPaying = (row: LedgerRow) => row.plan_status === "active" || row.plan_status === "past_due";
   const rows = (data ?? []) as LedgerRow[];
-  const day = (iso: string | null) => (iso ? iso.slice(0, 10) : null);
+  // The Eastern calendar day, like every other time Cortex sees. Cut from the
+  // UTC string, a request made at 9:08 PM ET on Sep 22 read as Sep 23 beside
+  // times that said Sep 22.
+  const day = (iso: string | null) => (iso ? EASTERN_DAY.format(new Date(iso)) : null);
+  // Did the provider ask, or did Olera create the row? A campaign row is not
+  // proof of a provider request. On 2026-09-16 three rows were created in the
+  // same second at 4 AM Eastern -- TJ's Nextdoor question pilot, drafts Olera
+  // set up -- and Cortex reported all day that "three providers requested".
+  // A provider request fires `managed_ads_requested` from the form; a row with
+  // no such event within a day of its creation was not asked for by them.
+  const slugs = rows.map((row) => row.provider_slug).filter((slug): slug is string => Boolean(slug));
+  const { data: requestEvents } = slugs.length
+    ? await db.from("provider_activity")
+      .select("provider_id, created_at")
+      .eq("event_type", "managed_ads_requested")
+      .in("provider_id", slugs)
+      .gte("created_at", new Date(Date.now() - (LEDGER_WINDOW_DAYS + 1) * 86_400_000).toISOString())
+    : { data: [] };
+  const providerAsked = (row: LedgerRow) => ((requestEvents ?? []) as Array<{ provider_id: string; created_at: string }>)
+    .some((event) => event.provider_id === row.provider_slug
+      && Math.abs(new Date(event.created_at).getTime() - new Date(row.created_at).getTime()) < 86_400_000);
   // Counted here, not by the model. Given only the rows it said "three
   // providers requested" and then listed four, and called a subscription eight
   // days old "in the past week".
@@ -305,7 +326,8 @@ async function loadManagedAdsLedger(db: SupabaseClient) {
   // list is harder to talk past than a 0.
   const names = (keep: (row: LedgerRow) => boolean) => rows.filter(keep).map((row) => row.display_name ?? "unnamed");
   const counts = (days: number) => ({
-    requested: names((row) => within(row.created_at, days)),
+    requestedByTheProvider: names((row) => within(row.created_at, days) && providerAsked(row)),
+    createdByOleraWithoutAProviderRequest: names((row) => within(row.created_at, days) && !providerAsked(row)),
     subscribed: names((row) => within(row.subscribed_at, days)),
     ended: names((row) => within(row.ended_at, days)),
     canceled: names((row) => row.plan_status === "canceled" && within(row.updated_at, days)),
@@ -318,9 +340,19 @@ async function loadManagedAdsLedger(db: SupabaseClient) {
       .map((row) => ({ name: row.display_name, subscribedOn: day(row.subscribed_at), planStatus: row.plan_status })),
     recentActivity: rows.map((row) => ({
       name: row.display_name,
-      status: row.status,
+      // Plain words, not the raw status. Reading "requested" on the pilot
+      // drafts, it told the founder they had "gone live".
+      state: ({
+        requested: "requested, not live yet",
+        pending_profile: "waiting on the provider's profile, not live",
+        live: "live",
+        ended: "ended",
+      } as Record<string, string>)[row.status] ?? row.status,
       paying: isPaying(row),
       planStatus: row.plan_status,
+      providerAsked: providerAsked(row),
+      channel: row.channel,
+      teamNote: row.admin_note ? row.admin_note.slice(0, 200) : null,
       // The webhook stamps no cancellation date; updated_at is the closest.
       canceledAround: row.plan_status === "canceled" ? day(row.updated_at) : null,
       requestedOn: day(row.created_at),
@@ -358,7 +390,7 @@ const GITHUB_NAMES: Record<string, string> = {
 async function loadRecentlyShipped() {
   const token = process.env.WAR_ROOM_GITHUB_TOKEN;
   const repository = process.env.WAR_ROOM_GITHUB_REPOSITORY;
-  if (!token || !repository) return { readFailed: "GitHub is not configured for Cortex, so what shipped cannot be read." };
+  if (!token || !repository) return { unavailable: "GitHub is not configured for Cortex, so what shipped cannot be read." };
   const since = Date.now() - SHIPPED_WINDOW_DAYS * 86_400_000;
   // One budget for the whole read. The Slack route has thirty seconds for
   // everything, and up to ten sequential GitHub calls at eight seconds each
@@ -448,8 +480,173 @@ async function loadRecentlyShipped() {
     };
   } catch (error) {
     // Said, not swallowed: an empty list would read as "nothing shipped".
-    return { readFailed: `Could not read GitHub: ${error instanceof Error ? error.message : String(error)}` };
+    return { unavailable: `Could not read GitHub: ${error instanceof Error ? error.message : String(error)}` };
   }
+}
+
+/**
+ * How providers are engaging with the Managed Ads surfaces, read live.
+ *
+ * On 2026-09-23, two hours after a new ads nudge went live, the founder asked
+ * "any signs of it working? Have providers seen the newer version and engaged
+ * with it?" Cortex answered that it had no visibility, which was false: every
+ * showing, tap and dismissal of the nudge is a row in `provider_activity`. It
+ * simply did not read that table. Third time in a day the same lesson: a fact
+ * with a system of record is read from it.
+ *
+ * Counted in code, per event, as distinct providers with their names. And
+ * per release: engagement since each recent promotion went live against the
+ * same span one week earlier, so "is it working" compares like with like --
+ * same weekday, same hours -- instead of this afternoon against a whole week.
+ */
+const ADS_EVENTS = [
+  "ads_touchpoint_viewed",
+  "ads_touchpoint_clicked",
+  "ads_touchpoint_dismissed",
+  "managed_ads_pitch_viewed",
+  "managed_ads_cta_clicked",
+  "managed_ads_boost_viewed",
+  "managed_ads_requested",
+  "managed_ads_not_now",
+] as const;
+const ENGAGEMENT_ROW_CAP = 10_000;
+
+type PromotionTime = { number: number; title: string; mergedAt: string | null; carried?: Array<{ title: string }> };
+
+async function loadAdsEngagement(db: SupabaseClient, promotions: PromotionTime[]) {
+  const now = Date.now();
+  const since = new Date(now - 21 * 86_400_000).toISOString();
+  const [{ data, error }, deletedResult] = await Promise.all([
+    db.from("provider_activity")
+      .select("provider_id, event_type, created_at, metadata")
+      .in("event_type", ADS_EVENTS as unknown as string[])
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(ENGAGEMENT_ROW_CAP),
+    // A request event is written when the form submits; the campaign row can
+    // be deleted minutes later. On 2026-09-23 Aggie Home Care's request was
+    // deleted four minutes after it was made, and Cortex offered it as the one
+    // sign the new nudge was working.
+    db.from("ad_campaign_requests")
+      .select("provider_slug, created_at")
+      .not("deleted_at", "is", null)
+      .gte("created_at", since),
+  ]);
+  if (error) return { unavailable: `Could not read provider engagement: ${error.message}` };
+  const deletedRequests = (deletedResult.data ?? []) as Array<{ provider_slug: string | null; created_at: string }>;
+  const requestWasDeleted = (row: { provider_id: string | null; created_at: string }) =>
+    deletedRequests.some((request) =>
+      request.provider_slug === row.provider_id
+      && Math.abs(new Date(request.created_at).getTime() - new Date(row.created_at).getTime()) < 10 * 60_000);
+  type Row = { provider_id: string | null; event_type: string; created_at: string; metadata: Record<string, unknown> | null };
+  const nameOf = (row: Row) => String(row.metadata?.provider_name ?? row.provider_id ?? "unknown");
+  // Test profiles are the team clicking through its own work. On 2026-09-22
+  // the only showing of the nudge after 21:00 UTC was "(Test) Effy's Homecare".
+  const rows = ((data ?? []) as Row[]).filter((row) =>
+    !(row.provider_id ?? "").startsWith("test-") && !nameOf(row).startsWith("(Test)"));
+
+  const summarize = (from: number, to: number) => {
+    const inWindow = rows.filter((row) => {
+      const at = new Date(row.created_at).getTime();
+      return at >= from && at < to;
+    });
+    const byEvent: Record<string, { providers: number; names: string[]; events: number }> = {};
+    const withdrawn = [...new Set(inWindow
+      .filter((row) => row.event_type === "managed_ads_requested" && requestWasDeleted(row))
+      .map(nameOf))];
+    for (const eventType of ADS_EVENTS) {
+      const hits = inWindow.filter((row) => row.event_type === eventType
+        && !(eventType === "managed_ads_requested" && requestWasDeleted(row)));
+      const names = [...new Set(hits.map(nameOf))];
+      if (hits.length) byEvent[PROVIDER_EVENT_LABELS[eventType] ?? eventType] = { providers: names.length, names: names.slice(0, 15), events: hits.length };
+    }
+    // Which placement showed the nudge: a new placement and an old one read
+    // very differently.
+    const shownBy: Record<string, number> = {};
+    for (const row of inWindow.filter((r) => r.event_type === "ads_touchpoint_viewed")) {
+      const placement = String(row.metadata?.touchpoint ?? "unknown");
+      shownBy[placement] = (shownBy[placement] ?? 0) + 1;
+    }
+    return {
+      byEvent,
+      ...(withdrawn.length ? { requestsLaterDeleted: withdrawn } : {}),
+      nudgeShowingsByPlacement: shownBy,
+      anyActivity: inWindow.length > 0,
+    };
+  };
+
+  const recent = promotions
+    .filter((promotion) => promotion.mergedAt)
+    .sort((a, b) => (b.mergedAt as string).localeCompare(a.mergedAt as string))
+    .slice(0, 3)
+    .map((promotion) => {
+      const at = new Date(promotion.mergedAt as string).getTime();
+      return {
+        promotion: promotion.number,
+        title: promotion.title,
+        // What it carried, so the right release is judged. Given titles only,
+        // Cortex dated the ads nudge from a later Cortex-only promotion.
+        carried: (promotion.carried ?? []).map((pull) => pull.title),
+        liveSince: promotion.mergedAt,
+        hoursLive: Math.round((now - at) / 3_600_000),
+        sinceItWentLive: summarize(at, now),
+        sameHoursOneWeekEarlier: summarize(at - 7 * 86_400_000, now - 7 * 86_400_000),
+      };
+    });
+
+  // Direction worked out here. Given both weeks side by side, the model wrote
+  // that page views "rose from 12 providers to 9".
+  const thisWeek = summarize(now - 7 * 86_400_000, now);
+  const lastWeek = summarize(now - 14 * 86_400_000, now - 7 * 86_400_000);
+  const weekOverWeek = Object.fromEntries(
+    [...new Set([...Object.keys(thisWeek.byEvent), ...Object.keys(lastWeek.byEvent)])].map((label) => {
+      const current = thisWeek.byEvent[label]?.providers ?? 0;
+      const prior = lastWeek.byEvent[label]?.providers ?? 0;
+      return [label, {
+        providersThisWeek: current,
+        providersLastWeek: prior,
+        direction: current > prior ? "up" : current < prior ? "down" : "flat",
+      }];
+    }),
+  );
+  return {
+    ...(rows.length >= ENGAGEMENT_ROW_CAP ? { incomplete: "Hit the row cap; older activity may be missing." } : {}),
+    testProfilesExcluded: true,
+    latestActivity: rows[0]?.created_at ?? null,
+    weekOverWeek,
+    last7Days: thisWeek,
+    previous7Days: lastWeek,
+    sinceEachRecentRelease: recent,
+    note: "Providers mostly use the product in US business hours. A release that has only been live overnight Eastern has had almost no chance to be seen; say so rather than reading silence as failure.",
+  };
+}
+
+/**
+ * Every timestamp in the record, rendered in US Eastern before the model sees
+ * it. The business runs on Eastern and the admin pages already do; the model
+ * was left to convert UTC itself and told the founder "yesterday is not quite
+ * right" about a merge that was yesterday evening in the US and this morning
+ * in Bangkok. It never does time-zone arithmetic now.
+ */
+const EASTERN = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+});
+const BANGKOK = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Bangkok", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+});
+const EASTERN_DAY = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", month: "short", day: "numeric" });
+const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+function inEastern(value: unknown): unknown {
+  if (typeof value === "string" && ISO_DATETIME.test(value)) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : `${EASTERN.format(date)} ET`;
+  }
+  if (Array.isArray(value)) return value.map(inEastern);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, inEastern(inner)]));
+  }
+  return value;
 }
 
 async function buildConversationContext(
@@ -477,21 +674,32 @@ async function buildConversationContext(
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
   const focus = focusInvestigationId ? rows.find((row) => row.id === focusInvestigationId) : undefined;
+  // After the GitHub read, because "since it went live" needs the promotion times.
+  const engagement = await loadAdsEngagement(
+    db,
+    "promotedToProduction" in shipped ? (shipped.promotedToProduction as PromotionTime[]) : [],
+  );
 
-  return JSON.stringify({
-    // Stated explicitly so Cortex can distinguish "this did not happen" from
-    // "I cannot see where that would be recorded". Those are different answers
-    // and only one of them is honest when a reader is not ingested.
-    now: new Date().toISOString(),
+  // Plain-English keys throughout. Told not to name "managedAds" or "shipped",
+  // the model still wrote "managedAds gives me subscription status only" to
+  // the founder. A key it repeats should read as English when it does.
+  return JSON.stringify(inEastern({
+    "Current time": {
+      eastern: new Date().toISOString(),
+      founderLocalBangkok: BANGKOK.format(new Date()),
+    },
     // Copies, not live reads. Anything written after these times is invisible
     // until the next scan, and an answer of "nothing in the record" must say so.
-    lastRefreshed: {
+    "When the daily copies were last refreshed": {
       slackChannelMessages: refreshed.slack,
       notionPages: refreshed.notion,
       oleraWrittenRecord: refreshed.archive,
       note: "Refreshed only when the daily scan runs. Work written up or shipped after these times is not in the record yet.",
     },
-    whatIsIngested: {
+    // Stated explicitly so Cortex can distinguish "this did not happen" from
+    // "I cannot see where that would be recorded". Those are different answers
+    // and only one of them is honest when a reader is not ingested.
+    "What Cortex can and cannot see": {
       slackChannelMessages: sources.slack > 0
         ? `${sources.slack} stored`
         : "NONE stored -- no Slack channel message has been ingested yet",
@@ -501,12 +709,14 @@ async function buildConversationContext(
       oleraWrittenRecord: `${sources.archive} stored`,
       directMessages: "NEVER ingested, and never can be. A Slack bot cannot read direct messages between two people; no permission grants it. This includes the founder's own DMs.",
       email: "NEVER ingested.",
-      managedAdsSubscriptions: "LIVE. Read from the database at the moment of this question; see managedAds.",
-      shippedWork: "LIVE. Pull requests merged in the last 7 days, read from GitHub at the moment of this question; see shipped.",
+      managedAdsSubscriptions: "LIVE, read from the database at the moment of this question.",
+      shippedWork: "LIVE, pull requests merged in the last 7 days, read from GitHub at the moment of this question.",
+      providerEngagementWithAds: "LIVE, every showing, tap and dismissal of the ads nudge and pitch, read from product analytics at the moment of this question.",
     },
-    managedAds,
-    shipped,
-    recordMatches: matches.map((row) => ({
+    "Managed Ads subscriptions (live)": managedAds,
+    "Shipped work from GitHub (live)": shipped,
+    "Provider engagement with Managed Ads (live)": engagement,
+    "Matching passages from the written record and Slack": matches.map((row) => ({
       source: row.source,
       title: row.title,
       occurredAt: row.occurred_at,
@@ -530,7 +740,7 @@ async function buildConversationContext(
       timesObserved: row.occurrence_count,
     })),
     proposals: (proposals.data ?? []) as ProposalRow[],
-  });
+  }));
 }
 
 const CONVERSATION_SYSTEM = `You are Cortex, the operating system for Olera, answering its founder in a Slack DM.
@@ -541,21 +751,25 @@ When the record does not contain the answer, distinguish two very different case
 
 If the relevant source IS ingested and simply holds nothing, say the record shows nothing and that you would expect it to.
 
-If the relevant source IS ingested but the question is about something recent, check lastRefreshed. When the event could postdate the last refresh, say when the record was last refreshed rather than implying it did not happen.
+If the relevant source IS ingested but the question is about something recent, check when the daily copies were last refreshed. When the event could postdate the last refresh, say when the record was last refreshed rather than implying it did not happen.
 
-If the relevant source is NOT ingested, say you cannot see it. Read the whatIsIngested block before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
+If the relevant source is NOT ingested, say you cannot see it. Read what Cortex can and cannot see before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
 
 Write for a phone screen. No markdown headers, no bullet lists, no tables. Two or three short paragraphs at most, and one is often right. Slack bold is single asterisks.
 
-Lead with the answer. Do not restate the question. Call people by the names in the record and never derive a name from a username. Never name the fields of the record (managedAds, shipped, readFailed and so on); say what they mean. Do not offer to help further.
+Lead with the answer. Do not restate the question. Call people by the names in the record and never derive a name from a username. Never quote the record's section names or field names; say what they mean. Do not offer to help further.
 
 Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.
 
-Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from managedAds. It is read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. Use managedAds.counts for any count or "this week" question rather than counting rows yourself, and give the dates. If managedAds.readFailed is set, say you could not read it.
+Questions about who pays, who subscribed, who requested a campaign, or what ended are answered from the Managed Ads subscriptions. They are read live from the database, so it outranks any message or document, and a subscription is never something to look for in Slack. A campaign row is not a provider request: the counts separate campaigns the provider asked for from ones Olera created without a request, such as a pilot, and the team's note says why. Never call an Olera-created campaign a provider request. Say a campaign is live only when its state says live; "created" is not "live", and a draft is not running. Use their counts for any count or "this week" question rather than counting rows yourself, and give the dates. If they are unavailable, say you could not read them.
 
-Questions about what was built, shipped, merged or deployed are answered from shipped first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production, and which promotion carried it, are already worked out on each pull (inProduction, reachedProductionIn); never recompute them from timestamps. To say what a promotion shipped, use that promotion's carried list and carriedCount exactly. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If shipped.readFailed is set, say you could not read it.
+Questions about what was built, shipped, merged or deployed are answered from the shipped work first. It is live, so it outranks the written record. Name the pull request number. Whether it has reached production, and which promotion carried it, are already worked out on each pull (inProduction, reachedProductionIn); never recompute them from timestamps. To say what a promotion shipped, use that promotion's carried list and carriedCount exactly. Work per person is mergedByAuthor, each with its count; use that count and list every pull under it, never a subset. If it is unavailable, say you could not read it.
 
-If the record shows something the founder appears to have wrong, say so directly in one sentence.`;
+Questions about whether providers have seen, used, tapped or dismissed something, or whether a change "is working", are answered from the provider engagement. Counts and names are already worked out; never count or compare yourself. To judge a change, first find the release whose carried list contains it; never assume the latest release. Then compare what happened since it went live with the same hours one week earlier, and say how many hours it has been live. Test profiles are already excluded. For week-on-week, use the direction already given; never judge up or down yourself. A request that was later deleted is not a request; say it was withdrawn or deleted. Engagement is not revenue: a tap is not a request and a request is not a subscription, so say which one you are reporting.
+
+All times in the record are already in US Eastern (ET), which is how the business runs. The founder lives in Bangkok; his local time is given under the current time. Never convert time zones yourself, and never quote a raw timestamp.
+
+Correct the founder only when something he states is wrong in a way that would change a decision. Never correct wording, rounding, or which day something counts as.`;
 
 export async function answerFounderQuestion(
   db: SupabaseClient,

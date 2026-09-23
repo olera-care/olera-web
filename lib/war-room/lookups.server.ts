@@ -888,15 +888,25 @@ export async function searchStoredRecord(
   const authorWords = options.author ? searchWords(options.author) : [];
   const all = [...new Set([...words, ...channelWords, ...authorWords])];
   if (!all.length) return { matches: [], note: "Nothing to search for." };
-  const or = all.flatMap((word) => [`title.ilike.*${word}*`, `content.ilike.*${word}*`, `source_group.ilike.*${word}*`]).join(",");
-  let request = db.from("war_room_source_items")
-    .select("source, source_group, title, content, source_url, occurred_at, metadata")
-    .or(or)
-    .order("occurred_at", { ascending: false, nullsFirst: false })
-    .limit(400);
-  if (options.days) request = request.gte("occurred_at", new Date(Date.now() - options.days * 86_400_000).toISOString());
-  const { data, error } = await request;
-  if (error) return { unavailable: `Could not search the record: ${error.message}` };
+  // One candidate list per word, not one list for all of them. A single
+  // recency-ordered list lets common words fill every slot with recent
+  // chatter, so an older item matching only the rarer, telling words -- the
+  // case that hid Minh-Nguyet's feedback -- falls outside it again as the
+  // record grows. Per word, a rare word always brings back its matches.
+  const perWord = await Promise.all(all.map(async (word) => {
+    let request = db.from("war_room_source_items")
+      .select("id, source, source_group, title, content, source_url, occurred_at, metadata")
+      .or(`title.ilike.*${word}*,content.ilike.*${word}*,source_group.ilike.*${word}*`)
+      .order("occurred_at", { ascending: false, nullsFirst: false })
+      .limit(150);
+    if (options.days) request = request.gte("occurred_at", new Date(Date.now() - options.days * 86_400_000).toISOString());
+    return request;
+  }));
+  const failed = perWord.find((result) => result.error);
+  if (failed?.error) return { unavailable: `Could not search the record: ${failed.error.message}` };
+  const byId = new Map<string, unknown>();
+  for (const result of perWord) for (const row of (result.data ?? []) as Array<{ id: string }>) byId.set(row.id, row);
+  const data = [...byId.values()];
   type Row = { source: string; source_group: string | null; title: string | null; content: string | null; source_url: string | null; occurred_at: string | null; metadata: { author_name?: string | null } | null };
   const scored = ((data ?? []) as Row[]).map((row) => {
     const author = (row.metadata?.author_name ?? "").toLowerCase();

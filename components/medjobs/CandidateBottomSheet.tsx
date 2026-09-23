@@ -76,6 +76,18 @@ function formatExperienceDate(ym: string): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
+function formatLastUpdated(dateStr: string | undefined): string | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Updated today";
+  if (diffDays === 1) return "Updated yesterday";
+  if (diffDays < 14) return `Updated ${diffDays} days ago`;
+  return `Updated ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Schedule Grid Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -544,6 +556,11 @@ function ProfileContent({
                 Video
               </span>
             )}
+            {formatLastUpdated(candidate.updated_at || candidate.created_at) && (
+              <span className="text-xs text-gray-400">
+                {formatLastUpdated(candidate.updated_at || candidate.created_at)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -582,8 +599,15 @@ function ProfileContent({
         </div>
       )}
 
-      {/* Availability */}
-      <Section title="Availability">
+      {/* Weekly Schedule - Separate Section */}
+      {meta.course_schedule_grid && (
+        <Section title={`Weekly Schedule${meta.course_schedule_semester ? ` (${meta.course_schedule_semester})` : ""}`}>
+          <ScheduleGrid grid={meta.course_schedule_grid} />
+        </Section>
+      )}
+
+      {/* Availability & Commitment */}
+      <Section title="Availability & Commitment">
         {meta.seeking_status === "actively_looking" && (
           <div className="bg-emerald-50 rounded-lg px-3 py-2.5 inline-flex items-center gap-2 mb-4">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -593,7 +617,7 @@ function ProfileContent({
 
         {/* Year-Round Availability */}
         {meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="mb-4">
             <h4 className="text-xs font-medium text-gray-500 mb-2">Year-Round</h4>
             <div className="grid grid-cols-4 gap-2">
               {(["spring", "summer", "fall", "winter"] as const).map((season) => {
@@ -610,24 +634,9 @@ function ProfileContent({
           </div>
         )}
 
-        {/* Schedule Grid */}
-        {meta.course_schedule_grid && (
-          <details className="mt-4 pt-4 border-t border-gray-100 group">
-            <summary className="flex items-center justify-between cursor-pointer list-none text-sm font-medium text-gray-700">
-              <span>Class Schedule {meta.course_schedule_semester && `(${meta.course_schedule_semester})`}</span>
-              <svg className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </summary>
-            <div className="mt-3">
-              <ScheduleGrid grid={meta.course_schedule_grid} />
-            </div>
-          </details>
-        )}
-
         {/* Commitment Statement */}
         {meta.commitment_statement && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className={`${meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""}`}>
             <h4 className="text-xs font-medium text-gray-500 mb-2">Commitment Statement</h4>
             <p className="text-sm text-gray-700 leading-relaxed italic">
               &ldquo;{meta.commitment_statement}&rdquo;
@@ -648,6 +657,21 @@ function ProfileContent({
 
       {/* Qualifications */}
       <Section title="Qualifications">
+        {/* Verification Banner */}
+        {candidateIsVerified && (
+          <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100 mb-4">
+            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-emerald-800">Verified Candidate</p>
+              <p className="text-xs text-emerald-600">Driver&apos;s license and car insurance on file</p>
+            </div>
+          </div>
+        )}
+
         {meta.university && (
           <div className="mb-4">
             <dt className="text-xs text-gray-500 font-medium">University</dt>
@@ -697,7 +721,6 @@ function ProfileContent({
             {meta.experience_entries!
               .slice()
               .sort((a, b) => (b.start_date > a.start_date ? 1 : -1))
-              .slice(0, 3)
               .map((entry) => (
                 <div key={entry.id} className="bg-gray-50 rounded-xl px-4 py-3">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -710,13 +733,10 @@ function ProfileContent({
                     {formatExperienceDate(entry.start_date)} – {entry.end_date ? formatExperienceDate(entry.end_date) : "Present"}
                   </p>
                   {entry.description && (
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{entry.description}</p>
+                    <p className="text-sm text-gray-500 mt-1">{entry.description}</p>
                   )}
                 </div>
               ))}
-            {meta.experience_entries!.length > 3 && (
-              <p className="text-xs text-gray-400">+{meta.experience_entries!.length - 3} more</p>
-            )}
           </div>
         </Section>
       )}
@@ -751,18 +771,19 @@ function ProfileContent({
       {/* Commitments */}
       {hasCommitments && (
         <Section title={`${firstName}'s Commitments`}>
-          <div className="space-y-2">
+          <p className="text-xs text-gray-500 mb-3">Verified commitments this candidate has made</p>
+          <div className="space-y-2.5">
             {meta.acknowledgments_completed && (
               <>
-                <CommitmentItem text="On time, professional, 24+ hr notice for changes" />
-                <CommitmentItem text="Consent to background check and drug test" />
-                <CommitmentItem text="Reliable transportation" />
+                <CommitmentItem text="I will be on time, professional, and communicate schedule changes 24+ hours in advance" />
+                <CommitmentItem text="I consent to a background check and drug test upon hire" />
+                <CommitmentItem text="I have reliable transportation and accept responsibility for transport costs" />
               </>
             )}
-            {meta.ncns_pledge && <CommitmentItem text="No-call no-show pledge" />}
-            {meta.school_balance_pledge && <CommitmentItem text="Maintains shifts during exams" />}
-            {meta.advance_notice_pledge && <CommitmentItem text="Keeps availability updated regularly" />}
-            {meta.prn_willing && <CommitmentItem text="Open to PRN/as-needed" />}
+            {meta.ncns_pledge && <CommitmentItem text="I understand that a no-call no-show means a vulnerable person goes without care. I commit to never doing this." />}
+            {meta.school_balance_pledge && <CommitmentItem text="I will maintain my scheduled shifts even during midterms and finals — I will plan ahead and communicate early if I need coverage." />}
+            {meta.advance_notice_pledge && <CommitmentItem text="I will keep my availability and schedule updated regularly and work with office staff if anything changes." />}
+            {meta.prn_willing && <CommitmentItem text="I am open to starting PRN/as-needed until we find the right ongoing fit." />}
           </div>
         </Section>
       )}
@@ -778,6 +799,13 @@ function ProfileContent({
               </div>
             ))}
           </div>
+        </Section>
+      )}
+
+      {/* Documents */}
+      {meta.resume_url && (
+        <Section title="Documents">
+          <ResumeButton resumePath={meta.resume_url} profileId={candidate.id} />
         </Section>
       )}
 
@@ -1030,5 +1058,53 @@ function CommitmentItem({ text }: { text: string }) {
       </svg>
       <span className="text-gray-700">{text}</span>
     </div>
+  );
+}
+
+function ResumeButton({ resumePath, profileId }: { resumePath: string; profileId: string }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleViewResume = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/medjobs/get-document-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: resumePath, studentProfileId: profileId }),
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        window.open(url, "_blank");
+      }
+    } catch {
+      // Silently fail - user can try again
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleViewResume}
+      disabled={loading}
+      className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors group disabled:opacity-70"
+    >
+      <div className="w-9 h-9 rounded-lg bg-red-500 flex items-center justify-center flex-shrink-0">
+        <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+      </div>
+      <div className="flex-1 min-w-0 text-left">
+        <p className="text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
+          {loading ? "Opening..." : "Resume"}
+        </p>
+        <p className="text-xs text-gray-500">View or download PDF</p>
+      </div>
+      <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+      </svg>
+    </button>
   );
 }

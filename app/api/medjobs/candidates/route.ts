@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     let query = supabaseAdmin
       .from("business_profiles")
       .select(
-        "id, slug, display_name, city, state, zip, lat, lng, description, care_types, metadata, image_url, created_at" +
+        "id, slug, display_name, city, state, zip, lat, lng, description, care_types, metadata, image_url, created_at, updated_at" +
         (isProvider ? ", email, phone" : ""),
         { count: "estimated" }
       )

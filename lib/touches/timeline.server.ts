@@ -756,6 +756,13 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
       last_touch: lastTouch,
       last_human_touch_at: lastHuman?.occurred_at ?? null,
       human_touch_count: humanTouches.length,
+      // The provider's own side only: a support@ email or text they sent, or a
+      // logged inbound touch. Cortex ranks "replied to Olera" on this; the
+      // either-direction timestamp above cannot tell her reply from our call.
+      last_inbound_from_provider_at: [
+        ...inbound.filter((item) => item.actor === "in"),
+        ...ts.filter((t) => t.direction === "in"),
+      ].sort(byNewest)[0]?.occurred_at ?? null,
       open_action: openAction,
       days_quiet: daysSince(quietFrom, now),
       flags,

@@ -351,7 +351,13 @@ function FactGroup({
 function threadMatches(thread: Thread, raw: string): boolean {
   const q = raw.trim().toLowerCase();
   if (!q) return true;
-  const digits = q.replace(/\D/g, "");
+  // Numbers are stored as the last ten digits, so drop a US country code
+  // from a pasted "+1 469 318 7159" or "14693187159".
+  const allDigits = q.replace(/\D/g, "");
+  const digits =
+    q.startsWith("+1") || (allDigits.length === 11 && allDigits.startsWith("1"))
+      ? allDigits.slice(1)
+      : allDigits;
   if (digits.length >= 3 && thread.phone_last10.includes(digits)) return true;
   return (
     (thread.display_name ?? "").toLowerCase().includes(q) ||
@@ -677,12 +683,13 @@ export default function AdminSmsInboxPage() {
   // switching to Awaiting makes the tab lie about what is on screen. Mobile
   // keeps the familiar list-first navigation.
   useEffect(() => {
-    if (!threads?.length || window.innerWidth < 1024) return;
+    // Searching never moves the open conversation: jumping to the first match
+    // on every keystroke would yank away the thread being read or replied to.
+    // Pick a result to open it.
+    if (!threads?.length || window.innerWidth < 1024 || query.trim()) return;
 
     const belongsToMode = (thread: Thread) =>
-      query.trim()
-        ? threadMatches(thread, query)
-        : inboxMode === "all" || thread.state === inboxMode;
+      inboxMode === "all" || thread.state === inboxMode;
     const activeThread = selected
       ? threads.find((thread) => thread.phone_last10 === selected)
       : null;
@@ -932,6 +939,20 @@ export default function AdminSmsInboxPage() {
   const selectedThread = (threads ?? []).find(
     (thread) => thread.phone_last10 === selected,
   );
+  // Clearing a search must not take away the conversation it found. If that
+  // thread is outside the current tab, widen to All so it stays open.
+  const updateQuery = (next: string) => {
+    if (
+      searching &&
+      !next.trim() &&
+      selectedThread &&
+      inboxMode !== "all" &&
+      selectedThread.state !== inboxMode
+    ) {
+      setInboxMode("all");
+    }
+    setQuery(next);
+  };
   // GSM-7 single segment is 160 chars; longer bodies split and bill per segment.
   const segments = reply.length === 0 ? 0 : Math.ceil(reply.length / 160);
   const recordHref = detail?.profile_id
@@ -993,9 +1014,9 @@ export default function AdminSmsInboxPage() {
                 id="inbox-search"
                 type="search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => updateQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Escape") setQuery("");
+                  if (e.key === "Escape") updateQuery("");
                 }}
                 placeholder="Search name, number or message"
                 aria-label="Search conversations"

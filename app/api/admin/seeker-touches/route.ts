@@ -69,6 +69,74 @@ function md(body: string): NextResponse {
   });
 }
 
+/**
+ * What the family page needs to route a city lead itself.
+ *
+ * Calls are logged on the family page, but until now the lead could only be
+ * routed from /admin/city-ads, so a caller finished a good call, left for
+ * another page, found the family again and typed what they heard a second
+ * time. This returns the lead's routing state, the city's providers for "Offer
+ * to…", and the last call where somebody actually reached them, which is what
+ * the "what they need" box starts from. The actions themselves stay on
+ * /api/admin/city-ads, so there is still exactly one routing code path.
+ */
+async function loadRouting(seekerId: string, leadId: string) {
+  const db = getServiceClient();
+  const { data: lead } = await db
+    .from("city_leads")
+    .select("id, slug, status, archived_at, accepted_offer_id, qualification_reply, qualification_reply_at")
+    .eq("id", leadId)
+    .maybeSingle();
+  if (!lead) return null;
+
+  const [{ data: poolRows }, { data: offerRows }, { data: heardRows }] = await Promise.all([
+    // Test providers are left out: a real family offered to the test listing
+    // reaches nobody.
+    db
+      .from("city_pool")
+      .select("provider_id, position, enabled")
+      .eq("slug", lead.slug)
+      .eq("is_test", false)
+      .order("position", { ascending: true }),
+    db.from("city_lead_offers").select("provider_id").eq("lead_id", leadId),
+    db
+      .from("family_touches")
+      .select("summary, detail, author, occurred_at")
+      .eq("seeker_id", seekerId)
+      .eq("reached", true)
+      .order("occurred_at", { ascending: false })
+      .limit(1),
+  ]);
+
+  const pool = (poolRows ?? []) as { provider_id: string; position: number; enabled: boolean }[];
+  const ids = pool.map((p) => p.provider_id);
+  const { data: names } = ids.length
+    ? await db.from("business_profiles").select("id, display_name").in("id", ids)
+    : { data: [] as { id: string; display_name: string | null }[] };
+  const nameOf = new Map((names ?? []).map((n) => [n.id as string, (n.display_name as string | null) ?? "a provider"]));
+  const offered = new Set((offerRows ?? []).map((o) => o.provider_id as string));
+
+  const closed =
+    Boolean(lead.archived_at) || ["client", "no_fit", "stopped", "redirected", "unreachable"].includes(lead.status);
+
+  return {
+    lead_id: lead.id as string,
+    status: lead.status as string,
+    // Nothing to route once a provider has it or the lead is finished; the
+    // page hides the controls rather than offering a button that 409s.
+    can_route: !closed && !lead.accepted_offer_id,
+    qualification_reply: (lead.qualification_reply as string | null) ?? null,
+    pool: pool.map((p) => ({
+      provider_id: p.provider_id,
+      name: nameOf.get(p.provider_id) ?? "a provider",
+      position: p.position,
+      enabled: p.enabled,
+      already_offered: offered.has(p.provider_id),
+    })),
+    last_reached_call: (heardRows?.[0] as { summary: string; detail: string | null; author: string | null; occurred_at: string } | undefined) ?? null,
+  };
+}
+
 export async function GET(request: NextRequest) {
   const gate = await requireAdmin();
   if ("error" in gate) return gate.error;
@@ -91,14 +159,20 @@ export async function GET(request: NextRequest) {
       // Best effort: a failure here must not take the whole timeline down with
       // it, since the timeline is the part that is always worth showing.
       let plan = null;
+      let routing = null;
       if (timeline.city_lead_id) {
         try {
           plan = await getRoutingPlan(getServiceClient(), timeline.city_lead_id);
         } catch (err) {
           console.error("[seeker-touches] routing plan failed:", err);
         }
+        try {
+          routing = await loadRouting(seeker, timeline.city_lead_id);
+        } catch (err) {
+          console.error("[seeker-touches] routing controls failed:", err);
+        }
       }
-      return asMarkdown ? md(seekerTimelineToMarkdown(timeline)) : NextResponse.json({ ...timeline, plan });
+      return asMarkdown ? md(seekerTimelineToMarkdown(timeline)) : NextResponse.json({ ...timeline, plan, routing });
     }
 
     const rows = await loadSeekerRelationships({ days });

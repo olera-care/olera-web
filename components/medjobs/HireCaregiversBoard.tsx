@@ -434,19 +434,13 @@ export default function HireCaregiversBoard() {
         </div>
       </Modal>
 
-      {/* Mobile: Candidate bottom sheet with sticky CTA */}
+      {/* Mobile: Candidate bottom sheet with full profile + inline scheduling */}
       {selectedCandidate && !isSampleSlug(selectedCandidate.slug) && (
         <CandidateBottomSheet
           isOpen={!!selectedCandidate}
           onClose={() => setSelectedCandidate(null)}
           candidate={selectedCandidate}
-          onSchedule={() => {
-            // Close bottom sheet first to avoid scroll lock conflicts,
-            // then open the schedule modal
-            const candidate = selectedCandidate;
-            setSelectedCandidate(null);
-            openSchedule(candidate);
-          }}
+          jobDetails={jobDetails}
         />
       )}
     </div>

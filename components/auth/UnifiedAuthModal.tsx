@@ -12,6 +12,7 @@ import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import OtpInput from "@/components/auth/OtpInput";
+import { skipsWelcome } from "@/lib/auth/welcome-redirect";
 
 // ============================================================
 // Constants
@@ -1006,6 +1007,11 @@ export default function UnifiedAuthModal({
             } else if (hasStudentProfile) {
               // Route students to the portal where the application is filled in
               router.push("/portal/medjobs");
+            } else if (skipsWelcome(currentPath)) {
+              // Already somewhere that is not a care seeker's — signing in on
+              // the page you were reading should leave you on it, not hand you
+              // the care-seeker questionnaire.
+              router.push(currentPath);
             } else {
               // Route families to family welcome page
               router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);

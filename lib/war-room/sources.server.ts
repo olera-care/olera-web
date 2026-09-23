@@ -76,7 +76,13 @@ function githubRepositoryConfigured() {
 async function upsertSourceItems(db: SupabaseClient, items: SourceItemInput[]) {
   if (!items.length) return 0;
   const now = new Date().toISOString();
-  const rows = items.map((item) => ({
+  // One row per key. A message posted to a thread "and also sent to the
+  // channel" (thread_broadcast) arrives both as a channel message and as a
+  // reply, and Postgres rejects an upsert that writes the same row twice in
+  // one statement -- which silently cost #careseeker-support its whole batch
+  // on 2026-09-23. The later copy wins; they are the same message.
+  const unique = [...new Map(items.map((item) => [`${item.source}:${item.external_id}`, item])).values()];
+  const rows = unique.map((item) => ({
     ...item,
     title: bounded(item.title, 300),
     // Documents keep up to their own cap; the 6,000 for messages would have cut
@@ -196,7 +202,7 @@ async function attachmentItems(
         metadata: { channel_id: channel.id, file_id: file.id, file_name: fileName, message_ts: message.ts, author_name: author, user_id: message.user ?? null },
       });
     } catch (error) {
-      attachmentError ??= error instanceof Error ? error.message : String(error);
+      attachmentError ??= describeError(error);
     }
   }
   return items;
@@ -210,7 +216,7 @@ async function slackUserName(token: string, userId: string | undefined): Promise
     slackNameCache.set(userId, name);
     return name;
   } catch (error) {
-    slackNameError ??= error instanceof Error ? error.message : String(error);
+    slackNameError ??= describeError(error);
     slackNameCache.set(userId, null);
     return null;
   }
@@ -407,6 +413,19 @@ const THREAD_FETCHES_PER_SCAN = 20;
 
 type ThreadBudget = { remaining: number };
 
+/**
+ * A readable reason. Supabase errors are plain objects, not Error instances,
+ * so String() turned one into "[object Object]" in the founder's brief.
+ */
+function describeError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    const { message, code } = error as { message?: unknown; code?: unknown };
+    return `${String(message)}${code ? ` (${String(code)})` : ""}`;
+  }
+  return String(error);
+}
+
 async function backfillSlackChannel(
   db: SupabaseClient,
   token: string,
@@ -510,7 +529,7 @@ async function backfillSlackChannel(
       ...(threadError ? { threadError } : {}),
     };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : String(error) };
+    return { error: describeError(error) };
   }
 }
 

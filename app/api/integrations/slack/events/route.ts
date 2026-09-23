@@ -4,6 +4,7 @@ import { sendSlackDirectMessage } from "@/lib/slack";
 import { ingestSlackEventEvidence, verifySlackRequest } from "@/lib/war-room/sources.server";
 import { captureFounderAnswer, findAskByThread, findOpenAsk } from "@/lib/war-room/founder-loop.server";
 import { answerFounderQuestion, answersOpenAsk, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
+import { startVisualRoutine, visualizeSubject } from "@/lib/war-room/visualize.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
 
 export const maxDuration = 90;
@@ -161,6 +162,35 @@ export async function POST(request: NextRequest) {
       // A threaded reply outranks this. Replying in a brief's thread is an
       // explicit statement of subject, and it should win over timing.
       const openExchange = addressed ? null : await loadOpenExchange(db);
+
+      // "visualize ..." hands a brief to a Claude Code routine that publishes a
+      // real artifact; see lib/war-room/visualize.server.ts. Never evidence.
+      const visualSubject = visualizeSubject(payload.event.text);
+      if (visualSubject !== null && dmTarget) {
+        const subject = visualSubject || "the subject of our last exchange";
+        const brief = await answerFounderQuestion(
+          db,
+          `Write the source brief for a visual of: ${subject}`,
+          addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
+          openExchange,
+          { mode: "brief" },
+        );
+        const start = brief.answered
+          ? await startVisualRoutine(`TJ asked Cortex in Slack: "${payload.event.text.trim()}"\n\nSource brief gathered by Cortex from Olera's record:\n\n${brief.reply}`)
+          : { started: false as const, reason: "I could not gather the material for it" };
+        const reply = start.started
+          ? `Building the visual in a Claude Code session. <${start.sessionUrl}|Open it here>, and tap Allow when it asks to publish. It takes a few minutes.`
+          : `I couldn't start the visual: ${start.reason}.${brief.answered ? `\n\nHere is the material I gathered for it:\n\n${brief.reply.slice(0, 2_800)}` : ""}`;
+        await sendSlackDirectMessage(dmTarget, reply, { threadTs }).catch(() => null);
+        if (brief.answered) {
+          await recordExchange(db, {
+            question: payload.event.text.slice(0, 500),
+            answer: reply.slice(0, 1_500),
+            focusInvestigationId: addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
+          });
+        }
+        return NextResponse.json({ ok: true, visualize: { started: start.started } });
+      }
 
       // A question is not an answer. Filing one as evidence writes it into the
       // record attributed to the founder and hands it to the next scan, which

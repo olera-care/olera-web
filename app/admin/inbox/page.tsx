@@ -343,11 +343,28 @@ function FactGroup({
   );
 }
 
+/**
+ * Search matches a name, any run of three or more digits in the number, or the
+ * last message. A search looks across every conversation, whatever tab is
+ * open: the person you are looking for is rarely in the tab you are on.
+ */
+function threadMatches(thread: Thread, raw: string): boolean {
+  const q = raw.trim().toLowerCase();
+  if (!q) return true;
+  const digits = q.replace(/\D/g, "");
+  if (digits.length >= 3 && thread.phone_last10.includes(digits)) return true;
+  return (
+    (thread.display_name ?? "").toLowerCase().includes(q) ||
+    thread.last_body.toLowerCase().includes(q)
+  );
+}
+
 export default function AdminSmsInboxPage() {
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [inboxMode, setInboxMode] = useState<InboxMode>("needs_reply");
+  const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<ThreadDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -663,7 +680,9 @@ export default function AdminSmsInboxPage() {
     if (!threads?.length || window.innerWidth < 1024) return;
 
     const belongsToMode = (thread: Thread) =>
-      inboxMode === "all" || thread.state === inboxMode;
+      query.trim()
+        ? threadMatches(thread, query)
+        : inboxMode === "all" || thread.state === inboxMode;
     const activeThread = selected
       ? threads.find((thread) => thread.phone_last10 === selected)
       : null;
@@ -675,7 +694,7 @@ export default function AdminSmsInboxPage() {
     } else if (selected) {
       closeThread();
     }
-  }, [closeThread, inboxMode, openThread, selected, threads]);
+  }, [closeThread, inboxMode, openThread, query, selected, threads]);
 
   async function discardDraft() {
     if (!selected) return;
@@ -881,19 +900,22 @@ export default function AdminSmsInboxPage() {
     !t.suppressed &&
     Boolean(t.oldest_promised_reply_at) &&
     Date.now() - new Date(t.oldest_promised_reply_at as string).getTime() > responseDeadlineMs;
+  const searching = query.trim().length > 0;
   const visible = (threads ?? [])
     .filter((thread) =>
-      inboxMode === "all"
-        ? true
-        : inboxMode === "needs_reply"
-          ? thread.state === "needs_reply"
-          : thread.state === "awaiting_family",
+      searching
+        ? threadMatches(thread, query)
+        : inboxMode === "all"
+          ? true
+          : inboxMode === "needs_reply"
+            ? thread.state === "needs_reply"
+            : thread.state === "awaiting_family",
     )
     .sort((a, b) => {
       // A promised response that is already late must not sit below a newer
       // conversation. Within each group, preserve newest-thread ordering.
       const overdueDelta =
-        inboxMode === "needs_reply"
+        inboxMode === "needs_reply" && !searching
           ? Number(isResponseOverdue(b)) - Number(isResponseOverdue(a))
           : 0;
       return overdueDelta || new Date(b.last_at).getTime() - new Date(a.last_at).getTime();
@@ -935,11 +957,14 @@ export default function AdminSmsInboxPage() {
             </div>
             <div className="mt-4 flex items-center gap-2">
               {(["needs_reply", "awaiting_family", "all"] as const).map((mode) => {
-                const on = mode === inboxMode;
+                const on = mode === inboxMode && !searching;
                 return (
                   <button
                     key={mode}
-                    onClick={() => setInboxMode(mode)}
+                    onClick={() => {
+                      setInboxMode(mode);
+                      setQuery("");
+                    }}
                     className={[
                       "rounded-full px-3 py-1.5 text-xs transition-colors",
                       on ? "bg-gray-900 font-medium text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900",
@@ -950,7 +975,9 @@ export default function AdminSmsInboxPage() {
                 );
               })}
               <span className="ml-auto text-[11px] text-gray-400">
-                {inboxMode === "needs_reply"
+                {searching
+                  ? `${visible.length} ${visible.length === 1 ? "match" : "matches"}`
+                  : inboxMode === "needs_reply"
                   ? overdueThreadCount > 0
                     ? `${overdueThreadCount} past 48h`
                     : needsReplyCount > 0
@@ -960,6 +987,21 @@ export default function AdminSmsInboxPage() {
                     ? `${awaitingFamilyCount} waiting`
                     : `${threads?.length ?? 0} conversations`}
               </span>
+            </div>
+            <div className="relative mt-3">
+              <input
+                id="inbox-search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setQuery("");
+                }}
+                placeholder="Search name, number or message"
+                aria-label="Search conversations"
+                autoComplete="off"
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+              />
             </div>
           </header>
 
@@ -981,7 +1023,9 @@ export default function AdminSmsInboxPage() {
           )}
           {threads !== null && visible.length === 0 && !listError && (
             <p className="px-3 py-6 text-[13px] text-gray-500">
-              {inboxMode === "needs_reply"
+              {searching
+                ? `No conversation matches "${query.trim()}".`
+                : inboxMode === "needs_reply"
                 ? "Nothing waiting on you."
                 : inboxMode === "awaiting_family"
                   ? "No conversations are awaiting a family response."

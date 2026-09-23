@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   buildSmsThreadSummaries,
   classifySmsThread,
+  smsPhoneLast10,
   type SmsInboxInboundRow,
   type SmsInboxOutboundRow,
 } from "@/lib/sms/inbox-threads";
@@ -25,6 +26,7 @@ const MAX_INBOUND_ROWS = 1000;
 const MAX_OUTBOUND_ROWS = 1000;
 const MAX_THREADS = 1000;
 const PROFILE_BATCH_SIZE = 200;
+const MAX_CITY_LEAD_ROWS = 2000;
 
 export async function GET(request: NextRequest) {
   try {
@@ -129,6 +131,39 @@ export async function GET(request: NextRequest) {
           }
         : thread;
     });
+
+    // City-ad families are texted by the concierge queue with no profile id,
+    // so until they reply their thread has no name and cannot be found by
+    // searching for it. The lead holds the name the family gave us; match on
+    // the phone. Newest lead wins when a number has applied more than once.
+    if (list.some((thread) => !thread.display_name)) {
+      const { data: leads, error: leadError } = await db
+        .from("city_leads")
+        .select("first_name, phone, created_at")
+        .not("phone", "is", null)
+        .not("is_test", "is", true)
+        .order("created_at", { ascending: false })
+        .limit(MAX_CITY_LEAD_ROWS);
+      if (leadError) {
+        console.error("[admin/sms-inbox] city lead names load failed:", leadError);
+      } else {
+        const nameByPhone = new Map<string, string>();
+        for (const lead of leads ?? []) {
+          const key = smsPhoneLast10(lead.phone as string | null);
+          const name = String(lead.first_name ?? "").trim();
+          if (key && name && !nameByPhone.has(key)) nameByPhone.set(key, name);
+        }
+        list = list.map((thread) =>
+          thread.display_name || !nameByPhone.has(thread.phone_last10)
+            ? thread
+            : {
+                ...thread,
+                display_name: nameByPhone.get(thread.phone_last10) ?? null,
+                profile_type: thread.profile_type || "family",
+              },
+        );
+      }
+    }
 
     // Which of these numbers are suppressed? The reply box must refuse to text
     // someone who opted out, so the UI needs this up front.

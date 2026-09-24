@@ -32,7 +32,9 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isTransientSkip } from "@/lib/email-governance";
-import { packetNeedsBuild } from "@/lib/benefits/navigator-packet";
+import { isCaveatPacket, packetNeedsBuild } from "@/lib/benefits/navigator-packet";
+import { getStateAbbrev } from "@/lib/program-data";
+import { programCallContact } from "./benefits-cascade.server";
 import {
   composeNavigatorDraft,
   pickSnapshot,
@@ -57,7 +59,7 @@ export const MAX_AUTO_RECOMPOSES = 2;
 
 export type AutopilotAction =
   | { kind: "send" }
-  | { kind: "recompose"; why: "stale" | "ruled_out" }
+  | { kind: "recompose"; why: "stale" | "ruled_out" | "caveat" }
   | { kind: "skip"; why: string };
 
 /** The newest moment the letter's text changed. */
@@ -113,7 +115,8 @@ export function classifyForAutopilot(
     if (humanEdited) return { kind: "skip", why: "ruled out, but a person edited it" };
     if (recomposeFailed) return { kind: "skip", why: "automatic recompose failed" };
     if (recomposes >= MAX_AUTO_RECOMPOSES) return { kind: "skip", why: "recompose limit reached" };
-    return { kind: "recompose", why: "ruled_out" };
+    // A caveat rewrite counts toward the same per-letter cap and failure stamp.
+    return { kind: "recompose", why: isCaveatPacket(nav.packet) ? "caveat" : "ruled_out" };
   }
 
   return { kind: "skip", why: `routed ${nav.packet.route}, a person decides` };
@@ -194,17 +197,30 @@ export async function recomposeNavigatorLetter(
   // Only on that verdict. A plain recompose is the fact-check loop,
   // re-drafting the SAME program against corrected data, and excluding there
   // would silently change the family's program because a phone number moved.
+  //
+  // A CAVEAT verdict is the exception: the recompose keeps the family's
+  // entry program and adds its condition plus the agreed alternative, so
+  // nothing is excluded and nothing is preferred.
+  const target = navigator.packet?.recomposeTarget ?? null;
+  const caveatVerdict =
+    !!navigator.packet && isCaveatPacket(navigator.packet) && !!target && !!navigator.pick;
   const ruledOut =
-    navigator.packet?.route === "recompose" ? navigator.pick?.programId ?? null : null;
+    navigator.packet?.route === "recompose" && !caveatVerdict
+      ? navigator.pick?.programId ?? null
+      : null;
   // When both fit models independently named the SAME better program, the
   // recompose has a destination rather than just an exclusion. Prefer it;
   // selectFirstStepProgram falls back to the ladder if it cannot anchor a
   // letter, so an unresolvable suggestion costs nothing.
-  const target = navigator.packet?.recomposeTarget ?? null;
   const prefer =
     ruledOut && target?.programId
       ? { programId: target.programId, stateId: navigator.pick?.stateId ?? null }
       : undefined;
+  const caveat = caveatVerdict
+    ? caveatFromVerdict(navigator)
+    : !ruledOut
+      ? caveatCarriedOver(navigator)
+      : null;
 
   const draft = await composeNavigatorDraft(db, {
     profileId,
@@ -218,6 +234,7 @@ export async function recomposeNavigatorLetter(
     factsRow: profile,
     ...(ruledOut ? { exclude: [ruledOut] } : {}),
     ...(prefer ? { prefer } : {}),
+    ...(caveat ? { caveat } : {}),
   });
   if (!draft) {
     return {
@@ -243,6 +260,18 @@ export async function recomposeNavigatorLetter(
     provider_count: draft.providerCount,
     auto_recompose_count:
       (navigator.auto_recompose_count ?? 0) + (opts.trigger === "auto" ? 1 : 0),
+    // The rebuilt packet reads caveat_applied_at, so the same questionable
+    // read cannot trigger a second caveat rewrite. A carried-over caveat
+    // (stale recompose of a caveat letter) keeps its original stamp.
+    ...(draft.caveatApplied && caveat
+      ? {
+          caveat_applied_at: caveatVerdict ? nowIso : navigator.caveat_applied_at ?? nowIso,
+          caveat_program_id: caveat.keepProgramId,
+          caveat_alt_program_id: caveat.alt.programId,
+          caveat_alt_name: caveat.alt.name,
+          caveat_condition: caveat.conditions,
+        }
+      : {}),
   };
   // Composition took seconds, so re-read metadata: a mid-compose write (a
   // family tapping /m gap chips, a reply hold) must not be lost to a blind
@@ -272,6 +301,57 @@ export async function recomposeNavigatorLetter(
     .eq("id", profileId);
   if (updateErr) return { ok: false, status: 500, error: "Couldn't save the new draft" };
   return { ok: true, navigator: navStamp };
+}
+
+// ── Caveat inputs ─────────────────────────────────────────────────────────
+
+type CaveatInput = NonNullable<Parameters<typeof composeNavigatorDraft>[1]["caveat"]>;
+
+/** Alternative program name + number, from the bundle when it resolves. */
+function caveatAlt(
+  stateId: string | null,
+  target: { name: string; programId: string | null },
+): CaveatInput["alt"] {
+  const contact =
+    target.programId && stateId ? programCallContact(getStateAbbrev(stateId), target.programId) : null;
+  return contact
+    ? { programId: contact.programId, name: contact.name, phone: contact.phone }
+    : { programId: target.programId, name: target.name, phone: null };
+}
+
+/** Build the caveat from a fresh caveat verdict: the questionable reads' reasons. */
+function caveatFromVerdict(navigator: BenefitsNavigatorMeta): CaveatInput | null {
+  const packet = navigator.packet;
+  const pick = navigator.pick;
+  if (!packet?.recomposeTarget || !pick) return null;
+  const conditions = Array.from(
+    new Set(
+      packet.fit
+        .filter((r) => r.verdict === "questionable")
+        .map((r) => r.why.trim())
+        .filter((w) => w.length > 0),
+    ),
+  ).slice(0, 2);
+  if (conditions.length === 0) return null;
+  return {
+    keepProgramId: pick.programId,
+    conditions,
+    alt: caveatAlt(pick.stateId, packet.recomposeTarget),
+  };
+}
+
+/** Re-apply an earlier caveat when a caveat letter is recomposed for staleness. */
+function caveatCarriedOver(navigator: BenefitsNavigatorMeta): CaveatInput | null {
+  if (!navigator.caveat_applied_at || !navigator.caveat_program_id) return null;
+  if (!navigator.caveat_condition?.length || !navigator.caveat_alt_name) return null;
+  return {
+    keepProgramId: navigator.caveat_program_id,
+    conditions: navigator.caveat_condition,
+    alt: caveatAlt(navigator.pick?.stateId ?? null, {
+      name: navigator.caveat_alt_name,
+      programId: navigator.caveat_alt_program_id ?? null,
+    }),
+  };
 }
 
 // ── The run ────────────────────────────────────────────────────────────────
@@ -333,7 +413,7 @@ export async function runNavigatorAutopilot(
   const recomposeLines: string[] = [];
 
   const toSend: { id: string; label: string; program: string }[] = [];
-  const toRecompose: { id: string; label: string; why: "stale" | "ruled_out" }[] = [];
+  const toRecompose: { id: string; label: string; why: "stale" | "ruled_out" | "caveat" }[] = [];
 
   for (const row of rows ?? []) {
     const meta = (row.metadata as Record<string, unknown>) || {};
@@ -395,11 +475,20 @@ export async function runNavigatorAutopilot(
     try {
       const result = await recomposeNavigatorLetter(db, item.id, {
         trigger: "auto",
-        reason: item.why === "stale" ? "automatic: letter older than 7 days" : "automatic: verdict ruled the program out",
+        reason:
+          item.why === "stale"
+            ? "automatic: letter older than 7 days"
+            : item.why === "caveat"
+              ? "automatic: kept their program, added the condition"
+              : "automatic: verdict ruled the program out",
       });
       if (result.ok) {
         counts.recomposed++;
-        recomposeLines.push(`${item.label} → ${result.navigator.pick?.shortName ?? "?"}`);
+        recomposeLines.push(
+          item.why === "caveat"
+            ? `${item.label}: kept, added the condition${result.navigator.caveat_applied_at ? "" : " (not applied, program moved)"}`
+            : `${item.label} → ${result.navigator.pick?.shortName ?? "?"}`,
+        );
       } else {
         counts.recompose_failed++;
         // A person acting on the letter (mid-redraft, or sending / dismissing

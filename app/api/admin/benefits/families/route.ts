@@ -19,7 +19,7 @@ import {
   type BenefitsApplicationStatus,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { readBenefitsNavigator } from "@/lib/family-comms/benefits-navigator.server";
-import type { PacketRoute } from "@/lib/benefits/navigator-packet";
+import { holdLabel, isCaveatPacket, type PacketRoute } from "@/lib/benefits/navigator-packet";
 
 /**
  * GET /api/admin/benefits/families?from=<ISO>&to=<ISO>
@@ -59,6 +59,8 @@ interface FamilyRow {
       /** First hold, for the row's sub-label. Full list rides the per-family GET. */
       topHold: string | null;
       holdCount: number;
+      /** A caveat recompose: keep the program, add the condition. */
+      caveat: boolean;
       builtAt: string;
     } | null;
   } | null;
@@ -386,8 +388,9 @@ export async function GET(request: NextRequest) {
               packet: navMeta.packet
                 ? {
                     route: navMeta.packet.route,
-                    topHold: navMeta.packet.holds[0] ?? null,
+                    topHold: navMeta.packet.holds[0] ? holdLabel(navMeta.packet.holds[0]) : null,
                     holdCount: navMeta.packet.holds.length,
+                    caveat: isCaveatPacket(navMeta.packet),
                     builtAt: navMeta.packet.builtAt,
                   }
                 : null,

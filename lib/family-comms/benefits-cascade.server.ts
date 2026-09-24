@@ -360,6 +360,32 @@ function toPick(
   };
 }
 
+/**
+ * Name and callable number for a program, for letters that NAME a second
+ * program without making it the first step (the caveat rewrite). Same
+ * contact choice as toPick ("start here" first, then any phone), but a
+ * missing phone or document list does not drop the program: it is named
+ * without a number instead. Null only when the program is not in the bundle.
+ */
+export function programCallContact(
+  stateAbbrev: string | null,
+  programId: string,
+): { programId: string; name: string; phone: string | null; label: string | null } | null {
+  if (!stateAbbrev) return null;
+  const draft = draftFor(stateAbbrev.toUpperCase(), programId);
+  if (!draft) return null;
+  const contacts = draft.contacts || [];
+  const contact =
+    contacts.find((c) => c.phone && /start here/i.test(c.label)) ||
+    contacts.find((c) => !!c.phone);
+  return {
+    programId: draft.id,
+    name: draft.shortName || draft.name,
+    phone: contact?.phone ?? null,
+    label: contact?.label ?? null,
+  };
+}
+
 /** Parse "/benefits/{stateSlug}/{programId}" out of an entry-source path. */
 export function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
   if (!entrySource) return null;

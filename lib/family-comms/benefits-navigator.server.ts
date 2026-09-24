@@ -21,7 +21,7 @@
  *    eligibility claims (Phase 4 gate: zero payment-acceptance data).
  */
 import Anthropic from "@anthropic-ai/sdk";
-import type { NavigatorPacket } from "@/lib/benefits/navigator-packet";
+import { rerouteStoredPacket, type NavigatorPacket } from "@/lib/benefits/navigator-packet";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   selectFirstStepProgram,
@@ -112,6 +112,17 @@ export interface BenefitsNavigatorMeta {
    *  stops retrying; the letter waits for a person. */
   auto_recompose_failed_at?: string;
   auto_recompose_failed_reason?: string;
+  /** The letter carries the caveat rewrite (lib/benefits/navigator-packet.ts
+   *  routePacket): it kept the family's entry program, stated the condition
+   *  the fit reads flagged, and named an agreed alternative. The packet reads
+   *  this so the caveat happens once. Carried across later same-program
+   *  recomposes (the caveat is re-applied from the fields below). */
+  caveat_applied_at?: string;
+  caveat_program_id?: string;
+  caveat_alt_program_id?: string | null;
+  caveat_alt_name?: string;
+  /** The fit reads' `why` text the condition was reduced from. */
+  caveat_condition?: string[];
   /** The in-flight send lock (benefits-navigator-send.server.ts). Present
    *  only while one caller is delivering this letter. */
   send_claim?: { id: string; at: string; by: "admin" | "scheduler" | "auto" };
@@ -127,7 +138,23 @@ export function readBenefitsNavigator(
 ): BenefitsNavigatorMeta {
   const raw = (profileMeta as { benefits_navigator?: unknown } | null | undefined)
     ?.benefits_navigator;
-  return raw && typeof raw === "object" ? (raw as BenefitsNavigatorMeta) : {};
+  if (!raw || typeof raw !== "object") return {};
+  const nav = raw as BenefitsNavigatorMeta;
+  // Every reader (autopilot, send gate, admin queue) sees the stored packet
+  // re-routed under today's rules, so a rule change reaches letters judged
+  // before it without re-billing the fit models. See rerouteStoredPacket.
+  //
+  // Only stored `recompose` verdicts, the route whose rules changed on
+  // 2026-09-24. Re-deriving every route would also release letters held for
+  // reasons retired in August (a stale-intake hold, a bare questionable
+  // read): 2 of 124 pending on 2026-09-24 would have gone review -> auto and
+  // sent without anyone deciding that.
+  if (!nav.packet || nav.packet.route !== "recompose") return nav;
+  const packet = rerouteStoredPacket(nav.packet, {
+    pickIsEntry: nav.pick?.source === "entry",
+    caveatApplied: !!nav.caveat_applied_at,
+  });
+  return packet === nav.packet ? nav : { ...nav, packet };
 }
 
 // ── Voice spec ─────────────────────────────────────────────────────────────
@@ -276,6 +303,19 @@ export interface NavigatorComposeInput {
    * not; a suggestion that cannot anchor a letter must never produce one.
    */
   prefer?: { programId: string; stateId: string | null };
+  /**
+   * Caveat rewrite: keep this program and add its condition plus a better
+   * first call if the condition does not apply. Applied only when the ladder
+   * lands on `keepProgramId` again; if program data moved and it picks
+   * something else, the letter is composed normally and caveatApplied is
+   * false.
+   */
+  caveat?: {
+    keepProgramId: string;
+    /** The fit reads' reasons. The composer reduces them to the condition. */
+    conditions: string[];
+    alt: { programId: string | null; name: string; phone: string | null };
+  };
 }
 
 export interface NavigatorDraft {
@@ -286,6 +326,8 @@ export interface NavigatorDraft {
   sms: string | null;
   pick: FirstStepPick;
   providerCount: number;
+  /** The caveat was requested AND the pick matched, so the letter carries it. */
+  caveatApplied: boolean;
 }
 
 /** Care types that make a provider introduction sensible (a LIHEAP-only
@@ -397,6 +439,26 @@ export async function composeNavigatorDraft(
     entryLabel = null;
   }
 
+  const caveat =
+    input.caveat && input.caveat.keepProgramId === pick.programId && input.caveat.conditions.length > 0
+      ? input.caveat
+      : null;
+  const caveatLines = caveat
+    ? [
+        "",
+        "CONDITION TO STATE (required for this letter):",
+        `- Two independent checks flagged a condition on ${pick.shortName} that we could not confirm from what the family told us:`,
+        ...caveat.conditions.map((c) => `  - "${c.replace(/"/g, "'")}"`),
+        `- Better first call if that condition does not fit them: ${caveat.alt.name}${caveat.alt.phone ? ` at ${caveat.alt.phone}` : " (we do not have a number for it; name it without one)"}`,
+        `- Right after the paragraph with the first step, write ONE plain sentence that says who ${pick.shortName} is for, reduced to the eligibility condition only, in plain words: "This program is for ...". Do not say or imply whether this family meets it.`,
+        caveat.alt.phone
+          ? `- Then exactly one sentence in this shape: "If that's not you, ${caveat.alt.name} is a better first call: ${caveat.alt.phone}." Use that name and number exactly as given, and nothing else about it (no documents, no figures, no timeline).`
+          : `- Then exactly one sentence in this shape: "If that's not you, ${caveat.alt.name} is a better first call." Write no number for it and nothing else about it.`,
+        "- Keep the whole letter inside the word limit. Cut elsewhere to make room.",
+        "- The companion text stays about the first step and its number only.",
+      ]
+    : [];
+
   const dataBlock = [
     "FAMILY (only what they told us — reference nothing else):",
     `- First name: ${firstName ?? "unknown (open without a name)"}`,
@@ -434,6 +496,7 @@ export async function composeNavigatorDraft(
     offerProviders
       ? `- Allowed. There are ${providerCount} ${input.careTypes[0].toLowerCase()} providers near ${input.city}. Offer a personal introduction if they reply. No other claims.`
       : "- Not allowed for this family. Do not mention providers.",
+    ...caveatLines,
   ]
     .filter((l): l is string => l !== null)
     .join("\n");
@@ -474,7 +537,7 @@ export async function composeNavigatorDraft(
       ? smsRaw.replace(/—/g, ", ").slice(0, 320)
       : null;
 
-  return { subject, body, sms, pick, providerCount };
+  return { subject, body, sms, pick, providerCount, caveatApplied: !!caveat };
 }
 
 /** Serialize the pick for the metadata snapshot (send path re-reads it). */

@@ -177,11 +177,12 @@ export async function buildNavigatorPacket(
     ? { name: resolved?.label ?? agreedName, programId: resolved?.programId ?? null }
     : null;
 
-  const { route, holds } = routePacket({
+  const { route, holds, caveat } = routePacket({
     facts,
     fit,
     recomposeTarget,
     pickIsEntry: pick?.source === "entry",
+    caveatApplied: !!navigator.caveat_applied_at,
     rails,
     clearance,
     lint: base.lint,
@@ -196,6 +197,7 @@ export async function buildNavigatorPacket(
     rails,
     clearance,
     recomposeTarget,
+    ...(caveat ? { caveat: true } : {}),
     route,
     holds,
     models,

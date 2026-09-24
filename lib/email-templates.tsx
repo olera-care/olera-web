@@ -6,6 +6,7 @@
  */
 
 import { DEFAULT_BUDGET } from "@/lib/ad-boost/estimate";
+import { benefitAmountLabel, benefitAmountShortCaption } from "@/lib/benefits/savings-label";
 
 const BRAND_COLOR = "#198087";
 const FONT_STACK =
@@ -2043,8 +2044,11 @@ export function benefitsFirstStepEmail(opts: {
     ? `<p style="font-size:13px;color:#6b7280;margin:0 0 4px;">The program you were looking into</p>`
     : `<p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Your closest match</p>`;
 
-  const savingsLine = opts.savingsRange
-    ? `<p style="font-size:14px;color:#047857;font-weight:600;margin:4px 0 0;">Typically ${escapeHtml(opts.savingsRange)}</p>`
+  // Shared parser: a maximum reads "Up to ... (program maximum)", never
+  // "Typically Up to ...". Non-dollar strings drop the line.
+  const amount = benefitAmountLabel(opts.savingsRange);
+  const savingsLine = amount
+    ? `<p style="font-size:14px;color:#047857;font-weight:600;margin:4px 0 0;">${escapeHtml(amount.text)}${amount.kind === "amount" ? "" : ` <span style="font-weight:400;color:#6b7280;">(${escapeHtml(benefitAmountShortCaption(amount.kind).toLowerCase())})</span>`}</p>`
     : "";
 
   const hoursLine = opts.contactHours

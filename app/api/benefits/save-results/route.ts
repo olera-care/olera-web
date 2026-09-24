@@ -23,6 +23,7 @@ import { resolveBenefitsProgramEntry } from "@/lib/benefits/program-entry";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
 import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
+import { benefitAmountLabel } from "@/lib/benefits/savings-label";
 
 // ─── Email + SMS body helpers ────────────────────────────────────────────
 //
@@ -758,14 +759,9 @@ export async function POST(req: Request) {
     };
     const careNeedLabel = careNeed ? careNeedLabels[careNeed] || null : null;
 
-    // Extract top savings as "Up to $X/yr" from the range string
-    const topSavingsRaw = matchedPrograms[0]?.savingsRange;
-    const topSavings = (() => {
-      if (!topSavingsRaw) return null;
-      const matches = topSavingsRaw.match(/\$[\d,]+/g);
-      if (!matches || matches.length === 0) return null;
-      return `up to ${matches[matches.length - 1]}/yr`;
-    })();
+    // Top savings via the shared parser (a range stays a range, a maximum
+    // stays "Up to"), not the last dollar figure forced to "/yr".
+    const topSavings = benefitAmountLabel(matchedPrograms[0]?.savingsRange)?.text ?? null;
 
     // Slack alert lists the actual contact (email if email-path, phone if SMS).
     // The helper's `email` field is the contact display — we pass whichever

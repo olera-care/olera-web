@@ -11,6 +11,7 @@ import {
 } from "@/lib/family-comms/benefits-navigator.server";
 import {
   withHoldCleared,
+  holdNeedsExplicitResume,
   readBenefitsHold,
   type BenefitsHelpCase,
 } from "@/lib/family-comms/benefits-automation";
@@ -262,7 +263,9 @@ export async function GET(
         "case",
         hold.reason === "deceased"
           ? "Reply suggests someone died: automation paused, nudges suppressed"
-          : `Family replied by ${hold.channel === "email" ? "email" : "text"}: automation paused`,
+          : hold.reason === "sms_opt_out"
+            ? "Texted STOP: automated benefits emails paused too"
+            : `Family replied by ${hold.channel === "email" ? "email" : "text"}: automation paused`,
         hold.excerpt ? `"${hold.excerpt}"` : undefined,
       );
       push(hold.cleared_at, "case", `Automation resumed${hold.cleared_by ? ` by ${hold.cleared_by}` : ""}`);
@@ -819,10 +822,11 @@ export async function POST(
     // A logged contact or a resolution means a person has handled the
     // family's reply, so the automation hold lifts with it. Not a death
     // report: a condolence call is not a signal to resume "How is it going?"
-    // and re-enable nudges. That one takes the explicit "Resume automation"
-    // button, the same rule resumeAfterHumanReply follows.
+    // and re-enable nudges, and a STOP is not undone by a logged call. Those
+    // take the explicit "Resume automation" button, the same rule
+    // resumeAfterHumanReply follows.
     const liftsHold =
-      (action === "contacted" || action === "resolved") && readBenefitsHold(meta)?.reason !== "deceased";
+      (action === "contacted" || action === "resolved") && !holdNeedsExplicitResume(meta);
     const baseMeta = liftsHold ? withHoldCleared(meta, by, now) : meta;
     const { error: updErr } = await db
       .from("business_profiles")

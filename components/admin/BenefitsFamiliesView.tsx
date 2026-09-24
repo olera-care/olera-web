@@ -1174,7 +1174,11 @@ export default function BenefitsFamiliesView() {
                             className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 whitespace-nowrap"
                             title={`${formatEt(f.automationHold.at)}${f.automationHold.excerpt ? `: "${f.automationHold.excerpt}"` : ""}. Open the row to resume.`}
                           >
-                            {f.automationHold.reason === "deceased" ? "🕊 Paused: may have died" : "⏸ Automation paused"}
+                            {f.automationHold.reason === "deceased"
+                              ? "🕊 Paused: may have died"
+                              : f.automationHold.reason === "sms_opt_out"
+                                ? "⏸ Paused: texted STOP"
+                                : "⏸ Automation paused"}
                           </span>
                         )}
                         {f.caseInfo.help && (
@@ -1865,7 +1869,9 @@ function CasePanel({
           <span className="min-w-0 flex-1">
             {automationHold.reason === "deceased"
               ? "Their reply suggests someone in the family died. Automated messages and nudges are off. Write back personally."
-              : `They replied by ${automationHold.channel === "email" ? "email" : "text"}, so the check-in, scheduled sends and automatic sends are paused.`}
+              : automationHold.reason === "sms_opt_out"
+                ? "They texted STOP. Texts are off by law, and the automated letter and check-in emails are paused with them. Resume only if they asked to keep getting email."
+                : `They replied by ${automationHold.channel === "email" ? "email" : "text"}, so the check-in, scheduled sends and automatic sends are paused.`}
             {automationHold.excerpt && <span className="block text-[12px] text-amber-800/80">&ldquo;{automationHold.excerpt}&rdquo;</span>}
           </span>
           <button
@@ -1873,8 +1879,8 @@ function CasePanel({
             disabled={busy}
             className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 disabled:opacity-40"
             title={
-              automationHold.reason === "deceased"
-                ? "Only this button resumes it after a death report"
+              automationHold.reason === "deceased" || automationHold.reason === "sms_opt_out"
+                ? "Only this button resumes it after a death report or a STOP"
                 : "Logging a contact or resolving the case also resumes it"
             }
           >

@@ -24,7 +24,10 @@ export type BenefitsHoldReason =
   /** An email reply that landed in the support inbox. */
   | "email_reply"
   /** The family told us the person receiving care has died. */
-  | "deceased";
+  | "deceased"
+  /** The family texted STOP. Texts stop by law; the benefits emails stop
+   *  with them until a person decides otherwise. */
+  | "sms_opt_out";
 
 /**
  * metadata.benefits_automation_hold. Set by anything that hears the family
@@ -71,6 +74,40 @@ export function nextHold(
   };
 }
 
+/**
+ * Holds only the explicit "Resume automation" button lifts. A person
+ * answering the family (support inbox, SMS inbox) or logging a contact is
+ * not a reason to resume "How is it going?" after a death report, or to
+ * resume emailing someone who just texted STOP.
+ */
+const EXPLICIT_RESUME_REASONS = new Set<BenefitsHoldReason>(["deceased", "sms_opt_out"]);
+
+export function holdNeedsExplicitResume(meta: Record<string, unknown> | null | undefined): boolean {
+  const hold = readBenefitsHold(meta);
+  return !!hold && isBenefitsAutomationHeld(meta) && EXPLICIT_RESUME_REASONS.has(hold.reason);
+}
+
+/**
+ * Metadata with a new hold, without downgrading a stronger one: a later
+ * "thanks" after a death report or a STOP must not turn that hold into an
+ * ordinary reply hold that the next inbox answer would lift. A death report
+ * outranks everything.
+ */
+export function withReplyHold(
+  meta: Record<string, unknown>,
+  reason: BenefitsHoldReason,
+  channel: "sms" | "email",
+  excerpt: string | null,
+  at: string,
+): Record<string, unknown> {
+  const current = isBenefitsAutomationHeld(meta) ? readBenefitsHold(meta) : null;
+  if (current?.reason === "deceased" && reason !== "deceased") return meta;
+  if (current && EXPLICIT_RESUME_REASONS.has(current.reason) && !EXPLICIT_RESUME_REASONS.has(reason)) {
+    return meta;
+  }
+  return { ...meta, benefits_automation_hold: nextHold(reason, channel, excerpt, at) };
+}
+
 export function clearedHold(
   hold: BenefitsAutomationHold | null,
   by: string,
@@ -114,17 +151,35 @@ export function isBenefitsOnlyFamily(
  * letter or deletes anything, because "my husband died last year and I need
  * help" comes from a live widow who is exactly who the finder is for.
  *
- * Bare "passed" is excluded ("she passed the screening"). "death" and
- * "funeral" are excluded because they name documents and programs (death
- * certificate, funeral assistance) far more often than news.
+ * Bare "passed" is excluded ("she passed the screening"), and so are bare
+ * "has passed" ("the deadline has passed") and bare "passed on" ("I passed
+ * on the info"): both only count after a person ("my wife has passed", "mom
+ * passed on Monday"). "died" counts unless a device died ("my phone died").
+ * "death" and "funeral" alone are excluded because they name documents and
+ * programs (death certificate, funeral assistance) far more often than news;
+ * "funeral for" is news.
  */
+const PERSON =
+  "(?:he|she|they|mom|mum|mama|mother|dad|papa|father|husband|wife|spouse|partner|grandma|grandmother|grandpa|grandfather|son|daughter|brother|sister|aunt|uncle|parent|parents)";
+const MONTH = "(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*";
+const DEVICE_DIED =
+  /\b(?:phone|cellphone|cell|iphone|ipad|battery|car|truck|engine|computer|laptop|tablet|charger|tv|internet|printer)\s+(?:\w+\s+)?died\b/g;
 const DECEASED_PATTERNS: RegExp[] = [
-  /\bpass(?:ed)? away\b/,
-  /\bhas passed\b/,
-  /\bpassed on\b/,
-  /\b(?:he|she|mom|dad|mother|father|husband|wife|spouse) passed\s*$/,
-  /\bdeceased\b/,
+  /\bpass(?:ed|ing)? away\b/,
+  // "dad passed", "my wife has passed", "she passed on", ending a clause.
+  new RegExp(`\\b${PERSON}\\s+(?:has\\s+|had\\s+|just\\s+|recently\\s+)?passed(?:\\s+on)?\\s*(?:[,;]|$)`),
+  // "mom passed on Monday", "he passed in August", "she passed last week".
+  // "she passed on the info" and "he passed this test" do not match.
+  new RegExp(
+    `\\b${PERSON}\\s+(?:has\\s+|had\\s+|just\\s+|recently\\s+)?passed\\s+` +
+      `(?:on\\s+(?:\\w+day|the\\s+\\d|\\d|${MONTH})|in\\s+(?:${MONTH}|\\d|her sleep|his sleep|the hospital)|` +
+      `yesterday|today|recently|earlier|last|this (?:morning|afternoon|evening|week|month|year|past))\\b`,
+  ),
+  /\bpassed last (?:week|month|year|night|spring|summer|fall|winter|\w+day)\b/,
+  /\b(?:is|was|now|recently|became)\s+deceased\b/,
+  new RegExp(`\\bmy (?:late|deceased) ${PERSON}\\b`),
   /\bdied\b/,
+  /\bfuneral for\b/,
   /\bno longer (?:with us|living|alive)\b/,
   /\brest in peace\b/,
 ];
@@ -136,7 +191,10 @@ export function detectDeceased(body: string | null | undefined): boolean {
     .replace(/[‘’ʼ']/g, "")
     .replace(/[.!]+/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    // "my phone died" is not news; a person dying elsewhere in the same
+    // message still matches.
+    .replace(DEVICE_DIED, " ");
   return DECEASED_PATTERNS.some((re) => re.test(text));
 }
 
@@ -238,8 +296,7 @@ export function withDeceasedReport(
 ): Record<string, unknown> {
   const alreadyUnsubscribed = meta.nudges_unsubscribed === true;
   return {
-    ...meta,
-    benefits_automation_hold: nextHold("deceased", channel, excerpt, at),
+    ...withReplyHold(meta, "deceased", channel, excerpt, at),
     benefits_deceased_reported_at: at,
     ...(alreadyUnsubscribed
       ? {}

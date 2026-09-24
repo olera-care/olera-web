@@ -20,9 +20,9 @@ import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server"
 import {
   detectDeceased,
   isBenefitsFamilyMeta,
-  nextHold,
   openHelpCase,
   withDeceasedReport,
+  withReplyHold,
   type BenefitsHelpCase,
 } from "@/lib/family-comms/benefits-automation";
 import { formatDueEt } from "@/lib/family-comms/benefits-help-cases.server";
@@ -150,7 +150,7 @@ async function recordInbound(
   body: string,
   keyword: string | null,
   alertUnstructured = false,
-  opts: { deceased?: boolean } = {},
+  opts: { deceased?: boolean; optOut?: boolean } = {},
 ): Promise<{
   response?: string;
   structured: boolean;
@@ -203,8 +203,12 @@ async function recordInbound(
       sms_inbound: [...inbound, { at, body: body.slice(0, 500), keyword: storedKeyword }].slice(-20),
       ...(benefitsReply ? { benefits_cascade: benefitsReply.cascade } : {}),
       ...(nextCase ? { benefits_case: nextCase } : {}),
-      ...(pauses ? { benefits_automation_hold: nextHold("sms_reply", "sms", body, at) } : {}),
     };
+    if (pauses) nextMeta = withReplyHold(nextMeta, "sms_reply", "sms", body, at);
+    // STOP ends texts by law. The automated benefits emails (the letter, the
+    // check-in) stop with it until a person resumes them: "Stop, no longer
+    // needed" is not a request to keep emailing.
+    if (opts.optOut && isBenefitsFamily) nextMeta = withReplyHold(nextMeta, "sms_opt_out", "sms", body, at);
     // Someone in the family died. Suppress every nudge on every matched
     // profile, benefits or not, and let a person write back.
     if (opts.deceased) nextMeta = withDeceasedReport(nextMeta, "sms", body, at);
@@ -678,7 +682,7 @@ export async function POST(request: NextRequest) {
         `Texted "${messageBody.slice(0, 80)}" to the Olera SMS number`,
       );
       const n = await setFamilyPhoneValidity(normalizedFrom, "opted_out");
-      await recordInbound(normalizedFrom, params.Body || keyword, keyword);
+      await recordInbound(normalizedFrom, params.Body || keyword, keyword, false, { optOut: true });
       console.log(
         `[sms-webhook] STOP from ${normalizedFrom} → do_not_contact=${suppressed}, opted_out ${n} profile(s)`,
       );

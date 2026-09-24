@@ -75,10 +75,42 @@ for (const body of ["Please don't stop helping me", "Stop by the office and ask 
   assert.equal(isOptOutPhrase(body), false, `not an opt-out: ${body}`);
 }
 
-for (const body of ["My mother passed away last week", "He died on Sunday", "She is deceased", "dad passed", "Mom is no longer with us"]) {
+for (const body of [
+  "My mother passed away last week",
+  "He died on Sunday",
+  "She is deceased",
+  "dad passed",
+  "Mom is no longer with us",
+  "my mother passed away last year and I care for my dad",
+  "she died",
+  "My husband passed on Monday",
+  "my wife has passed.",
+  "Mom passed, so we won't need this",
+  "she passed last month",
+  "Dad passed in August",
+  "The funeral for my dad was Saturday",
+  "my phone died and then my husband died",
+  "I'm caring for my late husband's affairs? my late husband",
+]) {
   assert.equal(detectDeceased(body), true, `expected deceased: ${body}`);
 }
-for (const body of ["She passed the screening", "I need a death certificate copy?", "Funeral assistance program", "I called and they said wait"]) {
+for (const body of [
+  "She passed the screening",
+  "I need a death certificate copy?",
+  "Funeral assistance program",
+  "I called and they said wait",
+  "not dead yet lol",
+  "passing the info along",
+  "I passed on the info to my sister",
+  "She passed on the info to my brother",
+  "my phone died so I missed the call",
+  "My battery died, can you text me the number again",
+  "Our car died on the way to the office",
+  "the deadline has passed",
+  "The application has passed review",
+  "He passed this test with no problem",
+  "I have a late payment on my bill",
+]) {
   assert.equal(detectDeceased(body), false, `not deceased: ${body}`);
 }
 

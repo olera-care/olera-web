@@ -18,11 +18,12 @@ import { sendSlackAlert } from "@/lib/slack";
 import {
   detectDeceased,
   isBenefitsAutomationHeld,
+  holdNeedsExplicitResume,
   isBenefitsFamilyMeta,
-  nextHold,
   readBenefitsHold,
   withDeceasedReport,
   withHoldCleared,
+  withReplyHold,
 } from "./benefits-automation";
 
 /**
@@ -30,7 +31,7 @@ import {
  * SMS inbox. That is the human read the hold was waiting for, so a reply
  * hold lifts and automation resumes. A deceased hold never lifts this way:
  * condolences are not a signal to resume "How is it going?" messages. That
- * one needs the explicit "Resume automation" button.
+ * one needs the explicit "Resume automation" button, and so does a STOP.
  */
 export async function resumeAfterHumanReply(
   db: SupabaseClient,
@@ -45,7 +46,7 @@ export async function resumeAfterHumanReply(
     .maybeSingle();
   const meta = (row?.metadata as Record<string, unknown> | null) || {};
   const hold = readBenefitsHold(meta);
-  if (!hold || !isBenefitsAutomationHeld(meta) || hold.reason === "deceased") return;
+  if (!hold || !isBenefitsAutomationHeld(meta) || holdNeedsExplicitResume(meta)) return;
   const atMs = Date.parse(repliedAt);
   if (!Number.isFinite(atMs) || atMs <= Date.parse(hold.held_at)) return;
   await db
@@ -82,11 +83,13 @@ export async function noteBenefitsFamilyEmailReply(
   // letter's wording, so only the new text above the quote is read.
   const fresh = (reply.body || "").split(/\n\s*(?:On .+wrote:|>)/)[0].slice(0, 2000);
   const deceased = detectDeceased(fresh);
-  let nextMeta: Record<string, unknown> = {
-    ...meta,
-    benefits_email_reply: { at: atIso, subject: reply.subject?.slice(0, 200) ?? null },
-    benefits_automation_hold: nextHold("email_reply", "email", fresh || reply.subject, atIso),
-  };
+  let nextMeta: Record<string, unknown> = withReplyHold(
+    { ...meta, benefits_email_reply: { at: atIso, subject: reply.subject?.slice(0, 200) ?? null } },
+    "email_reply",
+    "email",
+    fresh || reply.subject,
+    atIso,
+  );
   if (deceased) nextMeta = withDeceasedReport(nextMeta, "email", fresh, atIso);
 
   await db.from("business_profiles").update({ metadata: nextMeta }).eq("id", profileId);

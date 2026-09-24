@@ -561,7 +561,9 @@ export function PlanActive({
           <p>
             {tier ? `Your ${tier.name} plan (${tier.amount}/mo, all-in) is active.` : "Your monthly plan is active."}
             {campaignStats
-              ? ` ${campaignStats.visitors.toLocaleString()} visitors and ${(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.`
+              ? families.families.length > 0
+                ? ` ${campaignStats.visitors.toLocaleString()} visitors and ${(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.`
+                : ` ${campaignStats.visitors.toLocaleString()} visitors on your page since launch.`
               : ""}{" "}
             Change or cancel by replying to any campaign email.{" "}
             <Link href="/managed-ads-terms" target="_blank" className="underline decoration-gray-300 underline-offset-4 hover:text-gray-700">
@@ -1010,7 +1012,9 @@ export function CampaignInMotion({
           footer={
             campaignStats ? (
               <p>
-                {campaignStats.visitors.toLocaleString()} visitors and {(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.
+                {n > 0
+                  ? `${campaignStats.visitors.toLocaleString()} visitors and ${(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.`
+                  : `${campaignStats.visitors.toLocaleString()} visitors on your page since launch.`}
               </p>
             ) : null
           }

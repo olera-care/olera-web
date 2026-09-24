@@ -22,6 +22,7 @@ import { getStateSlug } from "@/lib/program-data";
 import { resolveBenefitsProgramEntry } from "@/lib/benefits/program-entry";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
+import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
 
 // ─── Email + SMS body helpers ────────────────────────────────────────────
 //
@@ -775,7 +776,10 @@ export async function POST(req: Request) {
     // facts since (enrichment round, /m chips, email quiz) — read them off
     // the profile so the alert stops saying "unknown" about a family we know.
     const priorMeta = (existingFamilyProfile?.metadata as Record<string, unknown>) || {};
-    const priorAge = typeof priorMeta.age === "number" && priorMeta.age > 0 ? priorMeta.age : null;
+    // Through readCareAge: a legacy chip "60" is the "Under 65" band, not age 60.
+    const priorCareAge = readCareAge(priorMeta);
+    const priorAge =
+      priorCareAge.exact ?? (priorCareAge.band ? AGE_BAND_LABELS[priorCareAge.band].toLowerCase() : null);
     const priorMedicaid = typeof priorMeta.medicaid_status === "string" ? priorMeta.medicaid_status : null;
     const priorIncome = typeof priorMeta.income_range === "string" ? priorMeta.income_range : null;
 

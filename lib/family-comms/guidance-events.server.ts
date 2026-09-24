@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendSlackAlert } from "@/lib/slack";
+import { chipValueToAgeBand, AGE_BAND_LABELS } from "@/lib/benefits/age";
 
 /**
  * Guidance-journey instrumentation (2026-07-03). Two sinks, no new tables:
@@ -101,7 +102,8 @@ export async function slackQuizAnswer(opts: {
   } else if (opts.question === "veteran") {
     line = `🎖️ ${who} answered veteran: *${opts.answer === "yes" ? "Yes" : "No"}*`;
   } else if (opts.question === "age") {
-    line = `🎂 ${who} shared an age band: *~${opts.answer}*`;
+    const band = chipValueToAgeBand(opts.answer);
+    line = `🎂 ${who} shared an age band: *${band ? AGE_BAND_LABELS[band] : opts.answer}*`;
   } else if (opts.question === "archetype") {
     const ARCHETYPE_LABELS: Record<string, string> = {
       urgent: "Needs help right away",

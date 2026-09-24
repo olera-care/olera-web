@@ -48,15 +48,21 @@ async function recordOptOut(db: ReturnType<typeof getServiceClient>, seekerId: s
   const digits = ((p?.phone as string | null) ?? "").replace(/\D/g, "").slice(-10);
   const phone = digits.length === 10 ? digits : null;
   if (!email && !phone) return;
-  const already = await db
-    .from("do_not_contact")
-    .select("id")
-    .or([email ? `email.eq.${email}` : null, phone ? `phone.eq.${phone}` : null].filter(Boolean).join(","))
-    .limit(1);
-  if (already.data?.length) return;
+  // EACH IDENTIFIER ON ITS OWN. The usual opt-out is a family who texted STOP,
+  // which already put their PHONE here. Skipping the insert whenever either
+  // was present left their email off the list, so the nudge emails kept
+  // coming: 14 families were in exactly that state, Ann McDade among them.
+  const onList = async (col: "email" | "phone", value: string | null) => {
+    if (!value) return true;
+    const { data, error } = await db.from("do_not_contact").select("id").eq(col, value).limit(1);
+    if (error) throw error;
+    return Boolean(data?.length);
+  };
+  const [emailListed, phoneListed] = await Promise.all([onList("email", email), onList("phone", phone)]);
+  if (emailListed && phoneListed) return;
   const { error } = await db.from("do_not_contact").insert({
-    email,
-    phone,
+    email: emailListed ? null : email,
+    phone: phoneListed ? null : phone,
     reason: "other",
     note: "Care seeker asked us to stop. Recorded on Care Seeker Relationships.",
     created_by: who,

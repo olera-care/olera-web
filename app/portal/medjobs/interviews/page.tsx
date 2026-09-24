@@ -87,7 +87,7 @@ function InterviewsPageInner() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8]">
+    <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Interviews</h1>
@@ -105,6 +105,6 @@ function InterviewsPageInner() {
           initialSelectedId={newInterviewId}
         />
       </div>
-    </main>
+    </div>
   );
 }

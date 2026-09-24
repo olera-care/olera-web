@@ -357,7 +357,19 @@ function AdminSeekerRelationshipsInner() {
   // SEARCH LOOKS EVERYWHERE. Finding one person is a different job from
   // working a queue: the person you are looking for may be in any tab, or
   // archived, and making you guess which first is the scroll this replaces.
-  const q = (params.get("q") ?? "").trim();
+  const urlQ = params.get("q") ?? "";
+  // The box owns what is typed; the URL follows a moment later. Reading the
+  // box straight from the URL dropped keystrokes, because router.replace
+  // lands after the next key, so typing "dawnavyn" left "n".
+  const [draft, setDraft] = useState(urlQ);
+  useEffect(() => {
+    // Blank-but-spaces counts as empty, or it would re-replace forever.
+    const want = draft.trim() ? draft : "";
+    if (want === urlQ) return;
+    const t = setTimeout(() => setQuery({ q: want || null }), 250);
+    return () => clearTimeout(t);
+  }, [draft, urlQ, setQuery]);
+  const q = draft.trim();
   const searching = q.length > 0;
   const inTab = (rows ?? []).filter((r) => matches(r, tab)).length;
   const shown = searching
@@ -488,8 +500,8 @@ function AdminSeekerRelationshipsInner() {
           <input
             id="family-search"
             type="search"
-            value={q}
-            onChange={(e) => setQuery({ q: e.target.value || null })}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             placeholder="Find anyone: name, email, phone, city"
             aria-label="Find a family"
             className="order-last w-full rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 sm:order-none sm:ml-auto sm:w-64"
@@ -497,7 +509,7 @@ function AdminSeekerRelationshipsInner() {
           {searching ? (
             <span className="text-gray-500">
               Searching everyone, every tab and archived · {shown.length} found ·{" "}
-              <button type="button" onClick={() => setQuery({ q: null })} className="font-medium text-teal-700 hover:underline">
+              <button type="button" onClick={() => setDraft("")} className="font-medium text-teal-700 hover:underline">
                 Clear
               </button>
             </span>

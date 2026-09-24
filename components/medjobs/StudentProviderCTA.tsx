@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import { calculateCompleteness } from "@/lib/medjobs-completeness";
+import type { StudentMetadata } from "@/lib/types";
 
 /**
  * StudentProviderCTA — the student-context action region on the provider page
@@ -35,29 +37,49 @@ export default function StudentProviderCTA({
   campus?: string | null;
 }) {
   const { profiles, isLoading } = useAuth();
-  const studentProfile = profiles?.find((p) => p.type === "student");
+  const studentProfileFromAuth = profiles?.find((p) => p.type === "student");
   const [isLive, setIsLive] = useState<boolean | null>(null);
+  const [freshProfile, setFreshProfile] = useState<{
+    display_name: string | null;
+    email: string | null;
+    phone: string | null;
+    city: string | null;
+    state: string | null;
+    image_url: string | null;
+    metadata: StudentMetadata | null;
+  } | null>(null);
   const [resolving, setResolving] = useState(false);
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [requested, setRequested] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!studentProfile?.id) return;
+    if (!studentProfileFromAuth?.id) return;
     (async () => {
       try {
         const sb = createClient();
         const { data } = await sb
           .from("business_profiles")
-          .select("is_active")
-          .eq("id", studentProfile.id)
+          .select("is_active, display_name, email, phone, city, state, image_url, metadata")
+          .eq("id", studentProfileFromAuth.id)
           .single();
         setIsLive(!!data?.is_active);
+        if (data) {
+          setFreshProfile({
+            display_name: data.display_name,
+            email: data.email,
+            phone: data.phone,
+            city: data.city,
+            state: data.state,
+            image_url: data.image_url,
+            metadata: data.metadata as StudentMetadata | null,
+          });
+        }
       } catch {
         setIsLive(null);
       }
     })();
-  }, [studentProfile?.id]);
+  }, [studentProfileFromAuth?.id]);
 
   const locationLabel = campus
     ? `near ${campus}`
@@ -66,7 +88,7 @@ export default function StudentProviderCTA({
   async function handleRequest() {
     setError(null);
     // Not signed in / not a student → go check eligibility.
-    if (!studentProfile?.id) {
+    if (!studentProfileFromAuth?.id) {
       window.location.href = `/medjobs/families?screener=1${campus ? `&campus=${encodeURIComponent(campus)}` : ""}`;
       return;
     }
@@ -103,11 +125,22 @@ export default function StudentProviderCTA({
   // Gate: student must be live before requesting. A provider can't meaningfully
   // interview an empty profile, so we keep the completion requirement — but make
   // it encouraging (show progress) rather than a flat block.
-  const needsApplication = studentProfile?.id && isLive === false;
-  const completeness = Math.max(
-    0,
-    Math.min(100, Number((studentProfile?.metadata as Record<string, unknown> | undefined)?.profile_completeness ?? 0)),
-  );
+  const needsApplication = studentProfileFromAuth?.id && isLive === false;
+  // Calculate completeness using the same logic as Profile tab and admin panel
+  const completeness = freshProfile && freshProfile.metadata
+    ? calculateCompleteness(
+        freshProfile.metadata,
+        !!freshProfile.image_url,
+        undefined, // derive hasBasicInfo from profileFields
+        {
+          display_name: freshProfile.display_name,
+          email: freshProfile.email,
+          phone: freshProfile.phone,
+          city: freshProfile.city,
+          state: freshProfile.state,
+        }
+      )
+    : 0;
 
   return (
     <>
@@ -155,7 +188,7 @@ export default function StudentProviderCTA({
               disabled={isLoading || resolving}
               className="w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
             >
-              {resolving ? "Opening…" : !studentProfile?.id ? "Apply Now →" : "Request interview"}
+              {resolving ? "Opening…" : !studentProfileFromAuth?.id ? "Apply Now →" : "Request interview"}
             </button>
           </div>
         )}

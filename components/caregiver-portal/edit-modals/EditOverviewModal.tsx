@@ -244,12 +244,16 @@ export default function EditOverviewModal({
     state !== (profile.state || "") ||
     photoUrl !== (profile.image_url || "");
 
-  // Email is required and must be .edu
-  const isValidEmail = email.trim().length > 0 && email.toLowerCase().endsWith(".edu");
-  // Phone is required - strip non-digits to check length
+  // For SAVING: only name is strictly required. Students can save partial progress.
+  // The .edu email requirement is enforced at "Request Review" (go-live gate), not here.
+  // This lets returning students save phone/university/etc. even if they haven't
+  // added their .edu email yet — we can then contact them to complete verification.
+  const canSave = displayName.trim().length > 0;
+
+  // For display warnings (not blocking save):
   const phoneDigits = phone.replace(/\D/g, "");
   const isValidPhone = phoneDigits.length >= 10;
-  const isValid = displayName.trim().length > 0 && isValidEmail && isValidPhone;
+  const isEduEmail = email.toLowerCase().endsWith(".edu");
 
   async function handlePhotoUpload(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -410,9 +414,9 @@ export default function EditOverviewModal({
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving || uploading || !isValid}
+          disabled={saving || uploading || !canSave}
           className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-            isValid
+            canSave
               ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
               : "bg-gray-100 text-gray-600"
           }`}
@@ -539,12 +543,12 @@ export default function EditOverviewModal({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@school.edu"
                 className={`w-full bg-white border focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all ${
-                  email && !email.toLowerCase().endsWith(".edu")
+                  email && !isEduEmail
                     ? "border-red-300 focus:border-red-400"
                     : "border-gray-200 focus:border-primary-600"
                 }`}
               />
-              {email && !email.toLowerCase().endsWith(".edu") && (
+              {email && !isEduEmail && (
                 <p className="mt-2 text-xs text-red-600">
                   A .edu email is required for student verification
                 </p>

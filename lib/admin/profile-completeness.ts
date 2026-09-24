@@ -62,7 +62,7 @@ export function calculateFamilyCompleteness(
     { weight: 2, field: "Contact Preference", check: () => !!meta.contact_preference },
     // Care Recipient (16 total)
     { weight: 10, field: "Relationship", check: () => !!meta.relationship_to_recipient || !!meta.who_needs_care }, // Enrichment Step 1
-    { weight: 2, field: "Care Recipient Age", check: () => !!meta.age },
+    { weight: 2, field: "Care Recipient Age", check: () => !!meta.age || !!meta.age_band },
     { weight: 4, field: "Situation Description", check: () => !!profile.description || !!meta.about_situation },
     // Care Needs (28 total)
     { weight: 8, field: "Care Types", check: () => (profile.care_types?.length ?? 0) > 0 }, // Required for Go Live

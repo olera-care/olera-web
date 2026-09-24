@@ -7,11 +7,26 @@ import { resolvePrimaryCampaign } from "@/lib/city-ads/primary.server";
 import { getCityConfig } from "@/lib/city-ads/config";
 import { getSiteUrl } from "@/lib/site-url";
 import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
-import { isCourtesyOnlyReply, matchOutcomeReply } from "@/lib/sms/inbound-intent";
+import {
+  hasNoWords,
+  isCourtesyOnlyReply,
+  isOptOutPhrase,
+  isReactionOnly,
+  matchOutcomeReply,
+} from "@/lib/sms/inbound-intent";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 import { captureOutcome, outcomeFromKeyword } from "@/lib/family-answers/outcome.server";
 import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
 import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server";
+import {
+  detectDeceased,
+  isBenefitsFamilyMeta,
+  openHelpCase,
+  withDeceasedReport,
+  withReplyHold,
+  type BenefitsHelpCase,
+} from "@/lib/family-comms/benefits-automation";
+import { formatDueEt } from "@/lib/family-comms/benefits-help-cases.server";
 import {
   storeInboundMessage,
   suppressPhone,
@@ -123,11 +138,20 @@ async function matchFamilyProfiles(
  * tell the story (metadata.sms_inbound, capped at 20). A family texting back
  * is the highest-intent signal we get — it must never evaporate.
  */
+/**
+ * Benefits progress words the automation answers by itself. Every other reply
+ * from a benefits family (free text, STUCK, NOT ELIGIBLE) pauses the cascade
+ * until a person has read it, so the next automated touch cannot talk over
+ * what they just told us.
+ */
+const SELF_SERVE_BENEFITS_KEYWORDS = new Set(["CALLED", "NOANSWER", "NEEDDOCS", "APPLIED", "WAITING"]);
+
 async function recordInbound(
   phone: string,
   body: string,
   keyword: string | null,
   alertUnstructured = false,
+  opts: { deceased?: boolean; optOut?: boolean } = {},
 ): Promise<{
   response?: string;
   structured: boolean;
@@ -141,12 +165,11 @@ async function recordInbound(
   let response: string | undefined;
   let structured = false;
   let humanAlert: string | null = null;
+  let helpDue: { owner: string; due: string } | null = null;
   for (const p of profiles) {
     const meta = p.metadata || {};
     const inbound = Array.isArray(meta.sms_inbound) ? (meta.sms_inbound as unknown[]) : [];
-    const isBenefitsFamily = Boolean(
-      meta.benefits_results || meta.benefits_cascade || meta.benefits_navigator,
-    );
+    const isBenefitsFamily = isBenefitsFamilyMeta(meta);
     const benefitsReply = keyword && isBenefitsFamily
       ? interpretBenefitsSmsReply(keyword, readBenefitsCascade(meta), at)
       : null;
@@ -160,15 +183,40 @@ async function recordInbound(
     // ICANTFINDTHEFORM) must not hide the real body from the admin's free-form
     // reply chip and timeline.
     const storedKeyword = benefitsReply ? keyword : alertUnstructured ? null : keyword;
+
+    // Pause the cascade on anything that is not a self-serve progress word.
+    const pauses =
+      isBenefitsFamily &&
+      ((alertUnstructured && !benefitsReply) ||
+        (!!benefitsReply && !!keyword && !SELF_SERVE_BENEFITS_KEYWORDS.has(keyword)));
+    // STUCK opens an owned case right away (owner + due time), rather than
+    // waiting for the hourly sweep to notice it.
+    let nextCase: BenefitsHelpCase | null = null;
+    if (benefitsReply?.needsHuman) {
+      nextCase = openHelpCase((meta.benefits_case as BenefitsHelpCase | undefined) ?? {}, "stuck", at);
+      if (nextCase?.help_owner && nextCase.help_due_at) {
+        helpDue = { owner: nextCase.help_owner, due: nextCase.help_due_at };
+      }
+    }
+
+    let nextMeta: Record<string, unknown> = {
+      ...meta,
+      sms_inbound: [...inbound, { at, body: body.slice(0, 500), keyword: storedKeyword }].slice(-20),
+      ...(benefitsReply ? { benefits_cascade: benefitsReply.cascade } : {}),
+      ...(nextCase ? { benefits_case: nextCase } : {}),
+    };
+    if (pauses) nextMeta = withReplyHold(nextMeta, "sms_reply", "sms", body, at);
+    // STOP ends texts by law. The automated benefits emails (the letter, the
+    // check-in) stop with it until a person resumes them: "Stop, no longer
+    // needed" is not a request to keep emailing.
+    if (opts.optOut && isBenefitsFamily) nextMeta = withReplyHold(nextMeta, "sms_opt_out", "sms", body, at);
+    // Someone in the family died. Suppress every nudge on every matched
+    // profile, benefits or not, and let a person write back.
+    if (opts.deceased) nextMeta = withDeceasedReport(nextMeta, "sms", body, at);
+
     await db
       .from("business_profiles")
-      .update({
-        metadata: {
-          ...meta,
-          sms_inbound: [...inbound, { at, body: body.slice(0, 500), keyword: storedKeyword }].slice(-20),
-          ...(benefitsReply ? { benefits_cascade: benefitsReply.cascade } : {}),
-        },
-      })
+      .update({ metadata: nextMeta })
       .eq("id", p.id);
   }
   // A free-form reply or an explicit STUCK reply deserves a human. Other
@@ -179,8 +227,8 @@ async function recordInbound(
       const who = profiles[0].display_name || profiles[0].email || phone;
       await sendSlackAlert(
         humanAlert
-          ? `Benefits family needs help: ${who} ${humanAlert}. Reply from the Benefits queue (/admin/benefits)`
-          : `Family texted back: ${who}: "${body.slice(0, 300)}" - reply from the Benefits queue (/admin/benefits)`,
+          ? `🆘 Benefits family needs help: ${who} ${humanAlert}.${helpDue ? ` Owner: ${helpDue.owner}. Due ${formatDueEt(helpDue.due)} ET.` : ""} Reply from the Benefits queue (/admin/benefits)`
+          : `Family texted back: ${who}: "${body.slice(0, 300)}". Automated follow-ups are paused until someone replies. Reply from the Benefits queue (/admin/benefits)`,
       );
     } catch (err) {
       console.error("[sms-webhook] Slack ping failed:", err);
@@ -599,12 +647,16 @@ export async function POST(request: NextRequest) {
   const outcome = matchOutcomeReply(messageBody);
   // High-confidence conversational close. Crisis wins even if a message also
   // contains thanks ("thank you, but I want to die" must never be dismissed).
+  // A tapback ("Liked ...", "Removed a like from ...") is closure too.
   const courtesyOnly =
     Boolean(messageBody) &&
     !detectCrisis(messageBody).isCrisis &&
-    isCourtesyOnlyReply(messageBody);
+    (isCourtesyOnlyReply(messageBody) || isReactionOnly(messageBody));
+  // "Stop no longer needed" is an opt-out, not a question to research and
+  // acknowledge (it was acknowledged on 2026-09-08).
+  const isOptOut = OPT_OUT_KEYWORDS.has(keyword) || isOptOutPhrase(messageBody);
   const isControlKeyword =
-    OPT_OUT_KEYWORDS.has(keyword) || OPT_IN_KEYWORDS.has(keyword) || HELP_KEYWORDS.has(keyword);
+    isOptOut || OPT_IN_KEYWORDS.has(keyword) || HELP_KEYWORDS.has(keyword);
 
   // Durable capture BEFORE any branching, so no code path below can drop a
   // message. The family-profile work that follows is an additional step, not
@@ -634,7 +686,7 @@ export async function POST(request: NextRequest) {
     // provider accepting an offer must be recognised before that branch, or
     // the acceptance is swallowed as a re-subscribe. Scoped to numbers with a
     // recent offer, so a family's YES never reaches this.
-    if (messageBody && !OPT_OUT_KEYWORDS.has(keyword)) {
+    if (messageBody && !isOptOut) {
       const db = getServiceDb();
       if (db) {
         try {
@@ -659,7 +711,7 @@ export async function POST(request: NextRequest) {
         }
       }
     }
-    if (OPT_OUT_KEYWORDS.has(keyword)) {
+    if (isOptOut) {
       // Cross-channel suppression first — this is the only opt-out record that
       // covers a sender with no family profile, and sendSMS enforces it.
       const suppressed = await suppressPhone(
@@ -667,7 +719,7 @@ export async function POST(request: NextRequest) {
         `Texted "${messageBody.slice(0, 80)}" to the Olera SMS number`,
       );
       const n = await setFamilyPhoneValidity(normalizedFrom, "opted_out");
-      await recordInbound(normalizedFrom, params.Body || keyword, keyword);
+      await recordInbound(normalizedFrom, params.Body || keyword, keyword, false, { optOut: true });
       console.log(
         `[sms-webhook] STOP from ${normalizedFrom} → do_not_contact=${suppressed}, opted_out ${n} profile(s)`,
       );
@@ -683,6 +735,30 @@ export async function POST(request: NextRequest) {
     if (HELP_KEYWORDS.has(keyword)) {
       await recordInbound(normalizedFrom, params.Body || keyword, keyword);
       return twiml(HELP_REPLY);
+    }
+    // Someone in the family died. No automated reply of any kind: every canned
+    // text we have ("We're looking into this", "Got it, what happened next?")
+    // is wrong here. Pause the cascade, suppress nudges, and page a person to
+    // write back. Crisis language still wins and takes its own path below.
+    if (
+      messageBody &&
+      senderType === "family" &&
+      detectDeceased(messageBody) &&
+      !detectCrisis(messageBody).isCrisis
+    ) {
+      const recorded = await recordInbound(normalizedFrom, messageBody, null, false, { deceased: true });
+      try {
+        const { sendSlackAlert } = await import("@/lib/slack");
+        const who = recorded.profile?.display_name || recorded.profile?.email || normalizedFrom;
+        await sendSlackAlert(
+          `🕊 A family's text suggests someone died: ${who}: "${messageBody.slice(0, 300)}". ` +
+            `No auto-reply was sent. Automated messages are paused and nudges are off. ` +
+            `Please write back personally from /admin/benefits (use "Resume automation" there if this was misread).`,
+        );
+      } catch (err) {
+        console.error("[sms-webhook] Deceased Slack ping failed:", err);
+      }
+      return twiml();
     }
     // Benefits progress replies update the living plan and receive an
     // immediate receipt. Unrecognized replies remain human-routed below.
@@ -728,6 +804,18 @@ export async function POST(request: NextRequest) {
       // interpretBenefitsSmsReply as though it were a recognized reply.
       const recorded = await recordInbound(normalizedFrom, messageBody, outcome.keyword, true);
       if (recorded.structured) return twiml(recorded.response);
+      // A bare keyword that nothing was waiting for (NOTYET, HELPED, NO, or a
+      // benefits word from a family with no benefits plan), or a message with
+      // no words at all ("?", an emoji). recordInbound has already told a
+      // person. What it must not get is "We're looking into this and will get
+      // back to you with what we find": there is no question to research, and
+      // the family learns our replies are automatic. NOTYET got exactly that
+      // on 2026-09-08 and 2026-09-09.
+      const bareKeyword =
+        !!outcome.keyword || !!outcomeFromKeyword(keyword) || hasNoWords(messageBody);
+      if (senderType === "family" && bareKeyword) {
+        return twiml();
+      }
       // recordInbound's Slack ping requires a family match. Everyone else —
       // providers, unknown numbers — needs a human told about them here.
       if (senderType !== "family") {

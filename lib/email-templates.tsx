@@ -5,7 +5,9 @@
  * Design: clean, minimal, system font stack. Matches Olera brand colors.
  */
 
+import { US_STATES } from "@/lib/us-states";
 import { DEFAULT_BUDGET } from "@/lib/ad-boost/estimate";
+import { benefitAmountLabel, benefitAmountShortCaption } from "@/lib/benefits/savings-label";
 
 const BRAND_COLOR = "#198087";
 const FONT_STACK =
@@ -1081,6 +1083,32 @@ function completionProgressLine(percent: number): string {
 }
 
 /**
+ * Where a family is, for "in X" copy: the city, else the full state name,
+ * else "your area". Never the bare state code: families who came in through
+ * the benefits finder have a state and no city, and the old `city || state`
+ * fallback sent them subjects like "Providers near AL, ready when you are"
+ * (2026-09 audit: 586 of 651 benefits families have no city).
+ */
+export function familyLocationText(city?: string | null, state?: string | null): string {
+  if (city && city.trim()) return city.trim();
+  const code = (state || "").trim().toUpperCase();
+  if (code) {
+    const match = US_STATES.find((s) => s.value === code);
+    if (match) return match.label;
+    // Already a full name (or something we do not recognise): use as given,
+    // unless it is a two-letter code we could not expand.
+    if (code.length > 2) return state!.trim();
+  }
+  return "your area";
+}
+
+/** For "near X" copy. "near Texas" reads oddly, so without a city it is
+ *  "near you". */
+export function nearLocationText(city?: string | null): string {
+  return city && city.trim() ? city.trim() : "you";
+}
+
+/**
  * Single source of truth for completion-sequence inbox subjects. Pure (no URL),
  * so the family-nudges send path can call it for the pre-send log reservation
  * BEFORE the magic link exists, while the templates below re-emit it in their
@@ -1092,7 +1120,7 @@ export function completionNudgeSubject(
   n: number,
   opts: { providerCount?: number; city?: string; state?: string } = {},
 ): string {
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = nearLocationText(opts.city);
   switch (n) {
     case 1:
       return "Want a hand with your care search?";
@@ -2011,8 +2039,11 @@ export function benefitsFirstStepEmail(opts: {
     ? `<p style="font-size:13px;color:#6b7280;margin:0 0 4px;">The program you were looking into</p>`
     : `<p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Your closest match</p>`;
 
-  const savingsLine = opts.savingsRange
-    ? `<p style="font-size:14px;color:#047857;font-weight:600;margin:4px 0 0;">Typically ${escapeHtml(opts.savingsRange)}</p>`
+  // Shared parser: a maximum reads "Up to ... (program maximum)", never
+  // "Typically Up to ...". Non-dollar strings drop the line.
+  const amount = benefitAmountLabel(opts.savingsRange);
+  const savingsLine = amount
+    ? `<p style="font-size:14px;color:#047857;font-weight:600;margin:4px 0 0;">${escapeHtml(amount.text)}${amount.kind === "amount" ? "" : ` <span style="font-weight:400;color:#6b7280;">(${escapeHtml(benefitAmountShortCaption(amount.kind).toLowerCase())})</span>`}</p>`
     : "";
 
   const hoursLine = opts.contactHours
@@ -2163,8 +2194,9 @@ export function benefitsCheckInEmail(opts: {
     <div style="margin:0 0 12px;">${neutralBtn("I want help with this", opts.helpUrl)}</div>
     <div style="margin:0 0 24px;">${neutralBtn("This program isn't right for me", opts.wrongUrl)}</div>
     <p style="font-size:15px;color:#6b7280;margin:0;line-height:1.6;">
-      Whichever you tap, we'll point you to the next step. If you ask for help, a real person
-      from Olera follows up. Nobody applies for these programs alone, and you don't have to either.
+      Whichever you tap, we'll point you to the next step. If you ask for help, someone from
+      our team will text or email you, usually within 2 business days. Nobody applies for these
+      programs alone, and you don't have to either.
     </p>
     ${careUnsubscribeFooter(opts.unsubscribeId)}
   `,
@@ -3586,7 +3618,7 @@ export function completionNudge2Email(opts: {
   city?: string;
   state?: string;
 }): { subject: string; html: string } {
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = nearLocationText(opts.city);
   // Day-2 angle: social proof — real providers near them — but framed as THEIR
   // options, not providers "hunting families". Same shared system as nudge_1.
   const countClause = opts.providerCount
@@ -3686,7 +3718,7 @@ export function completionNudge4Email(opts: {
   city?: string;
   state?: string;
 }): { subject: string; html: string } {
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = nearLocationText(opts.city);
   // Photo + hairline cards (the matches-email style), not the boxed text cards.
   const providersHtml = opts.providers?.length ? compareCardsBlock(opts.providers) : "";
   const remainingCount = (opts.providerCount ?? 0) - (opts.providers?.length ?? 0);
@@ -3850,7 +3882,7 @@ export function publishNudge3Email(opts: {
   city?: string;
   state?: string;
 }): string {
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = familyLocationText(opts.city, opts.state);
 
   // Build social proof line with real data
   let socialProof: string;
@@ -3934,7 +3966,7 @@ export function completionMaintenanceEmail(opts: {
   state?: string;
 }): string {
   const percent = opts.completionPercent ?? 0;
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = familyLocationText(opts.city, opts.state);
   const hasNewProviders = (opts.newProviderCount ?? 0) > 0;
   const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers) : "";
 
@@ -3979,7 +4011,7 @@ export function publishMaintenanceEmail(opts: {
   city?: string;
   state?: string;
 }): string {
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = familyLocationText(opts.city, opts.state);
   const hasNewProviders = (opts.newProviderCount ?? 0) > 0;
   const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers.slice(0, 3)) : "";
 
@@ -4067,7 +4099,7 @@ export function inactivityReengagementEmail(opts: {
   city?: string;
   state?: string;
 }): string {
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = familyLocationText(opts.city, opts.state);
   const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers.slice(0, 3)) : "";
   const preheader = "Highly-rated providers are ready to help when you are";
 
@@ -4212,7 +4244,7 @@ export function monthlyProviderRecommendationsEmail(opts: {
   city?: string;
   state?: string;
 }): string {
-  const locationText = opts.city || opts.state || "your area";
+  const locationText = familyLocationText(opts.city, opts.state);
   const hasNewProviders = (opts.newProviderCount ?? 0) > 0;
   const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers.slice(0, 3)) : "";
 

@@ -6,6 +6,7 @@ import ProfileCompleteModal from "@/components/welcome/ProfileCompleteModal";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
+import { exactAgeInput } from "@/lib/benefits/age";
 
 // ── Types ──
 
@@ -175,7 +176,7 @@ export default function ProfileWizard({
   const [payments, setPayments] = useState<string[]>(meta.payment_methods || []);
   const [contactPref, setContactPref] = useState(meta.contact_preference || "");
   const [schedule, setSchedule] = useState(meta.schedule_preference || "");
-  const [age, setAge] = useState(meta.age ? String(meta.age) : "");
+  const [age, setAge] = useState(exactAgeInput(meta));
   const [displayName, setDisplayName] = useState(
     profile.display_name && profile.display_name !== "Care Seeker" ? profile.display_name : ""
   );

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resumeAfterHumanReply } from "@/lib/family-comms/benefits-replies.server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { createTwilioClient, sendSMS } from "@/lib/twilio";
 import { isPhoneDoNotContact } from "@/lib/do-not-contact";
 import { quietHoursCheck } from "@/lib/sms/quiet-hours";
+import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
 
 /**
  * One SMS conversation, and the ability to answer it.
@@ -317,8 +319,8 @@ function buildSeekerContext(
       ? (v as unknown[]).filter((x): x is string => typeof x === "string").map(humanize).join(", ") || null
       : null;
 
-  const age = meta.age;
-  push("Age", typeof age === "number" ? String(age) : str(age));
+  const careAge = readCareAge(meta);
+  push("Age", careAge.exact != null ? String(careAge.exact) : careAge.band ? AGE_BAND_LABELS[careAge.band] : null);
   push("Household income", str(meta.income_range) ? humanize(str(meta.income_range)!) : null);
   push("Timeline", str(meta.timeline) ? humanize(str(meta.timeline)!) : null);
   push("Coverage", list(meta.payment_methods));
@@ -1001,6 +1003,16 @@ export async function POST(
         // between packet.draft and sent_body is the cheapest honest signal of
         // whether the engine is any good, and it needs no extra instrumentation.
         stampAnswerJobSent(db, last10, text, user.email ?? admin.id),
+        // A person answered a benefits family: their reply hold lifts and the
+        // cascade may resume (lib/family-comms/benefits-replies.server.ts).
+        recipientIdentity?.profile_type === "family" && recipientIdentity.profile_id
+          ? resumeAfterHumanReply(
+              db,
+              recipientIdentity.profile_id,
+              new Date().toISOString(),
+              `SMS reply by ${user.email ?? "admin"}`,
+            ).catch((err) => console.error("[sms-inbox] benefits resume failed:", err))
+          : Promise.resolve(),
       ]);
 
       await logAuditAction({

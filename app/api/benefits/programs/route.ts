@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   getTopProgramsForState,
-  getAllProgramIds,
+  getCanonicalProgramIds,
   getEnrichedProgram,
 } from "@/lib/program-data";
 import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryModule";
@@ -42,7 +42,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "No programs found for state." }, { status: 404 });
   }
 
-  const allIds = getAllProgramIds(top.stateId);
+  // Canonical ids: legacy duplicates of a current program are dropped, so
+  // the matched set (welcome email, saved programs) lists each program once.
+  const allIds = getCanonicalProgramIds(top.stateId);
   const allPrograms: BenefitsProgram[] = allIds
     .map((id) => getEnrichedProgram(top.stateId, id))
     .filter((p): p is NonNullable<typeof p> => !!p)

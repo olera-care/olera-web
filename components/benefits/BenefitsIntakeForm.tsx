@@ -32,6 +32,7 @@ import type { VoiceParseResult } from "@/lib/benefits/voice-intent-parser";
 import { zipToState } from "@/lib/benefits/zip-lookup";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { preloadFullCityData } from "@/lib/us-city-search";
+import { readCareAge } from "@/lib/benefits/age";
 
 // US state name → abbreviation for geolocation reverse-geocode
 const stateAbbreviations: Record<string, string> = {
@@ -120,10 +121,12 @@ export default function BenefitsIntakeForm() {
       updateAnswers({ stateCode: activeProfile.state });
     }
 
-    // Pre-fill age from metadata
-    if (meta.age) {
-      setAgeInput(String(meta.age));
-      updateAnswers({ age: meta.age });
+    // Pre-fill age from metadata: a typed exact age only. A one-tap band
+    // ("Under 65", legacy-stored as 60) must never become an exact age here.
+    const exactAge = readCareAge(meta).exact;
+    if (exactAge) {
+      setAgeInput(String(exactAge));
+      updateAnswers({ age: exactAge });
     }
 
     // Map care_types to primaryNeeds
@@ -261,10 +264,10 @@ export default function BenefitsIntakeForm() {
       // Ignore parse errors
     }
 
-    // Set smart default based on existing care post status
-    const meta = (activeProfile.metadata || {}) as FamilyMetadata;
-    const isAlreadyActive = meta.care_post?.status === "active";
-    setPublishCarePost(!isAlreadyActive);
+    // Default UNCHECKED for everyone: sharing the care profile with
+    // providers is opt-in. (An already-active care post stays active either
+    // way; unchecked just means this submit doesn't republish it.)
+    setPublishCarePost(false);
   }, [step, user, activeProfile, setPublishCarePost]);
 
   // Close dropdown when clicking outside (blur-before-close prevents scroll-to-footer)
@@ -904,7 +907,7 @@ export default function BenefitsIntakeForm() {
         {step === 0 ? "Where are you located?" : stepInfo.question}
       </h2>
       {step === 4 && (
-        <p className="text-sm text-gray-500 mb-8">This helps us find programs and providers that fit your budget. It does not need to be exact.</p>
+        <p className="text-sm text-gray-500 mb-8">Just their own income, like Social Security or a pension, not the whole family&apos;s. Many programs have income limits. It does not need to be exact.</p>
       )}
 
       {/* Step 0: Smart Location Input */}

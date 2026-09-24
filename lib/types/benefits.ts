@@ -188,7 +188,9 @@ export const INTAKE_STEPS: Record<
   1: { title: "Age", question: "How old is the person who needs care?" },
   2: { title: "Care Setting", question: "Hoping to stay at home, or exploring facilities?" },
   3: { title: "Needs", question: "What kind of help is most needed?" },
-  4: { title: "Budget", question: "What is your monthly budget for care expenses?" },
+  // Stored as incomeRange and compared to program INCOME limits, so it has
+  // to ask for income (research participants asked "whose income?").
+  4: { title: "Income", question: "About how much is the monthly income of the person who needs care?" },
   5: { title: "Medicaid", question: "Do you currently have Medicaid?" },
   6: { title: "Veteran", question: "Is the person who needs care a veteran?" },
 };

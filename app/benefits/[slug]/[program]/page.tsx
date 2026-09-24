@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getStateById, allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
 import { pipelineDrafts, type PipelineDraft } from "@/data/pipeline-drafts";
 import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
 import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 import { getRelatedArticles } from "@/lib/content";
 import { getDisplayName } from "@/lib/program-name";
-import { getEnrichedProgram } from "@/lib/program-data";
+import { getEnrichedProgram, findCanonicalDraftFor } from "@/lib/program-data";
 import {
   benefitsNoindexRobots,
+  shouldDiscoverBenefitsProgram,
   shouldIndexBenefitsProgram,
 } from "@/lib/benefits/program-content-quality";
 
@@ -175,8 +176,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/**
+ * A legacy waiver-library program page whose program now has a CURRENT page
+ * on the state list (e.g. /benefits/texas/texas-snap-food-benefits, which
+ * carried older, conflicting numbers, vs /benefits/texas/snap-food-benefits).
+ * Only clean one-to-one mappings redirect (see findCanonicalDraftFor); every
+ * other legacy page keeps rendering as before.
+ */
+function canonicalRedirectFor(slug: string, programId: string): string | null {
+  const stateMetadata = getStateById(slug);
+  if (!stateMetadata) return null;
+  const drafts = pipelineDrafts[stateMetadata.abbreviation];
+  if (!drafts?.stateOverview || !drafts.programs) return null;
+  if (drafts.programs.some((d) => d.id === programId)) return null;
+  const draft = findCanonicalDraftFor(slug, programId);
+  if (!draft || !shouldDiscoverBenefitsProgram(draft)) return null;
+  return `/benefits/${slug}/${draft.id}`;
+}
+
 export default async function BenefitsProgramPage({ params }: Props) {
   const { slug, program: programId } = await params;
+  const canonical = canonicalRedirectFor(slug, programId);
+  if (canonical) permanentRedirect(canonical);
   const resolved = resolveProgram(slug, programId);
   if (!resolved) notFound();
 

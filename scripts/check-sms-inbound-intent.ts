@@ -2,8 +2,13 @@ import assert from "node:assert/strict";
 import {
   familyAnswerCategoryAutoCloses,
   familyAnswerCategoryNeedsDraft,
+  hasNoWords,
   isCourtesyOnlyReply,
+  isOptOutPhrase,
+  isReactionOnly,
 } from "../lib/sms/inbound-intent";
+import { detectDeceased } from "../lib/family-comms/benefits-automation";
+import { smsCarriesPhone } from "../lib/family-comms/sms-phone";
 
 const COURTESY = [
   "Thank you",
@@ -45,6 +50,74 @@ assert.equal(familyAnswerCategoryNeedsDraft("crisis"), true);
 assert.equal(familyAnswerCategoryAutoCloses("thanks"), true);
 assert.equal(familyAnswerCategoryAutoCloses("unrelated"), false);
 assert.equal(familyAnswerCategoryAutoCloses("benefits_question"), false);
+
+// Tapbacks, as iOS delivers them to a non-iMessage thread (real 2026-09-11 body).
+for (const body of [
+  "Removed \u200c👍\u200c from \u201c This is Olera's care team following up on your Senior SNAP results.\u201d",
+  "Liked \u201cOlera: Your first step for LIHEAP\u201d",
+  "Loved \u201cThanks\u201d",
+  "Reacted 👍 to \"Olera: Were you able to call?\"",
+]) {
+  assert.equal(isReactionOnly(body), true, `expected reaction: ${body}`);
+}
+for (const body of ["Liked the plan but I need the phone number", "Loved it", "I removed my name"]) {
+  assert.equal(isReactionOnly(body), false, `not a reaction: ${body}`);
+}
+
+assert.equal(hasNoWords("?"), true);
+assert.equal(hasNoWords("👍"), true);
+assert.equal(hasNoWords("What"), false);
+
+for (const body of ["Stop no longer needed", "STOP texting me", "unsubscribe please"]) {
+  assert.equal(isOptOutPhrase(body), true, `expected opt-out: ${body}`);
+}
+for (const body of ["Please don't stop helping me", "Stop by the office and ask them what documents they need tomorrow"]) {
+  assert.equal(isOptOutPhrase(body), false, `not an opt-out: ${body}`);
+}
+
+for (const body of [
+  "My mother passed away last week",
+  "He died on Sunday",
+  "She is deceased",
+  "dad passed",
+  "Mom is no longer with us",
+  "my mother passed away last year and I care for my dad",
+  "she died",
+  "My husband passed on Monday",
+  "my wife has passed.",
+  "Mom passed, so we won't need this",
+  "she passed last month",
+  "Dad passed in August",
+  "The funeral for my dad was Saturday",
+  "my phone died and then my husband died",
+  "I'm caring for my late husband's affairs? my late husband",
+]) {
+  assert.equal(detectDeceased(body), true, `expected deceased: ${body}`);
+}
+for (const body of [
+  "She passed the screening",
+  "I need a death certificate copy?",
+  "Funeral assistance program",
+  "I called and they said wait",
+  "not dead yet lol",
+  "passing the info along",
+  "I passed on the info to my sister",
+  "She passed on the info to my brother",
+  "my phone died so I missed the call",
+  "My battery died, can you text me the number again",
+  "Our car died on the way to the office",
+  "the deadline has passed",
+  "The application has passed review",
+  "He passed this test with no problem",
+  "I have a late payment on my bill",
+]) {
+  assert.equal(detectDeceased(body), false, `not deceased: ${body}`);
+}
+
+assert.equal(smsCarriesPhone("Olera: For LIHEAP, call 1-877-555-0142. {link}", "1-877-555-0142"), true);
+assert.equal(smsCarriesPhone("Olera: call (877) 555-0142 {link}", "1-877-555-0142"), true);
+assert.equal(smsCarriesPhone("Olera: call 2-1-1 {link}", "2-1-1"), true);
+assert.equal(smsCarriesPhone("Olera's care team here. Your plan: {link}", "1-877-555-0142"), false);
 
 console.log(
   `SMS inbound intent checks passed: ${COURTESY.length} closers, ${ACTIONABLE.length} actionable counterexamples.`,

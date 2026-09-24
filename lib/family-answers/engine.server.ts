@@ -1,7 +1,7 @@
 import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
-import { getAllProgramIds, getEnrichedProgram, getStateSlug } from "@/lib/program-data";
+import { getCanonicalProgramIds, getEnrichedProgram, getStateSlug } from "@/lib/program-data";
 import { detectCrisis } from "@/lib/sms/crisis";
 import { familyAnswerCategoryNeedsDraft, matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import {
@@ -169,7 +169,7 @@ function libraryDigest(stateCode: string | null): { text: string; names: string[
   const slug = getStateSlug(stateCode);
   if (!slug) return { text: "(state not in the library)", names: [] };
 
-  const programs = getAllProgramIds(slug)
+  const programs = getCanonicalProgramIds(slug)
     .map((id) => getEnrichedProgram(slug, id))
     .filter((p): p is NonNullable<typeof p> => Boolean(p))
     .filter((p) => p.programType === "benefit");

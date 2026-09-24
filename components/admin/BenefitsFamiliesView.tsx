@@ -93,7 +93,15 @@ interface FamilyRow {
     outcomeReason: string | null;
   };
   caseStatus: "wants_help" | "silent_after_checkin" | "action_stall" | "attention_stall" | null;
-  caseInfo: { noteCount: number; contactedAt: string | null; resolvedAt: string | null };
+  caseInfo: {
+    noteCount: number;
+    contactedAt: string | null;
+    resolvedAt: string | null;
+    /** Owned help case, while nobody has logged a contact. */
+    help: { owner: string | null; dueAt: string | null; overdue: boolean } | null;
+  };
+  /** A family reply paused automated sends until a person resumes them. */
+  automationHold: { at: string; reason: string; channel: string; excerpt: string | null } | null;
   lifecycle: { status: LifecycleStatus; detail: string | null };
   navigator: {
     status: "pending" | "sent" | "dismissed";
@@ -1161,6 +1169,29 @@ export default function BenefitsFamiliesView() {
                               💬 Texted back
                             </span>
                           )}
+                        {f.automationHold && (
+                          <span
+                            className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 whitespace-nowrap"
+                            title={`${formatEt(f.automationHold.at)}${f.automationHold.excerpt ? `: "${f.automationHold.excerpt}"` : ""}. Open the row to resume.`}
+                          >
+                            {f.automationHold.reason === "deceased"
+                              ? "🕊 Paused: may have died"
+                              : f.automationHold.reason === "sms_opt_out"
+                                ? "⏸ Paused: texted STOP"
+                                : "⏸ Automation paused"}
+                          </span>
+                        )}
+                        {f.caseInfo.help && (
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap ${
+                              f.caseInfo.help.overdue ? "bg-red-100 text-red-700" : "bg-rose-50 text-rose-700"
+                            }`}
+                            title={`Help case owner: ${f.caseInfo.help.owner ?? "unassigned"}. Log "I contacted them" to close the clock.`}
+                          >
+                            {f.caseInfo.help.overdue ? "⏰ Help overdue" : "🆘 Help due"}
+                            {f.caseInfo.help.dueAt ? ` ${formatEt(f.caseInfo.help.dueAt)}` : ""}
+                          </span>
+                        )}
                         {f.navigator?.status === "pending" &&
                           (f.navigator.scheduleFailed ? (
                             <span
@@ -1227,6 +1258,7 @@ export default function BenefitsFamiliesView() {
                         <CasePanel
                           timeline={timelines[f.profileId]}
                           caseInfo={f.caseInfo}
+                          automationHold={f.automationHold}
                           signals={f.signals}
                           reach={f.reach}
                           situationComplete={f.situationComplete}
@@ -1432,6 +1464,18 @@ function NavigatorDraftEditor({
             className="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[13px] leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400/40"
             placeholder="No text drafted — the standard first-step text will be sent instead."
           />
+          {(() => {
+            // Mirrors smsCarriesPhone in the send path: a text without the
+            // program's number is replaced by the standard text that has it.
+            const want = (navigator.pick?.contactPhone || "").replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+            const missing = !!sms.trim() && want.length >= 3 && !sms.replace(/\D/g, "").includes(want);
+            return missing ? (
+              <p className="text-[11px] text-amber-800">
+                This text has no phone number for the program, so the standard text will go instead:
+                &ldquo;For {navigator.pick?.shortName}, call {navigator.pick?.contactPhone}. What to say and what to have ready: [plan link]&rdquo;. Add the number here to send your own wording.
+              </p>
+            ) : null;
+          })()}
           <p className="text-right text-[10px] tabular-nums text-amber-700/60">{sms.length} chars</p>
         </div>
       ) : (
@@ -1764,6 +1808,7 @@ const TIMELINE_ICON: Record<string, string> = {
 function CasePanel({
   timeline,
   caseInfo,
+  automationHold,
   signals,
   reach,
   situationComplete,
@@ -1781,6 +1826,7 @@ function CasePanel({
 }: {
   timeline: TimelineEvent[] | "loading" | "error" | undefined;
   caseInfo: FamilyRow["caseInfo"];
+  automationHold: FamilyRow["automationHold"];
   signals: FamilyRow["signals"];
   reach: FamilyRow["reach"];
   situationComplete: boolean;
@@ -1817,6 +1863,37 @@ function CasePanel({
           busy={busy}
           onNavigator={onNavigator}
         />
+      )}
+      {automationHold && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <span className="min-w-0 flex-1">
+            {automationHold.reason === "deceased"
+              ? "Their reply suggests someone in the family died. Automated messages and nudges are off. Write back personally."
+              : automationHold.reason === "sms_opt_out"
+                ? "They texted STOP. Texts are off by law, and the automated letter and check-in emails are paused with them. Resume only if they asked to keep getting email."
+                : `They replied by ${automationHold.channel === "email" ? "email" : "text"}, so the check-in, scheduled sends and automatic sends are paused.`}
+            {automationHold.excerpt && <span className="block text-[12px] text-amber-800/80">&ldquo;{automationHold.excerpt}&rdquo;</span>}
+          </span>
+          <button
+            onClick={() => onAction("hold_clear")}
+            disabled={busy}
+            className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 disabled:opacity-40"
+            title={
+              automationHold.reason === "deceased" || automationHold.reason === "sms_opt_out"
+                ? "Only this button resumes it after a death report or a STOP"
+                : "Logging a contact or resolving the case also resumes it"
+            }
+          >
+            Resume automation
+          </button>
+        </div>
+      )}
+      {caseInfo.help && (
+        <p className={`mb-3 text-sm ${caseInfo.help.overdue ? "text-red-700" : "text-rose-700"}`}>
+          Asked for a person. Owner {caseInfo.help.owner ?? "unassigned"}
+          {caseInfo.help.dueAt ? `, due ${formatEt(caseInfo.help.dueAt)}` : ""}
+          {caseInfo.help.overdue ? " (overdue)" : ""}. Log &ldquo;I contacted them&rdquo; once you reach them.
+        </p>
       )}
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Case timeline</p>

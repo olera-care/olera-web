@@ -8,16 +8,16 @@ import {
 const productionLengthUrl = "https://olera.care/m/-_8KcFV3s3stX6S-?s=r";
 const body = benefitsResultsSms({ matchCount: 5, url: productionLengthUrl });
 const expected =
-  `Olera care team: We got your answers. Any questions about next steps? ` +
-  `Plan: ${productionLengthUrl} We'll reply within 48h. STOP to opt out.`;
+  `Olera care team: We got your answers. Questions about next steps? ` +
+  `Plan: ${productionLengthUrl} We reply in 2 business days. STOP to opt out.`;
 const helpBody = benefitsResultsSms({
   matchCount: 5,
   url: productionLengthUrl,
   context: "help_requested",
 });
 const expectedHelp =
-  `Olera care team: We got your request. What should we help with first? ` +
-  `Plan: ${productionLengthUrl} We'll reply within 48h. STOP to opt out.`;
+  `Olera care team: We got your request. What should we tackle first? ` +
+  `Plan: ${productionLengthUrl} We reply in 2 business days. STOP to opt out.`;
 const zeroMatchBody = benefitsResultsSms({ matchCount: 0, url: productionLengthUrl });
 const expectedZeroMatch =
   `Olera: We created your private Olera plan. No strong match yet; we'll keep checking. ` +
@@ -35,10 +35,10 @@ if (helpBody.length > 160) {
 }
 if (zeroMatchBody !== expectedZeroMatch) problems.push("zero-match copy changed unexpectedly");
 if (!gsm7.test(zeroMatchBody)) problems.push("zero-match message contains non-GSM characters");
-if (BENEFITS_RESULTS_SMS_COPY_VERSION !== "continuity_question_v1_2026_08_19") {
+if (BENEFITS_RESULTS_SMS_COPY_VERSION !== "continuity_question_v2_2026_09_24") {
   problems.push("copy version changed without updating the rollout record");
 }
-if (BENEFITS_HELP_REQUEST_SMS_COPY_VERSION !== "help_request_v1_2026_08_19") {
+if (BENEFITS_HELP_REQUEST_SMS_COPY_VERSION !== "help_request_v2_2026_09_24") {
   problems.push("help-request copy version changed without updating the rollout record");
 }
 if (BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION !== "zero_match_v1") {

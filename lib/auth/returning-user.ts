@@ -1,6 +1,8 @@
 import { sendEmail } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
 
+const SIGNIN_EMAILS_PER_DAY = 5;
+
 /**
  * Returning-user (existing-account) sign-in for guest-capture flows.
  *
@@ -56,7 +58,21 @@ export async function emailReturningUserSignInLink(
       return { userId, emailed: false };
     }
 
-    await sendEmail({
+    // Anyone can trigger this by typing a family's email into a public form,
+    // so cap how many sign-in emails one inbox gets. Over the cap the caller
+    // still gets userId (its data is saved) but nothing is emailed. If the
+    // count itself fails, send anyway: a missed sign-in is worse than a spare email.
+    const { count: recentSignins, error: countError } = await authClient
+      .from("email_log")
+      .select("id", { count: "exact", head: true })
+      .eq("email_type", "returning_signin")
+      .eq("recipient", email)
+      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+    if (!countError && (recentSignins ?? 0) >= SIGNIN_EMAILS_PER_DAY) {
+      return { userId, emailed: false };
+    }
+
+    const sent = await sendEmail({
       to: email,
       subject: params.subject || "Sign in to your Olera account",
       html: returningSignInHtml(actionLink),
@@ -64,10 +80,42 @@ export async function emailReturningUserSignInLink(
       recipientType: "family",
     });
 
-    return { userId, emailed: true };
+    // sendEmail reports failures and suppressions (bounce, do-not-contact) in
+    // its result rather than throwing, so "emailed" must read it: callers tell
+    // the visitor "we emailed you a link" only when one actually went out.
+    return { userId, emailed: sent.success && !sent.skipped };
   } catch (err) {
     console.error("[returning-user] failed to email sign-in link:", err);
     return { userId: null, emailed: false };
+  }
+}
+
+/**
+ * Resolve the auth user id for an email that already has an account, WITHOUT
+ * emailing anything. Supabase admin has no reliable get-by-email, so this uses
+ * generateLink purely for its `user.id` and throws the link away (the same
+ * pattern as the MedJobs partner start route). A later generateLink for the
+ * same email supersedes this one, so the discarded link is never usable.
+ *
+ * Use when a caller needs the user id before it knows where the emailed
+ * sign-in link should land (e.g. benefits save-results, which only has the
+ * /m/{token} plan URL after it has written to the account).
+ */
+export async function resolveExistingUserId(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  authClient: any,
+  email: string,
+): Promise<string | null> {
+  try {
+    const { data } = await authClient.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo: getSiteUrl() },
+    });
+    return data?.user?.id ?? null;
+  } catch (err) {
+    console.error("[returning-user] resolveExistingUserId failed:", err);
+    return null;
   }
 }
 

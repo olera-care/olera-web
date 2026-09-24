@@ -16,6 +16,10 @@ import {
   type NormalizedGmailMessage,
 } from "./gmail.server";
 import { classifySupportThread } from "./classify.server";
+import {
+  noteBenefitsFamilyEmailReply,
+  resumeAfterHumanReply,
+} from "@/lib/family-comms/benefits-replies.server";
 import type { MatchedSupportIdentity } from "./types";
 
 export interface SupportMailboxRow {
@@ -302,6 +306,30 @@ async function refreshThread(db: SupabaseClient, mailbox: SupportMailboxRow, thr
   }
   const { error: updateError } = await db.from("support_email_threads").update(baseUpdate).eq("id", threadId);
   if (updateError) throw updateError;
+
+  // A benefits family writing back pauses their automated cascade and shows
+  // in /admin/benefits (lib/family-comms/benefits-replies.server.ts). Only a
+  // NEW inbound message counts, and the helper ignores backfilled history and
+  // auto-replies. Never allowed to fail the sync.
+  if (latestChanged && latest.direction === "in" && identity.profileType === "family" && identity.profileId) {
+    try {
+      await noteBenefitsFamilyEmailReply(db, identity.profileId, {
+        at: latest.internalDate,
+        subject: latest.subject || null,
+        body: latest.bodyText || null,
+        autoSubmitted: !!latest.autoSubmitted && latest.autoSubmitted.toLowerCase() !== "no",
+      });
+    } catch (err) {
+      console.error("[support-email] benefits reply hook failed:", err);
+    }
+  } else if (latestChanged && latest.direction === "out" && identity.profileType === "family" && identity.profileId) {
+    // Our reply went out from the inbox: the person-read the hold waited for.
+    try {
+      await resumeAfterHumanReply(db, identity.profileId, latest.internalDate, "support inbox reply");
+    } catch (err) {
+      console.error("[support-email] benefits resume hook failed:", err);
+    }
+  }
 }
 
 async function refreshStaleVoicemails(

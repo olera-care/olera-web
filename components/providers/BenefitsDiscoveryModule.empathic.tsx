@@ -209,17 +209,26 @@ export default function EmpathicSingleStep({
   const [submittedEmail, setSubmittedEmail] = useState<string>("");
   const [selectedRelationship, setSelectedRelationship] = useState<Relationship | null>(null);
   const [relationshipSaving, setRelationshipSaving] = useState(false);
+  // Results token from save-results — the proof of ownership the
+  // update-relationship endpoint requires.
+  const [resultsToken, setResultsToken] = useState<string | null>(null);
+  // The email belongs to an existing account and this visitor is not signed
+  // in as it. save-results returns no token then (privacy), so the
+  // relationship pills (which write through the token) are hidden and the
+  // owner reaches their plan from the sign-in link we emailed.
+  const [returningFamily, setReturningFamily] = useState(false);
+  const [signInEmailed, setSignInEmailed] = useState(true);
 
   const handleRelationshipPick = useCallback(
     async (value: Relationship) => {
-      if (!sessionId || relationshipSaving) return;
+      if (relationshipSaving) return;
       setSelectedRelationship(value);
       setRelationshipSaving(true);
       try {
         await fetch("/api/benefits/update-relationship", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, relationship: value }),
+          body: JSON.stringify({ token: resultsToken, relationship: value }),
           keepalive: true,
         });
       } catch {
@@ -228,7 +237,7 @@ export default function EmpathicSingleStep({
         setRelationshipSaving(false);
       }
     },
-    [sessionId, relationshipSaving],
+    [resultsToken, relationshipSaving],
   );
 
   // ─── Submit handler ───────────────────────────────────────────────────
@@ -300,6 +309,9 @@ export default function EmpathicSingleStep({
       }
       setSubmittedMatchCount(typeof data.matchCount === "number" ? data.matchCount : matchingPrograms.length);
       setSubmittedEmail(submittableEmail.toLowerCase());
+      setResultsToken(typeof data.token === "string" ? data.token : null);
+      setReturningFamily(data.existingUser === true);
+      setSignInEmailed(data.signInEmailed !== false);
       setSaving(false);
       setSubmitted(true);
     } catch (err) {
@@ -336,6 +348,30 @@ export default function EmpathicSingleStep({
         // Replaces the form in place. No sheet, no portal, no off-page
         // links. Match details + provider tie-in live in the email — the
         // page stays anchored on the provider the user came to see.
+        returningFamily ? (
+          <div className="animate-step-in">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" weight="fill" />
+              <p className="font-display text-[18px] font-semibold text-gray-900 leading-tight">
+                Welcome back.
+              </p>
+            </div>
+            <p className="text-[15px] text-gray-700 leading-relaxed">
+              {signInEmailed ? (
+                <>
+                  We emailed you a link to your plan at{" "}
+                  <span className="text-gray-900">{submittedEmail}</span>. Your{" "}
+                  {stateName} matches are saved to it.
+                </>
+              ) : (
+                <>
+                  Your {stateName} matches are saved to your plan. Sign in with{" "}
+                  <span className="text-gray-900">{submittedEmail}</span> to see it.
+                </>
+              )}
+            </p>
+          </div>
+        ) : (
         <div className="animate-step-in">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" weight="fill" />
@@ -381,6 +417,7 @@ export default function EmpathicSingleStep({
             </>
           )}
         </div>
+        )
       ) : (
         <>
           {/* Echo — 12px italic gray, only when user actually asked. NOT the headline. */}

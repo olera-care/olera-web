@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
 import { isUndeliverable, verifyAndCache, effectiveStatus, isUnoverridableVerdict, getCachedVerification } from "./email-verification";
-import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge, FAMILY_NUDGE_EMAIL_TYPES, FAMILY_NUDGE_WEEKLY_CAP, FAMILY_NUDGE_DAILY_CAP, PENDING_COUNT_WINDOW_MINUTES, isGovernedFamilyNudge } from "./email-governance";
+import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge, capCountedTypesFor, FAMILY_NUDGE_WEEKLY_CAP, FAMILY_NUDGE_DAILY_CAP, PENDING_COUNT_WINDOW_MINUTES, isGovernedFamilyNudge } from "./email-governance";
 import { isEmailDoNotContact } from "./do-not-contact";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
@@ -703,7 +703,7 @@ export async function sendEmail(
         .eq("recipient", recipient)
         .eq("recipient_type", "family")
         .in("status", ["sent", "pending"])
-        .in("email_type", [...FAMILY_NUDGE_EMAIL_TYPES])
+        .in("email_type", capCountedTypesFor(emailType))
         .gte("created_at", windowStart);
       if (!capErr && capRows) {
         const counted = capRows.filter(

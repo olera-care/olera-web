@@ -68,6 +68,18 @@ export async function POST(_request: NextRequest) {
       );
     }
 
+    // Require .edu email for student verification (go-live gate)
+    // Students can save partial progress with any email, but must have .edu to request review
+    const email = student.email?.trim().toLowerCase() || "";
+    if (!email.endsWith(".edu")) {
+      return NextResponse.json(
+        {
+          error: "A .edu email is required for student verification. Please update your email in Profile Overview.",
+        },
+        { status: 400 }
+      );
+    }
+
     // Calculate completeness to ensure profile is 100% complete
     const hasPhoto = !!student.image_url;
     const hasBasicInfo = {

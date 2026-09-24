@@ -140,6 +140,45 @@ export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   "inactivity_reengagement",
 ]);
 
+/**
+ * Marketplace profile nudges: the "finish / publish your profile" machine and
+ * its monthly tails. Written for families shopping for a provider.
+ */
+export const MARKETPLACE_PROFILE_NUDGE_TYPES = new Set<string>([
+  "completion_nudge_1",
+  "completion_nudge_2",
+  "completion_nudge_3",
+  "completion_nudge_4",
+  "completion_maintenance",
+  "publish_nudge_1",
+  "publish_nudge_2",
+  "publish_nudge_3",
+  "publish_nudge_4",
+  "publish_maintenance",
+  "monthly_recommendations",
+  "inactivity_reengagement",
+]);
+
+/** The benefits cascade's family touches (B1 letter, B2 check-in). */
+export const BENEFITS_CASCADE_EMAIL_TYPES = new Set<string>(["benefits_first_step", "benefits_check_in"]);
+
+/**
+ * Which sends count against the cap for THIS send. A benefits touch is not
+ * blocked by marketplace profile nudges: in the 2026-09 audit, ~970 of those
+ * went to benefits families and filled the weekly cap ahead of 57 check-ins
+ * the families had actually asked for. The benefits touches still count
+ * against each other and against every other help-cascade message, and
+ * marketplace nudges still count benefits touches, so no family gets more
+ * mail overall than the caps allow from any one sender's point of view.
+ */
+export function capCountedTypesFor(emailType: string | undefined | null): string[] {
+  const all = [...FAMILY_NUDGE_EMAIL_TYPES];
+  if (emailType && BENEFITS_CASCADE_EMAIL_TYPES.has(emailType)) {
+    return all.filter((t) => !MARKETPLACE_PROFILE_NUDGE_TYPES.has(t));
+  }
+  return all;
+}
+
 /** True when this email_type is a governed FAMILY nudge (subject to the per-family weekly cap). */
 export function isGovernedFamilyNudge(emailType: string | undefined | null): boolean {
   return !!emailType && FAMILY_NUDGE_EMAIL_TYPES.has(emailType);

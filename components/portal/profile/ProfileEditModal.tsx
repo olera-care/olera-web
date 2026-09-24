@@ -8,6 +8,7 @@ import Input from "@/components/ui/Input";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
+import { exactAgeInput, legacyChipAgeToKeep } from "@/lib/benefits/age";
 
 // ── Options ──
 
@@ -84,7 +85,7 @@ export default function ProfileEditModal({
 
   // Care fields
   const [careRecipient, setCareRecipient] = useState(meta.relationship_to_recipient || "");
-  const [age, setAge] = useState(meta.age ? String(meta.age) : "");
+  const [age, setAge] = useState(exactAgeInput(meta));
   const [careTypes, setCareTypes] = useState<string[]>(profile.care_types || []);
   const [careNeeds, setCareNeeds] = useState<string[]>(meta.care_needs || []);
   const [timeline, setTimeline] = useState(meta.timeline || "");
@@ -180,7 +181,7 @@ export default function ProfileEditModal({
           };
           metaUpdates = {
             relationship_to_recipient: careRecipient || undefined,
-            age: age ? Number(age) : undefined,
+            age: age ? Number(age) : legacyChipAgeToKeep(meta),
             care_needs: careNeeds.length > 0 ? careNeeds : undefined,
             timeline: timeline || undefined,
             schedule_preference: schedule || undefined,

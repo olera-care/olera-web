@@ -21,6 +21,7 @@ import {
   type MedicaidStatus,
   type BenefitMatch,
 } from "@/lib/types/benefits";
+import { readCareAge } from "@/lib/benefits/age";
 
 // State name → abbreviation mapping
 const STATE_ABBREVIATIONS: Record<string, string> = {
@@ -117,8 +118,9 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
     }
 
     // Age
-    if (meta.age) {
-      updates.age = meta.age;
+    // Typed exact age only; a one-tap band is not an age.
+    if (readCareAge(meta).exact) {
+      updates.age = readCareAge(meta).exact;
     }
 
     // Care preference (infer from care_types)

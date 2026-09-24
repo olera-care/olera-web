@@ -90,7 +90,7 @@ export function CampaignPerformance({
   stats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   };
 }) {
@@ -504,6 +504,14 @@ export function ReceiptMathLine({ receipt }: { receipt: CampaignReceiptData }) {
   );
 }
 
+/** Visitors and still-unanswered questions, for the campaign page before its first family. */
+function quietOf(
+  stats: { visitors: number; questions?: { unanswered: number; uniqueUnanswered?: number } } | null,
+): { visitors: number; unansweredQuestions: number } | null {
+  if (!stats) return null;
+  return { visitors: stats.visitors, unansweredQuestions: stats.questions?.uniqueUnanswered ?? stats.questions?.unanswered ?? 0 };
+}
+
 /**
  * Plan active — the celebration + steady state after checkout. `celebrate` is
  * the just-returned-from-Stripe moment (may render before the webhook lands,
@@ -522,7 +530,7 @@ export function PlanActive({
   campaignStats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   } | null;
   celebrate: boolean;
@@ -535,10 +543,11 @@ export function PlanActive({
       <CampaignHome
         data={families}
         providerName={providerName || "your team"}
+        quiet={quietOf(campaignStats)}
         footer={
           <p>
             {tier ? `Your ${tier.name} plan (${tier.amount}/mo, all-in) is active.` : "Your monthly plan is active."}
-            {campaignStats
+            {campaignStats && families.families.length > 0
               ? ` ${campaignStats.visitors.toLocaleString()} visitors and ${(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.`
               : ""}{" "}
             Change or cancel by replying to any campaign email.{" "}
@@ -776,7 +785,7 @@ export function WrapUpMoment({
   campaignStats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   } | null;
   receipt?: CampaignReceiptData | null;
@@ -948,7 +957,7 @@ export function CampaignInMotion({
   campaignStats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   } | null;
   receipt?: CampaignReceiptData | null;
@@ -984,8 +993,9 @@ export function CampaignInMotion({
         <CampaignHome
           data={families}
           providerName={providerName || "your team"}
+          quiet={quietOf(campaignStats)}
           footer={
-            campaignStats ? (
+            campaignStats && n > 0 ? (
               <p>
                 {campaignStats.visitors.toLocaleString()} visitors and {(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.
               </p>
@@ -997,7 +1007,9 @@ export function CampaignInMotion({
             <p className="font-display text-[26px] leading-tight text-gray-950 md:text-[30px]">
               {n > 0
                 ? `Your ads found ${n} ${n === 1 ? "family" : "families"}${days ? ` in ${days} ${days === 1 ? "day" : "days"}` : ""}.`
-                : "Your ads are running."}
+                : request.flight_end_date
+                  ? `Your free intro runs through ${formatWeek(request.flight_end_date)}.`
+                  : "Your free intro is running."}
             </p>
             <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-gray-500">
               {request.flight_end_date

@@ -2,6 +2,7 @@ import { getServiceClient } from "@/lib/admin";
 import { seekerEventLabel } from "@/lib/activity/seeker-categories";
 import { getConnectionTemperature, providerResponded, type ConnectionLike } from "@/lib/connection-temperature";
 import { getCityConfig } from "@/lib/city-ads/config";
+import { matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import { isImpossibleUsPhone, last10, seekerLabel } from "./label";
 import { EPISODE_WORD, ORIGIN_LABEL, detailLine, problemLine, stateOf } from "./present";
 import type {
@@ -325,7 +326,51 @@ function emailToItem(e: EmailRow): SeekerTimelineItem {
   };
 }
 
-function smsToItem(r: SmsRow): SeekerTimelineItem {
+/** How a benefits check-in answer reads on the timeline. */
+const CHECKIN_WORD: Record<string, string> = {
+  CALLED: "called the program",
+  NOANSWER: "no answer from the program",
+  NEEDDOCS: "needs documents",
+  APPLIED: "application submitted",
+  WAITING: "waiting on the agency",
+  NOTELIGIBLE: "not eligible",
+};
+
+/**
+ * A short, unambiguous answer to the benefits check-in text ("Reply CALLED,
+ * NO ANSWER, or STUCK"), other than STUCK.
+ *
+ * lib/family-comms/benefits-sms-replies.server.ts already answers these
+ * automatically and moves the family's plan, so nobody owes them a reply. But
+ * the webhook never marks them handled, and every "APPLIED" landed in "Reply
+ * to them" as work: por2gloria sat at the top of the queue for ten days for
+ * telling us she had applied. STUCK is left alone because it is a request for
+ * a person, and so is anything longer than a few words, which may be a real
+ * message that happens to contain the word.
+ */
+function checkinAnswer(body: string | null, at: string, prompts: string[]): string | null {
+  // Only as an answer to a check-in we actually sent in the two weeks before
+  // it. A city family asked "Did Assisting Hands reach you?" can reply "Yes
+  // they called", which parses as CALLED, and that is a reply a person has to
+  // see.
+  const t = new Date(at).getTime();
+  const asked = prompts.some((p) => {
+    const pt = new Date(p).getTime();
+    return pt <= t && t - pt <= 14 * DAY_MS;
+  });
+  if (!asked) return null;
+  const text = (body ?? "").trim();
+  // A question ("applied?") is asking us something, not telling us.
+  if (!text || text.includes("?") || text.split(/\s+/).length > 3) return null;
+  const m = matchOutcomeReply(text);
+  return m.keyword && !m.ambiguous && m.keyword !== "STUCK" ? m.keyword : null;
+}
+
+/** When we sent this family a benefits check-in text ("Reply CALLED, …"). */
+const CHECKIN_PROMPT = /Reply (CALLED|APPLIED)\b/i;
+
+function smsToItem(r: SmsRow, prompts: string[] = []): SeekerTimelineItem {
+  const checkin = checkinAnswer(r.body, r.created_at, prompts);
   return {
     id: `sms:${r.id}`,
     kind: "sms",
@@ -333,9 +378,9 @@ function smsToItem(r: SmsRow): SeekerTimelineItem {
     channel: "text",
     occurred_at: r.created_at,
     title: clip(r.body, 160) ?? "(empty text)",
-    detail: r.keyword ? `keyword ${r.keyword}` : null,
+    detail: checkin ? `answered the benefits check-in: ${CHECKIN_WORD[checkin]}` : r.keyword ? `keyword ${r.keyword}` : null,
     source: "twilio",
-    status: r.handled_at ? null : "needs reply",
+    status: r.handled_at || checkin ? null : "needs reply",
     contact_handle: r.from_phone,
     href: "/admin/inbox",
   };
@@ -1133,7 +1178,8 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   const contact = toContact(p);
   const conns = (f.conns.get(p.id) ?? []).slice().sort(byCreatedDesc);
   const emails = (f.emails.get(p.id) ?? []).slice().sort(byCreatedDesc);
-  const sms = (f.sms.get(p.id) ?? []).map(smsToItem);
+  const checkinPrompts = emails.filter((e) => isSms(e) && CHECKIN_PROMPT.test(e.html_body ?? "")).map((e) => e.created_at);
+  const sms = (f.sms.get(p.id) ?? []).map((r) => smsToItem(r, checkinPrompts));
   const support = f.support.get(p.id) ?? [];
   const lead = f.cityLeads.get(p.id);
   const cityMsgs = (f.cityMsgs.get(p.id) ?? []).map(cityMsgToItem);

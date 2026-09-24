@@ -1463,7 +1463,7 @@ Best,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Log email sent", outcome: "next", delay: 2 }],
+        actions: [{ label: "Log email sent", outcome: "next", delay: 2, ticks: ["flyer_sent"] }],
       },
       { name: "follow-up-1", rounds: FOLLOW_UP_ROUNDS, ...followUp(1, "orgs") },
       {
@@ -1473,7 +1473,7 @@ Dr. Logan DuBose's office · Olera`,
         why: "This is the goal for an org, and it resets every semester.",
         steps: ["Ask which one they'll do.", "Confirm it happened or is booked.", "Log it."],
         actions: [
-          { label: "Flyer circulated", outcome: "next", delay: 0 },
+          { label: "Flyer circulated", outcome: "next", delay: 0, ticks: ["confirmed"] },
           { label: "They will not circulate it", outcome: "next", delay: 0 },
           { label: "Something else", outcome: "next", delay: 0, goto: "errand" },
         ],
@@ -1511,7 +1511,7 @@ Thank you,
 [your name]
 Dr. Logan DuBose's office · Olera`,
         },
-        actions: [{ label: "Logged", outcome: "goal", delay: 0 }],
+        actions: [{ label: "Logged", outcome: "goal", delay: 0, ticks: ["flyer_sent"] }],
       },
       {
         branch: "orgsweep",

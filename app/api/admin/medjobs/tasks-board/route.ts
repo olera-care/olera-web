@@ -948,15 +948,20 @@ export async function GET() {
           }
         : null;
 
-    // The advisors dot, read off the advising offices rather than off a
-    // campus_channels row that nothing on this board writes to. A campus
-    // whose offices had all been emailed still showed grey, because logging
-    // a rung here never touched that row.
-    const advisorChannel = LADDERS.advisors.channel;
-    if (advisorChannel) {
-      const derived = channelFromRecords("advisors", records.advisors ?? []);
+    // Dots read off the records rather than off a campus_channels row that
+    // nothing on this board writes to. A campus whose offices had all been
+    // emailed still showed grey, because logging a rung here never touched
+    // that row.
+    //
+    // One send is enough for in progress; every record confirming is what
+    // makes it live. Both sections tick the same two marks, so the same
+    // function answers for each.
+    for (const section of ["advisors", "orgs"] as const) {
+      const channel = LADDERS[section].channel;
+      if (!channel) continue;
+      const derived = channelFromRecords(section, records[section] ?? []);
       if (derived) {
-        channels[advisorChannel] = resolveChannel(channels[advisorChannel], derived);
+        channels[channel] = resolveChannel(channels[channel], derived);
       }
     }
 

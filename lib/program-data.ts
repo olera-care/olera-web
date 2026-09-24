@@ -132,6 +132,98 @@ export function getAllProgramIds(stateId: string): string[] {
   return Array.from(ids);
 }
 
+// ─── Canonical program identity ─────────────────────────────────────────────
+//
+// The two catalogs describe many of the same programs under different ids:
+// waiver-library `texas-snap-food-benefits` and pipeline `snap-food-benefits`
+// are one program, and the legacy entry carries older, conflicting numbers
+// ($3,576 – $21,468/yr vs the current $3,576 maximum). Matching over the union
+// showed families SNAP, Medicare Savings and Weatherization twice.
+//
+// A TOPIC is assigned only when exactly one unambiguous pattern matches the
+// name, so a vague name ("Family Caregiver Support") never collapses into a
+// different program.
+
+const PROGRAM_TOPICS: [string, RegExp][] = [
+  ["snap", /\b(snap|food stamps|supplemental nutrition|calfresh)\b/i],
+  ["liheap", /\b(liheap|ceap|home energy assistance|energy assistance program)\b/i],
+  ["weatherization", /\bweatherization\b/i],
+  ["msp", /\b(medicare savings|qmb|slmb|medicaid buy-in)\b/i],
+  ["pace", /\b(pace|all-inclusive care)\b/i],
+  ["meals", /\bmeals on wheels\b/i],
+  ["ship", /\b(ship|health insurance assistance program|medicare counseling)\b/i],
+  ["ombudsman", /\bombudsman\b/i],
+  ["scsep", /\b(scsep|community service employment)\b/i],
+  ["starplus", /\bstar\s?\+\s?plus\b/i],
+];
+
+export function programTopic(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const hits = PROGRAM_TOPICS.filter(([, re]) => re.test(name)).map(([t]) => t);
+  return hits.length === 1 ? hits[0] : null;
+}
+
+/**
+ * A legacy waiver-library id's CURRENT pipeline page, only when the match is
+ * clean: the id itself matches (exact / normalized / state-prefix-stripped),
+ * the names are identical, or both names carry the same unambiguous topic.
+ * findDraftMatch's substring fallback alone is not enough (it maps Alabama
+ * "Home-Delivered Meals" to the E&D waiver). Null otherwise, never a guess.
+ */
+export function findCanonicalDraftFor(stateId: string, legacyId: string): PipelineDraft | null {
+  const stateAbbrev = STATE_ABBREVS[stateId] || stateId.toUpperCase();
+  const drafts = pipelineDrafts[stateAbbrev]?.programs || [];
+  if (drafts.some((d) => d.id === legacyId)) return null; // already canonical
+  const base = getProgramById(stateId, legacyId);
+  if (!base) return null;
+  const draft = findDraftMatch(stateAbbrev, legacyId);
+  if (!draft) return null;
+
+  const target = stripStatePrefix(normalizeId(legacyId), stateAbbrev);
+  const idClean =
+    normalizeId(draft.id) === normalizeId(legacyId) ||
+    stripStatePrefix(normalizeId(draft.id), stateAbbrev) === target;
+  const nameClean = normalizeId(draft.name) === normalizeId(base.name);
+  const baseTopic = programTopic(base.name);
+  const topicClean = baseTopic != null && baseTopic === programTopic(draft.name);
+  if (!idClean && !nameClean && !topicClean) return null;
+
+  // Two legacy ids landing on the same draft means the mapping is not 1:1;
+  // refuse rather than send one of them to the wrong page.
+  const state = getStateById(stateId);
+  const collisions = (state?.programs || []).filter(
+    (p) => p.id !== legacyId && findDraftMatch(stateAbbrev, p.id)?.id === draft.id,
+  );
+  if (collisions.length > 0 && !idClean) return null;
+  return draft;
+}
+
+/**
+ * Program ids for MATCHING (the /m results, the program-card email set):
+ * every current pipeline program, plus legacy waiver-library programs that
+ * have no current equivalent. A legacy entry is dropped when it cleanly maps
+ * to a current page, or when a current program in the state carries the same
+ * unambiguous topic (TX "CEAP/LIHEAP" vs "LIHEAP"). Order: current first.
+ */
+export function getCanonicalProgramIds(stateId: string): string[] {
+  const stateAbbrev = STATE_ABBREVS[stateId] || stateId.toUpperCase();
+  const drafts = pipelineDrafts[stateAbbrev]?.programs || [];
+  if (drafts.length === 0) return getAllProgramIds(stateId);
+
+  const ids = drafts.map((d) => d.id);
+  const draftIds = new Set(ids);
+  const draftTopics = new Set(drafts.map((d) => programTopic(d.name)).filter(Boolean) as string[]);
+  const state = getStateById(stateId);
+  for (const p of state?.programs || []) {
+    if (draftIds.has(p.id)) continue;
+    if (findCanonicalDraftFor(stateId, p.id)) continue;
+    const topic = programTopic(p.name);
+    if (topic && draftTopics.has(topic)) continue;
+    ids.push(p.id);
+  }
+  return ids;
+}
+
 /**
  * Get an enriched program by merging waiver-library base data with pipeline draft.
  * Hand-curated fields from waiver-library always win over pipeline-generated.

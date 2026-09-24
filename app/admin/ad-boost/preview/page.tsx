@@ -103,7 +103,7 @@ const PREVIEWS: {
   {
     key: "live_empty",
     label: "Live · no families, no questions",
-    blurb: "A live campaign with visitors and nothing to act on yet. Providers in this state keep their dashboard on sign-in; this is what they see if they open the campaign. Sample: 19 visitors, free intro.",
+    blurb: "A live campaign with nothing to act on yet keeps the data view it has today, and the provider keeps their dashboard on sign-in. Sample: 19 visitors, free intro.",
   },
   {
     key: "wrapup",

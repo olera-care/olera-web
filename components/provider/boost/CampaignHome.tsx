@@ -120,19 +120,15 @@ export default function CampaignHome({
   }
 
   // Before the first family arrives, light the one thing she can do: answer
-  // the questions the same ads brought to her page. Failing that, say who has
-  // looked. Never a blank page that asks her to wait.
+  // the questions the same ads brought to her page. The parent only shows this
+  // page with no families when a question is waiting; with neither, the data
+  // view stays (hasSomethingToDo in BoostCampaignViews).
   if (n === 0) {
     const q = quiet?.unansweredQuestions ?? 0;
-    const v = quiet?.visitors ?? 0;
     return (
       <section className="py-4">
         <h2 className="font-display text-3xl leading-tight text-gray-900 md:text-4xl" style={{ textWrap: "balance" }}>
-          {q > 0
-            ? `${q} ${q === 1 ? "question is" : "questions are"} waiting on your page.`
-            : v > 0
-              ? `${v.toLocaleString()} ${v === 1 ? "person has" : "people have"} looked at your page since your ads started.`
-              : "Your ads are running."}
+          {q > 0 ? `${q} ${q === 1 ? "question is" : "questions are"} waiting on your page.` : "Your ads are running."}
         </h2>
         <p className="mt-3 max-w-md text-[15px] leading-relaxed text-gray-500">
           {q > 0

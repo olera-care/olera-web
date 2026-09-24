@@ -504,6 +504,19 @@ export function ReceiptMathLine({ receipt }: { receipt: CampaignReceiptData }) {
   );
 }
 
+/**
+ * The families view earns the page only when it has something to act on: a
+ * family, or a question still waiting. With neither, the data view (flight,
+ * visitors, what the ads bought) says more, so it stays.
+ */
+function hasSomethingToDo(
+  families: CampaignFamiliesData | null | undefined,
+  stats: { questions?: { unanswered: number; uniqueUnanswered?: number } } | null,
+): boolean {
+  if (!families) return false;
+  return families.families.length > 0 || (stats?.questions?.uniqueUnanswered ?? stats?.questions?.unanswered ?? 0) > 0;
+}
+
 /** Visitors and still-unanswered questions, for the campaign page before its first family. */
 function quietOf(
   stats: { visitors: number; questions?: { unanswered: number; uniqueUnanswered?: number } } | null,
@@ -538,7 +551,7 @@ export function PlanActive({
   const tier = budgetStop(request.plan_value);
   // A running plan's home is its families: who to reach next. The plan itself
   // is one quiet line underneath. The celebration moment keeps its own view.
-  if (families && !celebrate) {
+  if (families && !celebrate && hasSomethingToDo(families, campaignStats)) {
     return (
       <CampaignHome
         data={families}
@@ -547,7 +560,7 @@ export function PlanActive({
         footer={
           <p>
             {tier ? `Your ${tier.name} plan (${tier.amount}/mo, all-in) is active.` : "Your monthly plan is active."}
-            {campaignStats && families.families.length > 0
+            {campaignStats
               ? ` ${campaignStats.visitors.toLocaleString()} visitors and ${(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.`
               : ""}{" "}
             Change or cancel by replying to any campaign email.{" "}
@@ -984,7 +997,7 @@ export function CampaignInMotion({
   // A live campaign's home is its families. For a provider still on the free
   // intro, progress and the plan choice sit underneath: value first, then the
   // ask, which is the order that converted our first subscriber.
-  if (isLive && families) {
+  if (isLive && families && hasSomethingToDo(families, campaignStats)) {
     const since = request.flight_start_date ?? request.requested_setup_week;
     const days = since ? Math.max(1, Math.round((Date.now() - new Date(since).getTime()) / 86_400_000)) : null;
     const n = families.families.length;
@@ -995,7 +1008,7 @@ export function CampaignInMotion({
           providerName={providerName || "your team"}
           quiet={quietOf(campaignStats)}
           footer={
-            campaignStats && n > 0 ? (
+            campaignStats ? (
               <p>
                 {campaignStats.visitors.toLocaleString()} visitors and {(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.
               </p>

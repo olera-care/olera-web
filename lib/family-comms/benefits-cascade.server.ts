@@ -292,6 +292,19 @@ export interface FirstStepPick {
   tip: string | null;
   /** Site-relative program page path. */
   programPath: string;
+  /**
+   * Set only when the family arrived through a program page and THIS pick is
+   * a different program. The program they came for leads unless their own
+   * facts rule it out or it cannot produce a callable step, and either way
+   * the switch has to be said out loud (TJ, 2026-09-24). The plan page turns
+   * this into one quiet line above the Start here card.
+   */
+  switchReason?: "ruled_out" | "no_contact" | "no_steps";
+  /** Short name of the entry program that was passed over. */
+  switchedFromName?: string;
+  /** The verdict's family-readable reason ("Needs Medicaid first") when
+   *  switchReason is "ruled_out". */
+  switchDetail?: string | null;
 }
 
 const COMPLEXITY_RANK: Record<string, number> = { simple: 0, medium: 1, deep: 2 };
@@ -347,6 +360,32 @@ function toPick(
   };
 }
 
+/**
+ * Name and callable number for a program, for letters that NAME a second
+ * program without making it the first step (the caveat rewrite). Same
+ * contact choice as toPick ("start here" first, then any phone), but a
+ * missing phone or document list does not drop the program: it is named
+ * without a number instead. Null only when the program is not in the bundle.
+ */
+export function programCallContact(
+  stateAbbrev: string | null,
+  programId: string,
+): { programId: string; name: string; phone: string | null; label: string | null } | null {
+  if (!stateAbbrev) return null;
+  const draft = draftFor(stateAbbrev.toUpperCase(), programId);
+  if (!draft) return null;
+  const contacts = draft.contacts || [];
+  const contact =
+    contacts.find((c) => c.phone && /start here/i.test(c.label)) ||
+    contacts.find((c) => !!c.phone);
+  return {
+    programId: draft.id,
+    name: draft.shortName || draft.name,
+    phone: contact?.phone ?? null,
+    label: contact?.label ?? null,
+  };
+}
+
 /** Parse "/benefits/{stateSlug}/{programId}" out of an entry-source path. */
 export function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
   if (!entrySource) return null;
@@ -358,13 +397,14 @@ export function parseEntrySourceProgram(entrySource: string | null | undefined):
 /**
  * Pick the ONE program for the family's first step.
  *
- * Order (momentum before the big waiver application):
- *   1. The entry-source program — they arrived through a specific program
- *      page (LIHEAP, Weatherization…), which is both demonstrated intent and,
- *      given the funnel's energy-assistance skew, usually a low-burden quick
- *      win already.
- *   2. Their saved matches, lowest complexity first (simple > medium > deep),
- *      keeping the saved order (match score) within a complexity band.
+ * Order:
+ *   1. The entry-source program LEADS — they arrived through a specific
+ *      program page (LIHEAP, Weatherization…) and asked about it. It is
+ *      passed over only when their own facts rule it out or it has no
+ *      callable step; the winning pick then carries switchReason so the
+ *      switch is explained (TJ, 2026-09-24).
+ *   2. Their saved matches, best fit first, then lowest complexity
+ *      (simple > medium > deep), then saved order.
  *   3. The state's stateOverview.startHere list.
  *
  * Every candidate must clear toPick (callable contact + documents). When the
@@ -444,13 +484,10 @@ export async function selectFirstStepProgram(
    * Fact-free families get {ruledOut: false, boost: 0}, which leaves their
    * selection exactly as it was.
    */
-  const screen = (
-    draft: PipelineDraft,
-    stateId: string,
-  ): { ruledOut: boolean; boost: number } => {
-    if (!facts) return { ruledOut: false, boost: 0 };
+  const screenVerdict = (draft: PipelineDraft, stateId: string) => {
+    if (!facts) return null;
     const stateName = stateId.replace(/-/g, " ");
-    const verdict = evaluateProgramForFamily(
+    return evaluateProgramForFamily(
       {
         name: draft.name,
         ageRequirement: draft.structuredEligibility?.ageRequirement,
@@ -460,7 +497,13 @@ export async function selectFirstStepProgram(
       resolveSbfRow(sbfRows, draft.name, stateName),
       facts,
     );
-    return { ruledOut: verdict.ruledOut, boost: verdict.boost };
+  };
+  const screen = (
+    draft: PipelineDraft,
+    stateId: string,
+  ): { ruledOut: boolean; boost: number } => {
+    const verdict = screenVerdict(draft, stateId);
+    return verdict ? { ruledOut: verdict.ruledOut, boost: verdict.boost } : { ruledOut: false, boost: 0 };
   };
   // The pin, resolved here rather than before the screen exists.
   //
@@ -486,35 +529,62 @@ export async function selectFirstStepProgram(
     .maybeSingle();
   if (!account?.user_id) return null;
 
-  // 1. Entry-source program page — a CANDIDATE, not a short circuit.
+  // 1. Entry-source program page — it LEADS.
   //
-  // Landing on a program's page is real intent and it still wins every tie.
-  // What it no longer does is beat a saved program that fits the family
-  // better. It used to return immediately, so the page someone happened to
-  // arrive on outranked everything the eligibility screen knew: an Oregon
-  // family whose saved SNAP scored 20 got a letter about the rental
-  // assistance page they entered through, which scored 8. Reading a page is
-  // weaker evidence than the facts a family typed about themselves, so it is
-  // scored as the tiebreak it is.
+  // TJ's decision, 2026-09-24: the program the family came for leads unless
+  // (a) their own stated facts rule it out, or (b) it cannot produce a
+  // callable step (no pipeline draft contact / documents). Anything else is
+  // a switch, and a switch must be explained, so the passed-over program is
+  // recorded on whatever pick wins below (switchReason + switchedFromName).
+  //
+  // This reverses the 2026-09 "candidate, not a short circuit" rule. That
+  // rule scored the entry page as a tiebreak: an Oregon family whose saved
+  // SNAP scored 20 got SNAP over the rental assistance page they entered
+  // through (scored 8), on the argument that a page someone read is weaker
+  // evidence than facts they typed. In practice it let an EASIER or better
+  // scored program beat the one they asked about: a Texas family who clicked
+  // "Check my eligibility" on LIHEAP (complexity "deep") was told to start
+  // with SNAP, with no word about why. The facts a family typed still win
+  // where they are decisive (a rule-out); a fit boost is not decisive enough
+  // to override what they came for.
+  //
+  // Foreign-state filtering applies here too: an entry page in another state
+  // than the family's own is dropped silently (same reasoning as step 2), not
+  // treated as a switch.
   const entry = parseEntrySourceProgram(account.signup_source);
-  let entryCandidate: { pick: FirstStepPick; boost: number; rank: number } | null = null;
+  let switchInfo: Pick<FirstStepPick, "switchReason" | "switchedFromName" | "switchDetail"> | null =
+    null;
+  const ownAbbrev = opts.stateAbbrev ? opts.stateAbbrev.toUpperCase() : null;
   if (entry && !excluded.has(entry.programId)) {
     const abbrev = getStateAbbrev(entry.stateId);
-    const draft = draftForUnexcluded(abbrev, entry.programId);
+    const foreign = !!ownAbbrev && abbrev.toUpperCase() !== ownAbbrev;
+    const draft = foreign ? null : draftForUnexcluded(abbrev, entry.programId);
     if (draft) {
-      const verdict = screen(draft, entry.stateId);
-      if (!verdict.ruledOut) {
+      const entryName = draft.shortName || draft.name;
+      const verdict = screenVerdict(draft, entry.stateId);
+      if (verdict?.ruledOut) {
+        switchInfo = {
+          switchReason: "ruled_out",
+          switchedFromName: entryName,
+          switchDetail: verdict.reason,
+        };
+      } else {
         const pick = toPick(draft, abbrev, entry.stateId, "entry");
-        if (pick) {
-          entryCandidate = {
-            pick,
-            boost: verdict.boost,
-            rank: COMPLEXITY_RANK[draft.complexity] ?? 3,
-          };
-        }
+        if (pick) return pick;
+        // toPick needs a phone AND a document list. When the phone is there
+        // and only the steps are missing (Seattle Gold Card), saying "no
+        // working number" would be false: the page they came from shows one.
+        const hasPhone = (draft.contacts || []).some((c) => !!c.phone);
+        switchInfo = {
+          switchReason: hasPhone ? "no_steps" : "no_contact",
+          switchedFromName: entryName,
+          switchDetail: null,
+        };
       }
     }
   }
+  const withSwitch = (pick: FirstStepPick): FirstStepPick =>
+    switchInfo ? { ...pick, ...switchInfo } : pick;
 
   // 2. Saved matches, ranked by FIT first. saved_programs.state_id is the
   //    state slug; federal programs have no per-state draft and drop out here.
@@ -532,17 +602,12 @@ export async function selectFirstStepProgram(
     .order("created_at", { ascending: true })
     .order("id", { ascending: true });
 
-  const ownAbbrev = opts.stateAbbrev ? opts.stateAbbrev.toUpperCase() : null;
   const candidates: {
     pick: FirstStepPick;
     boost: number;
     rank: number;
     idx: number;
-    isEntry?: boolean;
   }[] = [];
-  // idx -1 keeps the entry ahead of saved rows on the final tiebreak too,
-  // for the case where boost and complexity are all equal.
-  if (entryCandidate) candidates.push({ ...entryCandidate, idx: -1, isEntry: true });
   (saved || []).forEach((row, idx) => {
     if (!row.program_id || !row.state_id || excluded.has(row.program_id)) return;
     const abbrev = getStateAbbrev(row.state_id);
@@ -584,14 +649,8 @@ export async function selectFirstStepProgram(
   // because it was `medium` and the waiver was `deep`. Families with no
   // eligibility facts have boost 0 across the board and fall straight through
   // to the complexity ordering.
-  candidates.sort(
-    (a, b) =>
-      b.boost - a.boost ||
-      Number(b.isEntry ?? false) - Number(a.isEntry ?? false) ||
-      a.rank - b.rank ||
-      a.idx - b.idx,
-  );
-  if (candidates[0]) return candidates[0].pick;
+  candidates.sort((a, b) => b.boost - a.boost || a.rank - b.rank || a.idx - b.idx);
+  if (candidates[0]) return withSwitch(candidates[0].pick);
 
   // 3. State fallback: the pipeline's own "start here" list.
   if (opts.stateAbbrev) {
@@ -605,7 +664,7 @@ export async function selectFirstStepProgram(
         if (!draft) continue;
         if (screen(draft, stateId).ruledOut) continue;
         const pick = toPick(draft, abbrev, stateId, "state");
-        if (pick) return pick;
+        if (pick) return withSwitch(pick);
       }
     }
   }

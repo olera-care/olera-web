@@ -21,6 +21,7 @@
     "check:place-id-rebind": "npx tsx scripts/check-place-id-rebind.ts",
     "check:openai-key": "npx tsx scripts/check-openai-key.ts",
     "check:navigator-packets": "npx tsx scripts/check-navigator-packets.ts",
+    "check:navigator-route": "npx tsx scripts/check-navigator-route.ts",
     "check:benefits-email": "npx tsx scripts/check-benefits-results-email.ts",
     "check:benefits-sms": "npx tsx scripts/check-benefits-results-sms.ts",
     "check:trust-guard": "npx tsx scripts/check-trust-guard.ts",

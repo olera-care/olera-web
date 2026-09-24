@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import {
+  CAVEAT_ROUTE_LABEL,
   ROUTE_LABEL,
+  holdLabel,
+  isCaveatPacket,
+  isRewritePacket,
   routeSummary,
   type NavigatorPacket,
   type PacketRoute,
@@ -97,7 +101,7 @@ export default function NavigatorPacketPanel({ packet }: { packet: NavigatorPack
     <div className="mb-3 rounded-xl border border-gray-200 bg-white p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${style.chip}`}>
-          {ROUTE_LABEL[packet.route]}
+          {isCaveatPacket(packet) ? CAVEAT_ROUTE_LABEL : ROUTE_LABEL[packet.route]}
         </span>
         <span className="text-[13px] text-gray-600">{routeSummary(packet)}</span>
         <span className="ml-auto text-[11px] text-gray-400">checked {built}</span>
@@ -110,7 +114,9 @@ export default function NavigatorPacketPanel({ packet }: { packet: NavigatorPack
           {/* Recompose only pins to the target on the `recompose` route. On any
               other route the button re-drafts the SAME program, so promising a
               switch here would be a lie the button does not keep. */}
-          {packet.route !== "recompose" ? (
+          {isCaveatPacket(packet) ? (
+            <span className="text-gray-400">. Kept their program; the rewrite states the condition and names this as the better first call if it does not fit.</span>
+          ) : packet.route !== "recompose" || isRewritePacket(packet) ? (
             <span className="text-gray-400"> — noted, but Recompose will re-draft the current program, not switch.</span>
           ) : packet.recomposeTarget.programId ? (
             <span className="text-gray-400">. Recompose switches to it.</span>
@@ -135,7 +141,7 @@ export default function NavigatorPacketPanel({ packet }: { packet: NavigatorPack
                 {packet.holds.map((h, i) => (
                   <li key={i} className="flex gap-2 text-[12.5px] leading-relaxed text-gray-700">
                     <span className={`mt-1.5 h-1 w-1 shrink-0 rounded-full ${style.dot}`} aria-hidden="true" />
-                    {h}
+                    {holdLabel(h)}
                   </li>
                 ))}
               </ul>

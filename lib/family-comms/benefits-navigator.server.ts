@@ -21,7 +21,7 @@
  *    eligibility claims (Phase 4 gate: zero payment-acceptance data).
  */
 import Anthropic from "@anthropic-ai/sdk";
-import type { NavigatorPacket } from "@/lib/benefits/navigator-packet";
+import { claimsStatedNeed, rerouteStoredPacket, type NavigatorPacket } from "@/lib/benefits/navigator-packet";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   selectFirstStepProgram,
@@ -36,6 +36,8 @@ import { stateToTimezone } from "@/lib/sms/quiet-hours";
 import { familyBenefitsFacts, hasCoResidentSpouse } from "./benefits-guidance.server";
 import { countProvidersInArea } from "./provider-recs.server";
 import { smsCarriesPhone } from "./sms-phone";
+import { switchLine } from "@/lib/benefits/switch-line";
+import { careNeedSourceFromMeta, isInferredCareNeed } from "@/lib/benefits/care-need-source";
 
 // ── Metadata shape: business_profiles.metadata.benefits_navigator ──────────
 
@@ -111,6 +113,17 @@ export interface BenefitsNavigatorMeta {
    *  stops retrying; the letter waits for a person. */
   auto_recompose_failed_at?: string;
   auto_recompose_failed_reason?: string;
+  /** The letter carries the caveat rewrite (lib/benefits/navigator-packet.ts
+   *  routePacket): it kept the family's entry program, stated the condition
+   *  the fit reads flagged, and named an agreed alternative. The packet reads
+   *  this so the caveat happens once. Carried across later same-program
+   *  recomposes (the caveat is re-applied from the fields below). */
+  caveat_applied_at?: string;
+  caveat_program_id?: string;
+  caveat_alt_program_id?: string | null;
+  caveat_alt_name?: string;
+  /** The fit reads' `why` text the condition was reduced from. */
+  caveat_condition?: string[];
   /** The in-flight send lock (benefits-navigator-send.server.ts). Present
    *  only while one caller is delivering this letter. */
   send_claim?: { id: string; at: string; by: "admin" | "scheduler" | "auto" };
@@ -121,12 +134,70 @@ export interface BenefitsNavigatorMeta {
   dismissed_at?: string;
 }
 
+/**
+ * Was this family's care need inferred rather than stated? The packet records
+ * it at build time from the intake event. A packet built before that field
+ * falls back to profile metadata, plus the entry pick as a proxy for
+ * program-page intakes older than benefits_results.requested_program
+ * (2026-08-25). The proxy errs toward treating a need as inferred, which can
+ * only cause a rewrite, never a send.
+ */
+function letterNeedInferred(
+  profileMeta: Record<string, unknown> | null | undefined,
+  nav: BenefitsNavigatorMeta,
+): boolean {
+  if (typeof nav.packet?.needInferred === "boolean") return nav.packet.needInferred;
+  const answers = (profileMeta as {
+    benefits_results?: { answers?: { careNeed?: unknown; careNeedSource?: unknown } };
+  } | null | undefined)?.benefits_results?.answers;
+  if (!answers?.careNeed) return false;
+  if (isInferredCareNeed(careNeedSourceFromMeta(profileMeta))) return true;
+  return answers.careNeedSource !== "stated" && nav.pick?.source === "entry";
+}
+
 export function readBenefitsNavigator(
   profileMeta: Record<string, unknown> | null | undefined,
 ): BenefitsNavigatorMeta {
   const raw = (profileMeta as { benefits_navigator?: unknown } | null | undefined)
     ?.benefits_navigator;
-  return raw && typeof raw === "object" ? (raw as BenefitsNavigatorMeta) : {};
+  if (!raw || typeof raw !== "object") return {};
+  const nav = raw as BenefitsNavigatorMeta;
+  // Every reader (autopilot, send gate, admin queue) sees the stored packet
+  // re-routed under today's rules, so a rule change reaches letters judged
+  // before it without re-billing the fit models. See rerouteStoredPacket.
+  //
+  // Only stored `recompose` verdicts, the route whose rules changed on
+  // 2026-09-24. Re-deriving every route would also release letters held for
+  // reasons retired in August (a stale-intake hold, a bare questionable
+  // read): 2 of 124 pending on 2026-09-24 would have gone review -> auto and
+  // sent without anyone deciding that.
+  //
+  // One exception, and it can only hold a letter, never release one: a
+  // letter that tells the family they said they need something, when their
+  // need was inferred from the program page, re-routes from auto or review
+  // to a same-program rewrite. Every letter composed for a program-page
+  // family before 2026-09-24 says "You said you need help paying for care".
+  //
+  // And a packet built before the packet recorded provenance, for a family
+  // whose need was inferred, had its fit read under the old prompt, which
+  // told the models that need was the family's own. Such a read may not
+  // switch or rule out their program; it re-drafts the same program instead,
+  // and the rebuilt packet re-reads fit under the corrected prompt.
+  if (!nav.packet) return nav;
+  const needInferred = letterNeedInferred(profileMeta, nav);
+  const claimsUnstatedNeed = needInferred && claimsStatedNeed(nav.edited_body ?? nav.body ?? "");
+  const fitReadOnInventedNeed = needInferred && typeof nav.packet.needInferred !== "boolean";
+  const route = nav.packet.route;
+  if (route !== "recompose" && !(claimsUnstatedNeed && (route === "auto" || route === "review"))) {
+    return nav;
+  }
+  const packet = rerouteStoredPacket(nav.packet, {
+    pickIsEntry: nav.pick?.source === "entry",
+    caveatApplied: !!nav.caveat_applied_at,
+    claimsUnstatedNeed,
+    fitReadOnInventedNeed,
+  });
+  return packet === nav.packet ? nav : { ...nav, packet };
 }
 
 // ── Voice spec ─────────────────────────────────────────────────────────────
@@ -275,6 +346,19 @@ export interface NavigatorComposeInput {
    * not; a suggestion that cannot anchor a letter must never produce one.
    */
   prefer?: { programId: string; stateId: string | null };
+  /**
+   * Caveat rewrite: keep this program and add its condition plus a better
+   * first call if the condition does not apply. Applied only when the ladder
+   * lands on `keepProgramId` again; if program data moved and it picks
+   * something else, the letter is composed normally and caveatApplied is
+   * false.
+   */
+  caveat?: {
+    keepProgramId: string;
+    /** The fit reads' reasons. The composer reduces them to the condition. */
+    conditions: string[];
+    alt: { programId: string | null; name: string; phone: string | null };
+  };
 }
 
 export interface NavigatorDraft {
@@ -285,6 +369,8 @@ export interface NavigatorDraft {
   sms: string | null;
   pick: FirstStepPick;
   providerCount: number;
+  /** The caveat was requested AND the pick matched, so the letter carries it. */
+  caveatApplied: boolean;
 }
 
 /** Care types that make a provider introduction sensible (a LIHEAP-only
@@ -376,7 +462,27 @@ export async function composeNavigatorDraft(
   const rawNeed =
     (input.profileMeta as { benefits_results?: { answers?: { careNeed?: unknown } } })
       ?.benefits_results?.answers?.careNeed;
-  const statedNeed = typeof rawNeed === "string" ? NEED_PHRASE[rawNeed] ?? null : null;
+  // The program-page card never asks for a need; it derives one from the
+  // page. That is not something they said, and writing "What they said they
+  // need" from it made letters answer a need nobody stated. Provenance comes
+  // from the latest intake event (lib/benefits/care-need-source.ts).
+  let intakeEvent: Record<string, unknown> | null = null;
+  try {
+    const { data: ev } = await db
+      .from("seeker_activity")
+      .select("metadata")
+      .eq("profile_id", input.profileId)
+      .eq("event_type", "benefits_completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    intakeEvent = (ev?.metadata as Record<string, unknown> | null) ?? null;
+  } catch {
+    intakeEvent = null;
+  }
+  const needInferred = isInferredCareNeed(careNeedSourceFromMeta(input.profileMeta, intakeEvent));
+  const statedNeed =
+    typeof rawNeed === "string" && !needInferred ? NEED_PHRASE[rawNeed] ?? null : null;
 
   // The entry program, resolved independently of which tier won the pick.
   let entryLabel: string | null = null;
@@ -396,6 +502,26 @@ export async function composeNavigatorDraft(
     entryLabel = null;
   }
 
+  const caveat =
+    input.caveat && input.caveat.keepProgramId === pick.programId && input.caveat.conditions.length > 0
+      ? input.caveat
+      : null;
+  const caveatLines = caveat
+    ? [
+        "",
+        "CONDITION TO STATE (required for this letter):",
+        `- Two independent checks flagged a condition on ${pick.shortName} that we could not confirm from what the family told us:`,
+        ...caveat.conditions.map((c) => `  - "${c.replace(/"/g, "'")}"`),
+        `- Better first call if that condition does not fit them: ${caveat.alt.name}${caveat.alt.phone ? ` at ${caveat.alt.phone}` : " (we do not have a number for it; name it without one)"}`,
+        `- Right after the paragraph with the first step, write ONE plain sentence that says who ${pick.shortName} is for, reduced to the eligibility condition only, in plain words: "This program is for ...". Do not say or imply whether this family meets it.`,
+        caveat.alt.phone
+          ? `- Then exactly one sentence in this shape: "If that's not you, ${caveat.alt.name} is a better first call: ${caveat.alt.phone}." Use that name and number exactly as given, and nothing else about it (no documents, no figures, no timeline).`
+          : `- Then exactly one sentence in this shape: "If that's not you, ${caveat.alt.name} is a better first call." Write no number for it and nothing else about it.`,
+        "- Keep the whole letter inside the word limit. Cut elsewhere to make room.",
+        "- The companion text stays about the first step and its number only.",
+      ]
+    : [];
+
   const dataBlock = [
     "FAMILY (only what they told us — reference nothing else):",
     `- First name: ${firstName ?? "unknown (open without a name)"}`,
@@ -407,9 +533,18 @@ export async function composeNavigatorDraft(
     // pick. So a family who typed "paying for care" and landed on the SNAP
     // page got a SNAP letter that never acknowledged either thing.
     statedNeed ? `- What they said they need: ${statedNeed}` : null,
+    // Inferred need: the page they came through is the only interest they
+    // expressed, and CAME LOOKING FOR below already says it.
+    needInferred ? "- What they need: they did not say. We know only the page they came through." : null,
     entryLabel
       ? `- CAME LOOKING FOR: the ${entryLabel} page${entryLabel === pick.shortName ? " (which is also the first step below)" : " (NOT the first step below)"}`
       : "- CAME LOOKING FOR: nothing specific, they arrived through the site",
+    // The program they came for leads unless ruled out or uncallable, and a
+    // switch must be explained (TJ, 2026-09-24). Hand the composer the reason
+    // so the letter says it in a sentence instead of silently swapping.
+    switchLine(pick)
+      ? `- WHY THE FIRST STEP IS NOT WHAT THEY CAME FOR (say this plainly, once): ${switchLine(pick)}`
+      : null,
     intakeRef.stale
       ? "- TIMING: this was a while ago and we are following up late. Say so plainly in the opening, in a few words, without apologizing at length or explaining ourselves. Never imply they just used it. Their situation may well have changed, so offer the step as something still worth doing rather than as news."
       : null,
@@ -427,6 +562,7 @@ export async function composeNavigatorDraft(
     offerProviders
       ? `- Allowed. There are ${providerCount} ${input.careTypes[0].toLowerCase()} providers near ${input.city}. Offer a personal introduction if they reply. No other claims.`
       : "- Not allowed for this family. Do not mention providers.",
+    ...caveatLines,
   ]
     .filter((l): l is string => l !== null)
     .join("\n");
@@ -467,7 +603,7 @@ export async function composeNavigatorDraft(
       ? smsRaw.replace(/—/g, ", ").slice(0, 320)
       : null;
 
-  return { subject, body, sms, pick, providerCount };
+  return { subject, body, sms, pick, providerCount, caveatApplied: !!caveat };
 }
 
 /** Serialize the pick for the metadata snapshot (send path re-reads it). */

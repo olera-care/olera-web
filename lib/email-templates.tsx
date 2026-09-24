@@ -1889,6 +1889,9 @@ export function benefitsResultsSavedEmail(opts: {
   /** First name, or "there". */
   greetingName: string;
   stateName: string;
+  /** What they need help with, in their words. Empty when the need was
+   *  inferred from the page rather than chosen, so the email never tells a
+   *  family they asked for something they did not. */
   careLabel: string;
   familyPhrase: string;
   /** Other programs in the plan. These never replace the requested program. */
@@ -1907,7 +1910,8 @@ export function benefitsResultsSavedEmail(opts: {
 }): string {
   const greetingName = escapeHtml(stripEmDashes(opts.greetingName));
   const stateName = escapeHtml(stripEmDashes(opts.stateName));
-  const careLabel = escapeHtml(stripEmDashes(opts.careLabel));
+  const careLabel = escapeHtml(stripEmDashes(opts.careLabel || "care"));
+  const statedCare = opts.careLabel.trim() ? ` with ${careLabel}` : "";
   const familyPhrase = escapeHtml(stripEmDashes(opts.familyPhrase));
   const matchesUrl = escapeHtml(opts.matchesUrl);
   const relatedProgramsHtml = opts.relatedPrograms
@@ -1945,7 +1949,7 @@ export function benefitsResultsSavedEmail(opts: {
           You were checking ${shortName}. Start here.
         </h1>
         <p style="font-size:15px;line-height:1.6;margin:0 0 20px;color:#4b5563;">
-          You asked Olera to help you understand whether ${programName} could help ${familyPhrase} with ${careLabel}.
+          You asked Olera to help you understand whether ${programName} could help ${familyPhrase}${statedCare}.
         </p>
         ${
           program.tagline

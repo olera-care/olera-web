@@ -32,6 +32,9 @@ interface FactChipsProps {
   /** True when the payments chip already says Medicaid — the inferred "On
    *  Medicaid" fact chip would just repeat it. */
   suppressMedicaidChip?: boolean;
+  /** The family is looking for themselves ("Myself") — ask "you", not
+   *  "they". */
+  isSelf?: boolean;
 }
 
 const AGE_LABELS: Record<AgeBand, string> = {
@@ -60,10 +63,13 @@ const INCOME_LABELS: Record<string, string> = {
 
 type Ask = "age" | "medicaid" | "income";
 
-const ASK_CONFIG: Record<Ask, { addLabel: string; prompt: string; options: { label: string; value: string }[] }> = {
+type AskConfig = { addLabel: string; prompt: string; options: { label: string; value: string }[] };
+
+function askConfig(isSelf: boolean): Record<Ask, AskConfig> {
+  return {
   age: {
     addLabel: "+ Add age",
-    prompt: "How old is the person needing care?",
+    prompt: isSelf ? "How old are you?" : "How old is the person needing care?",
     options: [
       { label: "Under 65", value: "under_65" },
       { label: "65 to 74", value: "65_74" },
@@ -73,16 +79,18 @@ const ASK_CONFIG: Record<Ask, { addLabel: string; prompt: string; options: { lab
   },
   medicaid: {
     addLabel: "+ Medicaid?",
-    prompt: "Do they have Medicaid?",
+    prompt: isSelf ? "Do you have Medicaid?" : "Do they have Medicaid?",
     options: [
-      { label: "Yes, they have it", value: "alreadyHas" },
+      { label: isSelf ? "Yes, I have it" : "Yes, they have it", value: "alreadyHas" },
       { label: "Applying or not sure", value: "notSure" },
       { label: "No", value: "doesNotHave" },
     ],
   },
   income: {
     addLabel: "+ Add income",
-    prompt: "About how much is the monthly income of the person needing care? Just their own, not the whole family's.",
+    prompt: isSelf
+      ? "About how much is your monthly income? Just your own, not the whole family's."
+      : "About how much is the monthly income of the person needing care? Just their own, not the whole family's.",
     options: [
       { label: "Under $1,500", value: "under1500" },
       { label: "$1,500 to $2,500", value: "under2500" },
@@ -91,7 +99,8 @@ const ASK_CONFIG: Record<Ask, { addLabel: string; prompt: string; options: { lab
       { label: "Prefer not to say", value: "preferNotToSay" },
     ],
   },
-};
+  };
+}
 
 const FIELD_FOR_ASK: Record<Ask, string> = {
   age: "ageBand",
@@ -99,7 +108,8 @@ const FIELD_FOR_ASK: Record<Ask, string> = {
   income: "incomeRange",
 };
 
-export default function FactChips({ token, profileId, facts, suppressMedicaidChip }: FactChipsProps) {
+export default function FactChips({ token, profileId, facts, suppressMedicaidChip, isSelf = false }: FactChipsProps) {
+  const ASK_CONFIG = askConfig(isSelf);
   const router = useRouter();
   const [open, setOpen] = useState<Ask | null>(null);
   const [saved, setSaved] = useState<Partial<Record<Ask, string>>>({});

@@ -406,6 +406,7 @@ export default function BenefitsDiscoveryModule({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           careNeed,
+          careNeedSource: "stated",
           age: null,
           medicaidStatus: null,
           incomeRange: null,

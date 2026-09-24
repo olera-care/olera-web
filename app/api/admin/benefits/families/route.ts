@@ -1,3 +1,4 @@
+import { careNeedSourceFromMeta, isInferredCareNeed } from "@/lib/benefits/care-need-source";
 import { NextRequest, NextResponse } from "next/server";
 import {
   helpCaseWaiting,
@@ -19,7 +20,7 @@ import {
   type BenefitsApplicationStatus,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { readBenefitsNavigator } from "@/lib/family-comms/benefits-navigator.server";
-import type { PacketRoute } from "@/lib/benefits/navigator-packet";
+import { holdLabel, isCaveatPacket, type PacketRoute } from "@/lib/benefits/navigator-packet";
 
 /**
  * GET /api/admin/benefits/families?from=<ISO>&to=<ISO>
@@ -59,6 +60,8 @@ interface FamilyRow {
       /** First hold, for the row's sub-label. Full list rides the per-family GET. */
       topHold: string | null;
       holdCount: number;
+      /** A caveat recompose: keep the program, add the condition. */
+      caveat: boolean;
       builtAt: string;
     } | null;
   } | null;
@@ -69,6 +72,8 @@ interface FamilyRow {
   email: string | null;
   state: string | null;
   careNeed: string | null;
+  /** careNeed was derived from the program page, not chosen by the family. */
+  careNeedInferred: boolean;
   matchCount: number | null;
   topProgram: string | null;
   entrySource: string | null;
@@ -321,6 +326,8 @@ export async function GET(request: NextRequest) {
 
       const state = (meta.state as string) || profile?.state || null;
       const careNeed = (meta.care_need as string) || null;
+      // Program-page intakes never ask for a need; it is derived from the page.
+      const careNeedInferred = !!careNeed && isInferredCareNeed(careNeedSourceFromMeta(null, meta));
       const entrySource = (meta.entry_source as string) || null;
       const providerSlug = (meta.provider_slug as string) || null;
 
@@ -386,8 +393,9 @@ export async function GET(request: NextRequest) {
               packet: navMeta.packet
                 ? {
                     route: navMeta.packet.route,
-                    topHold: navMeta.packet.holds[0] ?? null,
+                    topHold: navMeta.packet.holds[0] ? holdLabel(navMeta.packet.holds[0]) : null,
                     holdCount: navMeta.packet.holds.length,
+                    caveat: isCaveatPacket(navMeta.packet),
                     builtAt: navMeta.packet.builtAt,
                   }
                 : null,
@@ -399,6 +407,7 @@ export async function GET(request: NextRequest) {
         email,
         state,
         careNeed,
+        careNeedInferred,
         matchCount: typeof meta.match_count === "number" ? meta.match_count : null,
         topProgram: (meta.top_program as string) || null,
         entrySource,

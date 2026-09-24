@@ -2288,7 +2288,7 @@ async function handleOfferCall(
 ) {
   await insertTouchpoint(db, row.id, "note_added", userId, {
     notes: body.notes ?? "Offered Calendly link to book a 15-min call",
-    payload: { reason: "call_offered", calendly: "https://calendly.com/caregivers979/olera-demo" },
+    payload: { reason: "call_offered", calendly: "https://calendly.com/logan-dubose-md/student-meeting" },
   });
   await touchOutreach(db, row.id, userId);
 }

@@ -72,7 +72,7 @@ export interface TemplateContext {
  * outreach CTA across every body.
  */
 export const CALENDLY_URL =
-  "https://calendly.com/caregivers979/home-care-agency-manager-interview";
+  "https://calendly.com/logan-dubose-md/provider-meeting";
 
 /**
  * Public program info page. Lives in signatures + occasional body

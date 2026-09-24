@@ -28,10 +28,10 @@ type PreviewKey =
  *  Facebook form. Invented names and numbers: this page is screenshotted. */
 const SAMPLE_FAMILIES: CampaignFamiliesData = {
   families: [
-    { id: "s1", kind: "form", firstName: "Marian", phone: "+15555550101", email: "marian@example.com", arrivedAt: new Date(Date.now() - 86_400_000).toISOString(), status: "replied", note: "Answered our text: \u201cMy mother, she needs help most mornings.\u201d", source: "Filled in your Facebook form", outcome: null },
-    { id: "s2", kind: "form", firstName: "Joan", phone: "+15555550102", email: null, arrivedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(), status: "warming", note: "We texted to confirm what they need. No reply yet. Their number works.", source: "Filled in your Facebook form", outcome: null },
-    { id: "s3", kind: "page", firstName: "A family", phone: null, email: "family@example.com", arrivedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(), status: "warming", note: "Asked through your Olera page. Left an email, no phone.", source: "Asked on your Olera page", outcome: null },
-    { id: "s4", kind: "form", firstName: "Ruth", phone: "+15555550104", email: "ruth@example.com", arrivedAt: new Date(Date.now() - 4 * 86_400_000).toISOString(), status: "hard_to_reach", note: "Landline. Texts don't reach it, so call.", source: "Filled in your Facebook form", outcome: "talking" },
+    { id: "s1", kind: "form", firstName: "Marian", phone: "+15555550101", email: "marian@example.com", arrivedAt: new Date(Date.now() - 86_400_000).toISOString(), status: "replied", note: "Answered our text.", source: "Filled in your Facebook form", outcome: null, words: "My mother needs help most mornings.", contact: "none", reach: "text" },
+    { id: "s2", kind: "form", firstName: "Joan", phone: "+15555550102", email: null, arrivedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(), status: "warming", note: "We texted to confirm what they need. No reply yet.", source: "Filled in your Facebook form", outcome: null, words: null, contact: "messaged", reach: "text" },
+    { id: "s3", kind: "page", firstName: "A family", phone: null, email: "family@example.com", arrivedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(), status: "warming", note: "Asked through your Olera page. Left an email, no phone.", source: "Asked on your Olera page", outcome: null, words: null, contact: "none", reach: "inbox" },
+    { id: "s4", kind: "form", firstName: "Ruth", phone: "+15555550104", email: "ruth@example.com", arrivedAt: new Date(Date.now() - 4 * 86_400_000).toISOString(), status: "hard_to_reach", note: "Landline. Texts don't reach it, so call.", source: "Filled in your Facebook form", outcome: "talking", words: null, contact: "talked", reach: "call" },
   ],
   counts: { replied: 1, warming: 2, hard_to_reach: 1 },
   screenedOut: 2,
@@ -222,6 +222,7 @@ export default function AdBoostPreviewPage() {
               campaignStats={stats(1)}
               receipt={RECEIPT_STRONG}
               families={SAMPLE_FAMILIES}
+              providerName="Hoop Cares"
               onCheckout={stubCheckout}
               submitting={fakeSubmitting}
               error={fakeError}
@@ -263,7 +264,7 @@ export default function AdBoostPreviewPage() {
             <PlanActive request={sampleFor(view, active)} campaignStats={stats(3)} celebrate />
           )}
           {view === "steady" && (
-            <PlanActive request={sampleFor(view, active)} campaignStats={stats(5)} families={SAMPLE_FAMILIES} celebrate={false} />
+            <PlanActive request={sampleFor(view, active)} campaignStats={stats(5)} families={SAMPLE_FAMILIES} providerName="Hoop Cares" celebrate={false} />
           )}
         </div>
       </div>

@@ -7,9 +7,8 @@ import {
   type BoostRequest,
   type CampaignReceiptData,
   type CampaignFamiliesData,
-  type CampaignFamilyData,
-  type FamilyStatus,
 } from "@/lib/ad-boost/boost-state";
+import CampaignHome from "./CampaignHome";
 import {
   BUDGET_STOPS,
   CUSTOM_SCALE_STOP,
@@ -147,328 +146,6 @@ export function CampaignPerformance({
           <>Since launch. Families will appear here as they arrive.</>
         )}
       </p>
-    </div>
-  );
-}
-
-/**
- * The families her ads produced — the first thing a provider with a campaign
- * sees. One card per family, each with a status set by something we know
- * (answered our text, text delivered but no answer, text undelivered), what to
- * do next, and a one-tap outcome. Screened-out job seekers are counted, never
- * listed. Reads lib/ad-boost/families.server.ts; no dollar figures.
- */
-const FAMILY_STATUS: Record<FamilyStatus, { label: string; chip: string; tile: string }> = {
-  replied: {
-    label: "Replied, needs care",
-    chip: "bg-primary-50 text-primary-700",
-    tile: "bg-primary-50 text-primary-800",
-  },
-  warming: {
-    label: "We’re warming up",
-    chip: "bg-warning-50 text-warning-700",
-    tile: "bg-warning-50 text-warning-800",
-  },
-  hard_to_reach: {
-    label: "Hard to reach",
-    chip: "bg-error-50 text-error-700",
-    tile: "bg-error-50 text-error-800",
-  },
-};
-
-const OUTCOME_LABEL: Record<"talking" | "client" | "no", string> = {
-  talking: "Talked",
-  client: "Became a client",
-  no: "Not a fit",
-};
-
-function formatPhone(raw: string): string {
-  const d = raw.replace(/\D/g, "").slice(-10);
-  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : raw;
-}
-
-function arrivedLabel(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-export function CampaignFamilies({ data }: { data: CampaignFamiliesData }) {
-  const { families, counts, screenedOut } = data;
-  const n = families.length;
-  const tiles: { key: string; n: number; label: string; cls: string }[] = (
-    ["replied", "warming", "hard_to_reach"] as FamilyStatus[]
-  ).map((k) => ({ key: k, n: counts[k], label: FAMILY_STATUS[k].label, cls: FAMILY_STATUS[k].tile }));
-  if (screenedOut > 0) {
-    tiles.push({ key: "screened", n: screenedOut, label: "Screened out", cls: "bg-gray-50 text-gray-600" });
-  }
-  return (
-    <section className="mt-7" aria-labelledby="campaign-families-heading">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">Families from your ads</p>
-      <h3 id="campaign-families-heading" className="mt-2 text-2xl font-display font-semibold text-gray-900 text-balance">
-        {n === 0
-          ? "Families will appear here as they arrive."
-          : `${n} ${n === 1 ? "family" : "families"} found you through your ads`}
-      </h3>
-      {n > 0 && (
-        <div className={`mt-4 grid gap-2 ${tiles.length === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
-          {tiles.map((t) => (
-            <div key={t.key} className={`rounded-xl px-3 py-2.5 ${t.cls}`}>
-              <div className="text-xl font-semibold tabular-nums leading-none">{t.n}</div>
-              <div className="mt-1 text-xs leading-snug">{t.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
-      {n > 0 && (
-        <ul className="mt-4 space-y-3">
-          {families.map((f) => (
-            <FamilyCard key={f.id} family={f} />
-          ))}
-        </ul>
-      )}
-      {screenedOut > 0 && (
-        <p className="mt-3 text-sm text-gray-500">
-          {screenedOut} {screenedOut === 1 ? "person was" : "people were"} asking about jobs, not care. We didn&rsquo;t send them to you.
-        </p>
-      )}
-      <p className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-600">
-        We text every family first to check they need care, then pass them to you. Our team can follow up too,
-        and you both see every message and call under Conversation. This is new, and we&rsquo;re still smoothing
-        it out. Tell us what&rsquo;s working.
-      </p>
-      <Link href="/portal/inbox" className="mt-3 inline-block text-sm font-medium text-primary-600 hover:underline">
-        Messages
-      </Link>
-    </section>
-  );
-}
-
-function FamilyCard({ family: f }: { family: CampaignFamilyData }) {
-  const [outcome, setOutcome] = useState(f.outcome);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const meta = FAMILY_STATUS[f.status];
-
-  async function record(value: "talking" | "client" | "no") {
-    const previous = outcome;
-    setOutcome(value);
-    setSaving(true);
-    setError(null);
-    try {
-      const res =
-        f.kind === "form"
-          ? await fetch("/api/provider/ad-boost/family-outcome", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ leadId: f.id, value }),
-            })
-          : await fetch("/api/provider/lead-outcome", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ cid: f.id, value }),
-            });
-      if (!res.ok) throw new Error();
-    } catch {
-      setOutcome(previous);
-      setError("Couldn’t save that. Try again.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const action =
-    "inline-flex items-center rounded-lg border border-primary-600 px-3 py-1.5 text-sm font-semibold text-primary-700 hover:bg-primary-50";
-  const primaryAction =
-    "inline-flex items-center rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700";
-  return (
-    <li className="rounded-2xl border border-gray-200/80 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-base font-semibold text-gray-900">{f.firstName}</p>
-          <p className="text-xs text-gray-500">
-            {f.source} · {arrivedLabel(f.arrivedAt)}
-          </p>
-        </div>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.chip}`}>{meta.label}</span>
-      </div>
-      <p className="mt-2 text-sm leading-relaxed text-gray-700">{f.note}</p>
-      {(f.phone || f.email) && (
-        <p className="mt-1 text-sm text-gray-500 break-words">
-          {[f.phone ? formatPhone(f.phone) : null, f.email].filter(Boolean).join(" · ")}
-        </p>
-      )}
-      <div className="mt-3 flex flex-wrap gap-2">
-        {f.phone && (
-          <a href={`tel:${f.phone}`} className={primaryAction}>
-            Call
-          </a>
-        )}
-        {f.phone && f.status !== "hard_to_reach" && (
-          <a href={`sms:${f.phone}`} className={action}>
-            Text
-          </a>
-        )}
-        {f.email && (
-          <a href={`mailto:${f.email}`} className={f.phone ? action : primaryAction}>
-            Email
-          </a>
-        )}
-        {f.kind === "page" && (
-          <Link href={`/portal/inbox?id=${f.id}`} className={action}>
-            Open in Messages
-          </Link>
-        )}
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
-        <span>How did it go?</span>
-        {(["talking", "client", "no"] as const).map((v) => (
-          <button
-            key={v}
-            type="button"
-            disabled={saving}
-            onClick={() => record(v)}
-            aria-pressed={outcome === v}
-            className={`rounded-full border px-2.5 py-1 transition-colors ${
-              outcome === v
-                ? "border-primary-600 bg-primary-600 text-white"
-                : "border-gray-200 text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            {OUTCOME_LABEL[v]}
-          </button>
-        ))}
-      </div>
-      {error && <p className="mt-2 text-xs text-error-700" role="alert">{error}</p>}
-      {f.kind === "form" && <FamilyThread leadId={f.id} firstName={f.firstName} />}
-    </li>
-  );
-}
-
-interface ThreadEntryView {
-  at: string;
-  author: "olera" | "provider" | "family";
-  kind: "message" | "event";
-  text: string;
-  channel?: string;
-}
-
-/**
- * The shared thread under a family card: every text, call, reply, check-in
- * and outcome from Olera, from her and from the family, oldest first, plus a
- * box to write to the family. The family reads her message on a page we link
- * them to by text (our carrier registration covers the notice, not her words).
- */
-function FamilyThread({ leadId, firstName }: { leadId: string; firstName: string }) {
-  const [open, setOpen] = useState(false);
-  const [entries, setEntries] = useState<ThreadEntryView[] | null>(null);
-  const [closed, setClosed] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
-  const [sentNote, setSentNote] = useState(false);
-
-  async function load() {
-    setLoadError(null);
-    try {
-      const res = await fetch(`/api/provider/ad-boost/family-thread?leadId=${encodeURIComponent(leadId)}`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Couldn\u2019t load the conversation.");
-      setEntries(data.entries ?? []);
-      setClosed(!!data.closed);
-    } catch (e) {
-      setLoadError(e instanceof Error ? e.message : "Couldn\u2019t load the conversation.");
-    }
-  }
-
-  async function send() {
-    if (!draft.trim()) return;
-    setSending(true);
-    setSendError(null);
-    setSentNote(false);
-    try {
-      const res = await fetch("/api/provider/ad-boost/family-thread", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, body: draft }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Couldn\u2019t send that. Try again.");
-      setDraft("");
-      setSentNote(true);
-      await load();
-    } catch (e) {
-      setSendError(e instanceof Error ? e.message : "Couldn\u2019t send that. Try again.");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  const label = (a: ThreadEntryView["author"]) => (a === "provider" ? "You" : a === "family" ? firstName : "Olera");
-  return (
-    <div className="mt-3 border-t border-gray-100 pt-3">
-      <button
-        type="button"
-        onClick={() => {
-          const next = !open;
-          setOpen(next);
-          if (next && entries === null) void load();
-        }}
-        aria-expanded={open}
-        className="text-sm font-semibold text-primary-700 hover:underline"
-      >
-        {open ? "Hide conversation" : "Conversation"}
-      </button>
-      {open && (
-        <div className="mt-3">
-          {loadError && <p className="text-sm text-error-700" role="alert">{loadError}</p>}
-          {!loadError && entries === null && <p className="text-sm text-gray-500">Loading…</p>}
-          {entries && (
-            <ol className="space-y-2">
-              {entries.map((e, i) => (
-                <li key={i} className={e.kind === "event" ? "text-xs text-gray-500" : "text-sm"}>
-                  <span className={`font-semibold ${e.author === "provider" ? "text-primary-700" : e.author === "family" ? "text-gray-900" : "text-gray-600"}`}>
-                    {label(e.author)}
-                  </span>
-                  <span className="text-gray-400">
-                    {" "}
-                    · {new Date(e.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-                    {e.channel && e.kind === "message" ? ` · ${e.channel === "page" ? "on Olera" : e.channel}` : ""}
-                  </span>
-                  <p className={e.kind === "event" ? "" : "mt-0.5 whitespace-pre-wrap break-words text-gray-800"}>{e.text}</p>
-                </li>
-              ))}
-            </ol>
-          )}
-          {entries && !closed && (
-            <div className="mt-3">
-              <label htmlFor={`thread-${leadId}`} className="sr-only">
-                Message {firstName}
-              </label>
-              <textarea
-                id={`thread-${leadId}`}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                rows={3}
-                maxLength={2000}
-                placeholder={`Message ${firstName}. We text them a link to read and reply.`}
-                className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              />
-              <div className="mt-2 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={send}
-                  disabled={sending || !draft.trim()}
-                  className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
-                >
-                  {sending ? "Sending…" : "Send"}
-                </button>
-                {sentNote && <span className="text-xs text-primary-700">Sent. {firstName} gets a text with a link to read it.</span>}
-              </div>
-              {sendError && <p className="mt-2 text-xs text-error-700" role="alert">{sendError}</p>}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -836,10 +513,12 @@ export function PlanActive({
   request,
   campaignStats,
   families,
+  providerName,
   celebrate,
 }: {
   request: BoostRequest;
   families?: CampaignFamiliesData | null;
+  providerName?: string | null;
   campaignStats: {
     visitors: number;
     leads: number;
@@ -849,6 +528,28 @@ export function PlanActive({
   celebrate: boolean;
 }) {
   const tier = budgetStop(request.plan_value);
+  // A running plan's home is its families: who to reach next. The plan itself
+  // is one quiet line underneath. The celebration moment keeps its own view.
+  if (families && !celebrate) {
+    return (
+      <CampaignHome
+        data={families}
+        providerName={providerName || "your team"}
+        footer={
+          <p>
+            {tier ? `Your ${tier.name} plan (${tier.amount}/mo, all-in) is active.` : "Your monthly plan is active."}
+            {campaignStats
+              ? ` ${campaignStats.visitors.toLocaleString()} visitors and ${(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.`
+              : ""}{" "}
+            Change or cancel by replying to any campaign email.{" "}
+            <Link href="/managed-ads-terms" target="_blank" className="underline decoration-gray-300 underline-offset-4 hover:text-gray-700">
+              How the plan works
+            </Link>
+          </p>
+        }
+      />
+    );
+  }
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -866,7 +567,6 @@ export function PlanActive({
         dashboard as they come in. A month with zero family inquiries is free.
       </p>
 
-      {families && <CampaignFamilies data={families} />}
       <CampaignFacts request={request} />
       {campaignStats && <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} />}
 
@@ -1237,6 +937,7 @@ export function CampaignInMotion({
   campaignStats,
   receipt,
   families,
+  providerName,
   onCheckout,
   submitting,
   error,
@@ -1252,6 +953,7 @@ export function CampaignInMotion({
   } | null;
   receipt?: CampaignReceiptData | null;
   families?: CampaignFamiliesData | null;
+  providerName?: string | null;
   onCheckout: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
@@ -1269,6 +971,52 @@ export function CampaignInMotion({
     !isLive && request.photo_readiness_status === "update_requested";
   const photoReviewRequested =
     !isLive && request.photo_readiness_status === "review_requested";
+
+  // A live campaign's home is its families. For a provider still on the free
+  // intro, progress and the plan choice sit underneath: value first, then the
+  // ask, which is the order that converted our first subscriber.
+  if (isLive && families) {
+    const since = request.flight_start_date ?? request.requested_setup_week;
+    const days = since ? Math.max(1, Math.round((Date.now() - new Date(since).getTime()) / 86_400_000)) : null;
+    const n = families.families.length;
+    return (
+      <div>
+        <CampaignHome
+          data={families}
+          providerName={providerName || "your team"}
+          footer={
+            campaignStats ? (
+              <p>
+                {campaignStats.visitors.toLocaleString()} visitors and {(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.
+              </p>
+            ) : null
+          }
+        />
+        {canChoosePlan && (
+          <div className="mt-16 max-w-2xl border-t border-vanilla-200 pt-10">
+            <p className="font-display text-[26px] leading-tight text-gray-950 md:text-[30px]">
+              {n > 0
+                ? `Your ads found ${n} ${n === 1 ? "family" : "families"}${days ? ` in ${days} ${days === 1 ? "day" : "days"}` : ""}.`
+                : "Your ads are running."}
+            </p>
+            <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-gray-500">
+              {request.flight_end_date
+                ? `Keep them running past ${formatWeek(request.flight_end_date)} with a monthly plan. It takes over when your free intro ends, and nothing becomes paid until you confirm in Stripe.`
+                : "Keep them running with a monthly plan. It takes over when your free intro ends, and nothing becomes paid until you confirm in Stripe."}
+            </p>
+            <PlanChooser
+              request={request}
+              onCheckout={onCheckout}
+              onPlanSelected={onPlanSelected}
+              submitting={submitting}
+              error={error}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -1336,8 +1084,6 @@ export function CampaignInMotion({
           what we know about each. The ad-reach receipt (times shown, clicks)
           used to sit here; it counted Google only and read like a bill, so the
           live view no longer shows it. */}
-      {isLive && families && <CampaignFamilies data={families} />}
-
       {/* The campaign they committed to — week, channel, plan, flight clock. */}
       <CampaignFacts request={request} />
 

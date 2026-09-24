@@ -141,6 +141,11 @@ export interface CampaignFamilyData {
   note: string;
   source: string;
   outcome: "talking" | "client" | "no" | null;
+  /** The family's own latest words, when they have written any. */
+  words: string | null;
+  contact: "none" | "messaged" | "talked";
+  /** How a message reaches them: text, email only, not at all (call), or Messages. */
+  reach: "text" | "email" | "call" | "inbox";
 }
 
 export interface CampaignFamiliesData {

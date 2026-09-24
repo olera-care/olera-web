@@ -41,6 +41,16 @@ export interface CampaignFamily {
   /** Where they came from, as she would say it. */
   source: string;
   outcome: FamilyOutcome | null;
+  /** The family's own latest words to us or to her, when they have written any. */
+  words: string | null;
+  /** How far she has got with them: nothing yet, a message sent, or an outcome recorded. */
+  contact: "none" | "messaged" | "talked";
+  /**
+   * How a message from her reaches them. "text": our texts get through.
+   * "email": texts fail but we have an email. "call": neither, so calling is
+   * the only way in. "inbox": a page inquiry, answered in Messages.
+   */
+  reach: "text" | "email" | "call" | "inbox";
 }
 
 export interface CampaignFamilies {
@@ -153,20 +163,35 @@ export async function getCampaignFamilies(
   // Anyone who has written to her since the hand-over, on the page or by
   // text. Without this a family mid-conversation still read "no reply yet".
   const wroteBack = new Set<string>();
+  // Their latest words, and whether she has written to them yet.
+  const latestWords = new Map<string, { text: string; at: string }>();
+  const messaged = new Set<string>();
+  const noteWords = (id: string, text: string | null | undefined, at: string) => {
+    const t = (text ?? "").trim();
+    if (!t) return;
+    const prev = latestWords.get(id);
+    if (!prev || at > prev.at) latestWords.set(id, { text: t, at });
+  };
   if (leads.length) {
     const { data: typed } = await db
       .from("city_lead_thread")
-      .select("lead_id")
-      .eq("author", "family")
+      .select("lead_id, author, body, created_at")
       .in(
         "lead_id",
         leads.map((l) => l.id),
       );
-    for (const t of (typed ?? []) as Array<{ lead_id: string }>) wroteBack.add(t.lead_id);
-    const byPhone = new Map<string, { id: string; since: string }>();
+    for (const t of (typed ?? []) as Array<{ lead_id: string; author: string; body: string; created_at: string }>) {
+      if (t.author === "family") {
+        wroteBack.add(t.lead_id);
+        noteWords(t.lead_id, t.body, t.created_at);
+      } else if (t.author === "provider") {
+        messaged.add(t.lead_id);
+      }
+    }
+    const byPhone = new Map<string, { id: string; since: string; created: string }>();
     for (const l of leads) {
       const key = (l.phone ?? "").replace(/\D/g, "").slice(-10);
-      if (key.length === 10 && l.handed_at) byPhone.set(key, { id: l.id, since: l.handed_at });
+      if (key.length === 10 && l.handed_at) byPhone.set(key, { id: l.id, since: l.handed_at, created: l.created_at });
     }
     if (byPhone.size) {
       const { data: texts } = await db
@@ -178,7 +203,9 @@ export async function getCampaignFamilies(
       const CHECK_ANSWER = /^\s*(1|2|3|y|n|yes|no|yep|nope|not yet)\s*[.!]?\s*$/i;
       for (const t of (texts ?? []) as Array<{ phone_last10: string; created_at: string; keyword: string | null; body: string | null }>) {
         const hit = byPhone.get(t.phone_last10);
-        if (hit && !t.keyword && t.created_at > hit.since && !CHECK_ANSWER.test(t.body ?? "")) wroteBack.add(hit.id);
+        if (!hit || t.keyword || CHECK_ANSWER.test(t.body ?? "")) continue;
+        if (t.created_at > hit.created) noteWords(hit.id, t.body, t.created_at);
+        if (t.created_at > hit.since) wroteBack.add(hit.id);
       }
     }
   }
@@ -213,6 +240,8 @@ export async function getCampaignFamilies(
           ? "We texted to confirm what they need. No reply yet. Their number works."
           : "We texted to confirm what they need. No reply yet.";
     }
+    const outcome = asOutcome(l.outcome);
+    const textsFail = !!d && d.failed > 0 && d.delivered === 0;
     families.push({
       id: l.id,
       kind: "form",
@@ -223,7 +252,10 @@ export async function getCampaignFamilies(
       status,
       note,
       source: "Filled in your Facebook form",
-      outcome: asOutcome(l.outcome),
+      outcome,
+      words: latestWords.get(l.id)?.text ?? (l.qualification_reply?.trim() || null),
+      contact: outcome ? "talked" : messaged.has(l.id) ? "messaged" : "none",
+      reach: !textsFail ? "text" : l.email ? "email" : "call",
     });
   }
 
@@ -266,6 +298,9 @@ export async function getCampaignFamilies(
       const phone = str(msg.seeker_phone);
       const email = str(msg.seeker_email);
       const providerOutcome = parseJson(c.metadata?.provider_outcome);
+      const familyLines = thread.filter((t) => t.from_profile_id === c.from_profile_id && !t.type && !!str(t.text));
+      const providerWrote = thread.some((t) => t.from_profile_id && t.from_profile_id !== c.from_profile_id && !t.type);
+      const pageOutcome = asOutcome(providerOutcome.value);
       families.push({
         id: c.id,
         kind: "page",
@@ -280,7 +315,10 @@ export async function getCampaignFamilies(
             ? "Asked through your Olera page. No message yet."
             : "Asked through your Olera page. Left an email, no phone.",
         source: "Asked on your Olera page",
-        outcome: asOutcome(providerOutcome.value),
+        outcome: pageOutcome,
+        words: str(familyLines[familyLines.length - 1]?.text) ?? str(msg.message),
+        contact: pageOutcome ? "talked" : providerWrote ? "messaged" : "none",
+        reach: "inbox",
       });
     }
   }

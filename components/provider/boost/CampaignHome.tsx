@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { CampaignFamiliesData, CampaignFamilyData } from "@/lib/ad-boost/boost-state";
 
@@ -121,7 +121,9 @@ export default function CampaignHome({
           </p>
           <div className="mt-3 flex items-center gap-3 text-sm text-gray-400">
             <span className="flex gap-1" aria-hidden>
-              {families.map((f) => (
+              {[...families]
+                .sort((a, b) => ["talked", "messaged", "none"].indexOf(a.contact) - ["talked", "messaged", "none"].indexOf(b.contact))
+                .map((f) => (
                 <i
                   key={f.id}
                   className={`block h-1 w-6 rounded-full ${
@@ -221,6 +223,15 @@ function Moment({
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showThread, setShowThread] = useState(false);
+  // The whole message is always visible: she should read what she is about to
+  // send without scrolling inside a three-line box on a phone.
+  const box = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [draft]);
   const canMessage = f.kind === "form" && (f.reach === "text" || f.reach === "email");
 
   async function send() {
@@ -289,11 +300,12 @@ function Moment({
             </label>
             <textarea
               id={`draft-${f.id}`}
+              ref={box}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              rows={3}
+              rows={2}
               maxLength={2000}
-              className="mt-1.5 w-full resize-none rounded-2xl border-0 bg-vanilla-100 px-4 py-3 text-[15px] leading-relaxed text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className="mt-1.5 w-full resize-none overflow-hidden rounded-2xl border-0 bg-vanilla-100 px-4 py-3 text-[15px] leading-relaxed text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
             <button
               type="button"

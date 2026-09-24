@@ -44,7 +44,7 @@
  *        household size; Yes / No / Not sure)
  *     → the answer screen: a fixed-string verdict (no AI), the call for the
  *       program they came for (same pick rule as the plan page), what to
- *       say, then quiet "Text me this number", "2 more questions" (age +
+ *       say, then quiet "Text me my plan", "2 more questions" (age +
  *       Medicaid) and "See your plan". No inbox banner, no timing or payment
  *       questions.
  *
@@ -96,6 +96,8 @@ export interface BenefitsProgram {
     incomeTable?: Array<{ householdSize: number; monthlyLimit: number }>;
   };
   callContact?: { label: string; phone: string; hours: string | null } | null;
+  /** The program's own eligibility summary says it has no income limit. */
+  noIncomeLimit?: boolean;
 }
 
 export interface ProgramBenefitsCardProps {
@@ -204,16 +206,20 @@ const RELATIONSHIP_DISPLAY: Record<string, string> = {
   other: "Family member",
 };
 
-/** The income-table row for a household size: that size's row, else the
- *  largest row at or below it ("4 or more" reads the 4 row). Null when the
- *  table has no row that small. */
+/** The income-table row for a household size ("4 or more" reads the 4
+ *  row). Exact size only: 81 of 180 tables stop at 2 people, and asking a
+ *  family of 3 against the 2-person limit turns a "No" into a wrong verdict,
+ *  so a missing size skips the income question instead. When a size repeats
+ *  (tiered tables such as Medicare Savings: QMB / SLMB / QI), the highest
+ *  limit is the one that still qualifies for something. Null when the table
+ *  has no row for that size. */
 function incomeRowFor(
   rows: { householdSize: number; monthlyLimit: number }[],
   size: number,
 ): { householdSize: number; monthlyLimit: number } | null {
   let best: { householdSize: number; monthlyLimit: number } | null = null;
   for (const r of rows) {
-    if (r.householdSize <= size && (!best || r.householdSize > best.householdSize)) best = r;
+    if (r.householdSize === size && (!best || r.monthlyLimit > best.monthlyLimit)) best = r;
   }
   return best;
 }
@@ -303,6 +309,9 @@ export default function ProgramBenefitsCard({
   const [error, setError] = useState<string | null>(null);
   const [resultCount, setResultCount] = useState(0);
   const [resultToken, setResultToken] = useState<string | null>(null);
+  // save-results sends the welcome email (plan link) only to a NEW account,
+  // so the three_tap answer screen mentions the email only when one went.
+  const [planEmailed, setPlanEmailed] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [signInEmailed, setSignInEmailed] = useState(true);
 
@@ -459,6 +468,7 @@ export default function ProgramBenefitsCard({
         return;
       }
       setResultToken(typeof data.token === "string" ? data.token : null);
+      setPlanEmailed(data.isNewUser === true);
       setProfileId(typeof data.profileId === "string" ? data.profileId : null);
       setSaving(false);
       // Transition to the arm's post-email flow
@@ -866,19 +876,25 @@ export default function ProgramBenefitsCard({
         : "unknown";
   // Over the limit: light a matched program with no income table instead,
   // if one has a number to call.
-  const altProgram =
+  //
+  // "No income table" is NOT "no income limit" (154 of 273 such programs
+  // mention an income rule in their summary, Texas Weatherization among
+  // them), so one whose own data says it has no income limit goes first, and
+  // the copy below never claims the fallback fits.
+  const altCandidates =
     answerKind === "over"
       ? (programs ?? [])
           .filter((p) => matchesCareNeed(p, careNeed))
-          .find(
+          .filter(
             (p) =>
               p.id !== programId &&
               // A benefit, not a counseling line or directory resource.
               (!p.programType || p.programType === "benefit") &&
               !(p.structuredEligibility?.incomeTable && p.structuredEligibility.incomeTable.length > 0) &&
               !!p.callContact?.phone,
-          ) ?? null
-      : null;
+          )
+      : [];
+  const altProgram = altCandidates.find((p) => p.noIncomeLimit) ?? altCandidates[0] ?? null;
   const callTarget: { programId: string; shortName: string; contact: CallContact } | null = altProgram?.callContact
     ? {
         programId: altProgram.id,
@@ -1322,10 +1338,12 @@ export default function ProgramBenefitsCard({
         ? "The local agency makes the final call."
         : answerKind === "over"
           ? altProgram
-            ? `${altProgram.shortName || altProgram.name} could still help, so start there.`
+            ? `${altProgram.shortName || altProgram.name} has different rules, so it's worth a call.`
             : "The agency can tell you about other help."
           : answerKind === "no_table"
-            ? "The agency checks income on the call."
+            ? // No table can mean no income test at all (Seattle Gold Card),
+              // so nothing here mentions income.
+              "They'll tell you what you need to apply."
             : null;
     const hours =
       callTarget?.contact.hours && looksLikeHours(callTarget.contact.hours) ? callTarget.contact.hours : null;
@@ -1388,14 +1406,14 @@ export default function ProgramBenefitsCard({
                 onClick={onTextOpen}
                 className="text-[14px] font-medium text-gray-700 underline decoration-gray-300 underline-offset-4 hover:text-gray-900 focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-primary-600/40"
               >
-                Text me this number
+                Text me my plan
               </button>
             )}
             {textOpen && textResult === null && (
               <div className="w-full text-left">
                 <p className="text-[13px] text-gray-500 mb-2">
-                  We&apos;ll text you a link to your plan with this number on it. You can reply with any
-                  questions; Olera&apos;s care team replies within 2 business days.
+                  We&apos;ll text you a link to your plan. You can reply with any questions;
+                  Olera&apos;s care team replies within 2 business days.
                 </p>
                 <label htmlFor={`tt-phone-${variant}`} className="sr-only">
                   Your mobile number
@@ -1437,11 +1455,15 @@ export default function ProgramBenefitsCard({
             )}
             {textResult === "not_sent" && (
               <p className="text-[14px] text-gray-700" role="status">
-                We couldn&apos;t text that number. Your plan is in your email.
+                {planEmailed || previewRun
+                  ? "We couldn't text that number. Your plan link is in your email."
+                  : "We couldn't text that number."}
               </p>
             )}
             {errorLine}
-            <p className="text-[13px] text-gray-400">We also emailed this to you.</p>
+            {(planEmailed || previewRun) && (
+              <p className="text-[13px] text-gray-400">Your plan link is in your email.</p>
+            )}
           </div>
 
           <div className="mt-auto flex flex-col items-center gap-2 pt-5 text-center">

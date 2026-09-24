@@ -65,6 +65,13 @@ export async function GET(req: Request) {
             }
           : undefined,
         callContact: call ? { label: call.label, phone: call.phone, hours: call.hours } : null,
+        // "No income limits" stated outright in the program's own summary
+        // (35 programs: meals, caregiver support, Seattle Gold Card...). The
+        // three_tap "No" branch prefers these over a program that merely has
+        // no income table. "No income limits specified" does not count.
+        noIncomeLimit: (p.structuredEligibility?.summary || []).some(
+          (line) => typeof line === "string" && /^\s*no income limits?\b(?!\s+specified)/i.test(line),
+        ),
       };
     });
 

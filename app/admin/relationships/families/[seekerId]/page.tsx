@@ -77,6 +77,7 @@ const FLAG_STYLE: Record<SeekerFlag, string> = {
   never_human: "bg-gray-100 text-gray-600",
   no_name: "bg-gray-100 text-gray-500",
   promise_owed: "bg-orange-50 text-orange-800",
+  tried_three: "bg-amber-50 text-amber-800",
 };
 
 const KIND_LABEL: Record<SeekerTimelineItem["kind"], string> = {

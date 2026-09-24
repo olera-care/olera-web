@@ -29,7 +29,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * reached the wrong audience and belongs in that count, the other says we made
  * the row ourselves and it should never have counted at all.
  */
-const REASONS = new Set(["test_record", "not_a_care_seeker", "duplicate", "resolved_elsewhere", "other"]);
+const REASONS = new Set(["test_record", "not_a_care_seeker", "duplicate", "resolved_elsewhere", "no_answer", "other"]);
 
 /**
  * Who a city lead was archived by when the archive came from this board.

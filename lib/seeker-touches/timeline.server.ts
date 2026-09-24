@@ -1340,8 +1340,15 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   // Only a family who still owes a call can be parked. Helen Garner had a
   // missed call logged after she had already been reached, and read "back in
   // Call them tomorrow" for a list she was never going back to.
-  const callRetryAt = callOwed && missedRecently ? new Date(retryAtMs!).toISOString() : null;
-  if (callOwed && !callRetryAt) flags.push("promise_owed");
+  // THREE STRIKES. The pause above repeats forever on its own, so a family
+  // who never picks up came back to "Call them" every day indefinitely. After
+  // three logged misses the ask changes: one last text or email, then archive
+  // as "Never answered". Nothing is sent automatically; the row only says so.
+  const missedCalls = touchRows.filter((t) => t.direction === "out" && t.reached === false).length;
+  const triedThree = callOwed && missedCalls >= 3;
+  const callRetryAt = callOwed && !triedThree && missedRecently ? new Date(retryAtMs!).toISOString() : null;
+  if (triedThree) flags.push("tried_three");
+  else if (callOwed && !callRetryAt) flags.push("promise_owed");
 
   // ARCHIVING IS A DECISION ABOUT THE ROW, NOT ABOUT THE EVENTS.
   //
@@ -1357,7 +1364,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     // erasing the opt-out in particular would quietly drop the one flag that
     // says they told us to stop.
     const work = new Set<SeekerFlag>([
-      "awaiting_reply", "promise_owed", "unreachable",
+      "awaiting_reply", "promise_owed", "tried_three", "unreachable",
       "provider_no_show", "provider_silent", "never_human",
     ]);
     for (let i = flags.length - 1; i >= 0; i--) if (work.has(flags[i])) flags.splice(i, 1);
@@ -1386,6 +1393,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     // Their own latest words, for a row that is waiting on our answer.
     lastInbound: inbound[0] ?? null,
     callRetryAt,
+    missedCalls,
     openAction,
     everReached,
     lead,
@@ -1431,6 +1439,7 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
       origin: a.origin,
       outcome: a.outcome,
       call_retry_at: a.callRetryAt,
+      missed_calls: a.missedCalls,
       last_inbound: a.lastInbound
         ? {
             occurred_at: a.lastInbound.occurred_at,
@@ -1447,7 +1456,7 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
   // within "open", because a dormant family being quiet is not news.
   const rank = (r: SeekerRelationshipRow): number => {
     if (r.flags.includes("awaiting_reply")) return 0;
-    if (r.flags.includes("promise_owed")) return 1;
+    if (r.flags.includes("promise_owed") || r.flags.includes("tried_three")) return 1;
     if (r.flags.includes("unreachable")) return 2;
     if (r.flags.includes("provider_no_show")) return 3;
     if (r.episode.state === "open") return 4;

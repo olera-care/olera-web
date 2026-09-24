@@ -230,7 +230,13 @@ export type SeekerFlag =
   /** display_name is a placeholder, so the row has nothing to call itself. */
   | "no_name"
   /** A concierge city lead we promised to call and have not reached. */
-  | "promise_owed";
+  | "promise_owed"
+  /**
+   * Called three times and never reached. Takes the place of promise_owed:
+   * a fourth call on the same pattern is not the next step, a last written
+   * message and an archive is.
+   */
+  | "tried_three";
 
 export const SEEKER_FLAG_LABEL: Record<SeekerFlag, string> = {
   awaiting_reply: "they wrote, no reply yet",
@@ -241,6 +247,7 @@ export const SEEKER_FLAG_LABEL: Record<SeekerFlag, string> = {
   never_human: "only ever got automated email",
   no_name: "no name on file",
   promise_owed: "promised a call",
+  tried_three: "called 3 times, no answer",
 };
 
 // ── Rows ──────────────────────────────────────────────────────────────────────
@@ -296,6 +303,8 @@ export type SeekerRelationshipRow = SeekerContact & {
    * them". Null when no attempt in the last 24 hours failed to reach them.
    */
   call_retry_at: string | null;
+  /** Logged calls that did not reach them, since nobody ever has. */
+  missed_calls: number;
   /** Their newest text or support email, so a reply row shows what they said. */
   last_inbound: { occurred_at: string; channel: string; title: string; detail: string | null } | null;
   /**

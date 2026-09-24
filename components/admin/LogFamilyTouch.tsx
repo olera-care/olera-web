@@ -220,7 +220,10 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
         </p>
       )}
       {reached === false && (
-        <p className="mt-1 text-[12px] text-gray-500">They leave Call them for 24 hours, then come back if nobody reaches them.</p>
+        <p className="mt-1 text-[12px] text-gray-500">
+          They leave Call them for 24 hours, then come back if nobody reaches them. After a third missed call they move to
+          Tried 3 times instead.
+        </p>
       )}
 
       {showNext ? (

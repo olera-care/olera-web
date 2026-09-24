@@ -313,24 +313,40 @@ export async function POST(req: NextRequest) {
         // So un-archiving is recorded as a person overruling the model, which
         // is what it is.
         const leadId = String(body.leadId ?? "");
+        // TWO STEPS, ARCHIVE FIRST. The city_lead_archive_guard trigger
+        // (migration 228) copies archived_at back on every update, so today
+        // no archived lead can reopen and the update "succeeds" having
+        // changed nothing. Clearing the archive on its own first, and only
+        // recording the overrule once it actually cleared, means a refused
+        // reopen writes nothing at all, and this starts working unchanged
+        // the day the trigger allows it.
         const { data, error } = await db
           .from("city_leads")
+          .update({ archived_at: null, archive_reason: null, archived_by: null, updated_at: now })
+          .eq("id", leadId)
+          .not("archived_at", "is", null)
+          .select("id, first_name, archived_at")
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) return NextResponse.json({ error: "That lead is not archived" }, { status: 409 });
+        // This route used to answer "back in the queue" here regardless.
+        if (data.archived_at) {
+          return NextResponse.json(
+            { error: `${data.first_name} is still archived. The database does not allow reopening an archived lead yet, so nothing changed.` },
+            { status: 409 },
+          );
+        }
+        const { error: verdictError } = await db
+          .from("city_leads")
           .update({
-            archived_at: null,
-            archive_reason: null,
-            archived_by: null,
             qualification_verdict: "care_seeker",
             qualification_verdict_category: "care_seeker",
             qualification_verdict_reason: `Un-archived by ${auth.user.email ?? auth.user.id}, overruling an automatic filing.`,
             qualification_verdict_at: now,
             updated_at: now,
           })
-          .eq("id", leadId)
-          .not("archived_at", "is", null)
-          .select("id, first_name")
-          .maybeSingle();
-        if (error) throw error;
-        if (!data) return NextResponse.json({ error: "That lead is not archived" }, { status: 409 });
+          .eq("id", leadId);
+        if (verdictError) throw verdictError;
         return NextResponse.json({ ok: true, id: data.id, message: `${data.first_name} is back in the queue and will be offered to a provider.` });
       }
       case "offer_next": {

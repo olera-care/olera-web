@@ -292,6 +292,13 @@ export type SeekerRelationshipRow = SeekerContact & {
   /** True once a logged touch says we actually spoke to them. */
   ever_reached: boolean;
   /**
+   * When a missed call parks this family, the moment they come back to "Call
+   * them". Null when no attempt in the last 24 hours failed to reach them.
+   */
+  call_retry_at: string | null;
+  /** Their newest text or support email, so a reply row shows what they said. */
+  last_inbound: { occurred_at: string; channel: string; title: string; detail: string | null } | null;
+  /**
    * A person decided this row is not a case to work. Null for everyone else.
    *
    * Not suppression and not erasure: it says nobody needs to act, never that we

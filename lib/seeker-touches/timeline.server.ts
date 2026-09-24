@@ -402,17 +402,31 @@ function cityLeadToItem(l: CityLeadRow): SeekerTimelineItem {
   };
 }
 
+/**
+ * A queued city message is ours by hand only when a person queued it.
+ *
+ * The admin composer stamps the sender's email in created_by. Everything else
+ * that writes this table is automation — the Meta intake confirmation
+ * ("meta_native_intake", 15 of the first 35 rows), backfills, scripts — and
+ * read as "You:" it made every Meta family look contacted by a person a minute
+ * after they submitted, and counted toward human_touch_count and never_human.
+ */
+function cityMsgIsHuman(m: CityMsgRow): boolean {
+  return (m.created_by ?? "").includes("@");
+}
+
 function cityMsgToItem(m: CityMsgRow): SeekerTimelineItem {
   const failed = m.status === "failed";
+  const human = cityMsgIsHuman(m);
   return {
     id: `citymsg:${m.id}`,
     kind: "city",
-    actor: "out",
+    actor: human ? "out" : "system",
     channel: m.channel === "sms" ? "text" : "email",
     occurred_at: m.created_at,
-    title: clip(m.body, 160) ?? m.subject ?? "(sent by hand)",
+    title: clip(m.body, 160) ?? m.subject ?? (human ? "(sent by hand)" : "(sent automatically)"),
     detail: null,
-    source: "manual",
+    source: human ? "manual" : "system",
     status: failed ? `failed · ${clip(m.last_error, 60)}` : m.delivery ?? m.status,
     contact_handle: m.created_by,
     href: `/admin/city-ads`,
@@ -1148,7 +1162,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   // A human touch is anything a person did on either side: their text, their
   // support email, a message we sent by hand. System sends do not count.
   const inbound = [...support, ...sms].sort(byNewest);
-  const humanTouches = [...inbound, ...cityMsgs, ...touches].sort(byNewest);
+  const humanTouches = [...inbound, ...cityMsgs.filter((m) => m.actor === "out"), ...touches].sort(byNewest);
   const lastHuman = humanTouches[0] ?? null;
 
   const candidates: LastSeekerTouch[] = [];
@@ -1253,20 +1267,35 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   }
   if (humanTouches.length === 0) flags.push("never_human");
   if (contact.label_is_fallback) flags.push("no_name");
+
+  // A MISSED CALL TAKES THEM OFF THE CALL LIST FOR A DAY, NOT FOR GOOD.
+  //
+  // The rule below keeps a call owed until somebody actually speaks to them,
+  // and that stays true. But without a pause, a family Ces rang an hour ago
+  // sat at the top of "Call them" looking untouched, the list never shrank as
+  // it was worked, and the team went back to keeping the real state in their
+  // heads. The newest attempt that did not reach them parks the row for
+  // twenty-four hours; if nobody reaches them by then, it comes back.
+  const lastMiss = touchRows.find((t) => t.direction === "out" && t.reached === false);
+  const retryAtMs = lastMiss ? new Date(lastMiss.occurred_at).getTime() + DAY_MS : null;
+  const missedRecently = Boolean(retryAtMs && retryAtMs > now.getTime());
+
   // A promised call stays owed until somebody actually SPOKE to them, or until
   // a dated next action says when we will try again. Logging "called, mailbox
   // full" must not clear it — trying is not reaching, and clearing on the
   // attempt would quietly drop the families who are hardest to get hold of.
-  if (
-    lead &&
-    !lead.reached_at &&
+  const callOwed =
+    Boolean(lead) &&
+    !lead!.reached_at &&
     !cityClosed &&
-    getCityConfig(lead.slug)?.routingMode === "concierge" &&
+    getCityConfig(lead!.slug)?.routingMode === "concierge" &&
     !everReached &&
-    !(openAction && openAction.due)
-  ) {
-    flags.push("promise_owed");
-  }
+    !(openAction && openAction.due);
+  // Only a family who still owes a call can be parked. Helen Garner had a
+  // missed call logged after she had already been reached, and read "back in
+  // Call them tomorrow" for a list she was never going back to.
+  const callRetryAt = callOwed && missedRecently ? new Date(retryAtMs!).toISOString() : null;
+  if (callOwed && !callRetryAt) flags.push("promise_owed");
 
   // ARCHIVING IS A DECISION ABOUT THE ROW, NOT ABOUT THE EVENTS.
   //
@@ -1308,6 +1337,9 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     lastHuman,
     lastMeaningfulAt,
     humanTouchCount: humanTouches.length,
+    // Their own latest words, for a row that is waiting on our answer.
+    lastInbound: inbound[0] ?? null,
+    callRetryAt,
     openAction,
     everReached,
     lead,
@@ -1352,6 +1384,15 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
       archived: a.archived,
       origin: a.origin,
       outcome: a.outcome,
+      call_retry_at: a.callRetryAt,
+      last_inbound: a.lastInbound
+        ? {
+            occurred_at: a.lastInbound.occurred_at,
+            channel: a.lastInbound.channel,
+            title: a.lastInbound.title,
+            detail: a.lastInbound.detail ?? null,
+          }
+        : null,
     };
   });
 

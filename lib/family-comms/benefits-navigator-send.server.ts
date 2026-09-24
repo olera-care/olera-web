@@ -29,7 +29,7 @@ import {
   renderNavigatorEmail,
   type BenefitsNavigatorMeta,
 } from "./benefits-navigator.server";
-import { ROUTE_LABEL, packetNeedsBuild } from "@/lib/benefits/navigator-packet";
+import { ROUTE_LABEL, holdLabel, isCaveatPacket, isRewritePacket, packetNeedsBuild } from "@/lib/benefits/navigator-packet";
 import { readClearance } from "@/lib/benefits/navigator-gates.server";
 import { DECEASED_UNSUB_SOURCE, isBenefitsAutomationHeld } from "./benefits-automation";
 import { smsCarriesPhone } from "./sms-phone";
@@ -338,12 +338,16 @@ async function deliverNavigatorLetter(
     };
   }
   if ((route === "recompose" || route === "ask") && !opts.overridePacket) {
-    const why = navigator.packet?.holds[0] ?? ROUTE_LABEL[route];
+    const why = navigator.packet?.holds[0] ? holdLabel(navigator.packet.holds[0]) : ROUTE_LABEL[route];
     return {
       ok: false,
       conflict: true,
       error:
-        route === "recompose"
+        navigator.packet && isCaveatPacket(navigator.packet)
+          ? "This letter is waiting for its automatic rewrite (kept their program, adding the condition). Recompose it, or send anyway if you disagree."
+          : navigator.packet && isRewritePacket(navigator.packet)
+          ? "This letter tells the family they said they need something they never told us. It is waiting for an automatic re-draft of the same program. Recompose it, or edit that sentence out."
+          : route === "recompose"
           ? `This letter's program was ruled out: ${why}. Recompose it, or send anyway if you disagree.`
           : `We do not know enough about this family to pick a program: ${why}. Ask them first, or send anyway if you disagree.`,
     };

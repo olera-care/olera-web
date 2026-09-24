@@ -5,6 +5,7 @@ import type { FirstStepPick, BenefitsCascadeMeta } from "@/lib/family-comms/bene
 import JourneyActions, { type NextStepInfo } from "@/components/benefits/JourneyActions";
 import FactChips, { type KnownFacts } from "@/components/benefits/FactChips";
 import { benefitAmountLabel } from "@/lib/benefits/savings-label";
+import { switchLine } from "@/lib/benefits/switch-line";
 
 /**
  * BenefitsHome — the /m/{token} results page, rebuilt as a guide instead of a
@@ -31,6 +32,9 @@ export interface BenefitsHomeProps {
   stateName: string;
   stateSlug: string;
   careNeed: CareNeed;
+  /** careNeed was derived from the page they signed up on, not chosen. The
+   *  chip plays back their words, so an inferred need gets no chip. */
+  careNeedInferred?: boolean;
   /** Display value, e.g. "Parent" | "Spouse" | "Self" | "Family member". */
   relationship: string | null;
   /** e.g. "asap" | "within_month" — humanized in the chip row. */
@@ -141,6 +145,7 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     stateName,
     stateSlug,
     careNeed,
+    careNeedInferred = false,
     relationship,
     timeline,
     payments,
@@ -163,7 +168,9 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     memoryHealth: "Memory & health support",
     companionship: "Companionship & support",
   };
-  const careLabel = CARE_NEED_CHIP[careNeed] || CARE_NEED_LABEL[careNeed] || null;
+  const careLabel = careNeedInferred
+    ? null
+    : CARE_NEED_CHIP[careNeed] || CARE_NEED_LABEL[careNeed] || null;
   const chips = [
     stateName,
     careLabel ? careLabel.charAt(0).toUpperCase() + careLabel.slice(1) : null,
@@ -209,6 +216,7 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
   const heroMatch = firstStep ? matches.find((p) => p.id === firstStep.programId) : null;
   const heroSavings =
     savingsLine(firstStep?.savingsRange) ?? savingsLine(heroMatch?.savingsRange);
+  const switchNote = switchLine(firstStep);
 
   return (
     <main className="min-h-screen bg-[#faf8f5]">
@@ -241,6 +249,7 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
             profileId={profileId}
             facts={knownFacts}
             suppressMedicaidChip={!!payments?.some((p) => /medicaid/i.test(p))}
+            isSelf={/^(self|myself)$/i.test((relationship || "").trim())}
           />
         </div>
 
@@ -279,6 +288,11 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
 
         {/* ── Start here — the living half of the page. JourneyActions owns
                the hero, done-state, up-next card, and persisted checklist. ── */}
+        {/* When the plan does not start with the program they came for, say
+            why in one quiet line (TJ, 2026-09-24). */}
+        {switchNote && (
+          <p className="-mb-2 mt-6 text-[14px] leading-relaxed text-gray-600">{switchNote}</p>
+        )}
         {firstStep ? (
           <JourneyActions
             token={token}

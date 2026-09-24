@@ -23,6 +23,8 @@ import { formatReviewDate } from "@/lib/format-review-date";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
 import ProgramBenefitsCard, { type BenefitsProgram } from "@/components/waiver-library/ProgramBenefitsCard";
 import ProgramBenefitsMobileCTA from "@/components/waiver-library/ProgramBenefitsMobileCTA";
+import { useProgramCardFlow } from "@/hooks/use-program-card-flow";
+import { pickCallContact } from "@/lib/benefits/call-script";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
 
@@ -903,23 +905,32 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
   const [benefitsPrograms, setBenefitsPrograms] = useState<BenefitsProgram[]>([]);
   const [benefitsSessionId, setBenefitsSessionId] = useState("");
   const benefitsEntryFiredRef = useRef(false);
+  // Program card flow experiment (control | three_tap). Assigned once here,
+  // the same single owner as the entry-view event, and passed to both card
+  // instances so the rail and the sheet can never disagree.
+  const cardFlow = useProgramCardFlow(showBenefitsCTA);
+  // The card view waits for the arm so every view is tagged with it; that is
+  // the denominator of the experiment (signups ÷ card views per arm).
+  useEffect(() => {
+    if (!showBenefitsCTA || !cardFlow || benefitsEntryFiredRef.current) return;
+    benefitsEntryFiredRef.current = true;
+    trackBenefitsEvent({
+      event: "benefits_entry_viewed",
+      sessionId: getOrCreateSessionId(),
+      stateCode: state.abbreviation,
+      stateName: state.name,
+      providerName: null,
+      providerSlug: null,
+      variant: "program_card",
+      entrySource: `/benefits/${state.id}/${program.id}`,
+      cardFlow,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showBenefitsCTA, cardFlow]);
   useEffect(() => {
     if (!showBenefitsCTA) return;
     const sid = getOrCreateSessionId();
     setBenefitsSessionId(sid);
-    if (!benefitsEntryFiredRef.current) {
-      benefitsEntryFiredRef.current = true;
-      trackBenefitsEvent({
-        event: "benefits_entry_viewed",
-        sessionId: sid,
-        stateCode: state.abbreviation,
-        stateName: state.name,
-        providerName: null,
-        providerSlug: null,
-        variant: "program_card",
-        entrySource: `/benefits/${state.id}/${program.id}`,
-      });
-    }
     let cancelled = false;
     fetch(`/api/benefits/programs?state=${encodeURIComponent(state.abbreviation)}`)
       .then((r) => (r.ok ? r.json() : null))
@@ -946,6 +957,9 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
     careNeed: benefitsCareNeed,
     programs: benefitsPrograms,
     sessionId: benefitsSessionId,
+    cardFlow,
+    incomeTable: program.structuredEligibility?.incomeTable ?? null,
+    callContact: pickCallContact(program.contacts),
   };
 
   return (

@@ -65,6 +65,11 @@ export interface BenefitsProgram {
     ageRequirement?: string;
     incomeTable?: Array<{ householdSize: number; monthlyLimit: number }>;
   };
+  /** The number a first step would call (pickCallContact over the draft's
+   *  contacts). Read by the program card's three_tap answer screen. */
+  callContact?: { label: string; phone: string; hours: string | null } | null;
+  /** The program's own eligibility summary says it has no income limit. */
+  noIncomeLimit?: boolean;
 }
 
 interface BenefitsDiscoveryModuleProps {
@@ -406,6 +411,7 @@ export default function BenefitsDiscoveryModule({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           careNeed,
+          careNeedSource: "stated",
           age: null,
           medicaidStatus: null,
           incomeRange: null,

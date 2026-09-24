@@ -32,6 +32,9 @@ export interface TrackBenefitsEventPayload {
    *  `/caregiver-support/{slug}`. Used downstream to segment funnel by
    *  entry page. */
   entrySource?: string | null;
+  /** Program-card flow experiment arm ("control" | "three_tap"). Only the
+   *  program-page card sets it; stored as metadata.card_flow. */
+  cardFlow?: string | null;
 }
 
 export function trackBenefitsEvent(payload: TrackBenefitsEventPayload): void {

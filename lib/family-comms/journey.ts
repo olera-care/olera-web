@@ -99,7 +99,7 @@ const BENEFITS_CASCADE: CommsJourney = {
       title: "Care-team question + plan texted (optional)",
       timing: "Day 0 · When a phone is provided",
       description:
-        "A family who enters a phone under the SMS disclosure receives a bounded question from Olera's care team plus the same living /m plan link. New families can receive it with their initial results; a family on the program-page email path can also add a phone during post-submit enrichment. The care team promises to reply within 48 hours when the family responds, and stores sms_consent for the later navigator and check-in.",
+        "A family who enters a phone under the SMS disclosure receives a bounded question from Olera's care team plus the same living /m plan link. New families can receive it with their initial results; a family on the program-page email path can also add a phone during post-submit enrichment. The care team promises to reply within 2 business days when the family responds, and stores sms_consent for the later navigator and check-in.",
       smsType: "benefits_results_sms",
       smsSampleId: "sms_benefits_match",
       ownedBy: "benefits-results-texts",

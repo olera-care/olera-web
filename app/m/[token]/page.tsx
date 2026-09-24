@@ -19,6 +19,7 @@ import {
   rankProgramsForFamily,
 } from "@/lib/benefits/eligibility.server";
 import { getStateSlug } from "@/lib/program-data";
+import { careNeedSourceFromMeta, isInferredCareNeed } from "@/lib/benefits/care-need-source";
 import { recordSmsClick, SMS_SOURCE_PARAM } from "@/lib/sms/click-source";
 
 /**
@@ -153,11 +154,23 @@ export default async function BenefitsResultsPage({
   // the bundle's profile select doesn't carry — one small extra read.
   let firstStep: FirstStepPick | null = null;
   let nextStep: FirstStepPick | null = null;
-  const { data: profileRow } = await db
-    .from("business_profiles")
-    .select("account_id")
-    .eq("id", bundle.profile.id)
-    .maybeSingle();
+  const [{ data: profileRow }, { data: intakeEvent }] = await Promise.all([
+    db.from("business_profiles").select("account_id").eq("id", bundle.profile.id).maybeSingle(),
+    // Program-page intakes never ask for a need (it is derived from the
+    // page), so the "Help paying for care" chip would play back words the
+    // family never said. The latest intake event says where it came from.
+    db
+      .from("seeker_activity")
+      .select("metadata")
+      .eq("profile_id", bundle.profile.id)
+      .eq("event_type", "benefits_completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  const careNeedInferred = isInferredCareNeed(
+    careNeedSourceFromMeta(meta as Record<string, unknown>, (intakeEvent?.metadata as Record<string, unknown> | null) ?? null),
+  );
 
   // Signed-in acknowledgement: the one-click email links authenticate the
   // family, but nothing on the page showed it (TJ QA, 2026-07-28). Show the
@@ -225,6 +238,7 @@ export default async function BenefitsResultsPage({
       stateName={bundle.stateName}
       stateSlug={stateSlug}
       careNeed={bundle.token.care_need as CareNeed}
+      careNeedInferred={careNeedInferred}
       relationship={relationship}
       timeline={(meta.timeline as string) || null}
       payments={Array.isArray(meta.payment_methods) ? (meta.payment_methods as string[]) : null}

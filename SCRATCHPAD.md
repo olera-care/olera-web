@@ -7,6 +7,27 @@
 
 ## Current Focus
 
+### 2026-09-24 — Campaign home in PRODUCTION: a provider's own ad hands its families to them, and Liz Hoop used it in 9 minutes (`graceful-gates`, #2147 #2150 #2154 → promote #2156 `237e97cc6`)
+
+**What shipped.**
+- **#2147 campaign home.** A family from a provider's own ad (`city_campaigns.request_id` → `ad_campaign_requests`) is handed to that provider once they reply as a family or after 1 hour (`lib/city-ads/primary.server.ts`, `offers.server.ts`). No `connections` row, so no inquiry crons. Shared thread `city_lead_thread` + family page `/f/thread/{token}` (HMAC `citythread:`); provider words never go by SMS (10DLC), the text carries only a link. Follow-ups for handed leads in `followups.server.ts`. New `components/provider/boost/CampaignHome.tsx`: one family lit with their words (or "X asked about care on Tuesday"), an editable draft, "Send to X", message-first. Migrations 256, 257 applied. No dollar figures to providers.
+- **#2150 City campaigns slimmed.** Headline rule (`cityReadout`, no AI), lead-working tools moved to the family page (`components/admin/CityLeadTools.tsx`).
+- **#2154 no families yet.** Data view stays; unanswered questions become a dismissible card under the numbers (`QuestionsCard` in `BoostCampaignViews.tsx`, localStorage, returns when the ask count changes, never on just-paid or wrap-ups). Sign-in lands on `/provider/boost` only with ≥1 family.
+- Also promoted: Efua's #2149, #2151, #2155 (not tested by me; #2155 sends new MedJobs emails).
+
+**Decisions.**
+- Text first everywhere; calling is secondary. Checked against data: 4 of 23 logged calls picked up.
+- A new zero-lead view must beat the existing data view or the old one stays (TJ). Questions-first page was built, compared, and replaced by the dismissible card: questions fatigue providers; traction is what they come back for.
+- `city_campaigns.status` does not gate hand-over; only the `request_id` link does. The cron handed all 5 Pascagoula families at 12:50 UTC right after deploy.
+
+**Live result.** Hoop Cares (owner **Liz Hoop**, only subscriber, $75 Starter): notice 12:50 UTC, Liz opened the page on mobile in Moss Point at 12:59 and sent Dapricia the default message. Email delivered; SMS 30003 (unreachable). TJ emailed Liz 13:19 UTC (Bcc support@, captured in the timeline). Liz's portrait set as `metadata.staff.image` on her profile.
+
+#### Next Up
+- **TJ's yes needed:** hide "Offer to…" buttons for primary-ad families on the family page; register the Dallas Meta instant form (`120251489434010487`) as a `city_campaigns` row; fix the "Consent: Olera only" label for Pascagoula families (their form allows sharing with a local provider).
+- **Offered, not done:** Liz's portrait as the hero photo (the current hero is a stock kitchen image).
+- **TJ in Meta Ads Manager:** Pascagoula form consent copy + one question (who is the care for, how soon), so families arrive with words.
+- **Watch Friday:** day-2 family check replies for the 5; whether Liz has messaged the other 4. Meta and Nextdoor spend still not synced.
+
 ### 2026-09-23 (later) — Ad Boost pre-flight for seven: the landing pages were the finding, and Meta-to-provider-page turns out to be 6x cheaper and untested (`channel-name-precision` #2095 merged, prod data fixes, NO campaigns launched)
 
 **#2095 merged and live.** `both` → `google_meta` across `BOOST_CHANNELS`, `normalizeBoostChannel()`, and migration `250`. Ten rows moved, zero `both` remain. `'both'` deliberately left in the CHECK for one release cycle so an older deploy cannot fail an insert.

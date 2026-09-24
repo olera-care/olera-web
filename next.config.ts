@@ -222,6 +222,11 @@ const nextConfig: NextConfig = {
 
       // Provider hub: Your Market → Growth rename (2026-06-24)
       { source: "/provider/market", destination: "/provider/growth", permanent: true },
+
+      // MedJobs student portal: old nudge emails incorrectly pointed to
+      // /portal/medjobs/profile which never existed. The portal page is
+      // /portal/medjobs. This redirect fixes links in emails already sent.
+      { source: "/portal/medjobs/profile", destination: "/portal/medjobs", permanent: true },
     ];
   },
 

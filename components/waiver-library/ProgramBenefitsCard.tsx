@@ -33,6 +33,21 @@
  *        alreadyHas from payment_methods.)
  *   - User can answer any/all or skip to see the success card
  *
+ * three_tap arm (program card flow experiment, 2026-09-24; arm assigned by
+ * useProgramCardFlow in ProgramPageV3 and passed in as `cardFlow`). The
+ * capture step is identical. After the email saves:
+ *     1. Who is this for? (Me / A parent / A spouse / Someone else — the
+ *        same stored recipient values; sets "you" vs "they" after it)
+ *     2. How many people live in your home? (only when the page has an
+ *        income table)
+ *     3. Is your income under $X a month? (X = the page's own limit for that
+ *        household size; Yes / No / Not sure)
+ *     → the answer screen: a fixed-string verdict (no AI), the call for the
+ *       program they came for (same pick rule as the plan page), what to
+ *       say, then quiet "Text me my plan", "2 more questions" (age +
+ *       Medicaid) and "See your plan". No inbox banner, no timing or payment
+ *       questions.
+ *
  * Value-first display:
  *   - savingsRange present (~26% of programs) → lead with "Up to $X/mo"
  *   - empty (~74%)                            → eligibility-first "Could you qualify?"
@@ -43,7 +58,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { ArrowRight, CheckCircle, ShieldCheck, Spinner } from "@phosphor-icons/react";
+import { ArrowRight, CheckCircle, Phone, ShieldCheck, Spinner } from "@phosphor-icons/react";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
@@ -55,8 +70,17 @@ import {
   trackBenefitsEnrichmentStepCompleted,
   trackBenefitsEnrichmentStepSkipped,
   trackBenefitsEnrichmentCompleted,
+  trackBenefitsNamedStep,
   type BenefitsEnrichmentStep,
 } from "@/lib/analytics/benefits-enrichment-tracking";
+import type { ProgramCardFlow } from "@/lib/analytics/program-card-variant";
+import {
+  buildCallScript,
+  looksLikeHours,
+  stripParen,
+  telHref,
+  type CallContact,
+} from "@/lib/benefits/call-script";
 import { benefitAmountLabel, benefitAmountCaption } from "@/lib/benefits/savings-label";
 
 /** Lightweight program shape returned by /api/benefits/programs. */
@@ -67,6 +91,13 @@ export interface BenefitsProgram {
   tagline: string;
   savingsRange?: string;
   programType?: string;
+  structuredEligibility?: {
+    ageRequirement?: string;
+    incomeTable?: Array<{ householdSize: number; monthlyLimit: number }>;
+  };
+  callContact?: { label: string; phone: string; hours: string | null } | null;
+  /** The program's own eligibility summary says it has no income limit. */
+  noIncomeLimit?: boolean;
 }
 
 export interface ProgramBenefitsCardProps {
@@ -94,6 +125,15 @@ export interface ProgramBenefitsCardProps {
   /** Visual context. "bare" drops the card chrome (used inside the mobile sheet,
    *  which provides its own surface). */
   variant?: "rail" | "bare";
+  /** Program-card flow experiment arm, resolved once by the page. Null until
+   *  resolved; a submit before then runs control. */
+  cardFlow?: ProgramCardFlow | null;
+  /** This program's own income table (pipeline draft structuredEligibility).
+   *  Drives the three_tap household + income questions. */
+  incomeTable?: { householdSize: number; monthlyLimit: number }[] | null;
+  /** This program's callable contact (pickCallContact over the draft's
+   *  contacts, the same rule the plan page's first step uses). */
+  callContact?: CallContact | null;
 }
 
 
@@ -109,6 +149,13 @@ type CardState =
   | "enrichment_6"
   | "enrichment_7"
   | "success"
+  // three_tap arm
+  | "tt_who"
+  | "tt_household"
+  | "tt_income"
+  | "tt_answer"
+  | "tt_age"
+  | "tt_medicaid"
   // The email belongs to an existing account and the caller is not signed in
   // as it. The server returns no plan token (privacy), so there is nothing to
   // enrich here; the owner gets a sign-in link to their plan by email.
@@ -127,6 +174,66 @@ const RECIPIENT_OPTIONS: { label: string; value: string }[] = [
   { label: "My spouse", value: "spouse" },
   { label: "Someone else", value: "other" },
 ];
+
+// three_tap "Who is this for?" — same stored values as RECIPIENT_OPTIONS.
+const TT_RECIPIENT_OPTIONS: { label: string; value: string }[] = [
+  { label: "Me", value: "self" },
+  { label: "A parent", value: "parent" },
+  { label: "A spouse", value: "spouse" },
+  { label: "Someone else", value: "other" },
+];
+
+const TT_HOUSEHOLD_OPTIONS: { label: string; value: number }[] = [
+  { label: "1", value: 1 },
+  { label: "2", value: 2 },
+  { label: "3", value: 3 },
+  { label: "4 or more", value: 4 },
+];
+
+type IncomeAnswer = "under" | "over" | "not_sure";
+
+const TT_INCOME_OPTIONS: { label: string; value: IncomeAnswer }[] = [
+  { label: "Yes", value: "under" },
+  { label: "No", value: "over" },
+  { label: "Not sure", value: "not_sure" },
+];
+
+/** The display relationship buildCallScript expects. */
+const RELATIONSHIP_DISPLAY: Record<string, string> = {
+  self: "Self",
+  parent: "Parent",
+  spouse: "Spouse",
+  other: "Family member",
+};
+
+/** The income-table row for a household size ("4 or more" reads the 4
+ *  row). Exact size only: 81 of 180 tables stop at 2 people, and asking a
+ *  family of 3 against the 2-person limit turns a "No" into a wrong verdict,
+ *  so a missing size skips the income question instead. When a size repeats
+ *  (tiered tables such as Medicare Savings: QMB / SLMB / QI), the highest
+ *  limit is the one that still qualifies for something. Null when the table
+ *  has no row for that size. */
+function incomeRowFor(
+  rows: { householdSize: number; monthlyLimit: number }[],
+  size: number,
+): { householdSize: number; monthlyLimit: number } | null {
+  let best: { householdSize: number; monthlyLimit: number } | null = null;
+  for (const r of rows) {
+    if (r.householdSize === size && (!best || r.monthlyLimit > best.monthlyLimit)) best = r;
+  }
+  return best;
+}
+
+function usd(n: number): string {
+  return `$${Math.round(n).toLocaleString("en-US")}`;
+}
+
+// Energy assistance counts the people who share the energy bill (the federal
+// LIHEAP household rule), so that is the one program-specific helper line we
+// can state reliably from the name alone. Everything else stays generic.
+function isEnergyAssistance(name: string): boolean {
+  return /\bliheap\b|\bceap\b|energy assistance|heating assistance/i.test(name);
+}
 
 const TIMELINE_OPTIONS: { label: string; value: string }[] = [
   { label: "As soon as possible", value: "asap" },
@@ -158,11 +265,15 @@ const AGE_OPTIONS: { label: string; value: string }[] = [
   { label: "85 or older", value: "85_plus" },
 ];
 
-const MEDICAID_OPTIONS: { label: string; value: string }[] = [
-  { label: "Yes, they have it", value: "alreadyHas" },
-  { label: "Applying or not sure", value: "notSure" },
-  { label: "No", value: "doesNotHave" },
-];
+// Worded for whoever needs care: "Yes, I have it" when the family picked
+// "Myself", "Yes, they have it" otherwise.
+function medicaidOptions(isSelf: boolean): { label: string; value: string }[] {
+  return [
+    { label: isSelf ? "Yes, I have it" : "Yes, they have it", value: "alreadyHas" },
+    { label: "Applying or not sure", value: "notSure" },
+    { label: "No", value: "doesNotHave" },
+  ];
+}
 
 const INCOME_OPTIONS: { label: string; value: string }[] = [
   { label: "Under $1,500 a month", value: "under1500" },
@@ -185,6 +296,9 @@ export default function ProgramBenefitsCard({
   programs,
   sessionId,
   variant = "rail",
+  cardFlow = null,
+  incomeTable = null,
+  callContact = null,
 }: ProgramBenefitsCardProps) {
   const { user } = useAuth();
   const authedEmail = user?.email ?? null;
@@ -195,6 +309,9 @@ export default function ProgramBenefitsCard({
   const [error, setError] = useState<string | null>(null);
   const [resultCount, setResultCount] = useState(0);
   const [resultToken, setResultToken] = useState<string | null>(null);
+  // save-results sends the welcome email (plan link) only to a NEW account,
+  // so the three_tap answer screen mentions the email only when one went.
+  const [planEmailed, setPlanEmailed] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [signInEmailed, setSignInEmailed] = useState(true);
 
@@ -212,12 +329,32 @@ export default function ProgramBenefitsCard({
   const [incomeBand, setIncomeBand] = useState<string | null>(null);
   const [completedSteps, setCompletedSteps] = useState<BenefitsEnrichmentStep[]>([]);
 
+  // The arm this visitor ran, frozen at submit so a late-resolving arm can't
+  // switch flows mid-way. Null before submit.
+  const [activeFlow, setActiveFlow] = useState<ProgramCardFlow | null>(null);
+  const [previewRun, setPreviewRun] = useState(false);
+  // three_tap answers
+  const [householdSize, setHouseholdSize] = useState<number | null>(null);
+  const [incomeAnswer, setIncomeAnswer] = useState<IncomeAnswer | null>(null);
+  const [ttError, setTtError] = useState<string | null>(null);
+  const [textOpen, setTextOpen] = useState(false);
+  const [textResult, setTextResult] = useState<"sent" | "not_sent" | null>(null);
+  const answerHeadingRef = useRef<HTMLHeadingElement | null>(null);
+
   // Track enrichment start only once
   const hasTrackedEnrichmentStart = useRef(false);
   const hasTrackedCtaEngagement = useRef(false);
 
   const entrySource = `/benefits/${stateId}/${programId}`;
   const ctaSurface = variant === "bare" ? "mobile" : "desktop";
+  // Every enrichment event carries the arm (metadata.card_flow).
+  const trackParams = {
+    programId,
+    stateCode,
+    profileId: profileId || undefined,
+    ctaSurface,
+    cardFlow: activeFlow ?? cardFlow ?? null,
+  } as const;
   const shortLabel = programShortName || programName;
   // Null when there's no leading dollar value: the eligibility-first headline.
   const savings = benefitAmountLabel(savingsRange);
@@ -233,13 +370,22 @@ export default function ProgramBenefitsCard({
       pagePath: entrySource,
       ctaId: "benefits_intake",
       ctaSurface,
+      metadata: { card_flow: cardFlow },
     });
-  }, [ctaSurface, entrySource]);
+  }, [ctaSurface, entrySource, cardFlow]);
 
   const handleSubmit = useCallback(async () => {
     setError(null);
+    const flowForSubmit: ProgramCardFlow = cardFlow === "three_tap" ? "three_tap" : "control";
     if (isPreviewMode()) {
-      setError("Preview mode: submission disabled.");
+      // Admin preview walks either arm with nothing saved or sent: no
+      // profile id means every PATCH below is skipped, and the analytics
+      // helpers drop events in preview.
+      const filteredPreview = (programs ?? []).filter((p) => matchesCareNeed(p, careNeed));
+      setResultCount(Math.max(filteredPreview.length, 1));
+      setActiveFlow(flowForSubmit);
+      setPreviewRun(true);
+      setCardState(flowForSubmit === "three_tap" ? "tt_who" : "enrichment_1");
       return;
     }
     if (!emailValid) {
@@ -275,6 +421,7 @@ export default function ProgramBenefitsCard({
         stepNumber: 1,
         stepName: "contact",
         careNeedSelected: careNeed,
+        cardFlow: flowForSubmit,
       });
     }
 
@@ -285,6 +432,10 @@ export default function ProgramBenefitsCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           careNeed,
+          // The card never asks: careNeed is derived from the program page
+          // (deriveProgramCareNeed). Say so, so nothing downstream presents
+          // it as the family's words (lib/benefits/care-need-source.ts).
+          careNeedSource: "inferred_from_page",
           age: null,
           medicaidStatus: null,
           incomeRange: null,
@@ -321,10 +472,12 @@ export default function ProgramBenefitsCard({
         return;
       }
       setResultToken(typeof data.token === "string" ? data.token : null);
+      setPlanEmailed(data.isNewUser === true);
       setProfileId(typeof data.profileId === "string" ? data.profileId : null);
       setSaving(false);
-      // Transition to enrichment flow
-      setCardState("enrichment_1");
+      // Transition to the arm's post-email flow
+      setActiveFlow(flowForSubmit);
+      setCardState(flowForSubmit === "three_tap" ? "tt_who" : "enrichment_1");
     } catch {
       setError("Network error. Please try again.");
       setSaving(false);
@@ -344,6 +497,7 @@ export default function ProgramBenefitsCard({
     shortLabel,
     savingsRange,
     programType,
+    cardFlow,
   ]);
 
   const shell =
@@ -353,16 +507,17 @@ export default function ProgramBenefitsCard({
 
   // Track enrichment started when entering enrichment flow
   useEffect(() => {
-    if (cardState === "enrichment_1" && !hasTrackedEnrichmentStart.current && profileId) {
+    if ((cardState === "enrichment_1" || cardState === "tt_who") && !hasTrackedEnrichmentStart.current && profileId) {
       hasTrackedEnrichmentStart.current = true;
       trackBenefitsEnrichmentStarted({
         programId,
         stateCode,
         profileId,
         ctaSurface,
+        cardFlow: activeFlow,
       });
     }
-  }, [cardState, profileId, programId, stateCode, ctaSurface]);
+  }, [cardState, profileId, programId, stateCode, ctaSurface, activeFlow]);
 
   // All update-enrichment PATCHes run through one chain: the route does a
   // read-merge-write on profile metadata, so two in-flight requests can
@@ -423,6 +578,7 @@ export default function ProgramBenefitsCard({
         phone: phoneToSave,
         sessionId,
         completedSteps: finalCompletedSteps,
+        cardFlow: activeFlow,
       });
       if (phoneToSave) {
         void saved.then((res) => {
@@ -434,7 +590,7 @@ export default function ProgramBenefitsCard({
     }
 
     setCardState("enrichment_5");
-  }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId, enqueuePatch]);
+  }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId, enqueuePatch, activeFlow]);
 
   // End of the flow (after step 7, answered or skipped). The completion
   // marker rides the serialized chain, so it lands AFTER every fact PATCH —
@@ -442,7 +598,7 @@ export default function ProgramBenefitsCard({
   const finishFlow = useCallback((finalCompletedSteps: BenefitsEnrichmentStep[]) => {
     if (profileId) {
       trackBenefitsEnrichmentCompleted(
-        { programId, stateCode, profileId, ctaSurface },
+        { ...trackParams, profileId },
         finalCompletedSteps
       );
       void enqueuePatch({
@@ -452,10 +608,12 @@ export default function ProgramBenefitsCard({
         sessionId,
         enrichmentComplete: true,
         completedSteps: finalCompletedSteps,
+        cardFlow: activeFlow,
       });
     }
     setCardState("success");
-  }, [profileId, programId, stateCode, ctaSurface, enqueuePatch, resultToken, sessionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileId, programId, stateCode, ctaSurface, enqueuePatch, resultToken, sessionId, activeFlow]);
 
   // Facts round (5-7): every tap PATCHes immediately (through the serialized
   // chain) — a mid-round abandon loses nothing, and the /m gap chips are the
@@ -474,6 +632,9 @@ export default function ProgramBenefitsCard({
   // Medicaid step is redundant when they already told us they'll pay with
   // Medicaid (the facts reader infers alreadyHas from payment_methods).
   const medicaidRedundant = paymentMethod === "medicaid";
+  // "You" vs "they": every question after "Who needs care?" speaks to the
+  // person who needs care when the family picked "Myself".
+  const isSelf = recipient === "self";
 
   // Step 1: Select recipient
   const selectRecipient = useCallback((val: string) => {
@@ -481,9 +642,9 @@ export default function ProgramBenefitsCard({
     setRecipient(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 1];
     setCompletedSteps(newCompleted);
-    trackBenefitsEnrichmentStepCompleted(1, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    trackBenefitsEnrichmentStepCompleted(1, trackParams);
     setTimeout(() => setCardState("enrichment_2"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, claimStep]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, claimStep]);
 
   // Step 2: Select timeline
   const selectTimeline = useCallback((val: string) => {
@@ -491,9 +652,9 @@ export default function ProgramBenefitsCard({
     setTimeline(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 2];
     setCompletedSteps(newCompleted);
-    trackBenefitsEnrichmentStepCompleted(2, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    trackBenefitsEnrichmentStepCompleted(2, trackParams);
     setTimeout(() => setCardState("enrichment_3"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, claimStep]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, claimStep]);
 
   // Step 3: Select payment method
   const selectPayment = useCallback((val: string) => {
@@ -501,9 +662,9 @@ export default function ProgramBenefitsCard({
     setPaymentMethod(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 3];
     setCompletedSteps(newCompleted);
-    trackBenefitsEnrichmentStepCompleted(3, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    trackBenefitsEnrichmentStepCompleted(3, trackParams);
     setTimeout(() => setCardState("enrichment_4"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, claimStep]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, claimStep]);
 
   // Step 4: Phone (the only typed step — last so it can't dampen the one-tap
   // streak). Submitting texts the results link right away, server-side.
@@ -515,10 +676,10 @@ export default function ProgramBenefitsCard({
     setPhoneSaving(true);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 4];
     setCompletedSteps(newCompleted);
-    trackBenefitsEnrichmentStepCompleted(4, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    trackBenefitsEnrichmentStepCompleted(4, trackParams);
     // Pass phone directly to avoid stale closure (state won't be updated yet)
     saveEnrichmentData(newCompleted, undefined, phone);
-  }, [phone, phoneSaving, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData, claimStep]);
+  }, [phone, phoneSaving, completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, saveEnrichmentData, claimStep]);
 
   // Step 5: Age band
   const selectAge = useCallback((val: string) => {
@@ -526,10 +687,10 @@ export default function ProgramBenefitsCard({
     setAgeBand(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 5];
     setCompletedSteps(newCompleted);
-    trackBenefitsEnrichmentStepCompleted(5, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    trackBenefitsEnrichmentStepCompleted(5, trackParams);
     patchFact({ ageBand: val });
     setTimeout(() => setCardState(medicaidRedundant ? "enrichment_7" : "enrichment_6"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, medicaidRedundant, claimStep]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, patchFact, medicaidRedundant, claimStep]);
 
   // Step 6: Medicaid status
   const selectMedicaid = useCallback((val: string) => {
@@ -537,10 +698,10 @@ export default function ProgramBenefitsCard({
     setMedicaidChoice(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 6];
     setCompletedSteps(newCompleted);
-    trackBenefitsEnrichmentStepCompleted(6, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    trackBenefitsEnrichmentStepCompleted(6, trackParams);
     patchFact({ medicaidStatus: val });
     setTimeout(() => setCardState("enrichment_7"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, claimStep]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, patchFact, claimStep]);
 
   // Step 7: Income band
   const selectIncome = useCallback((val: string) => {
@@ -548,10 +709,10 @@ export default function ProgramBenefitsCard({
     setIncomeBand(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 7];
     setCompletedSteps(newCompleted);
-    trackBenefitsEnrichmentStepCompleted(7, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    trackBenefitsEnrichmentStepCompleted(7, trackParams);
     patchFact({ incomeRange: val });
     setTimeout(() => finishFlow(newCompleted), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, finishFlow, claimStep]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, patchFact, finishFlow, claimStep]);
 
   // Skip current step
   const handleSkip = useCallback(() => {
@@ -569,7 +730,7 @@ export default function ProgramBenefitsCard({
     if (currentStep) {
       trackBenefitsEnrichmentStepSkipped(
         currentStep,
-        { programId, stateCode, profileId: profileId || undefined, ctaSurface },
+        trackParams,
         completedSteps
       );
     }
@@ -597,7 +758,295 @@ export default function ProgramBenefitsCard({
         finishFlow(completedSteps);
         break;
     }
-  }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData, finishFlow, medicaidRedundant, claimStep]);
+  }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, activeFlow, saveEnrichmentData, finishFlow, medicaidRedundant, claimStep]);
+
+  // ─── three_tap arm ─────────────────────────────────────────────────────
+  // "You" until they say it's someone else (the sketch's default voice).
+  const ttSelf = recipient === null || recipient === "self";
+  const incomeRows = (incomeTable || [])
+    .filter((r) => typeof r.householdSize === "number" && typeof r.monthlyLimit === "number" && r.monthlyLimit > 0)
+    .slice()
+    .sort((a, b) => a.householdSize - b.householdSize);
+  const hasIncomeTable = incomeRows.length > 0;
+  const incomeRow = householdSize != null ? incomeRowFor(incomeRows, householdSize) : null;
+
+  /** Every three_tap write goes through the serialized chain, and a failure
+   *  says so inline (house rule: never a silent failed save). */
+  const patchTT = useCallback(
+    (body: Record<string, unknown>) => {
+      if (!profileId) return Promise.resolve(true);
+      return enqueuePatch({
+        profileId,
+        token: resultToken,
+        source: "benefits_enrichment",
+        sessionId,
+        cardFlow: "three_tap",
+        ...body,
+      }).then((res) => {
+        const ok = !!res && res.ok;
+        setTtError(ok ? null : "We couldn't save that answer. You can keep going.");
+        return ok;
+      });
+    },
+    [profileId, resultToken, sessionId, enqueuePatch],
+  );
+
+  const goToAnswer = useCallback(() => {
+    setCardState("tt_answer");
+  }, []);
+
+  const ttSelectRecipient = useCallback(
+    (val: string) => {
+      if (!claimStep()) return;
+      setRecipient(val);
+      const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 1];
+      setCompletedSteps(newCompleted);
+      trackBenefitsEnrichmentStepCompleted(1, trackParams);
+      // Same recipient write as control (syncIntentToProfile), just sent now.
+      void patchTT({ recipient: val, completedSteps: newCompleted });
+      setTimeout(() => (hasIncomeTable ? setCardState("tt_household") : goToAnswer()), 150);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [completedSteps, claimStep, patchTT, hasIncomeTable, goToAnswer, activeFlow, profileId],
+  );
+
+  const ttSelectHousehold = useCallback(
+    (n: number) => {
+      if (!claimStep()) return;
+      setHouseholdSize(n);
+      trackBenefitsNamedStep("household_size", "completed", trackParams, { household_size: n });
+      void patchTT({ householdSize: n });
+      const row = incomeRowFor(incomeRows, n);
+      setTimeout(() => (row ? setCardState("tt_income") : goToAnswer()), 150);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [claimStep, patchTT, goToAnswer, incomeTable, activeFlow, profileId],
+  );
+
+  const ttSelectIncome = useCallback(
+    (answer: IncomeAnswer) => {
+      if (!claimStep() || !incomeRow || householdSize == null) return;
+      setIncomeAnswer(answer);
+      trackBenefitsNamedStep("income_vs_limit", "completed", trackParams, {
+        answer,
+        household_size: householdSize,
+        limit: incomeRow.monthlyLimit,
+      });
+      void patchTT({
+        incomeVsLimit: {
+          limit: incomeRow.monthlyLimit,
+          householdSize,
+          answer,
+          programId,
+          stateId,
+        },
+      });
+      setTimeout(goToAnswer, 150);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [claimStep, incomeRow, householdSize, patchTT, goToAnswer, programId, stateId, activeFlow, profileId],
+  );
+
+  const ttSkip = useCallback(() => {
+    if (!claimStep()) return;
+    if (cardState === "tt_who") {
+      trackBenefitsEnrichmentStepSkipped(1, trackParams, completedSteps);
+      setTimeout(() => (hasIncomeTable ? setCardState("tt_household") : goToAnswer()), 150);
+    } else if (cardState === "tt_household") {
+      trackBenefitsNamedStep("household_size", "skipped", trackParams);
+      // No household size, no honest limit to ask against: straight to the call.
+      setTimeout(goToAnswer, 150);
+    } else if (cardState === "tt_income") {
+      trackBenefitsNamedStep("income_vs_limit", "skipped", trackParams);
+      setTimeout(goToAnswer, 150);
+    } else if (cardState === "tt_age") {
+      trackBenefitsEnrichmentStepSkipped(5, trackParams, completedSteps);
+      setTimeout(() => setCardState("tt_medicaid"), 150);
+    } else if (cardState === "tt_medicaid") {
+      trackBenefitsEnrichmentStepSkipped(6, trackParams, completedSteps);
+      setTimeout(() => setCardState("success"), 150);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardState, claimStep, completedSteps, hasIncomeTable, goToAnswer, activeFlow, profileId]);
+
+  // The answer — fixed strings, no AI. It reads the same income table the
+  // page prints, so it can never disagree with the page.
+  const answerKind: "no_table" | "under" | "over" | "unknown" = !hasIncomeTable
+    ? "no_table"
+    : incomeAnswer === "under"
+      ? "under"
+      : incomeAnswer === "over"
+        ? "over"
+        : "unknown";
+  // Over the limit: light a matched program with no income table instead,
+  // if one has a number to call.
+  //
+  // "No income table" is NOT "no income limit" (154 of 273 such programs
+  // mention an income rule in their summary, Texas Weatherization among
+  // them), so one whose own data says it has no income limit goes first, and
+  // the copy below never claims the fallback fits.
+  const altCandidates =
+    answerKind === "over"
+      ? (programs ?? [])
+          .filter((p) => matchesCareNeed(p, careNeed))
+          .filter(
+            (p) =>
+              p.id !== programId &&
+              // A benefit, not a counseling line or directory resource.
+              (!p.programType || p.programType === "benefit") &&
+              !(p.structuredEligibility?.incomeTable && p.structuredEligibility.incomeTable.length > 0) &&
+              !!p.callContact?.phone,
+          )
+      : [];
+  const altProgram = altCandidates.find((p) => p.noIncomeLimit) ?? altCandidates[0] ?? null;
+  const callTarget: { programId: string; shortName: string; contact: CallContact } | null = altProgram?.callContact
+    ? {
+        programId: altProgram.id,
+        shortName: altProgram.shortName || altProgram.name,
+        contact: { ...altProgram.callContact, description: null },
+      }
+    : callContact
+      ? { programId, shortName: shortLabel, contact: callContact }
+      : null;
+  const callScript = callTarget
+    ? recipient
+      ? buildCallScript(callTarget.shortName, RELATIONSHIP_DISPLAY[recipient] ?? null)
+      : `Hi, I'm calling to ask about ${callTarget.shortName}. Could you help me get started, or point me to the right person?`
+    : null;
+  const otherMatches = Math.max(resultCount - 1, 0);
+
+  // Reaching the answer is finishing the flow: fire completion once (events
+  // + the completion marker that drives the team's Slack summary), and move
+  // focus to the verdict for screen readers.
+  const hasFiredAnswer = useRef(false);
+  useEffect(() => {
+    if (cardState !== "tt_answer") return;
+    answerHeadingRef.current?.focus();
+    if (hasFiredAnswer.current) return;
+    hasFiredAnswer.current = true;
+    trackBenefitsEnrichmentCompleted(trackParams, completedSteps, {
+      answer_kind: answerKind,
+      household_size: householdSize,
+      call_program_id: callTarget?.programId ?? null,
+    });
+    if (profileId) {
+      void enqueuePatch({
+        profileId,
+        token: resultToken,
+        source: "benefits_enrichment",
+        sessionId,
+        enrichmentComplete: true,
+        completedSteps,
+        cardFlow: "three_tap",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardState]);
+
+  const onCallTap = useCallback(() => {
+    if (!callTarget) return;
+    trackBenefitsNamedStep("call_tapped", "completed", trackParams, {
+      call_program_id: callTarget.programId,
+      answer_kind: answerKind,
+    });
+    trackGrowthEvent({
+      eventType: "cta_engaged",
+      pagePath: entrySource,
+      ctaId: "three_tap_call",
+      ctaSurface,
+      metadata: { card_flow: "three_tap" },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callTarget?.programId, answerKind, entrySource, ctaSurface, activeFlow, profileId]);
+
+  const onTextOpen = useCallback(() => {
+    setTextOpen(true);
+    trackBenefitsNamedStep("text_me_opened", "completed", trackParams);
+    trackGrowthEvent({
+      eventType: "cta_engaged",
+      pagePath: entrySource,
+      ctaId: "three_tap_text_me",
+      ctaSurface,
+      metadata: { card_flow: "three_tap" },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entrySource, ctaSurface, activeFlow, profileId]);
+
+  // three_tap phone: awaited (not backgrounded like control) because the
+  // result shows right here, under the call.
+  const ttSubmitPhone = useCallback(async () => {
+    if (!phoneLooksValid(phone) || phoneSaving) return;
+    setPhoneSaving(true);
+    setTtError(null);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 4];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(4, trackParams);
+    if (!profileId) {
+      setPhoneSaving(false);
+      setTextResult(previewRun ? "sent" : "not_sent");
+      return;
+    }
+    const res = await enqueuePatch({
+      profileId,
+      token: resultToken,
+      source: "benefits_enrichment",
+      sessionId,
+      phone,
+      completedSteps: newCompleted,
+      cardFlow: "three_tap",
+    });
+    setPhoneSaving(false);
+    if (!res || !res.ok) {
+      setPhoneSaveFailed(true);
+      setTtError("We couldn't save your number. Please try again.");
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    setTextResult(data?.smsSent ? "sent" : "not_sent");
+    if (!data?.smsSent) setPhoneSaveFailed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phone, phoneSaving, completedSteps, profileId, resultToken, sessionId, enqueuePatch, previewRun, activeFlow]);
+
+  const onMoreOpen = useCallback(() => {
+    trackBenefitsNamedStep("more_questions_opened", "completed", trackParams);
+    trackGrowthEvent({
+      eventType: "cta_engaged",
+      pagePath: entrySource,
+      ctaId: "three_tap_more",
+      ctaSurface,
+      metadata: { card_flow: "three_tap" },
+    });
+    setCardState("tt_age");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entrySource, ctaSurface, activeFlow, profileId]);
+
+  const ttSelectAge = useCallback(
+    (val: string) => {
+      if (!claimStep()) return;
+      setAgeBand(val);
+      const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 5];
+      setCompletedSteps(newCompleted);
+      trackBenefitsEnrichmentStepCompleted(5, trackParams);
+      void patchTT({ ageBand: val });
+      setTimeout(() => setCardState("tt_medicaid"), 150);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [claimStep, completedSteps, patchTT, activeFlow, profileId],
+  );
+
+  const ttSelectMedicaid = useCallback(
+    (val: string) => {
+      if (!claimStep()) return;
+      setMedicaidChoice(val);
+      const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 6];
+      setCompletedSteps(newCompleted);
+      trackBenefitsEnrichmentStepCompleted(6, trackParams);
+      void patchTT({ medicaidStatus: val });
+      setTimeout(() => setCardState("success"), 150);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [claimStep, completedSteps, patchTT, activeFlow, profileId],
+  );
 
   // Current step number for progress dots (1-7)
   const currentStepNumber =
@@ -677,6 +1126,371 @@ export default function ProgramBenefitsCard({
             <ArrowRight className="h-4 w-4" weight="bold" />
           </a>
         )}
+      </div>
+    );
+  }
+
+  // ─── three_tap states ──────────────────────────────────────────────────
+  if (cardState.startsWith("tt_")) {
+    const optionClass = (selected: boolean) =>
+      `w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 ${
+        selected
+          ? "bg-gray-900 text-white border-gray-900"
+          : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 motion-safe:active:scale-[0.98]"
+      }`;
+    const skipButton = (
+      <button
+        type="button"
+        onClick={ttSkip}
+        className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors focus:outline-none focus-visible:text-gray-700 focus-visible:underline"
+      >
+        Skip
+      </button>
+    );
+    const errorLine = ttError ? (
+      <p className="mt-2 text-center text-[13px] text-red-600" role="alert">
+        {ttError}
+      </p>
+    ) : null;
+    const previewLine = previewRun ? (
+      <p className="mb-3 text-center text-[12px] text-gray-400">Preview: nothing is saved or sent.</p>
+    ) : null;
+
+    // Progress dots for the question screens only (1 or 3 questions).
+    const ttSteps = hasIncomeTable ? ["tt_who", "tt_household", "tt_income"] : ["tt_who"];
+    const ttIndex = ttSteps.indexOf(cardState);
+    const dots =
+      ttIndex >= 0 && ttSteps.length > 1 ? (
+        <div className="flex items-center justify-center gap-1.5 mb-4" aria-hidden>
+          {ttSteps.map((st, i) => (
+            <div
+              key={st}
+              className={`rounded-full transition-all duration-300 ${
+                i <= ttIndex ? "bg-gray-900 w-6 h-1.5" : "bg-gray-200 w-1.5 h-1.5"
+              }`}
+            />
+          ))}
+        </div>
+      ) : null;
+
+    if (cardState === "tt_who") {
+      return (
+        <div className={shell}>
+          {previewLine}
+          {dots}
+          <div className="motion-safe:animate-in motion-safe:fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Who is this for?</h3>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {TT_RECIPIENT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => ttSelectRecipient(opt.value)}
+                  className={optionClass(recipient === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {skipButton}
+            {errorLine}
+          </div>
+        </div>
+      );
+    }
+
+    if (cardState === "tt_household") {
+      const helper = isEnergyAssistance(`${programName} ${shortLabel}`)
+        ? "Everyone who shares the utility bills."
+        : ttSelf
+          ? "Everyone who lives with you."
+          : "Everyone who lives with them.";
+      return (
+        <div className={shell}>
+          {previewLine}
+          {dots}
+          <div className="motion-safe:animate-in motion-safe:fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              {ttSelf ? "How many people live in your home?" : "How many people live in their home?"}
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">{helper}</p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {TT_HOUSEHOLD_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => ttSelectHousehold(opt.value)}
+                  className={optionClass(householdSize === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {skipButton}
+            {errorLine}
+          </div>
+        </div>
+      );
+    }
+
+    if (cardState === "tt_income" && incomeRow && householdSize != null) {
+      const whose =
+        householdSize > 1 ? (ttSelf ? "your household's" : "their household's") : ttSelf ? "your" : "their";
+      const people = `${householdSize} ${householdSize === 1 ? "person" : "people"}`;
+      return (
+        <div className={shell}>
+          {previewLine}
+          {dots}
+          <div className="motion-safe:animate-in motion-safe:fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              Is {whose} income under {usd(incomeRow.monthlyLimit)} a month?
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">
+              Before tax, including Social Security. That&apos;s {stateName}&apos;s limit for {people}.
+            </p>
+            <div className="space-y-2 mb-4">
+              {TT_INCOME_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => ttSelectIncome(opt.value)}
+                  className={optionClass(incomeAnswer === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {skipButton}
+            {errorLine}
+          </div>
+        </div>
+      );
+    }
+
+    if (cardState === "tt_age") {
+      return (
+        <div className={shell}>
+          {previewLine}
+          <div className="motion-safe:animate-in motion-safe:fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              {ttSelf ? "How old are you?" : "How old is the person needing care?"}
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">Two quick taps. These sort your other matches.</p>
+            <div className="space-y-2 mb-4">
+              {AGE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => ttSelectAge(opt.value)}
+                  className={optionClass(ageBand === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {skipButton}
+            {errorLine}
+          </div>
+        </div>
+      );
+    }
+
+    if (cardState === "tt_medicaid") {
+      return (
+        <div className={shell}>
+          {previewLine}
+          <div className="motion-safe:animate-in motion-safe:fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              {ttSelf ? "Do you have Medicaid?" : "Do they have Medicaid?"}
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">
+              Several programs need Medicaid first. Knowing this sorts your list.
+            </p>
+            <div className="space-y-2 mb-4">
+              {medicaidOptions(ttSelf).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => ttSelectMedicaid(opt.value)}
+                  className={optionClass(medicaidChoice === opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {skipButton}
+            {errorLine}
+          </div>
+        </div>
+      );
+    }
+
+    // tt_answer (and any tt_ state whose data went missing falls here too).
+    const n = householdSize ?? 1;
+    const headline =
+      answerKind === "under"
+        ? n > 1
+          ? `${ttSelf ? "Your" : "Their"} household is under the income limit for ${shortLabel}.`
+          : `${ttSelf ? "You're" : "They're"} under the income limit for ${shortLabel}.`
+        : answerKind === "over"
+          ? `${shortLabel} probably isn't a fit at that income.`
+          : answerKind === "unknown"
+            ? "The agency checks income on the call."
+            : "Your next step is one call.";
+    const sub =
+      answerKind === "under"
+        ? "The local agency makes the final call."
+        : answerKind === "over"
+          ? altProgram
+            ? `${altProgram.shortName || altProgram.name} has different rules, so it's worth a call.`
+            : "The agency can tell you about other help."
+          : answerKind === "no_table"
+            ? // No table can mean no income test at all (Seattle Gold Card),
+              // so nothing here mentions income.
+              "They'll tell you what you need to apply."
+            : null;
+    const hours =
+      callTarget?.contact.hours && looksLikeHours(callTarget.contact.hours) ? callTarget.contact.hours : null;
+
+    return (
+      <div className={`${shell} ${variant === "bare" ? "min-h-[72dvh]" : ""} flex flex-col`}>
+        {previewLine}
+        <div className="motion-safe:animate-in motion-safe:fade-in duration-300 flex flex-1 flex-col">
+          {/* The verdict, lit softly — the one thing the button promised. */}
+          <div className="relative isolate mb-5">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-x-4 -inset-y-3 -z-10 rounded-3xl"
+              style={{
+                background:
+                  "radial-gradient(60% 70% at 35% 35%, rgba(241,229,214,0.95), rgba(241,229,214,0) 70%)",
+              }}
+            />
+            <h3
+              ref={answerHeadingRef}
+              tabIndex={-1}
+              className="font-display text-[26px] leading-[1.15] text-gray-900 focus:outline-none"
+            >
+              {headline}
+            </h3>
+            {sub && <p className="mt-1.5 text-[14px] leading-relaxed text-gray-600">{sub}</p>}
+          </div>
+
+          {callTarget && callScript ? (
+            <div>
+              <p className="text-[12px] font-medium text-gray-500">Who to call</p>
+              <p className="mt-0.5 text-[15px] font-semibold leading-snug text-gray-900">
+                {stripParen(callTarget.contact.label)}
+              </p>
+              {hours && <p className="mt-0.5 text-[13px] text-gray-500">{hours}</p>}
+              <a
+                href={telHref(callTarget.contact.phone)}
+                onClick={onCallTap}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-700 px-5 py-4 text-[17px] font-semibold text-white shadow-sm transition-colors hover:bg-primary-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/50 focus-visible:ring-offset-2 motion-safe:active:scale-[0.98]"
+                aria-label={`Call ${stripParen(callTarget.contact.label)} at ${callTarget.contact.phone}`}
+              >
+                <Phone className="h-5 w-5" weight="fill" aria-hidden />
+                Call {callTarget.contact.phone}
+              </a>
+              <div className="mt-3 rounded-2xl rounded-bl-md bg-[#F4EEE6] px-4 py-3">
+                <p className="text-[12px] font-medium text-[#8C8882]">What to say</p>
+                <p className="mt-0.5 text-[14px] leading-relaxed text-gray-900">&ldquo;{callScript}&rdquo;</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-[14px] leading-relaxed text-gray-600">
+              Your plan has the next step and who to contact.
+            </p>
+          )}
+
+          <div className="mt-5 flex flex-col items-center gap-3 text-center">
+            {callTarget && !textOpen && textResult === null && (
+              <button
+                type="button"
+                onClick={onTextOpen}
+                className="text-[14px] font-medium text-gray-700 underline decoration-gray-300 underline-offset-4 hover:text-gray-900 focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-primary-600/40"
+              >
+                Text me my plan
+              </button>
+            )}
+            {textOpen && textResult === null && (
+              <div className="w-full text-left">
+                <p className="text-[13px] text-gray-500 mb-2">
+                  We&apos;ll text you a link to your plan. You can reply with any questions;
+                  Olera&apos;s care team replies within 2 business days.
+                </p>
+                <label htmlFor={`tt-phone-${variant}`} className="sr-only">
+                  Your mobile number
+                </label>
+                <input
+                  id={`tt-phone-${variant}`}
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && phoneLooksValid(phone)) {
+                      e.preventDefault();
+                      void ttSubmitPhone();
+                    }
+                  }}
+                  placeholder="Your mobile number"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-[16px] text-gray-900 placeholder:text-gray-400 transition focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-600/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => void ttSubmitPhone()}
+                  disabled={!phoneLooksValid(phone) || phoneSaving}
+                  className="mt-2 w-full py-3 px-4 rounded-xl text-[15px] font-semibold text-center transition-all duration-150 bg-gray-900 text-white disabled:opacity-40 disabled:cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40"
+                >
+                  {phoneSaving ? "Sending…" : "Text me"}
+                </button>
+                <p className="mt-2 text-[11px] leading-relaxed text-gray-400">
+                  By adding your number you agree to receive care-related texts from Olera.
+                  Reply STOP anytime.
+                </p>
+              </div>
+            )}
+            {textResult === "sent" && (
+              <p className="text-[14px] text-gray-700" role="status">
+                Sent. Check your texts.
+              </p>
+            )}
+            {textResult === "not_sent" && (
+              <p className="text-[14px] text-gray-700" role="status">
+                {planEmailed || previewRun
+                  ? "We couldn't text that number. Your plan link is in your email."
+                  : "We couldn't text that number."}
+              </p>
+            )}
+            {errorLine}
+            {(planEmailed || previewRun) && (
+              <p className="text-[13px] text-gray-400">Your plan link is in your email.</p>
+            )}
+          </div>
+
+          <div className="mt-auto flex flex-col items-center gap-2 pt-5 text-center">
+            <button
+              type="button"
+              onClick={onMoreOpen}
+              className="text-[13px] text-gray-500 hover:text-gray-800 focus:outline-none focus-visible:underline"
+            >
+              {otherMatches > 0
+                ? `2 more questions sort your other ${otherMatches} ${otherMatches === 1 ? "match" : "matches"}`
+                : "2 more questions sharpen your plan"}
+            </button>
+            {resultToken && (
+              <a
+                href={`/m/${resultToken}`}
+                onClick={() => trackBenefitsNamedStep("plan_opened", "completed", trackParams)}
+                className="text-[13px] font-medium text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-900 focus:outline-none focus-visible:underline"
+              >
+                See your plan
+              </a>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -762,7 +1576,7 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_2" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              How soon do you need care?
+              {isSelf ? "How soon do you need care?" : "How soon is care needed?"}
             </h3>
             <div className="space-y-2 mb-4">
               {TIMELINE_OPTIONS.map((opt) => (
@@ -794,11 +1608,12 @@ export default function ProgramBenefitsCard({
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
               Want this by text?
             </h3>
-            {/* Set the same care-team identity, conditional 48h reply promise,
-                and reply affordance that the Day-0 text carries. */}
+            {/* Set the same care-team identity, reply promise ("2 business
+                days", matching the SMS templates), and reply affordance that
+                the Day-0 text carries. */}
             <p className="text-[13px] text-gray-500 mb-4">
               We&apos;ll text your plan now. You can reply with any questions about next
-              steps; Olera&apos;s care team replies within 48 hours.
+              steps; Olera&apos;s care team replies within 2 business days.
             </p>
             <input
               type="tel"
@@ -839,7 +1654,7 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_5" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
-              How old is the person needing care?
+              {isSelf ? "How old are you?" : "How old is the person needing care?"}
             </h3>
             <p className="text-[13px] text-gray-500 mb-4">
               Three quick taps left. These check eligibility so your matches get more accurate.
@@ -872,13 +1687,13 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_6" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
-              Do they have Medicaid?
+              {isSelf ? "Do you have Medicaid?" : "Do they have Medicaid?"}
             </h3>
             <p className="text-[13px] text-gray-500 mb-4">
               Several programs need Medicaid first. Knowing this sorts your list.
             </p>
             <div className="space-y-2 mb-4">
-              {MEDICAID_OPTIONS.map((opt) => (
+              {medicaidOptions(isSelf).map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => selectMedicaid(opt.value)}

@@ -36,9 +36,10 @@ export default function ProgramBenefitsMobileCTA(props: Props) {
       pagePath: `/benefits/${props.stateId}/${props.programId}`,
       ctaId: "benefits_intake",
       ctaSurface: "mobile_sticky",
+      metadata: { card_flow: props.cardFlow ?? null },
     });
     setOpen(true);
-  }, [props.programId, props.stateId]);
+  }, [props.programId, props.stateId, props.cardFlow]);
 
   // Escape to close + lock body scroll while the sheet is open.
   useEffect(() => {

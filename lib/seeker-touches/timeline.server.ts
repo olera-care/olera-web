@@ -348,7 +348,17 @@ const CHECKIN_WORD: Record<string, string> = {
  * a person, and so is anything longer than a few words, which may be a real
  * message that happens to contain the word.
  */
-function checkinAnswer(body: string | null): string | null {
+function checkinAnswer(body: string | null, at: string, prompts: string[]): string | null {
+  // Only as an answer to a check-in we actually sent in the two weeks before
+  // it. A city family asked "Did Assisting Hands reach you?" can reply "Yes
+  // they called", which parses as CALLED, and that is a reply a person has to
+  // see.
+  const t = new Date(at).getTime();
+  const asked = prompts.some((p) => {
+    const pt = new Date(p).getTime();
+    return pt <= t && t - pt <= 14 * DAY_MS;
+  });
+  if (!asked) return null;
   const text = (body ?? "").trim();
   // A question ("applied?") is asking us something, not telling us.
   if (!text || text.includes("?") || text.split(/\s+/).length > 3) return null;
@@ -356,8 +366,11 @@ function checkinAnswer(body: string | null): string | null {
   return m.keyword && !m.ambiguous && m.keyword !== "STUCK" ? m.keyword : null;
 }
 
-function smsToItem(r: SmsRow): SeekerTimelineItem {
-  const checkin = checkinAnswer(r.body);
+/** When we sent this family a benefits check-in text ("Reply CALLED, …"). */
+const CHECKIN_PROMPT = /Reply (CALLED|APPLIED)\b/i;
+
+function smsToItem(r: SmsRow, prompts: string[] = []): SeekerTimelineItem {
+  const checkin = checkinAnswer(r.body, r.created_at, prompts);
   return {
     id: `sms:${r.id}`,
     kind: "sms",
@@ -1165,7 +1178,8 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   const contact = toContact(p);
   const conns = (f.conns.get(p.id) ?? []).slice().sort(byCreatedDesc);
   const emails = (f.emails.get(p.id) ?? []).slice().sort(byCreatedDesc);
-  const sms = (f.sms.get(p.id) ?? []).map(smsToItem);
+  const checkinPrompts = emails.filter((e) => isSms(e) && CHECKIN_PROMPT.test(e.html_body ?? "")).map((e) => e.created_at);
+  const sms = (f.sms.get(p.id) ?? []).map((r) => smsToItem(r, checkinPrompts));
   const support = f.support.get(p.id) ?? [];
   const lead = f.cityLeads.get(p.id);
   const cityMsgs = (f.cityMsgs.get(p.id) ?? []).map(cityMsgToItem);

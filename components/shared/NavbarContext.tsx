@@ -37,7 +37,7 @@ export function NavbarProvider({ children }: { children: React.ReactNode }) {
   const scrollThreshold = 10;
 
   // Auto-disable auto-hide on portal/provider routes
-  const isAlwaysVisibleRoute = ALWAYS_VISIBLE_ROUTES.some(route => pathname.startsWith(route));
+  const isAlwaysVisibleRoute = pathname ? ALWAYS_VISIBLE_ROUTES.some(route => pathname.startsWith(route)) : false;
 
   const enableAutoHide = useCallback(() => setAutoHide(true), []);
   const disableAutoHide = useCallback(() => {

@@ -27,6 +27,7 @@ import { deriveLeadSignals } from "@/lib/provider/lead-signals";
 import { QUICK_REPLY_CONFIG } from "@/lib/quick-reply-config";
 import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
 import { useBoostRequestSummary } from "@/hooks/useHasActiveBoostRequest";
+import { readCareAge } from "@/lib/benefits/age";
 
 // ── Lead types (previously from mock file) ──
 
@@ -1692,7 +1693,8 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   // Additional profile metadata fields (fresh data) - matches family profile wizard
   const schedulePreference = familyMeta.schedule_preference as string | undefined;
   const timeline = familyMeta.timeline as string | undefined;
-  const careRecipientAge = familyMeta.age as number | undefined;
+  // Exact typed age only: a one-tap band ("Under 65") is not an age.
+  const careRecipientAge = readCareAge(familyMeta).exact ?? undefined;
   const paymentMethods = familyMeta.payment_methods as string[] | undefined;
   const aboutSituation = (familyMeta.about_situation as string) || familyProfile?.description || undefined;
 

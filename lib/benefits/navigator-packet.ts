@@ -1,3 +1,4 @@
+import { AGE_BAND_LABELS, type AgeBand } from "@/lib/benefits/age";
 /**
  * Navigator packet — the computed verdict that decides what happens to a
  * first-step letter, replacing the human copy-paste review loop.
@@ -166,7 +167,10 @@ export interface FactsInput {
    */
   careNeed: string | null;
   careTypes: string[];
+  /** Typed exact age only. */
   age: number | null;
+  /** One-tap age band ("under_65"...), when no exact age was typed. */
+  ageBand?: AgeBand | null;
   incomeBand: string | null;
   medicaidStatus: string | null;
   veteranStatus: string | null;
@@ -209,6 +213,7 @@ export function readFacts(input: FactsInput): FactsRead {
   if (input.situation?.trim()) directional.push("described their situation");
 
   if (input.age != null) screening.push(`age ${input.age}`);
+  else if (input.ageBand) screening.push(`age band: ${AGE_BAND_LABELS[input.ageBand]}`);
   else missing.push("the age of the person needing care");
 
   if (input.medicaidStatus) screening.push(`Medicaid: ${input.medicaidStatus}`);

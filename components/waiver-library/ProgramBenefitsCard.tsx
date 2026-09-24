@@ -57,6 +57,7 @@ import {
   trackBenefitsEnrichmentCompleted,
   type BenefitsEnrichmentStep,
 } from "@/lib/analytics/benefits-enrichment-tracking";
+import { benefitAmountLabel, benefitAmountCaption } from "@/lib/benefits/savings-label";
 
 /** Lightweight program shape returned by /api/benefits/programs. */
 export interface BenefitsProgram {
@@ -95,17 +96,6 @@ export interface ProgramBenefitsCardProps {
   variant?: "rail" | "bare";
 }
 
-/** Pull the upper-bound dollar figure from a savings range string and format
- *  it as "Up to $X/mo" (or /yr). Returns null when there's no dollar value —
- *  which is the ~74% case that triggers the eligibility-first headline. */
-function topSavingsLabel(range?: string): string | null {
-  if (!range) return null;
-  const matches = range.match(/\$[\d,]+/g);
-  if (!matches || matches.length === 0) return null;
-  const top = matches[matches.length - 1];
-  const period = /\bmo\b|month/i.test(range) ? "/mo" : "/yr";
-  return `Up to ${top}${period}`;
-}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -155,14 +145,13 @@ const PAYMENT_OPTIONS: { label: string; value: string }[] = [
   { label: "Long-term care insurance", value: "long_term_care_insurance" },
 ];
 
-// Phase 3 facts (steps 5-7). Age bands store the same representative numbers
-// as the email micro-quiz (family-quiz allowlist) so every facts reader sees
-// one vocabulary.
+// Phase 3 facts (steps 5-7). Age answers are BANDS (metadata.age_band), the
+// same vocabulary as the email micro-quiz, never a fake exact age.
 const AGE_OPTIONS: { label: string; value: string }[] = [
-  { label: "Under 65", value: "60" },
-  { label: "65 to 74", value: "70" },
-  { label: "75 to 84", value: "80" },
-  { label: "85 or older", value: "87" },
+  { label: "Under 65", value: "under_65" },
+  { label: "65 to 74", value: "65_74" },
+  { label: "75 to 84", value: "75_84" },
+  { label: "85 or older", value: "85_plus" },
 ];
 
 const MEDICAID_OPTIONS: { label: string; value: string }[] = [
@@ -222,7 +211,8 @@ export default function ProgramBenefitsCard({
   const entrySource = `/benefits/${stateId}/${programId}`;
   const ctaSurface = variant === "bare" ? "mobile" : "desktop";
   const shortLabel = programShortName || programName;
-  const savings = topSavingsLabel(savingsRange);
+  // Null when there's no leading dollar value: the eligibility-first headline.
+  const savings = benefitAmountLabel(savingsRange);
 
   const submittableEmail = (authedEmail ?? email).trim();
   const emailValid = EMAIL_RE.test(submittableEmail);
@@ -241,7 +231,7 @@ export default function ProgramBenefitsCard({
   const handleSubmit = useCallback(async () => {
     setError(null);
     if (isPreviewMode()) {
-      setError("Preview mode — submission disabled.");
+      setError("Preview mode: submission disabled.");
       return;
     }
     if (!emailValid) {
@@ -377,14 +367,30 @@ export default function ProgramBenefitsCard({
     return p;
   }, []);
 
+  // One action per step. Every answer/Skip advances after a short beat, and
+  // before this lock a second tap in that window (or, on the phone step,
+  // while the save was in flight) landed on the NEXT step's Skip and threw
+  // away a question the family never saw. The lock releases when the step
+  // actually changes.
+  const stepLock = useRef(false);
+  useEffect(() => {
+    stepLock.current = false;
+  }, [cardState]);
+  const claimStep = useCallback(() => {
+    if (stepLock.current) return false;
+    stepLock.current = true;
+    return true;
+  }, []);
+
   // The phone checkpoint: saves steps 1-3 (+phone when given) in one PATCH,
   // then advances into the facts round (5-7) instead of ending the flow.
-  // ALWAYS advances — a missing profileId skips the save, never strands the
-  // card on the phone step.
+  // Advances IMMEDIATELY: the save rides the serialized chain in the
+  // background (later fact PATCHes queue behind it), so the card never sits
+  // on the phone step waiting for the SMS send.
   // Note: finalPayment/finalPhone are passed directly to avoid stale closure
   // issues (React state updates are async, so the state values may not be
   // updated yet when called from selectPayment / submitPhone)
-  const saveEnrichmentData = useCallback(async (
+  const saveEnrichmentData = useCallback((
     finalCompletedSteps: BenefitsEnrichmentStep[],
     finalPayment?: string,
     finalPhone?: string
@@ -394,7 +400,7 @@ export default function ProgramBenefitsCard({
 
     // Only call API if we have data to save
     if (profileId && (recipient || timeline || payment || phoneToSave)) {
-      await enqueuePatch({
+      void enqueuePatch({
         profileId,
         token: resultToken,
         recipient,
@@ -450,30 +456,33 @@ export default function ProgramBenefitsCard({
 
   // Step 1: Select recipient
   const selectRecipient = useCallback((val: string) => {
+    if (!claimStep()) return;
     setRecipient(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 1];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(1, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     setTimeout(() => setCardState("enrichment_2"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, claimStep]);
 
   // Step 2: Select timeline
   const selectTimeline = useCallback((val: string) => {
+    if (!claimStep()) return;
     setTimeline(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 2];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(2, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     setTimeout(() => setCardState("enrichment_3"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, claimStep]);
 
   // Step 3: Select payment method
   const selectPayment = useCallback((val: string) => {
+    if (!claimStep()) return;
     setPaymentMethod(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 3];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(3, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     setTimeout(() => setCardState("enrichment_4"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, claimStep]);
 
   // Step 4: Phone (the only typed step — last so it can't dampen the one-tap
   // streak). Submitting texts the results link right away, server-side.
@@ -481,46 +490,51 @@ export default function ProgramBenefitsCard({
   // slow-connection double-tap would PATCH twice and send two texts.
   const submitPhone = useCallback(() => {
     if (!phoneLooksValid(phone) || phoneSaving) return;
+    if (!claimStep()) return;
     setPhoneSaving(true);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 4];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(4, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     // Pass phone directly to avoid stale closure (state won't be updated yet)
     saveEnrichmentData(newCompleted, undefined, phone);
-  }, [phone, phoneSaving, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
+  }, [phone, phoneSaving, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData, claimStep]);
 
   // Step 5: Age band
   const selectAge = useCallback((val: string) => {
+    if (!claimStep()) return;
     setAgeBand(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 5];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(5, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     patchFact({ ageBand: val });
     setTimeout(() => setCardState(medicaidRedundant ? "enrichment_7" : "enrichment_6"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, medicaidRedundant]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, medicaidRedundant, claimStep]);
 
   // Step 6: Medicaid status
   const selectMedicaid = useCallback((val: string) => {
+    if (!claimStep()) return;
     setMedicaidChoice(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 6];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(6, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     patchFact({ medicaidStatus: val });
     setTimeout(() => setCardState("enrichment_7"), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, claimStep]);
 
   // Step 7: Income band
   const selectIncome = useCallback((val: string) => {
+    if (!claimStep()) return;
     setIncomeBand(val);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 7];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(7, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     patchFact({ incomeRange: val });
     setTimeout(() => finishFlow(newCompleted), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, finishFlow]);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, finishFlow, claimStep]);
 
   // Skip current step
   const handleSkip = useCallback(() => {
+    if (!claimStep()) return;
     const stepMap: Record<string, BenefitsEnrichmentStep> = {
       enrichment_1: 1,
       enrichment_2: 2,
@@ -562,7 +576,7 @@ export default function ProgramBenefitsCard({
         finishFlow(completedSteps);
         break;
     }
-  }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData, finishFlow, medicaidRedundant]);
+  }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData, finishFlow, medicaidRedundant, claimStep]);
 
   // Current step number for progress dots (1-7)
   const currentStepNumber =
@@ -581,7 +595,7 @@ export default function ProgramBenefitsCard({
         <div className="flex items-center gap-2 mb-2">
           <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600" weight="fill" />
           <p className="font-serif text-[19px] font-semibold leading-tight text-gray-900">
-            Sent — check your inbox.
+            Sent. Check your inbox.
           </p>
         </div>
         <p className="text-[14px] leading-relaxed text-gray-600">
@@ -591,7 +605,7 @@ export default function ProgramBenefitsCard({
               <span className="font-medium text-gray-900">
                 {resultCount} {stateName} {resultCount === 1 ? "program" : "programs"}
               </span>{" "}
-              you may qualify for — with eligibility and how to apply for each.
+              you may qualify for, with eligibility and how to apply for each.
               {completedSteps.includes(4) && <> Your results link is also on its way by text.</>}
               {(completedSteps.includes(5) || completedSteps.includes(6) || completedSteps.includes(7)) && (
                 <> We sorted your matches around what you shared.</>
@@ -838,10 +852,12 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_7" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
-              About how much is their monthly income?
+              {recipient === "self"
+                ? "About how much is your monthly income?"
+                : "About how much is the monthly income of the person who needs care?"}
             </h3>
             <p className="text-[13px] text-gray-500 mb-4">
-              Most programs have income limits. A rough range is all we need.
+              {recipient === "self" ? "Your own" : "Their own"} income, like Social Security or a pension, not the whole family&apos;s. Most programs have income limits, so a rough range is all we need.
             </p>
             <div className="space-y-2 mb-4">
               {INCOME_OPTIONS.map((opt) => (
@@ -911,10 +927,10 @@ export default function ProgramBenefitsCard({
       {savings ? (
         <>
           <p className="mt-0.5 font-serif text-[28px] font-bold leading-none tracking-tight text-gray-900">
-            {savings}
+            {savings.text}
           </p>
           <p className="mt-1.5 text-[13px] font-medium text-gray-600">
-            Estimated benefit — your amount depends on income &amp; household
+            {benefitAmountCaption(savings.kind)}
           </p>
         </>
       ) : (

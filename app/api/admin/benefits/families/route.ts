@@ -283,13 +283,14 @@ export async function GET(request: NextRequest) {
           (payments && payments.length) ||
           pMeta.payment_unsure ||
           pMeta.age ||
+          pMeta.age_band ||
           pMeta.medicaid_status ||
           pMeta.income_range,
       );
       // Situation complete = made it through all three eligibility asks
       // ("prefer not to say" counts as answered — this measures flow
       // completion; the situation line itself only shows real facts).
-      const situationComplete = Boolean(pMeta.age && pMeta.medicaid_status && pMeta.income_range);
+      const situationComplete = Boolean((pMeta.age || pMeta.age_band) && pMeta.medicaid_status && pMeta.income_range);
       // Textable = the SMS system can actually reach them (consent-aware).
       // Phone on file without consent = TJ can call, automation won't text.
       const hasPhone = Boolean(profile?.phone);

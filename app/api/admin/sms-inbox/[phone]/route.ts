@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import { createTwilioClient, sendSMS } from "@/lib/twilio";
 import { isPhoneDoNotContact } from "@/lib/do-not-contact";
 import { quietHoursCheck } from "@/lib/sms/quiet-hours";
+import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
 
 /**
  * One SMS conversation, and the ability to answer it.
@@ -317,8 +318,8 @@ function buildSeekerContext(
       ? (v as unknown[]).filter((x): x is string => typeof x === "string").map(humanize).join(", ") || null
       : null;
 
-  const age = meta.age;
-  push("Age", typeof age === "number" ? String(age) : str(age));
+  const careAge = readCareAge(meta);
+  push("Age", careAge.exact != null ? String(careAge.exact) : careAge.band ? AGE_BAND_LABELS[careAge.band] : null);
   push("Household income", str(meta.income_range) ? humanize(str(meta.income_range)!) : null);
   push("Timeline", str(meta.timeline) ? humanize(str(meta.timeline)!) : null);
   push("Coverage", list(meta.payment_methods));

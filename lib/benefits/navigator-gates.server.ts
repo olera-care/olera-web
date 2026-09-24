@@ -13,6 +13,7 @@ import {
   type RailHit,
   type RailId,
 } from "./navigator-packet";
+import { readCareAge } from "@/lib/benefits/age";
 
 /**
  * The model-backed gates behind a navigator packet.
@@ -99,7 +100,8 @@ export function factsFromProfile(profile: {
   const input: FactsInput = {
     careNeed: profile.careNeed ?? null,
     careTypes: Array.isArray(profile.care_types) ? profile.care_types.filter(Boolean) : [],
-    age: typeof meta.age === "number" && meta.age > 0 ? meta.age : null,
+    age: readCareAge(meta).exact,
+    ageBand: readCareAge(meta).band,
     incomeBand: typeof meta.income_range === "string" && meta.income_range ? meta.income_range : null,
     medicaidStatus:
       typeof meta.medicaid_status === "string" && meta.medicaid_status ? meta.medicaid_status : null,

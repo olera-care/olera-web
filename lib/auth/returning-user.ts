@@ -71,6 +71,35 @@ export async function emailReturningUserSignInLink(
   }
 }
 
+/**
+ * Resolve the auth user id for an email that already has an account, WITHOUT
+ * emailing anything. Supabase admin has no reliable get-by-email, so this uses
+ * generateLink purely for its `user.id` and throws the link away (the same
+ * pattern as the MedJobs partner start route). A later generateLink for the
+ * same email supersedes this one, so the discarded link is never usable.
+ *
+ * Use when a caller needs the user id before it knows where the emailed
+ * sign-in link should land (e.g. benefits save-results, which only has the
+ * /m/{token} plan URL after it has written to the account).
+ */
+export async function resolveExistingUserId(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  authClient: any,
+  email: string,
+): Promise<string | null> {
+  try {
+    const { data } = await authClient.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo: getSiteUrl() },
+    });
+    return data?.user?.id ?? null;
+  } catch (err) {
+    console.error("[returning-user] resolveExistingUserId failed:", err);
+    return null;
+  }
+}
+
 function returningSignInHtml(actionLink: string): string {
   return `
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">

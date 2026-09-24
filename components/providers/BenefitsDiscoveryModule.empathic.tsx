@@ -212,6 +212,11 @@ export default function EmpathicSingleStep({
   // Results token from save-results — the proof of ownership the
   // update-relationship endpoint requires.
   const [resultsToken, setResultsToken] = useState<string | null>(null);
+  // The email belongs to an existing account and this visitor is not signed
+  // in as it. save-results returns no token then (privacy), so the
+  // relationship pills (which write through the token) are hidden and the
+  // owner reaches their plan from the sign-in link we emailed.
+  const [returningFamily, setReturningFamily] = useState(false);
 
   const handleRelationshipPick = useCallback(
     async (value: Relationship) => {
@@ -304,6 +309,7 @@ export default function EmpathicSingleStep({
       setSubmittedMatchCount(typeof data.matchCount === "number" ? data.matchCount : matchingPrograms.length);
       setSubmittedEmail(submittableEmail.toLowerCase());
       setResultsToken(typeof data.token === "string" ? data.token : null);
+      setReturningFamily(data.existingUser === true);
       setSaving(false);
       setSubmitted(true);
     } catch (err) {
@@ -340,6 +346,21 @@ export default function EmpathicSingleStep({
         // Replaces the form in place. No sheet, no portal, no off-page
         // links. Match details + provider tie-in live in the email — the
         // page stays anchored on the provider the user came to see.
+        returningFamily ? (
+          <div className="animate-step-in">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" weight="fill" />
+              <p className="font-display text-[18px] font-semibold text-gray-900 leading-tight">
+                Welcome back.
+              </p>
+            </div>
+            <p className="text-[15px] text-gray-700 leading-relaxed">
+              We emailed you a link to your plan at{" "}
+              <span className="text-gray-900">{submittedEmail}</span>. Your{" "}
+              {stateName} matches are saved to it.
+            </p>
+          </div>
+        ) : (
         <div className="animate-step-in">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" weight="fill" />
@@ -385,6 +406,7 @@ export default function EmpathicSingleStep({
             </>
           )}
         </div>
+        )
       ) : (
         <>
           {/* Echo — 12px italic gray, only when user actually asked. NOT the headline. */}

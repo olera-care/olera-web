@@ -108,7 +108,11 @@ type CardState =
   | "enrichment_5"
   | "enrichment_6"
   | "enrichment_7"
-  | "success";
+  | "success"
+  // The email belongs to an existing account and the caller is not signed in
+  // as it. The server returns no plan token (privacy), so there is nothing to
+  // enrich here; the owner gets a sign-in link to their plan by email.
+  | "welcome_back";
 
 /** Loose US phone check for the enrichment step — 10 digits (optionally with
  *  a leading 1). The server does the real E.164 normalization. */
@@ -192,6 +196,7 @@ export default function ProgramBenefitsCard({
   const [resultCount, setResultCount] = useState(0);
   const [resultToken, setResultToken] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [signInEmailed, setSignInEmailed] = useState(true);
 
   // Enrichment data
   const [recipient, setRecipient] = useState<string | null>(null);
@@ -304,6 +309,14 @@ export default function ProgramBenefitsCard({
         return;
       }
       setResultCount(typeof data.matchCount === "number" ? data.matchCount : matched.length);
+      if (data.existingUser) {
+        // No token or profile id comes back for an existing account, so the
+        // enrichment steps (which write through the token) cannot run.
+        setSignInEmailed(data.signInEmailed !== false);
+        setSaving(false);
+        setCardState("welcome_back");
+        return;
+      }
       setResultToken(typeof data.token === "string" ? data.token : null);
       setProfileId(typeof data.profileId === "string" ? data.profileId : null);
       setSaving(false);
@@ -587,6 +600,33 @@ export default function ProgramBenefitsCard({
     : cardState === "enrichment_5" ? 5
     : cardState === "enrichment_6" ? 6
     : 7;
+
+  // ─── Returning family (existing account, not signed in) ────────────────
+  if (cardState === "welcome_back") {
+    return (
+      <div className={shell}>
+        <div className="flex items-center gap-2 mb-2">
+          <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600" weight="fill" />
+          <p className="font-serif text-[19px] font-semibold leading-tight text-gray-900">
+            Welcome back.
+          </p>
+        </div>
+        <p className="text-[15px] leading-relaxed text-gray-700">
+          {signInEmailed ? (
+            <>
+              We emailed you a link to your plan. {shortLabel} is saved to it,
+              ready when you open the link.
+            </>
+          ) : (
+            <>
+              {shortLabel} is saved to your plan. Sign in with this email to see
+              it.
+            </>
+          )}
+        </p>
+      </div>
+    );
+  }
 
   // ─── Success state ─────────────────────────────────────────────────────
   if (cardState === "success") {

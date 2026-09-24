@@ -16,6 +16,7 @@ import ProfileWizard from "@/components/welcome/ProfileWizard";
 import BenefitsWizard from "@/components/welcome/BenefitsWizard";
 import GoLiveModal from "@/components/welcome/GoLiveModal";
 import type { FamilyMetadata } from "@/lib/types";
+import { benefitAmountLabel } from "@/lib/benefits/savings-label";
 
 // ============================================================
 // Types
@@ -1357,10 +1358,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                           </div>
                           {p.savingsRange && (
                             <span className="text-text-xs font-semibold text-gray-700 whitespace-nowrap shrink-0">
-                              {(() => {
-                                const matches = p.savingsRange.match(/\$[\d,]+/g);
-                                return matches ? `Up to ${matches[matches.length - 1]}/yr` : p.savingsRange;
-                              })()}
+                              {benefitAmountLabel(p.savingsRange)?.text ?? p.savingsRange}
                             </span>
                           )}
                         </div>

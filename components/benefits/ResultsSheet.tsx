@@ -34,6 +34,7 @@ import { X, ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
 import type { WaiverProgram } from "@/data/waiver-library";
 import { CARE_NEED_LABEL, type CareNeed } from "@/lib/benefits/match-care-need";
 import { getProviderTieIn, type MatchableProvider } from "@/lib/benefits/provider-tie-in";
+import { benefitAmountLabel } from "@/lib/benefits/savings-label";
 
 // Phone masking — kept inline because lib/twilio.ts top-level-imports the
 // Twilio Node SDK (native deps), which webpack would try to bundle into the
@@ -67,14 +68,9 @@ export interface ResultsSheetProps {
 }
 
 // ─── Savings parsing — converts the raw range string to a tight inline label.
+// Shared parser: a typical range stays a range, a maximum stays "Up to".
 function formatSavings(range?: string): string | null {
-  if (!range) return null;
-  const matches = range.match(/\$[\d,]+/g);
-  if (!matches || matches.length === 0) return null;
-  const last = matches[matches.length - 1];
-  const isMonthly = /\bmo\b|month/i.test(range);
-  const period = isMonthly ? "/mo" : "/yr";
-  return `Up to ${last}${period}`;
+  return benefitAmountLabel(range)?.text ?? null;
 }
 
 function whyThisMatches(careNeed: CareNeed): string {

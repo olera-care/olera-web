@@ -4,6 +4,7 @@ import { CARE_NEED_LABEL, type CareNeed } from "@/lib/benefits/match-care-need";
 import type { FirstStepPick, BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
 import JourneyActions, { type NextStepInfo } from "@/components/benefits/JourneyActions";
 import FactChips, { type KnownFacts } from "@/components/benefits/FactChips";
+import { benefitAmountLabel } from "@/lib/benefits/savings-label";
 
 /**
  * BenefitsHome — the /m/{token} results page, rebuilt as a guide instead of a
@@ -107,11 +108,9 @@ const GROUP_ORDER = [
   "More support",
 ];
 
+// Shared parser: a typical range stays a range, a maximum stays "Up to".
 function savingsLine(range?: string): string | null {
-  if (!range) return null;
-  const m = range.match(/\$[\d,]+/g);
-  if (!m || m.length === 0) return null;
-  return `Up to ${m[m.length - 1]}${/\bmo\b|month/i.test(range) ? "/mo" : "/yr"}`;
+  return benefitAmountLabel(range)?.text ?? null;
 }
 
 /** Drop a trailing "(WAP)"-style parenthetical from the hero title. */

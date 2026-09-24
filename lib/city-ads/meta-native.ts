@@ -73,13 +73,16 @@ export function extractNativeReceipts(body: unknown, forms: NativeForm[]): Nativ
 /**
  * The one screening question a form may carry: who the care is for, with a
  * "caregiving job" option so job seekers file themselves before anyone texts
- * them. Asked in the form rather than by text because the text is answered by
- * the people who want something from us (job seekers, 2 of 2 in Pascagoula)
- * and ignored by most families, so filtering afterwards classifies the wrong
- * half. Read by answer, not by field key: Meta derives the key from the
+ * them. The Pascagoula form asked it from day one and this import discarded
+ * the answer: 6 of its first 7 leads chose "I'm looking for a job", and four
+ * of them were handed to the provider as families. The follow-up text had
+ * caught only the 2 who replied. Read by answer, not by field key: Meta derives the key from the
  * question wording, and a reworded form must not silently stop screening.
  */
-export type FormScreen = { recipient: "parent" | "spouse" | "self" | "other" } | { jobSeeker: true };
+export type FormScreen =
+  | { recipient: "parent" | "spouse" | "self" | "other" }
+  | { careSeeker: true }
+  | { jobSeeker: true };
 const CONTACT_FIELDS = new Set(["full_name", "first_name", "last_name", "phone_number", "email",
   "zip_code", "post_code", "city", "state", "street_address"]);
 export function readFormScreen(fields: Map<string, string>): FormScreen | null {
@@ -87,6 +90,9 @@ export function readFormScreen(fields: Map<string, string>): FormScreen | null {
     if (CONTACT_FIELDS.has(name)) continue;
     const v = raw.toLowerCase().replace(/_/g, " ");
     if (/\b(job|jobs|work|employment|position|hiring)\b/.test(v)) return { jobSeeker: true };
+    // "Care for myself or a family member" (the live Pascagoula answer) says
+    // care, not whom: a care seeker with the recipient still to ask.
+    if (/\b(myself|me)\b/.test(v) && /\bor\b/.test(v)) return { careSeeker: true };
     if (/\b(myself|me)\b/.test(v)) return { recipient: "self" };
     if (/\b(spouse|partner|husband|wife)\b/.test(v)) return { recipient: "spouse" };
     if (/\b(parent|mother|father|mom|dad)\b/.test(v)) return { recipient: "parent" };

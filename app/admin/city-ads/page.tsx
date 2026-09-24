@@ -149,13 +149,8 @@ type Lead = {
   texts: FamilyText[];
 };
 
-const CARE: Record<string, string> = { home_care: "help at home", assisted_living: "assisted living", unsure: "not sure yet", medical: "medical (redirected)" };
-const WHO: Record<string, string> = { parent: "a parent", spouse: "a spouse", self: "themselves", other: "someone else" };
-const WHEN: Record<string, string> = { this_week: "this week", this_month: "this month", planning: "planning ahead" };
-const PAY: Record<string, string> = { private_pay: "private pay", medicaid: "Medicaid", va: "VA", ltc_insurance: "LTC insurance", unsure: "payment not decided" };
 
-const fmtTime = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
+const CARE: Record<string, string> = { home_care: "help at home", assisted_living: "assisted living", unsure: "not sure yet", medical: "medical (redirected)" };
 const ago = (iso: string | null | undefined) => {
   if (!iso) return null;
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
@@ -279,36 +274,6 @@ function needsReason(l: Lead): string | null {
   return null;
 }
 
-/** The one-line state on the right of a lead row. */
-function stateLine(l: Lead): { text: string; tone: "ok" | "wait" | "warn" | "quiet" } {
-  if(l.archived_at) return {text:`archived · ${(l.archive_reason ?? "closed").replace(/_/g," ")}`,tone:"quiet"};
-  if (l.status === "client") return { text: "became a client", tone: "ok" };
-  if (l.status === "no_fit") return { text: "not a fit", tone: "quiet" };
-  if (l.status === "unreachable") return { text: "unreachable", tone: "quiet" };
-  if (l.status === "stopped") return { text: "stopped", tone: "quiet" };
-  if (l.status === "redirected") return { text: "medical, redirected", tone: "quiet" };
-  if (l.handed_at && ["new", "offered", "unfilled"].includes(l.status)) return { text: "with the provider · you can still follow up", tone: "ok" };
-  if (awaitingQualification(l) && !l.qualification_escalated_at) return { text: "waiting on their reply", tone: "wait" };
-  if (needsReason(l)) return { text: "needs you", tone: "warn" };
-  const a = acceptedOffer(l);
-  if (l.status === "contacted") return { text: `${a?.provider?.display_name ?? "provider"} reached them`, tone: "ok" };
-  if (a && l.family_check_sent_at && !l.family_check_reply) return { text: "asked if they were called", tone: "wait" };
-  if (a) return { text: `${a.provider?.display_name ?? "a provider"} has it`, tone: "ok" };
-  const o = openOffer(l);
-  if (o && reachedNobody(o)) return { text: `${o.provider?.display_name ?? "a provider"} never received it`, tone: "warn" };
-  if (o) return { text: `offered to ${o.provider?.display_name ?? "a provider"} · ${minsLeft(o.expires_at)} min left`, tone: "wait" };
-  if (l.status === "new" && l.next_offer_at) return { text: `waiting for 8am · ${fmtTime(l.next_offer_at)}`, tone: "wait" };
-  if (l.status === "new") return { text: "waiting for you to call", tone: "warn" };
-  return { text: l.status, tone: "quiet" };
-}
-
-const TONE: Record<string, string> = {
-  ok: "bg-success-50 text-success-700",
-  wait: "bg-primary-50 text-primary-800",
-  warn: "bg-warm-50 text-warm-700",
-  quiet: "bg-gray-100 text-gray-600",
-};
-
 export default function CityAdsAdminPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [rollup, setRollup] = useState<ChannelRow[]>([]);
@@ -319,8 +284,6 @@ export default function CityAdsAdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [showArchived, setShowArchived] = useState(false);
-  const [openLead, setOpenLead] = useState<string | null>(null);
   const [openCity, setOpenCity] = useState<string | null>(null);
   const [, setTick] = useState(0);
 
@@ -379,18 +342,6 @@ export default function CityAdsAdminPage() {
     }
   };
 
-  const runClock = async () => {
-    setBusy(true);
-    try {
-      const res = await fetch("/api/cron/city-lead-offers", { cache: "no-store" });
-      const d = await res.json().catch(() => ({}));
-      const s = d.summary ?? d;
-      flash(res.ok ? `Clock ran: ${s.started ?? 0} started, ${s.expired ?? 0} expired, ${s.advanced ?? 0} advanced` : `Clock failed: ${d.error || res.status}`, 6000);
-      await load();
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const cities = useMemo(() => Array.from(new Set(campaigns.map((c) => c.slug))), [campaigns]);
   const needs = useMemo(() => leads.filter((l) => needsReason(l)), [leads]);
@@ -400,153 +351,259 @@ export default function CityAdsAdminPage() {
   const onCall = pool.filter((p) => p.enabled).length;
   const today = new Date().toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", day: "numeric", month: "short" });
 
+  const readout = useMemo(() => cityReadout(campaigns, leads), [campaigns, leads]);
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <header className="mb-7">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">City campaigns</h1>
-          <Link href="/admin/ad-boost" className="text-sm text-primary-700 underline-offset-2 hover:underline">
-            Provider queue
-          </Link>
-        </div>
-        <p className="mt-1 text-sm text-gray-600 tabular-nums">
-          {today} · <b className="font-semibold text-gray-900">{liveCount}</b> live · <b className="font-semibold text-gray-900">{onCall}</b> on call ·{" "}
-          <b className="font-semibold text-gray-900">{leadsThisWeek}</b> {leadsThisWeek === 1 ? "lead" : "leads"} this week
-          {lastClockRun && <span className="text-gray-400"> · clock ran {ago(lastClockRun)}</span>}
-        </p>
-      </header>
-
-      <LandingArms rows={armRollup} />
-
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       {error && <div className="mb-4 rounded-lg bg-error-50 px-3 py-2 text-sm text-error-700">{error}</div>}
       {toast && <div className="fixed bottom-4 right-4 z-50 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">{toast}</div>}
 
-      {/* Needs you */}
-      <Eyebrow>Needs you</Eyebrow>
-      {needs.length === 0 ? (
-        <p className="mb-8 text-sm text-gray-500">Nothing needs you.</p>
-      ) : (
-        <div className="mb-8 rounded-xl border border-warm-200 bg-warm-25 px-4 py-1">
-          {needs.map((l) => {
-            const reason = needsReason(l)!;
-            const pastDue = reason.includes("past its 30 minutes") || reason.startsWith("parked");
-            return (
-              <div key={l.id} className="flex flex-wrap items-start justify-between gap-3 border-t border-warm-100 py-3 first:border-t-0">
-                <div className="min-w-0">
-                  <div>
-                    {l.care_seeker_id ? (
-                      <a className="font-semibold text-gray-900 underline-offset-2 hover:underline" href={`/admin/relationships/families/${l.care_seeker_id}`}>
-                        {l.first_name}
-                      </a>
-                    ) : (
-                      <span className="font-semibold text-gray-900">{l.first_name}</span>
-                    )}{" "}
-                    <a className="text-sm text-primary-700" href={`tel:${l.phone}`}>
-                      {phoneFmt(l.phone)}
-                    </a>
-                  </div>
-                  <div className="mt-0.5 text-xs text-gray-600">
-                    {cityName(l.slug, campaigns)} · {CARE[l.care_type]} for {WHO[l.care_recipient ?? "other"]}, {WHEN[l.urgency ?? ""] ?? ""} · {reason}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {pastDue ? (
-                    <button className={btnPri} disabled={busy} onClick={() => void runClock()}>
-                      Advance now
-                    </button>
-                  ) : (
-                    <OfferTo lead={l} pool={pool} busy={busy} primary onPick={(pid) => void act("Offer", { action: "offer_to", leadId: l.id, providerId: pid })} />
-                  )}
-                  <button className={btn} disabled={busy} onClick={() => void act("Archive", { action: "archive_lead", leadId: l.id, reason: "no_longer_needed" })}>
-                    Archive
-                  </button>
-                </div>
+      {/* The sentence: how many families, and the one thing that needs you.
+          Built from fixed rules over the same rows drawn below (cityReadout),
+          never generated, so it cannot say something the rows do not. */}
+      <header>
+        <p className="text-sm text-gray-600">
+          {today}
+          {lastClockRun && <span className="text-gray-400"> · clock ran {ago(lastClockRun)}</span>}
+        </p>
+        <h1 className="mt-2 font-display text-[34px] leading-[1.08] text-gray-950 sm:text-[42px]" style={{ textWrap: "balance" }}>
+          {readout.families} {readout.families === 1 ? "family" : "families"} found, {readout.headline}
+        </h1>
+        <p className="mt-2 text-[15px] text-gray-600">
+          Across {readout.rows.length} {readout.rows.length === 1 ? "city" : "cities"} since launch. {liveCount} ads live, {onCall} providers on call.
+        </p>
+      </header>
+
+      <div className="mt-8">
+        {readout.rows.map((r) => (
+          <div
+            key={r.slug}
+            className={`grid grid-cols-1 gap-x-5 gap-y-1 px-4 py-4 sm:grid-cols-[150px_1fr_auto] sm:items-center ${
+              r.lit ? "rounded-2xl bg-primary-950 text-white" : "border-t border-gray-100 first:border-t-0"
+            }`}
+          >
+            <span className="font-semibold">{r.city}</span>
+            <span className={r.lit ? "text-white/80" : "text-gray-600"}>{r.say}</span>
+            <span className="tabular-nums sm:text-right">
+              {r.families} {r.families === 1 ? "family" : "families"}
+              <span className={`block text-xs ${r.lit ? "text-white/70" : "text-gray-400"}`}>{r.cost}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {readout.arrivals.length > 0 && (
+        <div className="mt-10">
+          <p className="mb-2 text-xs font-semibold text-gray-400">Arriving from the ads · each name opens the family</p>
+          <div className="grid grid-cols-2 border-y border-gray-100 sm:grid-cols-5">
+            {readout.arrivals.map((a, i) => (
+              <div key={a.id} className={`flex flex-col gap-0.5 py-3 pr-3 ${i % 5 !== 0 ? "sm:border-l sm:border-gray-100 sm:pl-4" : ""}`}>
+                {a.href ? (
+                  <Link href={a.href} className="font-semibold text-gray-900 underline-offset-2 hover:underline">
+                    {a.name}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-gray-900">{a.name}</span>
+                )}
+                <span className="text-xs text-gray-400">
+                  {a.city} · {a.when}
+                </span>
+                <span className="text-xs text-gray-600">{a.standing}</span>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       )}
 
-      <MetaNativeStatus />
-
-      {/* Leads */}
-      <Eyebrow>Leads</Eyebrow>
-      <div className="mb-3 flex gap-2">
-        <button className={showArchived ? btn : btnPri} onClick={() => setShowArchived(false)}>Active ({leads.filter(l => !l.archived_at).length})</button>
-        <button className={showArchived ? btnPri : btn} onClick={() => setShowArchived(true)}>Archived ({leads.filter(l => l.archived_at).length})</button>
-      </div>
-      <div className="mb-8 rounded-xl border border-gray-200 bg-white px-4">
-        {leads.length === 0 && (
-          <p className="py-5 text-sm text-gray-500">Leads land here the moment a family submits. Offers go to enabled providers in order, 30 minutes each.</p>
-        )}
-        {leads.filter(l => Boolean(l.archived_at) === showArchived).map((l) => {
-          const st = stateLine(l);
-          const open = openLead === l.id;
-          return (
-            <div key={l.id} className="border-t border-gray-100 first:border-t-0">
-              <button type="button" onClick={() => setOpenLead(open ? null : l.id)} className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3 text-left">
-                <span className="min-w-0">
-                  <span className="font-semibold text-gray-900">{l.first_name}</span>
-                  {l.is_test && <span className="ml-2 text-xs text-gray-500">Test — no outreach</span>}
-                  {l.capture_method === "meta_instant_form" && <span className="ml-2 rounded bg-primary-50 px-2 py-1 text-xs text-primary-800">Meta Instant Form</span>}
-                  <span className="ml-2 text-sm text-gray-600">
-                    {cityName(l.slug, campaigns)} · {CARE[l.care_type]} for {WHO[l.care_recipient ?? "other"]}
-                    {l.urgency ? `, ${WHEN[l.urgency]}` : ""}
-                  </span>
-                </span>
-                <span className="flex items-center gap-2 text-xs text-gray-500">
-                  <span className={`rounded px-1.5 py-0.5 font-medium ${TONE[st.tone]}`}>{st.text}</span>
-                  <span>{fmtTime(l.created_at)}</span>
-                </span>
-              </button>
-              {open && <LeadDetail lead={l} pool={pool} busy={busy} act={act} />}
-            </div>
-          );
-        })}
+      <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <Link href="/admin/relationships/families?tab=call" className="text-gray-700 underline decoration-gray-300 underline-offset-4 hover:text-gray-900">
+          {needs.length} {needs.length === 1 ? "family needs" : "families need"} a call
+        </Link>
+        <Link href="/admin/ad-boost" className="text-gray-700 underline decoration-gray-300 underline-offset-4 hover:text-gray-900">
+          Provider campaigns
+        </Link>
       </div>
 
-      {/* Setup */}
-      <Eyebrow>Setup</Eyebrow>
-      <div className="rounded-xl border border-gray-200 bg-white px-4">
-        {cities.length === 0 && <p className="py-5 text-sm text-gray-500">No campaigns yet. Apply migration 207.</p>}
-        {cities.map((slug) => {
-          const cs = campaigns.filter((c) => c.slug === slug);
-          const ps = pool.filter((p) => p.slug === slug);
-          const enabled = ps.filter((p) => p.enabled).length;
-          const latestTyped = cs.map((c) => c.metrics_updated_at).filter(Boolean).sort().pop() ?? null;
-          const open = openCity === slug;
-          return (
-            <div key={slug} className="border-t border-gray-100 first:border-t-0">
-              <div className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <div>
-                  <div className="font-semibold text-gray-900">
-                    {cs[0]?.city}, {cs[0]?.state}
-                  </div>
-                  <div className="mt-0.5 text-xs text-gray-600">
-                    {cs.map((c) => `${cap(c.channel)} ${c.status}`).join(" · ")} · {enabled} on call · {latestTyped ? `spend typed ${ago(latestTyped)}` : "spend not typed yet"}
-                  </div>
-                  {enabled === 0 && (
-                    <div className="mt-1 text-xs text-warm-700">
-                      Concierge: requests are captured and you call the family. No provider is texted until one is switched on here.
+      {/* Everything below is for changing things, not for a daily look. */}
+      <div className="mt-12 space-y-3">
+        <Fold title="Landing-page test and quiz">
+          <LandingArms rows={armRollup} />
+          <div className="mt-6">
+            <CityQuizFunnel />
+          </div>
+        </Fold>
+        <Fold title="Meta forms and system health">
+          <MetaNativeStatus />
+        </Fold>
+        <Fold title="Setup: cities, spend, providers on call">
+          <div className="rounded-xl border border-gray-200 bg-white px-4">
+            {cities.length === 0 && <p className="py-5 text-sm text-gray-500">No campaigns yet. Apply migration 207.</p>}
+            {cities.map((slug) => {
+              const cs = campaigns.filter((c) => c.slug === slug);
+              const ps = pool.filter((p) => p.slug === slug);
+              const enabled = ps.filter((p) => p.enabled).length;
+              const latestTyped = cs.map((c) => c.metrics_updated_at).filter(Boolean).sort().pop() ?? null;
+              const open = openCity === slug;
+              return (
+                <div key={slug} className="border-t border-gray-100 first:border-t-0">
+                  <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {cs[0]?.city}, {cs[0]?.state}
+                      </div>
+                      <div className="mt-0.5 text-xs text-gray-600">
+                        {cs.map((c) => `${cap(c.channel)} ${c.status}`).join(" · ")} · {enabled} on call · {latestTyped ? `spend updated ${ago(latestTyped)}` : "spend not recorded yet"}
+                      </div>
                     </div>
-                  )}
+                    <button className={btn} onClick={() => setOpenCity(open ? null : slug)}>
+                      {open ? "close" : "edit"}
+                    </button>
+                  </div>
+                  {open && <CityEditor slug={slug} campaigns={cs} rollup={rollup.filter((r) => r.slug === slug)} pool={ps} unreachable={unreachable} busy={busy} act={act} />}
                 </div>
-                <button className={btn} onClick={() => setOpenCity(open ? null : slug)}>
-                  {open ? "close" : "edit"}
-                </button>
-              </div>
-              {open && <CityEditor slug={slug} campaigns={cs} rollup={rollup.filter((r) => r.slug === slug)} pool={ps} unreachable={unreachable} busy={busy} act={act} />}
-            </div>
-          );
-        })}
-      </div>
-      <p className="mt-4 text-xs text-gray-400">Campaign spend and clicks are entered manually in Setup.</p>
-
-      <div className="mt-8">
-        <CityQuizFunnel />
+              );
+            })}
+          </div>
+        </Fold>
       </div>
     </div>
   );
+}
+
+function Fold({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <details className="group rounded-xl border border-gray-200 bg-white">
+      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900">
+        <span className="mr-2 inline-block transition-transform group-open:rotate-90">›</span>
+        {title}
+      </summary>
+      <div className="border-t border-gray-100 px-4 py-4">{children}</div>
+    </details>
+  );
+}
+
+const CHANNEL_WORD: Record<string, string> = { google: "Google ad", meta: "Facebook ad", nextdoor: "Nextdoor ad" };
+const DAY = 86_400_000;
+
+/**
+ * The top of the page as data: the sentence, one row per city with at most one
+ * lit, and the latest arrivals. Fixed rules, checked in order; the first that
+ * is true writes the sentence AND lights its city's row, so the two can never
+ * disagree.
+ *   1. A live ad has found nobody for 3 days      -> "one ad has gone quiet."
+ *   2. A family says their provider has not called -> "{name} is still waiting for a call."
+ *   3. A family was offered and nobody took it     -> "{name} needs a provider."
+ *   4. A flight ends within 2 days                 -> "{City} ends {day}."
+ *   5. None of the above                           -> "every ad is finding families."
+ */
+function cityReadout(campaigns: Campaign[], leads: Lead[]) {
+  const now = Date.now();
+  const real = leads.filter((l) => !l.is_test && !l.archived_at);
+  const slugs = Array.from(new Set(campaigns.map((c) => c.slug)));
+  const cityOf = (slug: string) => campaigns.find((c) => c.slug === slug)?.city ?? slug;
+  const running = (c: Campaign) => c.status === "live" && (!c.flight_end || new Date(`${c.flight_end}T23:59:59`).getTime() >= now);
+  const leadsFor = (c: Campaign) =>
+    leads.filter((l) =>
+      !l.is_test &&
+      (c.platform_campaign_id && l.meta_campaign_id
+        ? l.meta_campaign_id === c.platform_campaign_id
+        : l.slug === c.slug && l.utm_medium === c.utm_medium),
+    );
+
+  type Fired = { slug: string; headline: string; say: string };
+  const fired: Fired[] = [];
+  for (const c of campaigns.filter(running)) {
+    const started = c.flight_start ? new Date(c.flight_start).getTime() : now;
+    const ls = leadsFor(c);
+    const last = ls.map((l) => new Date(l.created_at).getTime()).sort((a, b) => b - a)[0] ?? started;
+    const quietDays = Math.floor((now - last) / DAY);
+    if (now - started >= 3 * DAY && quietDays >= 3) {
+      const ends = c.flight_end ? ` It stops ${new Date(`${c.flight_end}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.` : "";
+      fired.push({
+        slug: c.slug,
+        headline: "one ad has gone quiet.",
+        say: `The ${CHANNEL_WORD[c.channel] ?? "ad"} found ${ls.length}, then nothing for ${quietDays} days.${ends}`,
+      });
+    }
+  }
+  for (const l of real) {
+    if (l.family_check_reply === "not_yet" && !l.reached_at) {
+      fired.push({ slug: l.slug, headline: `${firstName(l.first_name)} is still waiting for a call.`, say: `${firstName(l.first_name)} says the provider hasn't called.` });
+    }
+  }
+  for (const l of real) {
+    if (l.status === "unfilled") {
+      fired.push({ slug: l.slug, headline: `${firstName(l.first_name)} needs a provider.`, say: `${firstName(l.first_name)} was offered and nobody took it.` });
+    }
+  }
+  for (const c of campaigns.filter(running)) {
+    if (c.flight_end) {
+      const end = new Date(`${c.flight_end}T23:59:59`).getTime();
+      if (end - now <= 2 * DAY) {
+        const day = new Date(`${c.flight_end}T12:00:00`).toLocaleDateString("en-US", { weekday: "long" });
+        fired.push({ slug: c.slug, headline: `${cityOf(c.slug)} ends ${day}.`, say: `The ${CHANNEL_WORD[c.channel] ?? "ad"} ends ${day}.` });
+      }
+    }
+  }
+  const top = fired[0] ?? null;
+  const more = fired.length > 1 ? ` And ${fired.length - 1} more below.` : "";
+
+  const rows = slugs.map((slug) => {
+    const fams = real.filter((l) => l.slug === slug);
+    const cs = campaigns.filter((c) => c.slug === slug);
+    const spendKnown = cs.every((c) => c.status === "draft" || c.ad_spend_cents != null);
+    const spend = cs.reduce((sum, c) => sum + (c.ad_spend_cents ?? 0), 0);
+    const cost = !spendKnown
+      ? "spend not recorded for every ad"
+      : fams.length > 0 && spend > 0
+        ? `about $${Math.round(spend / 100 / fams.length)} each`
+        : "";
+    const mine = fired.find((f) => f.slug === slug);
+    const lastAt = fams.map((l) => new Date(l.created_at).getTime()).sort((a, b) => b - a)[0];
+    return {
+      slug,
+      city: cityOf(slug),
+      families: fams.length,
+      cost,
+      lit: top?.slug === slug,
+      say: mine?.say ?? (lastAt ? `Last family arrived ${Math.max(0, Math.floor((now - lastAt) / DAY))} days ago.` : "No families yet."),
+    };
+  });
+  rows.sort((a, b) => Number(b.lit) - Number(a.lit) || b.families - a.families);
+
+  const standing = (l: Lead): string => {
+    const accepted = l.offers.find((o) => o.accepted_at);
+    if (l.outcome === "client" || l.status === "client") return "Became a client";
+    if (l.status === "no_fit") return "Not a fit";
+    if (l.handed_at) return "With the campaign's provider";
+    if (accepted) return `Accepted by ${accepted.provider?.display_name ?? "a provider"}`;
+    if (l.status === "unfilled") return "No provider took it";
+    if (l.status === "contacted") return "Reached";
+    if (l.qualification_reply_at) return "Replied";
+    return "No reply to our text";
+  };
+  const arrivals = [...real]
+    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+    .slice(0, 5)
+    .map((l) => ({
+      id: l.id,
+      name: firstName(l.first_name),
+      city: cityOf(l.slug),
+      when: new Date(l.created_at).toLocaleDateString("en-US", { weekday: "short", timeZone: "America/New_York" }),
+      standing: standing(l),
+      href: l.care_seeker_id ? `/admin/relationships/families/${l.care_seeker_id}` : null,
+    }));
+
+  return {
+    families: real.length,
+    headline: (top?.headline ?? "every ad is finding families.") + more,
+    rows,
+    arrivals,
+  };
+}
+
+function firstName(name: string | null): string {
+  return String(name ?? "").trim().split(/\s+/)[0] || "A family";
 }
 
 /* ---------- pieces ---------- */
@@ -561,432 +618,6 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 
 function cap(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function OfferTo({ lead, pool, busy, primary, onPick }: { lead: Lead; pool: PoolRow[]; busy: boolean; primary?: boolean; onPick: (providerId: string) => void }) {
-  const seen = new Set(lead.offers.map((o) => o.provider_id));
-  return (
-    <select
-      className={`${primary ? btnPri : btn} appearance-none pr-6`}
-      value=""
-      disabled={busy}
-      onChange={(e) => {
-        if (e.target.value) onPick(e.target.value);
-      }}
-    >
-      <option value="">Offer to…</option>
-      {pool
-        .filter((p) => p.slug === lead.slug)
-        .map((p) => (
-          <option key={p.id} value={p.provider_id}>
-            {p.provider?.display_name ?? p.provider_id.slice(0, 8)}
-            {p.is_test ? " (test)" : ""}
-            {seen.has(p.provider_id) ? " (already offered)" : p.enabled ? "" : " (not on call)"}
-          </option>
-        ))}
-    </select>
-  );
-}
-
-/** Keys are the real `email_type` values written by lib/city-ads/offers.server.ts
- *  and app/api/city-leads/route.ts — note `city_lead_accepted_family`, which does
- *  NOT follow the `city_lead_family_*` shape the others use. */
-const TEXT_LABEL: Record<string, string> = {
-  city_lead_family_confirm: "Confirmation",
-  city_lead_qualification_thanks: "Thanks for answering",
-  city_lead_family_still_working: "Still working on it",
-  city_lead_accepted_family: "Provider named",
-  city_lead_family_check: "Did they call you?",
-  city_lead_family_reoffer: "Looking again",
-  city_lead_family_medical: "Medical redirect",
-  city_lead_family_manual: "From you",
-};
-
-/** "Ann McDade" -> "Ann". first_name holds whatever they typed into one box. */
-function firstWord(name: string | null): string {
-  return (name ?? "").trim().split(/\s+/)[0] || "there";
-}
-
-/**
- * Every text this family has had, and a box to send another.
- *
- * The reason this exists: in a concierge city nothing texts the family except
- * the chain, and the chain only knows four sentences. When a call goes
- * unanswered there was no way to follow up in the one channel the family
- * actually recognises — their phone shows our Twilio number, not whatever
- * number the call came from.
- */
-function FamilyTexts({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
-  const sent = l.texts ?? [];
-  // BOTH DIRECTIONS, IN ORDER. This panel showed only what we sent, so the
-  // single place a family's own words appeared was the qualification field,
-  // which keeps just the first reply. Bessie Brooks texted three times and the
-  // second named her area; the provider saw all of it and the person deciding
-  // what to do next saw one line.
-  const thread = [
-    ...sent.map((t) => ({
-      kind: "out" as const,
-      id: t.id,
-      at: t.created_at,
-      body: t.html_body,
-      status: t.status,
-      label: TEXT_LABEL[t.email_type] ?? t.email_type.replace(/^city_lead_/, "").replace(/_/g, " "),
-    })),
-    ...(l.inbound ?? []).map((m) => ({
-      kind: "in" as const,
-      id: m.id,
-      at: m.created_at,
-      body: m.body,
-      status: null as string | null,
-      label: "",
-    })),
-  ].sort((a, b) => a.at.localeCompare(b.at));
-  const sendWindow = citySendWindow(l.slug);
-  const [draft, setDraft] = useState(
-    `Hi ${firstWord(l.first_name)}, this is TJ with Olera. I tried calling about the help at home you asked for. Is there a good time to reach you, or would you rather I text you what I find?`,
-  );
-  const [channel, setChannel] = useState("sms");
-  const [subject, setSubject] = useState("Following up on your Olera care request");
-  const tooLong = draft.trim().length > (channel === "sms" ? 480 : 10000);
-  const pending = (l.messages ?? []).some(m => m.channel === channel && ["pending","sending"].includes(m.status));
-  const disabled = busy || !draft.trim() || tooLong || pending || (channel === "email" && (!l.email || !subject.trim()));
-  const scheduleLabel = new Date(sendWindow.nextStart).toLocaleString("en-US", {timeZone:sendWindow.timeZone,month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-  async function submit(schedule: boolean) {
-    if(await act(schedule ? "Schedule" : "Send", {action:"message_family",leadId:l.id,channel,subject,message:draft.trim(),schedule})) setDraft("");
-  }
-  return (
-    <div className="mt-3 border-t border-gray-200 pt-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Conversation with {firstWord(l.first_name)}</p>
-      <ul className="mt-2 space-y-1.5">
-        {thread.length === 0 && <li className="text-xs text-gray-500">Nothing sent yet.</li>}
-        {thread.map((t) =>
-          t.kind === "out" ? (
-            <li key={`o-${t.id}`} className="text-xs">
-              <span className="text-gray-400">{fmtTime(t.at)}</span>{" "}
-              <span className="font-medium text-gray-700">{t.label}</span>
-              {t.status && t.status !== "sent" && <span className="ml-1.5 text-error-700">{t.status}</span>}
-              {t.body && <span className="mt-0.5 block text-gray-600">&ldquo;{t.body}&rdquo;</span>}
-            </li>
-          ) : (
-            // Their side. Indented and tinted so the two directions are
-            // readable at a glance rather than as one undifferentiated list.
-            <li key={`i-${t.id}`} className="ml-4 border-l-2 border-primary-200 pl-2 text-xs">
-              <span className="text-gray-400">{fmtTime(t.at)}</span>{" "}
-              <span className="font-medium text-primary-800">{firstWord(l.first_name)} replied</span>
-              {t.body && <span className="mt-0.5 block text-gray-900">&ldquo;{t.body}&rdquo;</span>}
-            </li>
-          ),
-        )}
-      </ul>
-      <ul className="mt-3 space-y-2">
-        {(l.messages ?? []).map(m => <li key={m.id} className="rounded border border-gray-200 p-2 text-xs">
-          <p>{m.channel === "email" ? "Email" : "Text"} · {m.status === "sending" ? "Delivery being checked" : m.status} · {new Date(m.send_after).toLocaleString("en-US",{timeZone:sendWindow.timeZone})} ({sendWindow.timeZone})</p>
-          {m.subject && <p className="font-medium">{m.subject}</p>}<p className="whitespace-pre-wrap">{m.body}</p>
-          {m.last_error && <p className="text-error-700">{m.last_error}</p>}
-          {m.status === "pending" && <button className={btn} disabled={busy} onClick={() => void act("Cancel",{action:"cancel_message",leadId:l.id,messageId:m.id})}>Cancel scheduled message</button>}
-        </li>)}
-      </ul>
-      {l.archived_at || l.status === "stopped" ? <div className="mt-3 text-sm text-gray-600">
-        <p>Archived. Sending and follow-ups are stopped.</p>
-        {/* The classifier files wrong-audience leads by itself, and that is only
-            defensible while a mistake takes one click to undo. Archived leads
-            render with every other action stripped, so without this button an
-            automatic filing was permanent. */}
-        {l.archived_at && <button className={`${btn} mt-2`} disabled={busy} onClick={() => void act("Put back",{action:"unarchive_lead",leadId:l.id})}>
-          Not right, put them back
-        </button>}
-      </div> : <div className="mt-2 flex flex-col gap-1.5">
-        <label className="text-xs">Send by <select className={input} value={channel} onChange={e => setChannel(e.target.value)}><option value="sms">Text</option><option value="email" disabled={!l.email}>Email{!l.email ? " (no email address)" : ""}</option></select></label>
-        {channel === "email" && <input aria-label="Email subject" className={input} value={subject} onChange={e => setSubject(e.target.value)} maxLength={200} />}
-        <p className="text-xs text-gray-500">{new Date().toLocaleTimeString("en-US",{timeZone:sendWindow.timeZone,hour:"numeric",minute:"2-digit"})} for them · {sendWindow.timeZone}</p>
-        <textarea
-          className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-900"
-          rows={3}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={`a text to ${firstWord(l.first_name)}`}
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <button className={btnPri} disabled={disabled || !sendWindow.allowed} onClick={() => void submit(false)}>Send now</button>
-          <button className={btn} disabled={disabled} onClick={() => void submit(true)}>Schedule {scheduleLabel}</button>
-          <span className="text-xs text-gray-500">{draft.trim().length}/{channel === "sms" ? 480 : 10000}</span>
-        </div>
-      </div>}
-
-    </div>
-  );
-}
-
-/**
- * The family's answer to the question their confirmation text asked, and the
- * only thing standing between this lead and the relay.
- *
- * Which question that was depends on the door they came through: a Meta form
- * gives us a name, a phone and a ZIP, so it asks who the care is for, while
- * the /care/{city} form already collected that and asks what is going on
- * instead. Either answer is what turns a submission into something a provider
- * can act on, and a website family can give it by text or by typing it into
- * the note on the thank-you screen.
- *
- * The box is here rather than on a separate screen because the caller is
- * already looking at this panel: they read what the family has been told, they
- * call, and they type what they heard into the same view. Saving it starts the
- * chain, so a call ends with the lead moving instead of with a note.
- */
-function Qualification({ lead: l, busy, act }: { lead: Lead; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
-  const [draft, setDraft] = useState("");
-  // Shown for every lead, not just the Meta ones: both front doors now ask a
-  // question in the confirmation text, and both are held out of the provider
-  // chain until it is answered.
-  const native = l.capture_method === "meta_instant_form";
-  // What the text actually asked this family, which is what the panel should
-  // label the answer with. The website form already collects who the care is
-  // for, so its text asks what is going on instead.
-  const asked = native ? "Who needs care" : "What is going on";
-  const closed = Boolean(l.archived_at) || ["client", "no_fit", "stopped", "redirected"].includes(l.status);
-  // An archived, stopped or medically redirected lead with no answer on it has
-  // no qualification to show and no way to get one. A closed lead that DID
-  // answer keeps showing what it said, which is often the reason it closed.
-  if (closed && !l.qualification_reply) return null;
-  // WHY THE MACHINE DECIDED WHAT IT DECIDED.
-  //
-  // A classifier reads this reply and can stop a lead reaching any provider,
-  // or file it away on its own. Without the verdict and its reasoning on the
-  // page, a wrong call is invisible: the lead simply never appears, and the
-  // only account of it was a Slack message. Showing the sentence it wrote is
-  // what makes the decision arguable by a person.
-  const verdict = l.qualification_verdict;
-  const verdictTone =
-    verdict === "care_seeker" ? "text-success-700" : verdict === "not_care_seeker" ? "text-error-700" : "text-gray-600";
-  const verdictLabel =
-    verdict === "care_seeker"
-      ? "Read as a family looking for care"
-      : verdict === "not_care_seeker"
-        ? `Read as ${(l.qualification_verdict_category ?? "not a care seeker").replace(/_/g, " ")} — held back from providers`
-        : verdict === "unclear"
-          ? "Could not tell — waiting for a person"
-          : null;
-  return (
-    <div className="mt-3 rounded bg-white px-2.5 py-2">
-      {l.qualification_reply ? (
-        <p className="text-xs text-gray-700">
-          <span className="font-medium text-gray-900">{asked}:</span> &ldquo;{l.qualification_reply}&rdquo;
-          <span className="ml-2 text-gray-400">{fmtTime(l.qualification_reply_at)}</span>
-          {verdictLabel && (
-            <span className="mt-1 block">
-              <span className={`font-medium ${verdictTone}`}>{verdictLabel}.</span>
-              {l.qualification_verdict_reason && <span className="text-gray-500"> {l.qualification_verdict_reason}</span>}
-            </span>
-          )}
-        </p>
-      ) : l.qualification_escalated_at && !l.handed_at ? (
-        <p className="text-xs text-warm-700">
-          No answer to the qualifying text by {fmtTime(l.qualification_escalated_at)}. Call {firstWord(l.first_name)} at{" "}
-          {phoneFmt(l.phone)} — this lead will not route itself.
-        </p>
-      ) : (
-        <p className="text-xs text-gray-600">
-          {/* Stated as the lead's current state, not as a claim about what we
-              sent. Every website lead before 19 Sep got a confirmation that
-              asked nothing, and telling a caller we had asked would be false
-              on exactly the leads still sitting in this queue. The Meta text
-              has always carried its question, so that one can say so. */}
-          {native
-            ? "Asked who needs care. Waiting on their reply — nothing goes to a provider until they answer or you call."
-            : "No answer on file. Nothing goes to a provider until the family tells us what they need, by text or on a call you type in here."}
-        </p>
-      )}
-      {!closed && !l.accepted_offer_id && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <input
-            className={`${input} min-w-[16rem] flex-1`}
-            placeholder={l.qualification_reply ? "correct what they need" : "what they told you on the phone"}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-          />
-          <button
-            className={btnPri}
-            disabled={busy || !draft.trim()}
-            onClick={async () => {
-              if (await act("Save", { action: "qualify", leadId: l.id, reply: draft.trim() })) setDraft("");
-            }}
-          >
-            Save and route
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[]; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {
-  const [note, setNote] = useState(l.admin_note ?? "");
-  const [archiveReason, setArchiveReason] = useState("no_longer_needed");
-  const closed = Boolean(l.archived_at) || ["client", "no_fit", "stopped", "redirected"].includes(l.status);
-  return (
-    <div className="mb-3 rounded-lg bg-gray-50 px-4 py-3 text-sm">
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <a className="font-medium text-primary-700" href={`tel:${l.phone}`}>
-          {phoneFmt(l.phone)}
-        </a>
-        {l.email && <span className="text-gray-600">{l.email}</span>}
-        {l.zip && <span className="text-gray-600">ZIP {l.zip}</span>}
-        {l.payment_type && <span className="text-gray-600">{PAY[l.payment_type] ?? l.payment_type}</span>}
-        {l.utm_medium && <span className="text-gray-400">via {l.utm_medium}</span>}
-      </div>
-      {l.meta_lead_id && <p className="mt-2 text-xs text-gray-500">Meta lead {l.meta_lead_id} · Form {l.meta_form_id} · Campaign {l.meta_campaign_id || "not supplied"} · Consent {l.consent_form_version} at {fmtTime(l.consent_at)}</p>}
-      {/* A note written on the thank-you screen is also stored as the
-          qualifying answer, and the Qualification block below renders it with
-          the question it answers. Only show it here when it is something else. */}
-      {l.note && l.note !== l.qualification_reply && <p className="mt-2 rounded bg-white px-2.5 py-1.5 text-xs text-gray-700">“{l.note}”</p>}
-      <Qualification lead={l} busy={busy} act={act} />
-
-      <ol className="mt-3 space-y-1 text-xs">
-        {l.offers.length === 0 && <li className="text-gray-500">No offers yet.</li>}
-        {l.offers.map((o) => {
-          // "No reply in 30 min" is a statement about a provider who was ASKED.
-          // Say something else entirely when nothing ever arrived, because the
-          // two look identical from here and call for opposite responses: one
-          // is a provider who passed, the other is contact details to fix.
-          const silent = reachedNobody(o);
-          const state = o.accepted_at
-            ? `accepted ${fmtTime(o.accepted_at)}`
-            : o.declined_at
-              ? `passed${o.decline_reason ? ` (${o.decline_reason})` : ""}`
-              : silent
-                ? "never received it"
-                : o.expired_at
-                  ? (l.archived_at ? "closed when archived" : "no reply in 30 min")
-                  : minsLeft(o.expires_at) >= 0
-                    ? `waiting · ${minsLeft(o.expires_at)} min left`
-                    : "past due";
-          const isOpen = !closed && !o.expired_at && !o.accepted_at && !o.declined_at && !l.accepted_offer_id;
-          return (
-            <li key={o.id} className="flex flex-wrap items-center gap-2">
-              <span className="text-gray-400">#{o.position}</span>
-              <span className="font-medium text-gray-800">{o.provider?.display_name ?? o.provider_id.slice(0, 8)}</span>
-              <span className={o.accepted_at ? "text-success-700" : silent ? "font-medium text-error-700" : "text-gray-600"}>{state}</span>
-              <span className="text-gray-400">{fmtTime(o.offered_at)}</span>
-              {/* What actually went out, on which channel. The whole point of
-                  the row: offered and reached are different facts. */}
-              {!silent && (o.reached_channels?.length ?? 0) > 0 && (
-                <span className="text-xs text-gray-500">sent by {o.reached_channels!.map((c) => (c === "sms" ? "text" : c)).join(" and ")}</span>
-              )}
-              {silent && o.delivery_note && (
-                <span className="w-full text-xs text-error-700">{o.delivery_note}</span>
-              )}
-              {isOpen && (
-                <>
-                  <button className="text-primary-700 underline-offset-2 hover:underline" disabled={busy} onClick={() => void act("Accept", { action: "accept", offerId: o.id })}>
-                    they said yes by phone
-                  </button>
-                  <button className="text-gray-600 underline-offset-2 hover:underline" disabled={busy} onClick={() => void act("Skip", { action: "decline", offerId: o.id, reason: "other" })}>
-                    skip
-                  </button>
-                </>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-
-      {!closed && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {l.handed_at && (
-            <span className="text-xs font-medium text-primary-700">
-              Handed to the provider whose ad it was, {new Date(l.handed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}. They see every text you send and every call you log.
-            </span>
-          )}
-          {!l.accepted_offer_id && !l.handed_at && l.meta_campaign_id && (
-            <button className={btn} disabled={busy} onClick={() => void act("Hand to campaign owner", { action: "hand_to_primary", leadId: l.id })}>
-              Hand to campaign owner
-            </button>
-          )}
-          {!l.accepted_offer_id && (
-            <>
-              <button className={btn} disabled={busy} onClick={() => void act("Offer next", { action: "offer_next", leadId: l.id })}>
-                Offer to next
-              </button>
-              <OfferTo lead={l} pool={pool} busy={busy} onPick={(pid) => void act("Offer", { action: "offer_to", leadId: l.id, providerId: pid })} />
-            </>
-          )}
-          {l.accepted_offer_id && (
-            <>
-              {l.status !== "contacted" && (
-                <button className={btnPri} disabled={busy} onClick={() => void act("Reached", { action: "set_status", leadId: l.id, status: "contacted" })}>
-                  Reached
-                </button>
-              )}
-              <button className={btn} disabled={busy} onClick={() => void act("Client", { action: "set_status", leadId: l.id, status: "client" })}>
-                Became client
-              </button>
-              <button className={btn} disabled={busy} onClick={() => void act("No fit", { action: "set_status", leadId: l.id, status: "no_fit" })}>
-                Not a fit
-              </button>
-              <button className={btn} disabled={busy} onClick={() => void act("Unreachable", { action: "set_status", leadId: l.id, status: "unreachable" })}>
-                Unreachable
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Outside the !closed gate on purpose. A stopped or finished lead is
-          exactly the one you want to open and clear, so the way out of this
-          queue must not disappear the moment the lead stops being active.
-          The family page comes first because that is where calls are logged
-          and where the lead can now be routed; the profile keeps delete. */}
-      {l.care_seeker_id && (
-        <div className="mt-3 text-xs text-gray-600">
-          <a className="text-primary-700 underline-offset-2 hover:underline" href={`/admin/relationships/families/${l.care_seeker_id}`}>
-            Open {l.first_name}&rsquo;s page
-          </a>{" "}
-          <span className="text-gray-400">· logged calls, full timeline, routing ·</span>{" "}
-          <a className="text-gray-500 underline-offset-2 hover:underline" href={`/admin/care-seekers/${l.care_seeker_id}`}>
-            profile and delete
-          </a>
-        </div>
-      )}
-
-      {(l.family_check_sent_at || l.outcome_ping_1_at) && (
-        <ul className="mt-3 space-y-1 border-t border-gray-200 pt-3 text-xs text-gray-600">
-          {l.family_check_sent_at && (
-            <li>
-              Asked {l.first_name} if they were called · {fmtTime(l.family_check_sent_at)}
-              {l.family_check_reply === "reached" && <span className="ml-2 text-success-700">they said yes</span>}
-              {l.family_check_reply === "not_yet" && <span className="ml-2 text-warm-700">they said not yet</span>}
-              {!l.family_check_reply && <span className="ml-2 text-gray-400">no reply yet</span>}
-            </li>
-          )}
-          {l.provider_nudged_at && <li>Nudged the provider · {fmtTime(l.provider_nudged_at)}</li>}
-          {l.outcome_ping_1_at && (
-            <li>
-              Asked if they became a client · {fmtTime(l.outcome_ping_1_at)}
-              {l.outcome_ping_2_at && <> and {fmtTime(l.outcome_ping_2_at)}</>}
-              {l.outcome && <span className="ml-2 font-medium text-gray-800">answered: {l.outcome}</span>}
-            </li>
-          )}
-        </ul>
-      )}
-      {!l.archived_at && <div className="mt-3 flex flex-wrap items-center gap-2">
-        <select aria-label="Archive reason" className={input} value={archiveReason} onChange={e => setArchiveReason(e.target.value)}>
-          <option value="no_longer_needed">No longer needs help</option><option value="looking_for_work">Looking for work, not care</option><option value="opted_out">Asked us to stop</option><option value="duplicate">Duplicate lead</option><option value="other">Other</option>
-        </select>
-        <button className={btn} disabled={busy} onClick={() => void act("Archive",{action:"archive_lead",leadId:l.id,reason:archiveReason})}>Archive lead</button>
-        <span className="text-xs text-gray-500">Stops follow-ups and pending messages; keeps history.</span>
-      </div>}
-      <FamilyTexts lead={l} busy={busy} act={act} />
-
-      <div className="mt-3 flex items-center gap-2">
-        <input className={`${input} w-full`} placeholder="a note for you" value={note} onChange={(e) => setNote(e.target.value)} />
-        {note !== (l.admin_note ?? "") && (
-          <button className={btn} disabled={busy} onClick={() => void act("Note", { action: "note", leadId: l.id, note })}>
-            Save
-          </button>
-        )}
-      </div>
-    </div>
-  );
 }
 
 function CityEditor({ slug, campaigns, rollup, pool, unreachable, busy, act }: { slug: string; campaigns: Campaign[]; rollup: ChannelRow[]; pool: PoolRow[]; unreachable: Map<string, string>; busy: boolean; act: (label: string, body: Record<string, unknown>) => Promise<boolean> }) {

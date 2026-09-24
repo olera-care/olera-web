@@ -155,6 +155,10 @@ const PROGRAM_TOPICS: [string, RegExp][] = [
   ["ombudsman", /\bombudsman\b/i],
   ["scsep", /\b(scsep|community service employment)\b/i],
   ["starplus", /\bstar\s?\+\s?plus\b/i],
+  // CSFP (the USDA "Senior Box") is not SNAP. A name that mentions both
+  // (SD "SNAP/Food Assistance (Senior Box Program/CSFP)") gets two hits and
+  // so no topic, instead of absorbing the legacy SNAP page.
+  ["csfp", /\b(csfp|commodity supplemental food|senior (food )?box)\b/i],
 ];
 
 export function programTopic(name: string | null | undefined): string | null {

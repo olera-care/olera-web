@@ -1,6 +1,7 @@
 import {
   CLEARANCE_MAX_AGE_DAYS,
   agreedBetterProgram,
+  claimsStatedNeed,
   routePacket,
   statesDollarFigure,
   type DraftLintHit,
@@ -17,6 +18,8 @@ import {
   stateProgramNames,
 } from "./navigator-gates.server";
 import type { BenefitsNavigatorMeta } from "@/lib/family-comms/benefits-navigator.server";
+import { careNeedSourceFromMeta, isInferredCareNeed } from "./care-need-source";
+import { resolveBenefitsProgramEntry } from "./program-entry";
 
 /**
  * Build the packet for one composed letter.
@@ -38,6 +41,28 @@ export interface PacketProfileInput {
    * and it does not live on the profile row.
    */
   careNeed?: string | null;
+  /**
+   * Metadata of the same benefits_completed event. Its entry_source and
+   * care_need_source decide whether careNeed is the family's words or a
+   * guess from the program page (lib/benefits/care-need-source.ts).
+   */
+  intakeEvent?: Record<string, unknown> | null;
+}
+
+/** The program page the intake came through, as a short name. */
+function entryProgramName(
+  metadata: Record<string, unknown> | null | undefined,
+  intakeEvent: Record<string, unknown> | null | undefined,
+): string | null {
+  const req = (metadata as {
+    benefits_results?: { requested_program?: { short_name?: unknown; name?: unknown; entry_source?: unknown } };
+  } | null | undefined)?.benefits_results?.requested_program;
+  const evSource = typeof intakeEvent?.entry_source === "string" ? intakeEvent.entry_source : null;
+  const entry = resolveBenefitsProgramEntry(evSource ?? (typeof req?.entry_source === "string" ? req.entry_source : null));
+  if (entry) return entry.program.shortName || entry.program.name;
+  if (typeof req?.short_name === "string" && req.short_name) return req.short_name;
+  if (typeof req?.name === "string" && req.name) return req.name;
+  return null;
 }
 
 function intakeAgeDays(metadata: Record<string, unknown> | null | undefined): number | null {
@@ -102,7 +127,13 @@ export async function buildNavigatorPacket(
   const body = navigator.edited_body ?? navigator.body ?? "";
   const sms = navigator.edited_sms ?? navigator.sms ?? null;
 
-  const facts = factsFromProfile(profile);
+  const careNeedSource = careNeedSourceFromMeta(profile.metadata, profile.intakeEvent);
+  const needInferred = !!profile.careNeed && isInferredCareNeed(careNeedSource);
+  const facts = factsFromProfile({
+    ...profile,
+    careNeedSource,
+    entryProgram: entryProgramName(profile.metadata, profile.intakeEvent),
+  });
   if (profile.careNeed === undefined) {
     // Not a crash, but the fit gate is materially worse without it, and a
     // silently-omitted need is what made 92 letters look fact-free.
@@ -117,6 +148,7 @@ export async function buildNavigatorPacket(
     intakeAgeDays: ageDays,
     statesDollarFigure: statesDollarFigure(body),
     lint: draftLintHits(sms),
+    needInferred,
   };
 
   // No directional facts means the pick was never a judgment we were entitled
@@ -177,12 +209,13 @@ export async function buildNavigatorPacket(
     ? { name: resolved?.label ?? agreedName, programId: resolved?.programId ?? null }
     : null;
 
-  const { route, holds, caveat } = routePacket({
+  const { route, holds, caveat, rewrite } = routePacket({
     facts,
     fit,
     recomposeTarget,
     pickIsEntry: pick?.source === "entry",
     caveatApplied: !!navigator.caveat_applied_at,
+    claimsUnstatedNeed: needInferred && claimsStatedNeed(body),
     rails,
     clearance,
     lint: base.lint,
@@ -198,6 +231,7 @@ export async function buildNavigatorPacket(
     clearance,
     recomposeTarget,
     ...(caveat ? { caveat: true } : {}),
+    ...(rewrite ? { rewrite: true } : {}),
     route,
     holds,
     models,

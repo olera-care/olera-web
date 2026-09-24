@@ -6,6 +6,7 @@ import {
   ROUTE_LABEL,
   holdLabel,
   isCaveatPacket,
+  isRewritePacket,
   routeSummary,
   type NavigatorPacket,
   type PacketRoute,
@@ -115,7 +116,7 @@ export default function NavigatorPacketPanel({ packet }: { packet: NavigatorPack
               switch here would be a lie the button does not keep. */}
           {isCaveatPacket(packet) ? (
             <span className="text-gray-400">. Kept their program; the rewrite states the condition and names this as the better first call if it does not fit.</span>
-          ) : packet.route !== "recompose" ? (
+          ) : packet.route !== "recompose" || isRewritePacket(packet) ? (
             <span className="text-gray-400"> — noted, but Recompose will re-draft the current program, not switch.</span>
           ) : packet.recomposeTarget.programId ? (
             <span className="text-gray-400">. Recompose switches to it.</span>

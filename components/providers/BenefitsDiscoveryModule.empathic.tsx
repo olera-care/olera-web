@@ -277,6 +277,8 @@ export default function EmpathicSingleStep({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           careNeed: inferred.careNeed,
+          // Guessed from their question text, not chosen by them.
+          careNeedSource: "inferred_from_question",
           age: null,
           medicaidStatus: null,
           incomeRange: null,

@@ -32,7 +32,13 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isTransientSkip } from "@/lib/email-governance";
-import { isCaveatPacket, packetNeedsBuild } from "@/lib/benefits/navigator-packet";
+import {
+  eligibilityGateReasons,
+  isCaveatPacket,
+  isRewritePacket,
+  namesEligibilityGate,
+  packetNeedsBuild,
+} from "@/lib/benefits/navigator-packet";
 import { getStateAbbrev } from "@/lib/program-data";
 import { programCallContact } from "./benefits-cascade.server";
 import {
@@ -59,7 +65,7 @@ export const MAX_AUTO_RECOMPOSES = 2;
 
 export type AutopilotAction =
   | { kind: "send" }
-  | { kind: "recompose"; why: "stale" | "ruled_out" | "caveat" }
+  | { kind: "recompose"; why: "stale" | "ruled_out" | "caveat" | "rewrite" }
   | { kind: "skip"; why: string };
 
 /** The newest moment the letter's text changed. */
@@ -116,7 +122,10 @@ export function classifyForAutopilot(
     if (recomposeFailed) return { kind: "skip", why: "automatic recompose failed" };
     if (recomposes >= MAX_AUTO_RECOMPOSES) return { kind: "skip", why: "recompose limit reached" };
     // A caveat rewrite counts toward the same per-letter cap and failure stamp.
-    return { kind: "recompose", why: isCaveatPacket(nav.packet) ? "caveat" : "ruled_out" };
+    return {
+      kind: "recompose",
+      why: isCaveatPacket(nav.packet) ? "caveat" : isRewritePacket(nav.packet) ? "rewrite" : "ruled_out",
+    };
   }
 
   return { kind: "skip", why: `routed ${nav.packet.route}, a person decides` };
@@ -204,8 +213,11 @@ export async function recomposeNavigatorLetter(
   const target = navigator.packet?.recomposeTarget ?? null;
   const caveatVerdict =
     !!navigator.packet && isCaveatPacket(navigator.packet) && !!target && !!navigator.pick;
+  // A REWRITE verdict keeps the program too: only the text is wrong (it
+  // claims a need the family never stated), so re-draft the same program.
+  const rewriteVerdict = !!navigator.packet && isRewritePacket(navigator.packet);
   const ruledOut =
-    navigator.packet?.route === "recompose" && !caveatVerdict
+    navigator.packet?.route === "recompose" && !caveatVerdict && !rewriteVerdict
       ? navigator.pick?.programId ?? null
       : null;
   // When both fit models independently named the SAME better program, the
@@ -324,14 +336,10 @@ function caveatFromVerdict(navigator: BenefitsNavigatorMeta): CaveatInput | null
   const packet = navigator.packet;
   const pick = navigator.pick;
   if (!packet?.recomposeTarget || !pick) return null;
-  const conditions = Array.from(
-    new Set(
-      packet.fit
-        .filter((r) => r.verdict === "questionable")
-        .map((r) => r.why.trim())
-        .filter((w) => w.length > 0),
-    ),
-  ).slice(0, 2);
+  // Only reasons that name who can get the program. A fit-only reason
+  // ("doesn't address paying for care") has no condition in it, and handing
+  // it over made the composer invent one.
+  const conditions = eligibilityGateReasons(packet.fit).slice(0, 2);
   if (conditions.length === 0) return null;
   return {
     keepProgramId: pick.programId,
@@ -344,9 +352,12 @@ function caveatFromVerdict(navigator: BenefitsNavigatorMeta): CaveatInput | null
 function caveatCarriedOver(navigator: BenefitsNavigatorMeta): CaveatInput | null {
   if (!navigator.caveat_applied_at || !navigator.caveat_program_id) return null;
   if (!navigator.caveat_condition?.length || !navigator.caveat_alt_name) return null;
+  // A caveat stored before the gate filter may carry fit-only reasons.
+  const conditions = navigator.caveat_condition.filter((c) => namesEligibilityGate(c));
+  if (conditions.length === 0) return null;
   return {
     keepProgramId: navigator.caveat_program_id,
-    conditions: navigator.caveat_condition,
+    conditions,
     alt: caveatAlt(navigator.pick?.stateId ?? null, {
       name: navigator.caveat_alt_name,
       programId: navigator.caveat_alt_program_id ?? null,
@@ -413,7 +424,7 @@ export async function runNavigatorAutopilot(
   const recomposeLines: string[] = [];
 
   const toSend: { id: string; label: string; program: string }[] = [];
-  const toRecompose: { id: string; label: string; why: "stale" | "ruled_out" | "caveat" }[] = [];
+  const toRecompose: { id: string; label: string; why: "stale" | "ruled_out" | "caveat" | "rewrite" }[] = [];
 
   for (const row of rows ?? []) {
     const meta = (row.metadata as Record<string, unknown>) || {};
@@ -480,14 +491,18 @@ export async function runNavigatorAutopilot(
             ? "automatic: letter older than 7 days"
             : item.why === "caveat"
               ? "automatic: kept their program, added the condition"
-              : "automatic: verdict ruled the program out",
+              : item.why === "rewrite"
+                ? "automatic: letter claimed a need they never stated"
+                : "automatic: verdict ruled the program out",
       });
       if (result.ok) {
         counts.recomposed++;
         recomposeLines.push(
           item.why === "caveat"
             ? `${item.label}: kept, added the condition${result.navigator.caveat_applied_at ? "" : " (not applied, program moved)"}`
-            : `${item.label} → ${result.navigator.pick?.shortName ?? "?"}`,
+            : item.why === "rewrite"
+              ? `${item.label}: re-drafted, no invented need`
+              : `${item.label} → ${result.navigator.pick?.shortName ?? "?"}`,
         );
       } else {
         counts.recompose_failed++;

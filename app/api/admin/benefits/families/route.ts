@@ -1,3 +1,4 @@
+import { careNeedSourceFromMeta, isInferredCareNeed } from "@/lib/benefits/care-need-source";
 import { NextRequest, NextResponse } from "next/server";
 import {
   helpCaseWaiting,
@@ -71,6 +72,8 @@ interface FamilyRow {
   email: string | null;
   state: string | null;
   careNeed: string | null;
+  /** careNeed was derived from the program page, not chosen by the family. */
+  careNeedInferred: boolean;
   matchCount: number | null;
   topProgram: string | null;
   entrySource: string | null;
@@ -323,6 +326,8 @@ export async function GET(request: NextRequest) {
 
       const state = (meta.state as string) || profile?.state || null;
       const careNeed = (meta.care_need as string) || null;
+      // Program-page intakes never ask for a need; it is derived from the page.
+      const careNeedInferred = !!careNeed && isInferredCareNeed(careNeedSourceFromMeta(null, meta));
       const entrySource = (meta.entry_source as string) || null;
       const providerSlug = (meta.provider_slug as string) || null;
 
@@ -402,6 +407,7 @@ export async function GET(request: NextRequest) {
         email,
         state,
         careNeed,
+        careNeedInferred,
         matchCount: typeof meta.match_count === "number" ? meta.match_count : null,
         topProgram: (meta.top_program as string) || null,
         entrySource,

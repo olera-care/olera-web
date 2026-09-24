@@ -432,6 +432,10 @@ export default function ProgramBenefitsCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           careNeed,
+          // The card never asks: careNeed is derived from the program page
+          // (deriveProgramCareNeed). Say so, so nothing downstream presents
+          // it as the family's words (lib/benefits/care-need-source.ts).
+          careNeedSource: "inferred_from_page",
           age: null,
           medicaidStatus: null,
           incomeRange: null,

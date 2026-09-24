@@ -21,7 +21,7 @@
  *    eligibility claims (Phase 4 gate: zero payment-acceptance data).
  */
 import Anthropic from "@anthropic-ai/sdk";
-import { rerouteStoredPacket, type NavigatorPacket } from "@/lib/benefits/navigator-packet";
+import { claimsStatedNeed, rerouteStoredPacket, type NavigatorPacket } from "@/lib/benefits/navigator-packet";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   selectFirstStepProgram,
@@ -37,6 +37,7 @@ import { familyBenefitsFacts, hasCoResidentSpouse } from "./benefits-guidance.se
 import { countProvidersInArea } from "./provider-recs.server";
 import { smsCarriesPhone } from "./sms-phone";
 import { switchLine } from "@/lib/benefits/switch-line";
+import { careNeedSourceFromMeta, isInferredCareNeed } from "@/lib/benefits/care-need-source";
 
 // ── Metadata shape: business_profiles.metadata.benefits_navigator ──────────
 
@@ -133,6 +134,27 @@ export interface BenefitsNavigatorMeta {
   dismissed_at?: string;
 }
 
+/**
+ * Was this family's care need inferred rather than stated? The packet records
+ * it at build time from the intake event. A packet built before that field
+ * falls back to profile metadata, plus the entry pick as a proxy for
+ * program-page intakes older than benefits_results.requested_program
+ * (2026-08-25). The proxy errs toward treating a need as inferred, which can
+ * only cause a rewrite, never a send.
+ */
+function letterNeedInferred(
+  profileMeta: Record<string, unknown> | null | undefined,
+  nav: BenefitsNavigatorMeta,
+): boolean {
+  if (typeof nav.packet?.needInferred === "boolean") return nav.packet.needInferred;
+  const answers = (profileMeta as {
+    benefits_results?: { answers?: { careNeed?: unknown; careNeedSource?: unknown } };
+  } | null | undefined)?.benefits_results?.answers;
+  if (!answers?.careNeed) return false;
+  if (isInferredCareNeed(careNeedSourceFromMeta(profileMeta))) return true;
+  return answers.careNeedSource !== "stated" && nav.pick?.source === "entry";
+}
+
 export function readBenefitsNavigator(
   profileMeta: Record<string, unknown> | null | undefined,
 ): BenefitsNavigatorMeta {
@@ -149,10 +171,31 @@ export function readBenefitsNavigator(
   // reasons retired in August (a stale-intake hold, a bare questionable
   // read): 2 of 124 pending on 2026-09-24 would have gone review -> auto and
   // sent without anyone deciding that.
-  if (!nav.packet || nav.packet.route !== "recompose") return nav;
+  //
+  // One exception, and it can only hold a letter, never release one: a
+  // letter that tells the family they said they need something, when their
+  // need was inferred from the program page, re-routes from auto or review
+  // to a same-program rewrite. Every letter composed for a program-page
+  // family before 2026-09-24 says "You said you need help paying for care".
+  //
+  // And a packet built before the packet recorded provenance, for a family
+  // whose need was inferred, had its fit read under the old prompt, which
+  // told the models that need was the family's own. Such a read may not
+  // switch or rule out their program; it re-drafts the same program instead,
+  // and the rebuilt packet re-reads fit under the corrected prompt.
+  if (!nav.packet) return nav;
+  const needInferred = letterNeedInferred(profileMeta, nav);
+  const claimsUnstatedNeed = needInferred && claimsStatedNeed(nav.edited_body ?? nav.body ?? "");
+  const fitReadOnInventedNeed = needInferred && typeof nav.packet.needInferred !== "boolean";
+  const route = nav.packet.route;
+  if (route !== "recompose" && !(claimsUnstatedNeed && (route === "auto" || route === "review"))) {
+    return nav;
+  }
   const packet = rerouteStoredPacket(nav.packet, {
     pickIsEntry: nav.pick?.source === "entry",
     caveatApplied: !!nav.caveat_applied_at,
+    claimsUnstatedNeed,
+    fitReadOnInventedNeed,
   });
   return packet === nav.packet ? nav : { ...nav, packet };
 }
@@ -419,7 +462,27 @@ export async function composeNavigatorDraft(
   const rawNeed =
     (input.profileMeta as { benefits_results?: { answers?: { careNeed?: unknown } } })
       ?.benefits_results?.answers?.careNeed;
-  const statedNeed = typeof rawNeed === "string" ? NEED_PHRASE[rawNeed] ?? null : null;
+  // The program-page card never asks for a need; it derives one from the
+  // page. That is not something they said, and writing "What they said they
+  // need" from it made letters answer a need nobody stated. Provenance comes
+  // from the latest intake event (lib/benefits/care-need-source.ts).
+  let intakeEvent: Record<string, unknown> | null = null;
+  try {
+    const { data: ev } = await db
+      .from("seeker_activity")
+      .select("metadata")
+      .eq("profile_id", input.profileId)
+      .eq("event_type", "benefits_completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    intakeEvent = (ev?.metadata as Record<string, unknown> | null) ?? null;
+  } catch {
+    intakeEvent = null;
+  }
+  const needInferred = isInferredCareNeed(careNeedSourceFromMeta(input.profileMeta, intakeEvent));
+  const statedNeed =
+    typeof rawNeed === "string" && !needInferred ? NEED_PHRASE[rawNeed] ?? null : null;
 
   // The entry program, resolved independently of which tier won the pick.
   let entryLabel: string | null = null;
@@ -470,6 +533,9 @@ export async function composeNavigatorDraft(
     // pick. So a family who typed "paying for care" and landed on the SNAP
     // page got a SNAP letter that never acknowledged either thing.
     statedNeed ? `- What they said they need: ${statedNeed}` : null,
+    // Inferred need: the page they came through is the only interest they
+    // expressed, and CAME LOOKING FOR below already says it.
+    needInferred ? "- What they need: they did not say. We know only the page they came through." : null,
     entryLabel
       ? `- CAME LOOKING FOR: the ${entryLabel} page${entryLabel === pick.shortName ? " (which is also the first step below)" : " (NOT the first step below)"}`
       : "- CAME LOOKING FOR: nothing specific, they arrived through the site",

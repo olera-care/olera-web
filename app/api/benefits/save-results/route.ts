@@ -24,6 +24,7 @@ import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { emailReturningUserSignInLink, resolveExistingUserId } from "@/lib/auth/returning-user";
 import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
 import { benefitAmountLabel } from "@/lib/benefits/savings-label";
+import { readCareNeedSource, isInferredCareNeed, type CareNeedSource } from "@/lib/benefits/care-need-source";
 
 // ─── Email + SMS body helpers ────────────────────────────────────────────
 //
@@ -111,6 +112,10 @@ interface SavedProgramInput {
 interface SaveResultsPayload {
   // Intake answers
   careNeed: "stayingAtHome" | "payingForCare" | "memoryHealth" | "companionship" | null;
+  /** Whether the family picked careNeed or the surface derived it. The
+   *  program-page card derives it from the page ("inferred_from_page");
+   *  absent on older clients, where it is inferred from entrySource. */
+  careNeedSource?: CareNeedSource;
   age: number | null;
   medicaidStatus: "alreadyHas" | "applying" | "notSure" | "doesNotHave" | null;
   incomeRange: "under1500" | "under2500" | "under4000" | "over4000" | "preferNotToSay" | null;
@@ -164,6 +169,7 @@ export async function POST(req: Request) {
 
   const {
     careNeed,
+    careNeedSource: rawCareNeedSource,
     age,
     medicaidStatus,
     incomeRange,
@@ -442,6 +448,9 @@ export async function POST(req: Request) {
   const granularCareNeeds = careNeed ? CARE_NEED_MAP[careNeed] || [] : [];
   const stateAbbrev = stateCode?.toUpperCase() || null;
   const requestedProgram = resolveBenefitsProgramEntry(entrySource);
+  const careNeedSource = careNeed
+    ? readCareNeedSource({ explicit: rawCareNeedSource, entrySource })
+    : null;
 
   // Sibling P2 cleanup (partial): previously stored a duplicate
   // `benefits_results.answers` blob with age/medicaidStatus/incomeRange/
@@ -478,7 +487,7 @@ export async function POST(req: Request) {
     // Display value — what /portal/profile and admin pages render
     relationship_to_recipient: relationshipDisplay || undefined,
     benefits_results: {
-      answers: careNeed ? { careNeed } : undefined,
+      answers: careNeed ? { careNeed, careNeedSource } : undefined,
       matchCount,
       completed_at: completedAt,
       // This is the family's explicit intent, not an eligibility result. Keep
@@ -723,6 +732,7 @@ export async function POST(req: Request) {
       programs_saved: programsSavedCount,
       state: stateAbbrev,
       care_need: careNeed,
+      care_need_source: careNeedSource,
       is_new_user: isNewUser,
       top_program: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
       top_savings: matchedPrograms[0]?.savingsRange || null,
@@ -776,7 +786,12 @@ export async function POST(req: Request) {
       memoryHealth: "Memory & health care",
       companionship: "Companionship & support",
     };
-    const careNeedLabel = careNeed ? careNeedLabels[careNeed] || null : null;
+    // An inferred need is labelled as such: the program-page card never asks.
+    const careNeedLabel = careNeed
+      ? careNeedLabels[careNeed]
+        ? `${careNeedLabels[careNeed]}${isInferredCareNeed(careNeedSource) ? " (inferred from the page, not asked)" : ""}`
+        : null
+      : null;
 
     // Top savings via the shared parser (a range stays a range, a maximum
     // stays "Up to"), not the last dollar figure forced to "/yr".
@@ -848,7 +863,10 @@ export async function POST(req: Request) {
     welcomeTasks.push((async () => {
       try {
         const stateNameForEmail = stateDisplayName(stateAbbrev);
-        const careLabel = careNeed ? CARE_NEED_LABEL_FOR_COPY[careNeed] || "care" : "care";
+        // An inferred need is not something they asked for; leave it unsaid.
+        const careLabel = isInferredCareNeed(careNeedSource)
+          ? ""
+          : careNeed ? CARE_NEED_LABEL_FOR_COPY[careNeed] || "care" : "care";
         const familyPhrase = relationshipFamilyPhrase(relationship);
 
         const relatedPrograms = matchedPrograms

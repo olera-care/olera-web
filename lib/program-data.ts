@@ -155,11 +155,22 @@ const PROGRAM_TOPICS: [string, RegExp][] = [
   ["ombudsman", /\bombudsman\b/i],
   ["scsep", /\b(scsep|community service employment)\b/i],
   ["starplus", /\bstar\s?\+\s?plus\b/i],
+  // CSFP (the USDA "Senior Box") is not SNAP. A name that mentions both
+  // (SD "SNAP/Food Assistance (Senior Box Program/CSFP)") gets two hits and
+  // so no topic, instead of absorbing the legacy SNAP page.
+  ["csfp", /\b(csfp|commodity supplemental food|senior (food )?box)\b/i],
+  // Senior Medicare Patrol (fraud help) is not SHIP counseling, even when a
+  // name carries both ("Senior Medicare Patrol (SMP/SHIP)").
+  ["smp", /\b(senior medicare patrol|smp)\b/i],
 ];
 
 export function programTopic(name: string | null | undefined): string | null {
   if (!name) return null;
-  const hits = PROGRAM_TOPICS.filter(([, re]) => re.test(name)).map(([t]) => t);
+  // Only the PRIMARY program counts: in "Home Care Program for Elders
+  // (CHCPE) - Medicare Savings" the part after the dash is a bundled
+  // secondary benefit, so the name must not stand in for the MSP page.
+  const primary = name.split(/\s[-–—]\s/)[0];
+  const hits = PROGRAM_TOPICS.filter(([, re]) => re.test(primary)).map(([t]) => t);
   return hits.length === 1 ? hits[0] : null;
 }
 

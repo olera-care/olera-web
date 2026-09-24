@@ -9,7 +9,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * author name. Now a question only shows when all of these hold:
  *   - it is about benefits or coverage (Medicaid, Medicare, VA, waivers...)
  *   - the provider it was asked on is in this state
- *   - the answer is a real answer (not a bare "call us at 555-..." line)
+ *   - the answer is a real answer (not a bare "call us at 555-..." line, and
+ *     not just "we aren't that kind of provider" / "we don't take Medicaid")
  * The author line is the provider's NAME from the directory, never an id.
  * When nothing qualifies, the list is empty and the section hides.
  */
@@ -46,9 +47,16 @@ const BENEFIT_RE =
 const PHONE_RE = /\(?\b\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Answers that only say the provider isn't the relevant service ("We aren't
+// a senior care facility", "We don't accept Medicaid", "not affiliated").
+// True for the provider, useless as benefits help on a state page.
+const NOT_RELEVANT_RE =
+  /\b(we|i)\s+(are not|aren['’]t|am not|do not|don['’]t|does not|doesn['’]t|cannot|can['’]t|no longer)\b|\bnot affiliated\b|\bhud\b|\bapartment(s| complex)?\b|\bnot a (senior|care|medical|licensed|home)\b|^\s*no\b|\bnot at this time\b|\bwe are (a )?private[- ]pay\b|\bprivate[- ]pay only\b|\bcan you (provide|share|tell)\b/i;
+
 function answerIsUsable(answer: string): boolean {
   const a = answer.trim();
   if (a.length < 60) return false;
+  if (NOT_RELEVANT_RE.test(a)) return false;
   if (PHONE_RE.test(a)) return false;
   if (/https?:\/\/|www\.|@[a-z0-9-]+\./i.test(a)) return false;
   return true;

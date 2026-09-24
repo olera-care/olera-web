@@ -36,21 +36,44 @@ export function benefitAmountLabel(range?: string | null): BenefitAmountLabel | 
   if (!range) return null;
   const s = range.trim();
 
-  const r = s.match(new RegExp(`^${FIG}\\s*(?:–|—|-|to)\\s*${FIG}`, "i"));
+  // An open top ("$5,000 – $20,000+/year") keeps its "+".
+  const r = s.match(new RegExp(`^${FIG}\\s*(?:–|—|-|to)\\s*${FIG}(\\+?)`, "i"));
   if (r) {
     const period = periodAfter(s.slice(r[0].length));
-    return { text: `$${r[1]} to $${r[2]}${period}`, kind: "range" };
+    return { text: `$${r[1]} to $${r[2]}${r[3]}${period}`, kind: "range" };
   }
 
   const u = s.match(new RegExp(`^up to\\s+${FIG}`, "i"));
   if (u) {
-    const period = periodAfter(s.slice(u[0].length));
+    const rest = s.slice(u[0].length);
+    const period = periodAfter(rest);
+    // "Up to $17,604/year (basic) or $22,344/year (enhanced care)" and
+    // "Up to $385/month (Urban), $491 (Rural 1) or $598 (Rural 2)": the
+    // maximum is the highest alternative, not the first one listed.
+    const alts = rest.match(
+      /^(?:\+?\s*\/\s*\w+)?\s*(?:\([^)]*\))?((?:\s*,\s*\$\s?[\d,]+(?:\.\d+)?(?:\s*\/\s*\w+)?\s*(?:\([^)]*\))?)*)\s*,?\s+or\s+\$\s?([\d,]+(?:\.\d+)?)/i,
+    );
+    if (alts) {
+      const figs = [u[1], ...(alts[1].match(/[\d,]+(?:\.\d+)?(?=\s*(?:\/|\(|,|$|\s))/g) || []), alts[2]]
+        .filter((f) => /\d/.test(f));
+      const top = figs.reduce((a, b) => (Number(b.replace(/,/g, "")) > Number(a.replace(/,/g, "")) ? b : a));
+      return { text: `Up to $${top}${period}`, kind: "max" };
+    }
     return { text: `Up to $${u[1]}${period}`, kind: "max" };
   }
 
   const a = s.match(new RegExp(`^${FIG}(\\+?)`, "i"));
   if (a) {
-    const period = periodAfter(s.slice(a[0].length));
+    const rest = s.slice(a[0].length);
+    const period = periodAfter(rest);
+    // "$50,000 maximum loan" is a loan ceiling, not money received.
+    if (!a[2] && /^\S*\s+maximum\s+loans?\b/i.test(rest)) {
+      return { text: `Loans up to $${a[1]}`, kind: "max" };
+    }
+    // "$298/month maximum for one person" is a maximum, not the amount.
+    if (!a[2] && /^\S*\s+maximum\b/i.test(rest)) {
+      return { text: `Up to $${a[1]}${period}`, kind: "max" };
+    }
     return { text: `$${a[1]}${a[2]}${period}`, kind: "amount" };
   }
 

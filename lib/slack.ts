@@ -1375,8 +1375,8 @@ export function slackBenefitsCompleted(opts: {
   email: string;
   stateCode: string | null;
   careNeedLabel: string | null;
-  /** "age 72" / "age under 65" (lib/benefits/age careAgeShort), or null. */
-  ageLabel: string | null;
+  /** An exact age, or a band label ("under 65") for a one-tap answer. */
+  age: number | string | null;
   medicaidStatus: string | null;
   incomeRange: string | null;
   matchCount: number;
@@ -1418,7 +1418,7 @@ export function slackBenefitsCompleted(opts: {
 
   // Build the situation line — humanize the numbers
   const situationParts: string[] = [];
-  if (opts.ageLabel) situationParts.push(opts.ageLabel);
+  if (opts.age) situationParts.push(`age ${opts.age}`);
   if (opts.medicaidStatus === "alreadyHas") situationParts.push("on Medicaid");
   else if (opts.medicaidStatus === "doesNotHave") situationParts.push("not on Medicaid");
   else if (opts.medicaidStatus === "applying") situationParts.push("applying for Medicaid");

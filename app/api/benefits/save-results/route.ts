@@ -22,7 +22,8 @@ import { getStateSlug } from "@/lib/program-data";
 import { resolveBenefitsProgramEntry } from "@/lib/benefits/program-entry";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { emailReturningUserSignInLink, resolveExistingUserId } from "@/lib/auth/returning-user";
-import { ageBandFromExact, careAgeShort, readCareAge } from "@/lib/benefits/age";
+import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
+import { benefitAmountLabel } from "@/lib/benefits/savings-label";
 
 // ─── Email + SMS body helpers ────────────────────────────────────────────
 //
@@ -777,14 +778,9 @@ export async function POST(req: Request) {
     };
     const careNeedLabel = careNeed ? careNeedLabels[careNeed] || null : null;
 
-    // Extract top savings as "Up to $X/yr" from the range string
-    const topSavingsRaw = matchedPrograms[0]?.savingsRange;
-    const topSavings = (() => {
-      if (!topSavingsRaw) return null;
-      const matches = topSavingsRaw.match(/\$[\d,]+/g);
-      if (!matches || matches.length === 0) return null;
-      return `up to ${matches[matches.length - 1]}/yr`;
-    })();
+    // Top savings via the shared parser (a range stays a range, a maximum
+    // stays "Up to"), not the last dollar figure forced to "/yr".
+    const topSavings = benefitAmountLabel(matchedPrograms[0]?.savingsRange)?.text ?? null;
 
     // Slack alert lists the actual contact (email if email-path, phone if SMS).
     // The helper's `email` field is the contact display — we pass whichever
@@ -795,12 +791,10 @@ export async function POST(req: Request) {
     // facts since (enrichment round, /m chips, email quiz) — read them off
     // the profile so the alert stops saying "unknown" about a family we know.
     const priorMeta = (existingFamilyProfile?.metadata as Record<string, unknown>) || {};
-    // readCareAge so a family who tapped an age band shows the band, not
-    // "unknown" (or a legacy chip number posing as an exact age).
-    const careAge =
-      typeof age === "number" && age > 0
-        ? { exact: age, band: ageBandFromExact(age) }
-        : readCareAge(priorMeta);
+    // Through readCareAge: a legacy chip "60" is the "Under 65" band, not age 60.
+    const priorCareAge = readCareAge(priorMeta);
+    const priorAge =
+      priorCareAge.exact ?? (priorCareAge.band ? AGE_BAND_LABELS[priorCareAge.band].toLowerCase() : null);
     const priorMedicaid = typeof priorMeta.medicaid_status === "string" ? priorMeta.medicaid_status : null;
     const priorIncome = typeof priorMeta.income_range === "string" ? priorMeta.income_range : null;
 
@@ -809,7 +803,7 @@ export async function POST(req: Request) {
       email: normalizedEmail || normalizedPhone || "(no contact)",
       stateCode: stateAbbrev,
       careNeedLabel,
-      ageLabel: careAgeShort(careAge),
+      age: age || priorAge,
       medicaidStatus: medicaidStatus || priorMedicaid,
       incomeRange: incomeRange || priorIncome,
       matchCount,

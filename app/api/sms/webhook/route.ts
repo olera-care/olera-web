@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
 import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone, sendSMS } from "@/lib/twilio";
-import { smsHelpReply, familyAnswerAckSms, cityQualificationThanksSms } from "@/lib/sms/templates";
+import { smsHelpReply, familyAnswerAckSms, cityQualificationThanksSms, cityQualificationThanksPrimarySms } from "@/lib/sms/templates";
+import { resolvePrimaryCampaign } from "@/lib/city-ads/primary.server";
 import { getCityConfig } from "@/lib/city-ads/config";
 import { getSiteUrl } from "@/lib/site-url";
 import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
@@ -334,7 +335,7 @@ async function captureCityQualification(
     // page of leads was open at once.
     const { data, error } = await db
       .from("city_leads")
-      .select("id, created_at, slug, first_name")
+      .select("id, created_at, slug, first_name, meta_campaign_id")
       .eq("phone", phone)
       .eq("is_test", false)
       .is("archived_at", null)
@@ -380,10 +381,25 @@ async function captureCityQualification(
     // First word only. Meta sends a full name in one field, so "Hi Jyotsna U
     // Patel" is what an unsplit greeting produces.
     const firstName = String(lead.first_name ?? "").trim().split(/\s+/)[0] || "there";
+    // A lead from a provider's own ad goes to her, and she calls. Say so to
+    // the family, and do not tell our side to call.
+    let primaryName: string | null = null;
+    try {
+      const primary = await resolvePrimaryCampaign(db, {
+        id: String(lead.id),
+        slug: String(lead.slug ?? ""),
+        meta_campaign_id: (lead.meta_campaign_id as string | null) ?? null,
+      });
+      primaryName = primary ? primary.providerName ?? "the local care agency" : null;
+    } catch (err) {
+      console.error("[sms-webhook] City primary lookup failed:", err);
+    }
     try {
       const { sendSlackAlert } = await import("@/lib/slack");
       await sendSlackAlert(
-        `City lead ${String(lead.id).slice(0, 8)} (${cfg?.city ?? lead.slug}): ${firstName} answered the qualifying text. "${body.slice(0, 300)}" Read it before you call: ${getSiteUrl()}/admin/city-ads`,
+        primaryName
+          ? `City lead ${String(lead.id).slice(0, 8)} (${cfg?.city ?? lead.slug}): ${firstName} answered the qualifying text. "${body.slice(0, 300)}" From ${primaryName}'s own ad, so it goes to their campaign page once judged; nobody here calls. ${getSiteUrl()}/admin/city-ads`
+          : `City lead ${String(lead.id).slice(0, 8)} (${cfg?.city ?? lead.slug}): ${firstName} answered the qualifying text. "${body.slice(0, 300)}" Read it before you call: ${getSiteUrl()}/admin/city-ads`,
       );
     } catch (err) {
       console.error("[sms-webhook] City qualification Slack ping failed:", err);
@@ -391,11 +407,13 @@ async function captureCityQualification(
     try {
       await sendSMS({
         to: phone,
-        body: cityQualificationThanksSms({
-          firstName,
-          city: cfg?.city ?? "your area",
-          concierge: cfg?.routingMode === "concierge",
-        }),
+        body: primaryName
+          ? cityQualificationThanksPrimarySms({ firstName, providerName: primaryName })
+          : cityQualificationThanksSms({
+              firstName,
+              city: cfg?.city ?? "your area",
+              concierge: cfg?.routingMode === "concierge",
+            }),
         emailType: "city_lead_qualification_thanks",
         recipientType: "family",
         metadata: { lead_id: lead.id },

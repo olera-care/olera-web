@@ -328,6 +328,16 @@ export function cityFamilyConciergeSms(p: { firstName: string; city: string; tod
  * question and hears nothing back has been taught that replying does nothing.
  * It says what happens next and asks for nothing further.
  */
+/**
+ * The same thank-you for a family from a provider's OWN ad. Nobody at Olera
+ * calls these; the provider does (lib/city-ads/primary.server.ts), so the
+ * concierge line "someone from Olera will call you" would be a promise nobody
+ * keeps.
+ */
+export function cityQualificationThanksPrimarySms(p: { firstName: string; providerName: string }): string {
+  return `Olera: Thank you ${p.firstName}, that helps. We are passing this to ${p.providerName}, who will be in touch.`;
+}
+
 export function cityQualificationThanksSms(p: { firstName: string; city: string; concierge: boolean }): string {
   // Deliberately no "today" or "in the morning" here. The confirmation text
   // already named a time, and this one is sent whenever the family gets round

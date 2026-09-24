@@ -372,6 +372,9 @@ export async function POST(req: NextRequest) {
         if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
         if (lead.archived_at) return NextResponse.json({ error: `${lead.first_name} is archived. Put them back first.` }, { status: 409 });
         if (lead.handed_at) return NextResponse.json({ error: `${lead.first_name} is already on the provider's campaign page.` }, { status: 409 });
+        if (await cityLeadBlocked(db, lead.id)) {
+          return NextResponse.json({ error: `${lead.first_name} asked us to stop contacting them, so they can't be handed to a provider.` }, { status: 409 });
+        }
         const primary = await resolvePrimaryCampaign(db, lead);
         if (!primary) {
           return NextResponse.json(

@@ -817,15 +817,23 @@ async function runQualificationPass(db: SupabaseClient): Promise<{ judged: numbe
     const city = getCityConfig(row.slug)?.city ?? row.slug;
     const who = String(row.first_name ?? "").trim().split(/\s+/)[0] || "there";
     const said = (row.qualification_reply ?? "").slice(0, 200);
+    // A lead already handed to its ad's provider has been on her campaign
+    // page since before this reply, so the usual "nothing went to a provider"
+    // would be false. Filing it takes it off her page.
+    const handed = !!row.handed_at;
     if (file) {
       out.filed++;
       await sendSlackAlert(
-        `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and will NOT go to a provider. They said: "${said}" ${result.reason} Wrong? Put them back at /admin/city-ads.`,
+        handed
+          ? `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and taken off the provider's campaign page, where it had been since the hand-over. They said: "${said}" ${result.reason} Wrong? Put them back at /admin/city-ads.`
+          : `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and will NOT go to a provider. They said: "${said}" ${result.reason} Wrong? Put them back at /admin/city-ads.`,
       );
     } else if (result.verdict !== "care_seeker") {
       out.holding++;
       await sendSlackAlert(
-        `🕵️ City lead ${row.id.slice(0, 8)} (${city}): ${who} is held as ${result.category.replace(/_/g, " ")}, nothing has gone to a provider. They said: "${said}" ${result.reason} Read it and decide at /admin/city-ads.`,
+        handed
+          ? `🕵️ City lead ${row.id.slice(0, 8)} (${city}): ${who} replied and reads as ${result.category.replace(/_/g, " ")}. They are still on the provider's campaign page. They said: "${said}" ${result.reason} Archive at /admin/city-ads if it should come off.`
+          : `🕵️ City lead ${row.id.slice(0, 8)} (${city}): ${who} is held as ${result.category.replace(/_/g, " ")}, nothing has gone to a provider. They said: "${said}" ${result.reason} Read it and decide at /admin/city-ads.`,
       );
     }
   }

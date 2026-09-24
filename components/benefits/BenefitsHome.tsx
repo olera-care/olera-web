@@ -198,18 +198,17 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
         shortName: nextStep.shortName,
         phone: nextStep.contact.phone,
         programPath: nextStep.programPath,
-        savings: nextStep.savingsRange
-          ? `Typically ${nextStep.savingsRange}`
-          : savingsLine(matches.find((p) => p.id === nextStep.programId)?.savingsRange),
+        savings:
+          savingsLine(nextStep.savingsRange) ??
+          savingsLine(matches.find((p) => p.id === nextStep.programId)?.savingsRange),
       }
     : null;
 
   // The hero needs its "why": drafts often lack a savings range (WAP in GA),
   // but the matched program data usually carries one. Draft wins, match fills.
   const heroMatch = firstStep ? matches.find((p) => p.id === firstStep.programId) : null;
-  const heroSavings = firstStep?.savingsRange
-    ? `Typically ${firstStep.savingsRange}`
-    : savingsLine(heroMatch?.savingsRange);
+  const heroSavings =
+    savingsLine(firstStep?.savingsRange) ?? savingsLine(heroMatch?.savingsRange);
 
   return (
     <main className="min-h-screen bg-[#faf8f5]">

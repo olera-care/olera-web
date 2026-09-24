@@ -821,7 +821,7 @@ function cityThreadSignatureData(leadId: string): string {
 }
 
 export function generateCityThreadToken(leadId: string): string {
-  return `${leadId}.${hmacSignature(cityThreadSignatureData(leadId), TOKEN_SECRET)}`;
+  return `${leadId}.${hmacSignature(cityThreadSignatureData(leadId), tokenSecret())}`;
 }
 
 export function validateCityThreadToken(token: string): { valid: true; leadId: string } | { valid: false; error: string } {

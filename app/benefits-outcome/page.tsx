@@ -16,7 +16,9 @@ import Link from "next/link";
  *
  * Every path helps forward:
  *   moving        → encouragement + the program guide to keep going.
- *   wants_help    → a real person will follow up, plus an optional ZIP field
+ *   wants_help    → an owned help case (owner + 2-business-day due time,
+ *                   lib/family-comms/benefits-help-cases.server.ts), plus an
+ *                   optional ZIP field
  *                   that reveals their local Area Agency on Aging.
  *   wrong_program → one-tap "what didn't fit" + their other matches.
  */
@@ -208,10 +210,10 @@ function BenefitsOutcomeInner() {
                   />
                 </svg>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900 mb-2">Help is on the way</h1>
+              <h1 className="text-xl font-semibold text-gray-900 mb-2">We got your request</h1>
               <p className="text-gray-500">
-                A real person from Olera will reach out within a day or two to walk through{" "}
-                {program} with you. You don&apos;t have to figure this out alone.
+                Someone from our team will text or email you, usually within 2 business days, to
+                walk through {program} with you. You don&apos;t have to figure this out alone.
               </p>
             </div>
 
@@ -284,7 +286,7 @@ function BenefitsOutcomeInner() {
                   <p className="text-sm font-semibold text-gray-900 mb-1">Prefer texts?</p>
                   <p className="text-sm text-gray-500 mb-3">
                     We&apos;ll text your plan now. Olera&apos;s care team will ask what you&apos;d like
-                    help with first and reply within 48 hours.
+                    help with first, usually within 2 business days.
                   </p>
                   <div className="flex gap-2">
                     <input

@@ -29,8 +29,10 @@ import {
   renderNavigatorEmail,
   type BenefitsNavigatorMeta,
 } from "./benefits-navigator.server";
-import { ROUTE_LABEL } from "@/lib/benefits/navigator-packet";
+import { ROUTE_LABEL, packetNeedsBuild } from "@/lib/benefits/navigator-packet";
 import { readClearance } from "@/lib/benefits/navigator-gates.server";
+import { DECEASED_UNSUB_SOURCE, isBenefitsAutomationHeld } from "./benefits-automation";
+import { smsCarriesPhone } from "./sms-phone";
 
 /**
  * Substitute the plan link, dropping any punctuation left flush against it.
@@ -75,8 +77,12 @@ export interface NavigatorSendOptions {
   subject?: string | null;
   body?: string | null;
   sms?: string | null;
-  /** Who initiated the send. Both paths respect recipient SMS quiet hours. */
-  trigger: "admin" | "scheduler";
+  /**
+   * Who initiated the send. All paths respect recipient SMS quiet hours.
+   * `auto` is the autopilot in the scheduler cron releasing a letter whose
+   * packet routed it `auto` (TJ policy, 2026-09-24).
+   */
+  trigger: "admin" | "scheduler" | "auto";
   /**
    * Send anyway when the packet says this letter should not go as written.
    * Only ever set from an explicit human confirmation in the admin drawer;
@@ -107,6 +113,35 @@ export async function sendNavigatorLetter(
     return { ok: false, error: "No pending draft for this family", conflict: true };
   }
   /**
+   * The family's own "stop these emails". The coordinator honors this flag
+   * at rung 0, but this path never read it, so a family who unsubscribed
+   * after their draft was composed could still receive the letter and its
+   * companion text. Blocks every trigger, including TJ's button: the family
+   * asked, and no override should be one click from ignoring that.
+   */
+  if (meta.nudges_unsubscribed === true) {
+    return {
+      ok: false,
+      conflict: true,
+      error:
+        meta.nudges_unsubscribed_source === DECEASED_UNSUB_SOURCE
+          ? "A reply suggested someone in this family died, so messages are paused. Check the reply, then resume automation if it was a mistake."
+          : "This family unsubscribed from these messages.",
+    };
+  }
+  /**
+   * Any reply from the family pauses automated sends until a person has read
+   * it. The scheduler and the autopilot stop here; TJ's own button does not,
+   * because a person clicking Send after reading the reply is the point.
+   */
+  if (opts.trigger !== "admin" && isBenefitsAutomationHeld(meta)) {
+    return {
+      ok: false,
+      conflict: true,
+      error: "The family replied, so automated sends are paused until someone reads it and resumes.",
+    };
+  }
+  /**
    * The packet gate. This is the ONE choke point both send paths share, so it
    * is the only place a verdict can actually stop a letter.
    *
@@ -123,6 +158,18 @@ export async function sendNavigatorLetter(
    * a cron.
    */
   const route = navigator.packet?.route;
+  /**
+   * The autopilot may only release a letter whose CURRENT text was judged
+   * clean. The caller already filters on this; repeating it at the choke
+   * point means no future caller can pass `auto` for a letter nobody cleared.
+   */
+  if (opts.trigger === "auto" && (route !== "auto" || packetNeedsBuild(navigator))) {
+    return {
+      ok: false,
+      conflict: true,
+      error: "Only a letter whose current text routed `auto` can send without a person.",
+    };
+  }
   if ((route === "recompose" || route === "ask") && !opts.overridePacket) {
     const why = navigator.packet?.holds[0] ?? ROUTE_LABEL[route];
     return {
@@ -230,6 +277,7 @@ export async function sendNavigatorLetter(
         navigator: true,
         program_id: navigator.pick?.programId || null,
         scheduled: opts.trigger === "scheduler" || undefined,
+        auto: opts.trigger === "auto" || undefined,
       },
     });
     if (!result.success || result.skipped) {
@@ -261,7 +309,23 @@ export async function sendNavigatorLetter(
       typeof opts.sms === "string" && opts.sms.trim().length >= 20
         ? opts.sms.trim().slice(0, 400)
         : null;
-    const draftSms = editedSms || navigator.edited_sms || navigator.sms || null;
+    /**
+     * The text must carry the program's phone number. The composer used to
+     * be told to write no phone numbers, so its texts were link-only
+     * ("Olera's care team here... {link}"). Families replied "I need the
+     * phone number", and that text had the worst STOP rate of any we send
+     * (5.6%). Whatever text would send (drawer edit, saved edit, model
+     * draft), if it lacks the number the deterministic template goes
+     * instead, which always has it. The drawer resubmits the model's draft
+     * as an "edit" on every send and schedule, so an edit is not evidence
+     * that a person chose to drop the number. This repairs every pending
+     * draft without recomposing it.
+     */
+    const preferredSms = editedSms || navigator.edited_sms || navigator.sms || null;
+    const draftSms =
+      preferredSms && smsCarriesPhone(preferredSms, navigator.pick.contactPhone)
+        ? preferredSms
+        : null;
     // Append the opt-out line only when it isn't already there (the model
     // is told not to write it, but a disobedient draft or a TJ edit that
     // includes it must not produce a doubled STOP line).
@@ -277,7 +341,6 @@ export async function sendNavigatorLetter(
       : benefitsFirstStepSms({
           programShortName: navigator.pick.shortName,
           phone: navigator.pick.contactPhone,
-          topDocs: navigator.pick.documents,
           url: smsPlanUrl,
         });
 

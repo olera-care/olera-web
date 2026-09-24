@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { familyLocationText } from "@/lib/email-templates";
+import { isBenefitsOnlyFamily } from "@/lib/family-comms/benefits-automation";
 import { getServiceClient } from "@/lib/admin";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
@@ -466,7 +468,7 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        const locationText = family.city || family.state || "your area";
+        const locationText = familyLocationText(family.city, family.state);
         const mrSubject = newProviderCount > 0
           ? `${newProviderCount} providers in ${locationText} match your search`
           : `Highly-rated providers in ${locationText}`;
@@ -555,6 +557,16 @@ export async function GET(request: NextRequest) {
       // (below), monthly recommendations, re-engagement, and post-connection follow-up.
       // See plans/family-comms-system.md "Track 2 — Option B build spec".
 
+      // ── STOP CONDITION: benefits-only family ──
+      // Came through the benefits finder and never reached out to a provider.
+      // "Publish your care post" is a marketplace ask; to this cohort it was
+      // part of ~970 marketplace nudges in two months, and every one of them
+      // used a slot of the family nudge cap the benefits check-in needed.
+      if (isBenefitsOnlyFamily(meta as Record<string, unknown>, hasConnections)) {
+        counts.skipped++;
+        continue;
+      }
+
       // ── PHASE 2: Profile Publishing (if ready to publish but not published yet) ──
       if (readyToPublish && !isPublished) {
         // Use migration-aware function: if they got the old email, skip nudge #1
@@ -589,7 +601,7 @@ export async function GET(request: NextRequest) {
           // Step 1: Determine subject, emailType, and increment counters
           let subject: string;
           let emailType: string;
-          const locationText = family.city || family.state || "your area";
+          const locationText = familyLocationText(family.city, family.state);
 
           // For maintenance, get new provider count for dynamic subject
           let newProviderCount = 0;
@@ -867,7 +879,7 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      const locationText = family.city || family.state || "your area";
+      const locationText = familyLocationText(family.city, family.state);
       const reSubject = `Still searching for care in ${locationText}?`;
       const emailType = "inactivity_reengagement";
 

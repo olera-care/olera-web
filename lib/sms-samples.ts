@@ -179,7 +179,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
     situation: "Sent when the quiz finds at least one match and the family supplied a phone. It delivers the private Olera plan while their request is still fresh.",
     trigger: "A new family completes the benefits quiz with ≥1 program match and supplies a phone under the SMS disclosure",
     who: "A new family who finished the benefits quiz, matched at least one program, and gave a phone number (phone-as-optional V3 flow).",
-    why: "The care team leads with a bounded human question while keeping the plan available for families who prefer to self-serve. It promises a reply within 48 hours when the family responds and carries Reply STOP because this is the first text.",
+    why: "The care team leads with a bounded human question while keeping the plan available for families who prefer to self-serve. It says the team replies within 2 business days when the family responds and carries Reply STOP because this is the first text.",
     render: () =>
       benefitsResultsSms({ matchCount: 4, url: "https://olera.care/m/sample" }),
   },
@@ -214,18 +214,17 @@ export const SMS_VARIANTS: SmsVariant[] = [
     situation: "Usually drafted 2–10 days after intake, then sent only when the care team approves it or at the scheduled hour. It accompanies email or becomes the primary delivery for a text-only family.",
     trigger: "The care team approves and sends (or schedules) a navigator draft and the family has stored sms_consent. It accompanies email when available and becomes the primary B1 delivery for text-only families.",
     who: "A benefits-intake family who supplied a phone under the SMS disclosure during intake or a later benefits phone-capture step.",
-    why: "The reviewed first step in the channel families actually open. Most sends use the care-team per-family draft; this preview is explicitly the fallback used when no custom companion text exists.",
+    why: "The reviewed first step in the channel families actually open. It always carries the program's phone number: a per-family draft is used only when it includes that number, otherwise this template is sent.",
     gates: [
       "Requires stored phone + explicit sms_consent (10DLC posture) — never phone presence alone",
       "Skipped when phone_validity = opted_out (family texted STOP)",
-      "Only sends after TJ approves the navigator draft",
+      "Sends after the care team approves it, or automatically at the next hourly run once its verdict routes `auto` (fresh letters only)",
       "Can be the primary delivery when no email exists; otherwise it accompanies the governed email touch",
     ],
     render: () =>
       benefitsFirstStepSms({
         programShortName: "LIHEAP",
         phone: "1-877-555-0142",
-        topDocs: ["Photo ID", "A recent utility bill"],
         url: "https://olera.care/m/sample",
       }),
   },

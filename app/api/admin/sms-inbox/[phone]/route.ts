@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resumeAfterHumanReply } from "@/lib/family-comms/benefits-replies.server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { createTwilioClient, sendSMS } from "@/lib/twilio";
 import { isPhoneDoNotContact } from "@/lib/do-not-contact";
@@ -1001,6 +1002,16 @@ export async function POST(
         // between packet.draft and sent_body is the cheapest honest signal of
         // whether the engine is any good, and it needs no extra instrumentation.
         stampAnswerJobSent(db, last10, text, user.email ?? admin.id),
+        // A person answered a benefits family: their reply hold lifts and the
+        // cascade may resume (lib/family-comms/benefits-replies.server.ts).
+        recipientIdentity?.profile_type === "family" && recipientIdentity.profile_id
+          ? resumeAfterHumanReply(
+              db,
+              recipientIdentity.profile_id,
+              new Date().toISOString(),
+              `SMS reply by ${user.email ?? "admin"}`,
+            ).catch((err) => console.error("[sms-inbox] benefits resume failed:", err))
+          : Promise.resolve(),
       ]);
 
       await logAuditAction({

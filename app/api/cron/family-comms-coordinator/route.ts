@@ -16,6 +16,7 @@ import {
   pickSnapshot,
 } from "@/lib/family-comms/benefits-navigator.server";
 import { sendSlackAlert } from "@/lib/slack";
+import { isBenefitsAutomationHeld, isBenefitsOnlyFamily } from "@/lib/family-comms/benefits-automation";
 import { sendSMS } from "@/lib/twilio";
 import { benefitsCheckInSms } from "@/lib/sms/templates";
 import { withSmsSource } from "@/lib/sms/click-source";
@@ -54,6 +55,7 @@ import {
   careUnsubscribeUrl,
 } from "@/lib/email-templates";
 import type { CompareCardItem } from "@/lib/email-templates";
+import { familyLocationText } from "@/lib/email-templates";
 import {
   getSequenceWithMigration,
   shouldSendCompletionNudge,
@@ -578,6 +580,15 @@ export async function GET(request: NextRequest) {
         !!benefitsDoneAt &&
         !benefitsCascade.outcome &&
         now - new Date(benefitsDoneAt).getTime() < 21 * DAY;
+      // The family replied (text or email) and no person has resumed
+      // automation yet. The check-in must not talk over their reply: a Texas
+      // family said the program did not fit on Sep 3 and was asked "How is it
+      // going with STAR+PLUS?" on Sep 5.
+      const benefitsHeld = isBenefitsAutomationHeld(familyMeta);
+      // Came for benefits, never reached out to a provider. Marketplace
+      // profile nudges are for provider shoppers; to this cohort they were
+      // ~970 emails in two months and they ate the cap the check-in needs.
+      const benefitsOnly = isBenefitsOnlyFamily(familyMeta, fam.inquiries.length > 0);
 
       // ── Compare-led URL builders (v2 flywheel) ──────────────────────────
       // Both read authEmailFinal at *invocation* time (inside buildHtml, after the
@@ -1182,7 +1193,8 @@ export async function GET(request: NextRequest) {
           benefitsCascade.first_step_sent_at &&
           !benefitsCascade.check_sent_at &&
           !benefitsCascade.check_sms_queued_for &&
-          !benefitsCascade.outcome
+          !benefitsCascade.outcome &&
+          !benefitsHeld
         ) {
           const sinceStep = now - new Date(benefitsCascade.first_step_sent_at).getTime();
           if (sinceStep >= 3 * DAY && sinceStep <= 14 * DAY) {
@@ -1257,7 +1269,7 @@ export async function GET(request: NextRequest) {
         //    family-nudges completion sequence + step-state in
         //    business_profiles.metadata.completion_sequence, so a sequence in flight when
         //    ownership moved continues seamlessly. PUBLISH stays demoted to family-nudges.
-        if (!isComplete && !recentConnActivity && !benefitsCascadeActive) {
+        if (!isComplete && !recentConnActivity && !benefitsCascadeActive && !benefitsOnly) {
           const seq = getSequenceWithMigration(
             familyMeta.completion_sequence as NudgeSequence | undefined,
             familyMeta.profile_incomplete_reminder_sent as boolean | undefined,
@@ -1276,7 +1288,7 @@ export async function GET(request: NextRequest) {
               return null;
             }
             const hasLocation = !!(familyCity && familyState);
-            const locationText = familyCity || familyState || "your area";
+            const locationText = familyLocationText(familyCity, familyState);
             const emailType = isMaintenance ? "completion_maintenance" : `completion_nudge_${nudgeNumber}`;
             // Subject built WITHOUT providerCount (it degrades gracefully) so dry-run
             // skips the provider fetch — completion is the dominant volume.

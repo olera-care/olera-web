@@ -21,7 +21,7 @@ import Select from "@/components/ui/Select";
  * AuthProvider's listener fires and the board re-renders authed in place.
  */
 
-type Step = "q1" | "q2" | "email" | "loading";
+type Step = "q1" | "q2" | "email" | "loading" | "verify-otp";
 
 const Q1: { value: IntendedProfessionalSchool; label: string; reassure: string }[] = [
   { value: "medicine", label: "Med school", reassure: "Perfect — paid caregiving hours are exactly what med schools want to see." },
@@ -84,6 +84,10 @@ export default function StudentEligibilityModal({
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [existing, setExisting] = useState(false);
+  // OTP verification state (for returning users)
+  const [otpCode, setOtpCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [otpLoading, setOtpLoading] = useState(false);
 
   // Lock body scroll when modal is open to prevent background "shaking" on mobile
   useEffect(() => {
@@ -93,6 +97,13 @@ export default function StudentEligibilityModal({
       document.body.style.overflow = originalOverflow;
     };
   }, []);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   const reassurance = Q1.find((q) => q.value === track)?.reassure;
 
@@ -104,6 +115,66 @@ export default function StudentEligibilityModal({
 
   const toggleBucket = (b: CoverageBucket) =>
     setBuckets((cur) => (cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b]));
+
+  // OTP verification for returning users
+  const handleVerifyOtp = async () => {
+    if (otpCode.length !== 8) {
+      setError("Please enter the 8-digit code.");
+      return;
+    }
+    setError(null);
+    setOtpLoading(true);
+    try {
+      const supabase = createClient();
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: otpCode,
+        type: "email",
+      });
+      if (verifyError) {
+        if (verifyError.message.includes("expired")) {
+          setError("This code has expired. Please request a new one.");
+        } else if (verifyError.message.includes("invalid")) {
+          setError("Invalid code. Please check and try again.");
+        } else {
+          setError(verifyError.message);
+        }
+        setOtpLoading(false);
+        return;
+      }
+      // Success — refresh auth and redirect to portal
+      await refreshAccountData();
+      router.replace("/portal/medjobs");
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setOtpLoading(false);
+    }
+  };
+
+  // Resend OTP code
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setError(null);
+    setOtpLoading(true);
+    try {
+      const supabase = createClient();
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { shouldCreateUser: false },
+      });
+      if (otpError) {
+        setError("Failed to resend code. Please try again.");
+        setOtpLoading(false);
+        return;
+      }
+      setResendCooldown(30);
+      setOtpCode("");
+      setOtpLoading(false);
+    } catch {
+      setError("Failed to resend code. Please try again.");
+      setOtpLoading(false);
+    }
+  };
 
   async function submit() {
     if (!name.trim()) {
@@ -152,13 +223,21 @@ export default function StudentEligibilityModal({
       }
 
       if (data.existing) {
-        // Returning student — close screener and open auth flow so they can sign in
-        if (onExistingUser) {
-          onExistingUser(email.trim());
+        // Returning student — send OTP code and show verification input
+        setExisting(true);
+        const supabase = createClient();
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: { shouldCreateUser: false },
+        });
+        if (otpError) {
+          console.error("[student-eligibility] OTP send error:", otpError.message);
+          setError("Failed to send sign-in code. Please try again.");
+          setStep("email");
           return;
         }
-        // Fallback: show "Welcome back" if no handler provided
-        setExisting(true);
+        setResendCooldown(30);
+        setStep("verify-otp");
         return;
       }
 
@@ -221,16 +300,69 @@ export default function StudentEligibilityModal({
           autoComplete="off"
         />
 
-        {existing ? (
+        {step === "verify-otp" ? (
           <div>
-            <p className="font-serif text-lg text-gray-900">Welcome back!</p>
-            <p className="mt-1 text-sm text-gray-700">
-              You already have an account. We just emailed you a sign-in link — open it to pick up
-              where you left off.
+            {/* Email icon */}
+            <div className="flex justify-center mb-4">
+              <div className="w-11 h-11 rounded-full bg-primary-50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-center font-serif text-lg text-gray-900">
+              {existing ? "Welcome back!" : "Check your email"}
             </p>
-            <button type="button" onClick={onClose} className={btnPrimary}>
-              Got it
+            <p className="mt-1 text-center text-sm text-gray-500">
+              Enter the code sent to <span className="font-medium text-gray-700">{email}</span>
+            </p>
+            {error && (
+              <div className="mt-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm" role="alert">
+                {error}
+              </div>
+            )}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={8}
+              value={otpCode}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "").slice(0, 8);
+                setOtpCode(val);
+                if (error) setError(null);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && otpCode.length === 8 && handleVerifyOtp()}
+              placeholder="00000000"
+              className={fieldClass + " mt-4 text-center text-2xl tracking-[0.5em] font-mono"}
+              autoFocus
+              autoComplete="one-time-code"
+            />
+            <button
+              type="button"
+              disabled={otpCode.length !== 8 || otpLoading}
+              onClick={handleVerifyOtp}
+              className={btnPrimary}
+            >
+              {otpLoading ? "Verifying..." : "Sign in"}
             </button>
+            <div className="mt-3 text-center">
+              {resendCooldown > 0 ? (
+                <p className="text-sm text-gray-400">Resend in {resendCooldown}s</p>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Didn&apos;t get a code?{" "}
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={otpLoading}
+                    className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-50"
+                  >
+                    Resend
+                  </button>
+                </p>
+              )}
+            </div>
           </div>
         ) : step === "q1" ? (
           <div>

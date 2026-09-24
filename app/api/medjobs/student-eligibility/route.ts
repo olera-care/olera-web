@@ -115,30 +115,10 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingProfile) {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-      const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-        options: { redirectTo: `${siteUrl}/portal/medjobs` },
-      });
-      // Actually send the sign-in link (generateLink only mints it).
-      // Use stored display_name (could be real name if they provided it at signup)
-      const studentName = (existingProfile as { display_name?: string }).display_name || nameFromEmail(email);
-      try {
-        await sendEmail({
-          to: email,
-          subject: "Sign in to Olera MedJobs",
-          html: studentReturningEmail({
-            studentName,
-            profileSlug: (existingProfile as { slug: string }).slug,
-            magicLink: linkData?.properties?.action_link,
-          }),
-          emailType: "student_returning",
-          recipientType: "student",
-        });
-      } catch (err) {
-        console.error("[medjobs/student-eligibility] returning email error:", err);
-      }
+      // Returning student — let the client handle OTP sign-in.
+      // The client will call signInWithOtp() which sends an email with a code,
+      // then show an input field for the user to enter the code.
+      // This keeps the user on the same page (better UX than magic link redirect).
       return NextResponse.json({
         slug: (existingProfile as { slug: string }).slug,
         existing: true,

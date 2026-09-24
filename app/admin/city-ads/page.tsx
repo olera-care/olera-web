@@ -430,7 +430,7 @@ export default function CityAdsAdminPage() {
                 <div className="min-w-0">
                   <div>
                     {l.care_seeker_id ? (
-                      <a className="font-semibold text-gray-900 underline-offset-2 hover:underline" href={`/admin/care-seekers/${l.care_seeker_id}`}>
+                      <a className="font-semibold text-gray-900 underline-offset-2 hover:underline" href={`/admin/relationships/families/${l.care_seeker_id}`}>
                         {l.first_name}
                       </a>
                     ) : (
@@ -918,13 +918,18 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
 
       {/* Outside the !closed gate on purpose. A stopped or finished lead is
           exactly the one you want to open and clear, so the way out of this
-          queue must not disappear the moment the lead stops being active. */}
+          queue must not disappear the moment the lead stops being active.
+          The family page comes first because that is where calls are logged
+          and where the lead can now be routed; the profile keeps delete. */}
       {l.care_seeker_id && (
         <div className="mt-3 text-xs text-gray-600">
-          <a className="text-primary-700 underline-offset-2 hover:underline" href={`/admin/care-seekers/${l.care_seeker_id}`}>
-            Open {l.first_name}&rsquo;s profile
+          <a className="text-primary-700 underline-offset-2 hover:underline" href={`/admin/relationships/families/${l.care_seeker_id}`}>
+            Open {l.first_name}&rsquo;s page
           </a>{" "}
-          <span className="text-gray-400">· notes, comms history, and delete</span>
+          <span className="text-gray-400">· logged calls, full timeline, routing ·</span>{" "}
+          <a className="text-gray-500 underline-offset-2 hover:underline" href={`/admin/care-seekers/${l.care_seeker_id}`}>
+            profile and delete
+          </a>
         </div>
       )}
 

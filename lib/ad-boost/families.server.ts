@@ -72,7 +72,10 @@ const QUIET_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
 
 function firstNameOf(raw: string | null | undefined): string {
   const first = String(raw ?? "").trim().split(/\s+/)[0] ?? "";
-  return first ? first.charAt(0).toUpperCase() + first.slice(1) : "A family";
+  if (!first) return "A family";
+  // Forms arrive as "KATHERINE" or "katherine" as often as "Katherine".
+  const word = first === first.toUpperCase() || first === first.toLowerCase() ? first.toLowerCase() : first;
+  return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
 function excerpt(text: string, max = 140): string {

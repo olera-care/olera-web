@@ -38,6 +38,7 @@ import { withSmsSource } from "@/lib/sms/click-source";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendSlackAlert } from "@/lib/slack";
 import { readCareAge, careAgeShort } from "@/lib/benefits/age";
+import { pickCallContact } from "@/lib/benefits/call-script";
 
 // ── benefits_cascade metadata (on business_profiles.metadata) ───────────────
 
@@ -333,12 +334,10 @@ function toPick(
   stateId: string,
   source: FirstStepPick["source"],
 ): FirstStepPick | null {
-  const contacts = draft.contacts || [];
-  const contact =
-    contacts.find((c) => c.phone && /start here/i.test(c.label)) ||
-    contacts.find((c) => !!c.phone);
+  // Shared with the program-page card so both show the same number.
+  const contact = pickCallContact(draft.contacts);
   const documents = (draft.documentsNeeded || []).slice(0, 3);
-  if (!contact?.phone || documents.length === 0) return null;
+  if (!contact || documents.length === 0) return null;
   return {
     programId: draft.id,
     stateId,
@@ -348,12 +347,7 @@ function toPick(
     shortName: draft.shortName || draft.name,
     savingsRange: draft.savingsRange?.trim() || null,
     complexity: draft.complexity,
-    contact: {
-      label: contact.label,
-      phone: contact.phone,
-      hours: contact.hours ?? null,
-      description: contact.description ?? null,
-    },
+    contact,
     documents,
     tip: draft.applicationGuide?.tip?.trim() || null,
     programPath: `/benefits/${stateId}/${draft.id}`,
@@ -813,17 +807,6 @@ export async function captureFamilyPhoneAndTextResults(
 }
 
 // ── Call script ─────────────────────────────────────────────────────────────
-
-/** Two spoken lines the family can read off the screen. `relationship` is the
- *  free-form display value ("Parent", "Spouse", "Self", "Family member"). */
-export function buildCallScript(programShortName: string, relationship: string | null): string {
-  const forWhom =
-    relationship === "Self"
-      ? "for myself"
-      : relationship === "Spouse"
-        ? "for my spouse"
-        : relationship === "Parent"
-          ? "for my parent"
-          : "for a family member";
-  return `Hi, I'm calling to ask about ${programShortName}. I'd like to apply ${forWhom}. Could you help me get started, or point me to the right person?`;
-}
+// Lives in a pure module so the program-page card (a client component) says
+// the same first sentence as the plan page and the letter.
+export { buildCallScript } from "@/lib/benefits/call-script";

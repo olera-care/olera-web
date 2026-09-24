@@ -65,6 +65,9 @@ export interface BenefitsProgram {
     ageRequirement?: string;
     incomeTable?: Array<{ householdSize: number; monthlyLimit: number }>;
   };
+  /** The number a first step would call (pickCallContact over the draft's
+   *  contacts). Read by the program card's three_tap answer screen. */
+  callContact?: { label: string; phone: string; hours: string | null } | null;
 }
 
 interface BenefitsDiscoveryModuleProps {

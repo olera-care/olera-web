@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { classifyOrganicPage } from "@/lib/analytics/content-pages";
+import { isProgramCardFlow } from "@/lib/analytics/program-card-variant";
 
 // Per-step funnel events for the embedded benefits intake on provider pages.
 // Mirrors /api/benefits/track-start (sibling route): writes to provider_activity
@@ -54,6 +55,9 @@ export async function POST(request: Request) {
     // for stepName === "care-need". Lets the admin funnel break out which of
     // the four cards is actually pulling clicks.
     const careNeedSelected: string | null = body.careNeedSelected || null;
+    // Program-card flow experiment arm. Validated against the arm list so a
+    // client can't write an arbitrary string into the dashboards.
+    const cardFlow: string | null = isProgramCardFlow(body.cardFlow) ? body.cardFlow : null;
 
     const db = getServiceDb();
     const writes: Array<PromiseLike<unknown>> = [];
@@ -72,6 +76,7 @@ export async function POST(request: Request) {
           time_on_step_ms: timeOnStepMs,
           variant,
           care_need_selected: careNeedSelected,
+          card_flow: cardFlow,
           entry_source: entrySource,
           visit_id: visitId,
         },
@@ -102,6 +107,7 @@ export async function POST(request: Request) {
           step_name: stepName,
           variant,
           care_need_selected: careNeedSelected,
+          card_flow: cardFlow,
         },
       }));
     }

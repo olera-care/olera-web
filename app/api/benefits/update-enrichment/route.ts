@@ -9,6 +9,7 @@ import {
 } from "@/lib/family-comms/benefits-cascade.server";
 import { sendSlackAlert } from "@/lib/slack";
 import { chipValueToAgeBand } from "@/lib/benefits/age";
+import { isProgramCardFlow } from "@/lib/analytics/program-card-variant";
 
 /**
  * PATCH /api/benefits/update-enrichment
@@ -36,7 +37,43 @@ import { chipValueToAgeBand } from "@/lib/benefits/age";
  *   allowlisted; writes are metadata-only with a quiz_answers provenance
  *   stamp. `source` labels where the tap happened ("benefits_enrichment"
  *   | "m_chips").
+ * - householdSize / incomeVsLimit: the three_tap program-card flow
+ *   (2026-09-24). householdSize is 1-4, where 4 means "4 or more", stored as
+ *   metadata.household_size. incomeVsLimit is the family's yes/no/not-sure
+ *   answer to "Is your income under $X a month?" against the entry program's
+ *   own income table, stored as metadata.income_vs_limit {limit,
+ *   household_size, answer, program_id, state_id, answered_at}. It is NOT
+ *   mapped onto income_range: a yes/no against one limit is not a band, and
+ *   fabricating one would feed the eligibility screen a number nobody gave.
+ *   A failed write of either returns 500 so the card can say so.
+ * - cardFlow: the program-card experiment arm, recorded on the
+ *   profile_enriched activity row.
  */
+
+const INCOME_VS_LIMIT_ANSWERS = new Set(["under", "over", "not_sure"]);
+
+/** Validate the three_tap income answer; null when anything is off. */
+function parseIncomeVsLimit(raw: unknown): {
+  limit: number;
+  household_size: number;
+  answer: string;
+  program_id: string;
+  state_id: string;
+} | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const limit = typeof r.limit === "number" && Number.isFinite(r.limit) && r.limit > 0 && r.limit < 100_000
+    ? Math.round(r.limit)
+    : null;
+  const size = typeof r.householdSize === "number" && Number.isInteger(r.householdSize) && r.householdSize >= 1 && r.householdSize <= 4
+    ? r.householdSize
+    : null;
+  const answer = typeof r.answer === "string" && INCOME_VS_LIMIT_ANSWERS.has(r.answer) ? r.answer : null;
+  const programId = typeof r.programId === "string" && /^[a-z0-9-]{1,120}$/.test(r.programId) ? r.programId : null;
+  const stateId = typeof r.stateId === "string" && /^[a-z-]{2,40}$/.test(r.stateId) ? r.stateId : null;
+  if (limit == null || size == null || !answer || !programId || !stateId) return null;
+  return { limit, household_size: size, answer, program_id: programId, state_id: stateId };
+}
 
 const MEDICAID_VALUES = new Set(["alreadyHas", "applying", "notSure", "doesNotHave"]);
 const INCOME_VALUES = new Set(["under1500", "under2500", "under4000", "over4000", "preferNotToSay"]);
@@ -62,6 +99,9 @@ export async function PATCH(request: Request) {
       sessionId,
       completedSteps,
       enrichmentComplete,
+      householdSize,
+      incomeVsLimit,
+      cardFlow,
     } = body as {
       profileId?: string;
       token?: string;
@@ -78,7 +118,16 @@ export async function PATCH(request: Request) {
       /** Set by the client when the family reaches the end of the full
        *  enrichment flow — triggers the Slack summary ping. */
       enrichmentComplete?: boolean;
+      householdSize?: number;
+      incomeVsLimit?: unknown;
+      cardFlow?: string;
     };
+    const factHousehold =
+      typeof householdSize === "number" && Number.isInteger(householdSize) && householdSize >= 1 && householdSize <= 4
+        ? householdSize
+        : null;
+    const factIncomeVsLimit = parseIncomeVsLimit(incomeVsLimit);
+    const flow = isProgramCardFlow(cardFlow) ? cardFlow : null;
 
     // "Not sure yet" is its own signal, never a payment_methods entry — the
     // family self-identifying as needing the benefits path IS the fact.
@@ -183,7 +232,8 @@ export async function PATCH(request: Request) {
     // ── Phase 3 facts → metadata (age / medicaid_status / income_range) ─
     // Fresh read AFTER syncIntentToProfile so this merge can't clobber its
     // writes; the phone capture below re-reads again for the same reason.
-    if (factAge || factMedicaid || factIncome || paymentUnsure) {
+    let threeTapWriteFailed = false;
+    if (factAge || factMedicaid || factIncome || paymentUnsure || factHousehold || factIncomeVsLimit) {
       const { data: fresh } = await admin
         .from("business_profiles")
         .select("metadata")
@@ -210,12 +260,23 @@ export async function PATCH(request: Request) {
       if (paymentUnsure) {
         meta.payment_unsure = { at, via };
       }
+      if (factHousehold) {
+        meta.household_size = factHousehold;
+      }
+      if (factIncomeVsLimit) {
+        meta.income_vs_limit = { ...factIncomeVsLimit, answered_at: at };
+      }
       meta.quiz_answers = quizAnswers;
       const { error: factsErr } = await admin
         .from("business_profiles")
         .update({ metadata: meta })
         .eq("id", profileId);
-      if (factsErr) console.error("[update-enrichment] facts write failed:", factsErr);
+      if (factsErr) {
+        console.error("[update-enrichment] facts write failed:", factsErr);
+        // The three_tap card promises an inline error on a failed save;
+        // the older fact taps keep their best-effort behavior.
+        if (factHousehold || factIncomeVsLimit) threeTapWriteFailed = true;
+      }
     }
 
     // ── Phone capture (step 4) ──────────────────────────────────────────
@@ -243,6 +304,8 @@ export async function PATCH(request: Request) {
       factAge && "age",
       factMedicaid && "medicaid_status",
       factIncome && "income_range",
+      factHousehold && "household_size",
+      factIncomeVsLimit && "income_vs_limit",
     ].filter(Boolean);
 
     if (enrichedFields.length > 0) {
@@ -256,6 +319,7 @@ export async function PATCH(request: Request) {
           completed_steps: completedSteps || [],
           session_id: sessionId || null,
           sms_sent: smsSent || undefined,
+          card_flow: flow || undefined,
         },
       });
       if (actErr) console.error("[seeker_activity] profile_enriched insert failed:", actErr);
@@ -281,6 +345,11 @@ export async function PATCH(request: Request) {
         const situation = benefitsSituationLine(doneMeta);
         if (situation) parts.push(situation);
         if (typeof doneMeta.timeline === "string" && doneMeta.timeline) parts.push(`timeline: ${doneMeta.timeline}`);
+        const ivl = doneMeta.income_vs_limit as { answer?: string; limit?: number; program_id?: string } | undefined;
+        if (ivl?.answer && ivl.limit) {
+          const verdict = ivl.answer === "under" ? "under" : ivl.answer === "over" ? "over" : "not sure vs";
+          parts.push(`${verdict} the $${ivl.limit.toLocaleString("en-US")}/mo ${ivl.program_id ?? "program"} limit`);
+        }
         if (done?.phone) parts.push("phone on file");
         await sendSlackAlert(
           `🧩 ${who}${done?.state ? ` (${done.state})` : ""} finished the full benefits enrichment` +
@@ -293,6 +362,9 @@ export async function PATCH(request: Request) {
       }
     }
 
+    if (threeTapWriteFailed) {
+      return NextResponse.json({ error: "Could not save your answer", smsSent }, { status: 500 });
+    }
     return NextResponse.json({ success: true, smsSent });
   } catch (err) {
     console.error("[update-enrichment] error:", err);

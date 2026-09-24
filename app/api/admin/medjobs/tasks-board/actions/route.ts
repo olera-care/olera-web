@@ -4,6 +4,7 @@ import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladde
 import {
   SKIPPED,
   SWEEPS,
+  actionAt,
   parseSweepId,
   carryFrom,
   dueFor,
@@ -1037,8 +1038,15 @@ export async function POST(req: Request) {
 
       // Which rung an outcome leads to is the ladder's decision, not this
       // file's — the same call the screen made before it sent this.
+      //
+      // actionAt, not rung.actions[i]: "They replied" is index -1 and is on
+      // no rung's list, so a direct lookup returned undefined and this
+      // refused the write. The screen and this file now read an index the
+      // same way.
       const action =
-        body.op === "complete_record_task" ? rung.actions[Number(body.actionIndex)] : rung.actions[0];
+        body.op === "complete_record_task"
+          ? actionAt(rung, Number(body.actionIndex))
+          : rung.actions[0];
       if (body.op === "complete_record_task" && !action) {
         return NextResponse.json(
           { error: "That outcome does not exist on this rung" },

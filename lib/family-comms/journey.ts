@@ -112,20 +112,20 @@ const BENEFITS_CASCADE: CommsJourney = {
       description:
         "The coordinator composes personal first-step guidance: an email when available and a reply-enabled text for consented families. It parks the draft in /admin/benefits for review.",
       ownedBy: "family-comms-coordinator",
-      gate: "Draft only — nothing reaches the family until the care team approves it in the queue",
+      gate: "Draft only here. It reaches the family when the care team sends it, or automatically once its verdict routes `auto` (see B1 send)",
     },
     {
       key: "b1_send",
       title: "B1 · First step sent (email and/or text)",
-      timing: "When the care team sends, or at the scheduled hour",
+      timing: "When the care team sends, at the scheduled hour, or at the first hourly run after a clean verdict",
       description:
-        "The care team's send button and the hourly scheduler run one shared send path. Email families receive the reviewed letter; consented text families receive the first step in the same thread. Text-only families keep moving without being forced into email.",
+        "The care team's send button, the hourly scheduler and the autopilot run one shared send path. A letter whose verdict routed `auto` sends by itself if its text is at most 7 days old; older ones are recomposed and judged again first. Email families receive the letter; consented text families receive the program's phone number and the plan link in the same thread. Text-only families keep moving without being forced into email.",
       emailType: "benefits_first_step",
       smsType: "benefits_first_step_sms",
       emailSampleId: "benefits_first_step",
       smsSampleId: "sms_benefits_first_step",
       ownedBy: "benefits-navigator-scheduler",
-      gate: "At least one reachable consented channel is required; an after-hours companion text queues for morning, while a text-only B1 stays pending and reschedules to the next legal window",
+      gate: "At least one reachable consented channel is required; unsubscribed families never receive it; a family reply pauses the scheduled and automatic paths until a person resumes them; an after-hours companion text queues for morning, while a text-only B1 stays pending and reschedules to the next legal window",
     },
     {
       key: "b2",
@@ -138,14 +138,14 @@ const BENEFITS_CASCADE: CommsJourney = {
       emailSampleId: "benefits_check_in",
       smsSampleId: "sms_benefits_check_in",
       ownedBy: "family-comms-coordinator",
-      gate: "One-shot; skipped once an outcome is reported; STUCK alerts the Olera team without promising an unstaffed response time",
+      gate: "One-shot; skipped once an outcome is reported or while a family reply is waiting on a person; STUCK opens an owned help case (owner, 2-business-day due time, one overdue escalation)",
     },
     {
       key: "suppression",
       title: "Completion track paused",
       timing: "While the cascade is in flight (~21d)",
       description:
-        "Benefits families are excluded from generic profile-completion nudges while their cascade is active. They rejoin after an outcome is recorded or the 21-day window ends; the window ending is not treated as proof the problem was resolved.",
+        "Benefits families are excluded from generic profile-completion nudges while their cascade is active. Families who came only for benefits (no provider inquiry) never receive completion or publish nudges at all, and benefits touches no longer count marketplace nudges against the family cap. Other benefits families rejoin after an outcome is recorded or the 21-day window ends.",
       ownedBy: "family-comms-coordinator",
     },
   ],

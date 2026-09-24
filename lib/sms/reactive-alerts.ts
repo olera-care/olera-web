@@ -18,6 +18,7 @@ import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { quietHoursCheck } from "./quiet-hours";
 import { isTransactionalSms } from "./channel-policy";
 import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server";
+import { isBenefitsAutomationHeld } from "@/lib/family-comms/benefits-automation";
 
 /** Safety ceiling on reactive texts to one number per (UTC) day. Replies are low-volume; this only catches a storm. */
 export const DAILY_SMS_SAFETY_CAP = 6;
@@ -336,6 +337,25 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
         await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
         result.canceled++;
         continue;
+      }
+      // A benefits text queued overnight (an after-hours autopilot or check-in
+      // send) must not go out over what the family said since: a reply that
+      // pauses automation, an unsubscribe, or a death report. The send paths
+      // check these at queue time; this is the same check at delivery.
+      if (BENEFITS_QUEUED_TYPES.has(row.email_type)) {
+        const pm = (prof?.metadata as Record<string, unknown> | null) || {};
+        const stop =
+          pm.nudges_unsubscribed === true
+            ? "unsubscribed"
+            : isBenefitsAutomationHeld(pm)
+              ? "automation_hold"
+              : null;
+        if (stop) {
+          await db.from("sms_queue").update({ status: "canceled", last_error: stop }).eq("id", row.id);
+          await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+          result.canceled++;
+          continue;
+        }
       }
     }
 

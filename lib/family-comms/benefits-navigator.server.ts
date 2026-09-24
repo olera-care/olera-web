@@ -35,6 +35,7 @@ import { findPipelineDraftFor, getStateAbbrev } from "@/lib/program-data";
 import { stateToTimezone } from "@/lib/sms/quiet-hours";
 import { familyBenefitsFacts, hasCoResidentSpouse } from "./benefits-guidance.server";
 import { countProvidersInArea } from "./provider-recs.server";
+import { smsCarriesPhone } from "./sms-phone";
 
 // ── Metadata shape: business_profiles.metadata.benefits_navigator ──────────
 
@@ -99,8 +100,20 @@ export interface BenefitsNavigatorMeta {
    *  read by the admin queue to explain why a letter is waiting. */
   packet?: NavigatorPacket;
   sent_at?: string;
-  /** Who fired the send: TJ's button or the scheduler cron. */
-  sent_via?: "admin" | "scheduler";
+  /** Who fired the send: TJ's button, the scheduler cron firing a scheduled
+   *  letter, or the autopilot releasing an `auto`-routed letter. */
+  sent_via?: "admin" | "scheduler" | "auto";
+  /** Automatic recomposes this draft has been through (autopilot). Capped so
+   *  a letter that keeps routing `recompose` lands with a person instead of
+   *  looping model spend. Carried across recomposes. */
+  auto_recompose_count?: number;
+  /** The autopilot could not recompose (no other qualifying program). It
+   *  stops retrying; the letter waits for a person. */
+  auto_recompose_failed_at?: string;
+  auto_recompose_failed_reason?: string;
+  /** The in-flight send lock (benefits-navigator-send.server.ts). Present
+   *  only while one caller is delivering this letter. */
+  send_claim?: { id: string; at: string; by: "admin" | "scheduler" | "auto" };
   /** Final copies as actually sent (TJ may have edited the drafts). */
   sent_subject?: string;
   sent_body?: string;
@@ -173,9 +186,11 @@ NAMING WHAT THEY NEED CREATES A DEBT. If you say back what they told you they ne
 
 COMPANION TEXT MESSAGE
 Also draft one short text message. It goes only to families who asked for texts, alongside the email, from the same number that texted their results. Texts get seen when email does not, so this is often the first thing they read.
-- Two or three short sentences, under 240 characters total. It must sound like a person texting, not a notification. Same voice rules as the letter.
-- Continue the identity established in the Day-0 thread: say this is Olera's care team following up, then point at the step the team prepared in one clause. Do not switch the text thread to "TJ from Olera" even when the companion email is TJ-signed. End exactly with "Reply CALLED, NO ANSWER, or STUCK." This gives the family a clear way to move their plan forward without opening a link.
-- Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically). Never put a period or any other punctuation directly after {link}. End the clause before it, or let the link sit at the end of the sentence.
+- Two short sentences, under 200 characters before the link. It must sound like a person texting, not a notification. Same voice rules as the letter.
+- Start with "Olera:" so the thread stays recognizable. Do not switch the text thread to "TJ from Olera" even when the companion email is TJ-signed.
+- The phone number is the most important thing in the text. Name the program and give the phone number from the FIRST STEP section exactly as written there, once. Families told us a text without the number was useless to them. Example shape: "Olera: For LIHEAP, call 1-877-555-0142. What to say and what to have ready: {link}"
+- Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no other phone numbers, and no opt-out language (it is added automatically). Never put a period or any other punctuation directly after {link}. End the clause before it, or let the link sit at the end of the sentence.
+- End exactly with "Reply CALLED, NO ANSWER, or STUCK." This gives the family a clear way to move their plan forward without opening a link.
 
 FORMAT
 Return exactly this format, nothing else:
@@ -439,8 +454,16 @@ export async function composeNavigatorDraft(
   if (!subject || body.length < 80) return null;
   // The companion text is optional (send falls back to the template without
   // it) but never oversized or off-format: cap length, strip stray links.
+  // It must also carry the program's number: a text without it is the one
+  // families replied to with "I need the phone number". A draft that leaves
+  // it out is dropped, and the send path uses the template, which always
+  // has it.
   const sms =
-    smsRaw && smsRaw.length >= 40 && smsRaw.includes("{link}") && !/https?:\/\//.test(smsRaw)
+    smsRaw &&
+    smsRaw.length >= 40 &&
+    smsRaw.includes("{link}") &&
+    !/https?:\/\//.test(smsRaw) &&
+    smsCarriesPhone(smsRaw, pick.contact.phone)
       ? smsRaw.replace(/—/g, ", ").slice(0, 320)
       : null;
 

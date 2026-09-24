@@ -42,6 +42,49 @@ export function isCourtesyOnlyReply(body: string | null | undefined): boolean {
 }
 
 /**
+ * An iMessage / Android tapback, not a message. iOS delivers a reaction to a
+ * non-iMessage thread as text: `Liked "…"`, `Loved "…"`, `Removed 👍 from
+ * "…"`. On 2026-09-11 one of those got "We're looking into this and will get
+ * back to you", which reads as a bot that did not read anything.
+ */
+const REACTION_PATTERNS: RegExp[] = [
+  /^(?:liked|loved|disliked|laughed at|emphasized|emphasised|questioned)\s+["“”‘’]/i,
+  /^removed\s+(?:a\s+)?\S+(?:\s+\S+)?\s+from\s+["“”‘’]/i,
+  /^reacted\s+\S+(?:\s+\S+)?\s+to\s+["“”‘’]/i,
+];
+
+export function isReactionOnly(body: string | null | undefined): boolean {
+  if (!body) return false;
+  const text = body.trim().replace(/[​-‍﻿]/g, "");
+  return REACTION_PATTERNS.some((re) => re.test(text));
+}
+
+/** No letters or digits at all: "?", an emoji, a stray punctuation mark.
+ *  Worth a human glance, never a "we're researching your question" reply. */
+export function hasNoWords(body: string | null | undefined): boolean {
+  if (!body) return true;
+  return !/[A-Za-z0-9À-ɏ]/.test(body);
+}
+
+/**
+ * "Stop no longer needed", "STOP texting me". A sentence that opens with
+ * STOP or UNSUBSCRIBE is an opt-out, even though it is not the bare keyword
+ * the carrier recognises. Kept to short messages that START with the word so
+ * "please don't stop helping me" is never read as one.
+ */
+export function isOptOutPhrase(body: string | null | undefined): boolean {
+  if (!body) return false;
+  const words = body
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0 || words.length > 6) return false;
+  return words[0] === "STOP" || words[0] === "STOPALL" || words[0] === "UNSUBSCRIBE";
+}
+
+/**
  * The outcome vocabulary the benefits texts actually invite.
  *
  * The webhook's `keyword` is the whole body uppercased with every non-letter

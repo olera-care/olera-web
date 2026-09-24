@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  helpCaseWaiting,
+  isBenefitsAutomationHeld,
+  readBenefitsHold,
+  type BenefitsHelpCase,
+} from "@/lib/family-comms/benefits-automation";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   readBenefitsCascade,
@@ -111,7 +117,11 @@ interface FamilyRow {
     noteCount: number;
     contactedAt: string | null;
     resolvedAt: string | null;
+    /** Owned help case (asked for a person / texted STUCK), while waiting. */
+    help: { owner: string | null; dueAt: string | null; overdue: boolean } | null;
   };
+  /** A family reply paused automated sends until a person resumes them. */
+  automationHold: { at: string; reason: string; channel: string; excerpt: string | null } | null;
   /** The one family-centric status the queue renders + filters on. */
   lifecycle: Lifecycle;
 }
@@ -340,14 +350,27 @@ export async function GET(request: NextRequest) {
         ? (pMeta.sms_inbound as { at?: string; body?: string; keyword?: string | null }[])
         : [];
       const lastText = [...smsInbound].reverse().find((m) => !m.keyword && m.at) ?? null;
-      const lifecycle = lifecycleStatus({
+      // Email replies (support inbox) float the family the same way a text
+      // does. The letter promises "My team and I read every reply", so a
+      // reply that only lives in the support inbox is a promise half-kept.
+      const emailReplyAt =
+        (pMeta.benefits_email_reply as { at?: string } | undefined)?.at ?? null;
+      const lastReplyAt =
+        [lastText?.at ?? null, emailReplyAt].filter((v): v is string => !!v).sort().pop() ?? null;
+      let lifecycle = lifecycleStatus({
         cascade: cascadeMeta,
         caseMeta,
         completedAt: ev.created_at,
         lastViewedAt: viewedAtByProfile.get(profileId) ?? null,
-        lastInboundTextAt: lastText?.at ?? null,
+        lastInboundTextAt: lastReplyAt,
         now: Date.now(),
       });
+      if (lifecycle.detail === "texted back" && emailReplyAt && emailReplyAt === lastReplyAt) {
+        lifecycle = { ...lifecycle, detail: "replied by email" };
+      }
+      const hold = isBenefitsAutomationHeld(pMeta) ? readBenefitsHold(pMeta) : null;
+      const helpCase = caseMeta as BenefitsHelpCase;
+      const helpWaiting = helpCaseWaiting(helpCase);
       lifecycleCounts[lifecycle.status] = (lifecycleCounts[lifecycle.status] ?? 0) + 1;
 
       const navMeta = readBenefitsNavigator(pMeta);
@@ -403,7 +426,17 @@ export async function GET(request: NextRequest) {
           noteCount: caseMeta.notes?.length ?? 0,
           contactedAt: caseMeta.contacted_at ?? null,
           resolvedAt: caseMeta.resolved_at ?? null,
+          help: helpWaiting
+            ? {
+                owner: helpCase.help_owner ?? null,
+                dueAt: helpCase.help_due_at ?? null,
+                overdue: !!helpCase.help_due_at && helpCase.help_due_at < new Date().toISOString(),
+              }
+            : null,
         },
+        automationHold: hold
+          ? { at: hold.held_at, reason: hold.reason, channel: hold.channel, excerpt: hold.excerpt ?? null }
+          : null,
         lifecycle,
       });
     }

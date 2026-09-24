@@ -431,7 +431,10 @@ function AdminSeekerTimelineInner() {
         </span>
         {/* Opens this family's conversation in Messages, whether or not they
             have ever texted us, with the reply box ready. */}
-        {profile.phone && (
+        {/* Not for a number we already know is impossible (Jillanna's 121
+            area code): the inbox refuses it, and the button would land on
+            an empty page with no word why. */}
+        {profile.phone && reach.phone !== "impossible" && (
           <Link
             href={`/admin/inbox?phone=${encodeURIComponent(profile.phone)}`}
             className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"

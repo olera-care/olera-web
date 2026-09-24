@@ -370,7 +370,11 @@ export default function FindJobsBoard() {
                     // Mobile: open bottom sheet for quick preview
                     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
                     if (isDesktop) {
-                      const url = `/provider/${provider.slug}${student.campus ? `?campus=${student.campus}` : ""}`;
+                      // Include ctx=medjobs-student so server renders the "About this opportunity" section
+                      const params = new URLSearchParams();
+                      params.set("ctx", "medjobs-student");
+                      if (student.campus) params.set("campus", student.campus);
+                      const url = `/provider/${provider.slug}?${params.toString()}`;
                       window.open(url, "_blank");
                     } else {
                       setSelectedProvider(provider);

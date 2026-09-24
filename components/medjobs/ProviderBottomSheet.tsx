@@ -124,7 +124,11 @@ export default function ProviderBottomSheet({
     requestLabel ||
     (isRequested ? "Interview Requested" : canRequest ? "Request Interview" : "Sign in to apply");
 
-  const providerUrl = `/provider/${provider.slug}${campus ? `?campus=${campus}` : ""}`;
+  // Include ctx=medjobs-student so server renders the "About this opportunity" section
+  const providerParams = new URLSearchParams();
+  providerParams.set("ctx", "medjobs-student");
+  if (campus) providerParams.set("campus", campus);
+  const providerUrl = `/provider/${provider.slug}?${providerParams.toString()}`;
 
   const sheetContent = (
     <div

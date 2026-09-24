@@ -209,17 +209,20 @@ export default function EmpathicSingleStep({
   const [submittedEmail, setSubmittedEmail] = useState<string>("");
   const [selectedRelationship, setSelectedRelationship] = useState<Relationship | null>(null);
   const [relationshipSaving, setRelationshipSaving] = useState(false);
+  // Results token from save-results — the proof of ownership the
+  // update-relationship endpoint requires.
+  const [resultsToken, setResultsToken] = useState<string | null>(null);
 
   const handleRelationshipPick = useCallback(
     async (value: Relationship) => {
-      if (!sessionId || relationshipSaving) return;
+      if (relationshipSaving) return;
       setSelectedRelationship(value);
       setRelationshipSaving(true);
       try {
         await fetch("/api/benefits/update-relationship", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, relationship: value }),
+          body: JSON.stringify({ token: resultsToken, relationship: value }),
           keepalive: true,
         });
       } catch {
@@ -228,7 +231,7 @@ export default function EmpathicSingleStep({
         setRelationshipSaving(false);
       }
     },
-    [sessionId, relationshipSaving],
+    [resultsToken, relationshipSaving],
   );
 
   // ─── Submit handler ───────────────────────────────────────────────────
@@ -300,6 +303,7 @@ export default function EmpathicSingleStep({
       }
       setSubmittedMatchCount(typeof data.matchCount === "number" ? data.matchCount : matchingPrograms.length);
       setSubmittedEmail(submittableEmail.toLowerCase());
+      setResultsToken(typeof data.token === "string" ? data.token : null);
       setSaving(false);
       setSubmitted(true);
     } catch (err) {

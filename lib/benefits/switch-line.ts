@@ -8,7 +8,7 @@
  */
 export interface SwitchFields {
   shortName: string;
-  switchReason?: "ruled_out" | "no_contact";
+  switchReason?: "ruled_out" | "no_contact" | "no_steps";
   switchedFromName?: string;
   switchDetail?: string | null;
 }
@@ -20,6 +20,9 @@ export function switchLine(pick: SwitchFields | null | undefined): string | null
   if (from === to) return null;
   if (pick.switchReason === "no_contact") {
     return `We don't have a working number for ${from} yet, so we'd start with ${to}.`;
+  }
+  if (pick.switchReason === "no_steps") {
+    return `We're still putting together the steps for ${from}, so we'd start with ${to}.`;
   }
   const d = (pick.switchDetail || "").trim();
   if (/^needs medicaid first$/i.test(d)) return `${from} needs Medicaid first, so we'd start with ${to}.`;

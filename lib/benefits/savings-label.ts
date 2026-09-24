@@ -36,10 +36,11 @@ export function benefitAmountLabel(range?: string | null): BenefitAmountLabel | 
   if (!range) return null;
   const s = range.trim();
 
-  const r = s.match(new RegExp(`^${FIG}\\s*(?:–|—|-|to)\\s*${FIG}`, "i"));
+  // An open top ("$5,000 – $20,000+/year") keeps its "+".
+  const r = s.match(new RegExp(`^${FIG}\\s*(?:–|—|-|to)\\s*${FIG}(\\+?)`, "i"));
   if (r) {
     const period = periodAfter(s.slice(r[0].length));
-    return { text: `$${r[1]} to $${r[2]}${period}`, kind: "range" };
+    return { text: `$${r[1]} to $${r[2]}${r[3]}${period}`, kind: "range" };
   }
 
   const u = s.match(new RegExp(`^up to\\s+${FIG}`, "i"));
@@ -50,7 +51,12 @@ export function benefitAmountLabel(range?: string | null): BenefitAmountLabel | 
 
   const a = s.match(new RegExp(`^${FIG}(\\+?)`, "i"));
   if (a) {
-    const period = periodAfter(s.slice(a[0].length));
+    const rest = s.slice(a[0].length);
+    const period = periodAfter(rest);
+    // "$298/month maximum for one person" is a maximum, not the amount.
+    if (!a[2] && /^\S*\s+maximum\b/i.test(rest)) {
+      return { text: `Up to $${a[1]}${period}`, kind: "max" };
+    }
     return { text: `$${a[1]}${a[2]}${period}`, kind: "amount" };
   }
 

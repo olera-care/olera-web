@@ -637,7 +637,10 @@ export function PlanActive({
       </p>
 
       <CampaignFacts request={request} />
-      {campaignStats && <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} questionsCardFor={request.id} />}
+      {/* No questions card on the just-paid moment: that screen is a thank-you. */}
+      {campaignStats && (
+        <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} questionsCardFor={celebrate ? undefined : request.id} />
+      )}
 
       <p className="mt-6 text-sm text-gray-500">
         Change or cancel anytime by replying to any campaign email, or{" "}

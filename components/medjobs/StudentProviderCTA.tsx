@@ -122,10 +122,6 @@ export default function StudentProviderCTA({
       ? "rounded-2xl border border-primary-200 bg-white p-5 shadow-sm"
       : "fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white p-3 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] md:hidden";
 
-  // Gate: student must be live before requesting. A provider can't meaningfully
-  // interview an empty profile, so we keep the completion requirement — but make
-  // it encouraging (show progress) rather than a flat block.
-  const needsApplication = studentProfileFromAuth?.id && isLive === false;
   // Calculate completeness using the same logic as Profile tab and admin panel
   const completeness = freshProfile && freshProfile.metadata
     ? calculateCompleteness(
@@ -141,6 +137,12 @@ export default function StudentProviderCTA({
         }
       )
     : 0;
+
+  // Gate: student must have 100% complete profile before requesting.
+  // Approval status is now checked at final submission step in the modal,
+  // not upfront — this lets students with complete but unapproved profiles
+  // proceed to the apply flow and get specific guidance there.
+  const needsApplication = studentProfileFromAuth?.id && completeness < 100;
 
   return (
     <>

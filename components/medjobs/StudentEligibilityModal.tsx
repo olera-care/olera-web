@@ -232,7 +232,14 @@ export default function StudentEligibilityModal({
         });
         if (otpError) {
           console.error("[student-eligibility] OTP send error:", otpError.message);
-          setError("Failed to send sign-in code. Please try again.");
+          // Handle specific error cases
+          if (otpError.message.includes("not found") || otpError.message.includes("not registered")) {
+            setError("We couldn't find your account. Please contact support@olera.care for help.");
+          } else if (otpError.message.includes("rate limit") || otpError.message.includes("too many")) {
+            setError("Too many attempts. Please wait a few minutes and try again.");
+          } else {
+            setError("Failed to send sign-in code. Please try again.");
+          }
           setStep("email");
           return;
         }

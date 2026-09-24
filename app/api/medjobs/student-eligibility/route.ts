@@ -8,16 +8,13 @@
  * eligibility metadata, and returns a one-time `tokenHash` so the browser can
  * silently sign the new student in (no redirect).
  *
- * Returning email (auth user / student profile already exists): we do NOT
- * silently sign them in (anti-takeover). We email a magic link and return
- * `existing: true`.
+ * Returning email (auth user / student profile already exists): returns
+ * `existing: true` so the client can handle OTP sign-in flow.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sanitizeReferral } from "@/lib/medjobs/apply-link";
-import { sendEmail } from "@/lib/email";
-import { studentReturningEmail } from "@/lib/medjobs-email-templates";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 import type { IntendedProfessionalSchool, StudentProgramTrack, StudentMetadata } from "@/lib/types";

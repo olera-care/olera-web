@@ -126,6 +126,14 @@ export interface NavigatorPacket {
    * becomes a recompose instruction rather than a hold on TJ's attention.
    */
   recomposeTarget: { name: string; programId: string | null } | null;
+  /**
+   * The recompose is a CAVEAT rewrite, not a program switch: keep the
+   * family's entry program, state the condition the fit reads flagged in one
+   * plain sentence, and offer recomposeTarget as the better first call if it
+   * does not apply to them. Set only alongside route "recompose". Absent on
+   * packets built before 2026-09-24, which reads as a switch.
+   */
+  caveat?: boolean;
   /** Human-readable reasons, in the order they were evaluated. */
   holds: string[];
   models: Record<string, string>;
@@ -294,6 +302,10 @@ export interface RouteInput {
    *  they came for leads unless ruled out (TJ, 2026-09-24), so a
    *  "questionable" read with an agreed alternative does not move it. */
   pickIsEntry?: boolean;
+  /** The letter already carries the caveat rewrite (metadata
+   *  caveat_applied_at). The caveat happens once; after it, the same
+   *  questionable read falls through to the normal holds. */
+  caveatApplied?: boolean;
   rails: RailHit[];
   clearance: ClearanceRead | null;
   lint: DraftLintHit[];
@@ -317,7 +329,14 @@ export interface RouteInput {
  * all of them hold the letter for a person rather than letting silence read
  * as approval.
  */
-export function routePacket(input: RouteInput): { route: PacketRoute; holds: string[] } {
+/** Prefix on the hold that marks a caveat recompose. Display code keys off it. */
+export const CAVEAT_HOLD_PREFIX = "caveat:";
+
+export function routePacket(input: RouteInput): {
+  route: PacketRoute;
+  holds: string[];
+  caveat?: true;
+} {
   if (!input.facts.enoughToPick) {
     return {
       route: "ask",
@@ -338,13 +357,32 @@ export function routePacket(input: RouteInput): { route: PacketRoute; holds: str
   // Except for the program the family came for. "Questionable" means it
   // helps but is not the strongest first call, and TJ's rule (2026-09-24) is
   // that the program they came for leads unless their facts rule it out.
-  // Only a "wrong" verdict (above) moves it; a questionable one falls through
-  // to the normal holds.
-  if (consensus === "questionable" && input.recomposeTarget && !input.pickIsEntry) {
-    return {
-      route: "recompose",
-      holds: [`both models would start with ${input.recomposeTarget.name} instead`],
-    };
+  // Only a "wrong" verdict (above) moves it.
+  //
+  // But a questionable read is often a real eligibility gate the model could
+  // not mark "wrong" because the deciding fact is unknown ("only serves
+  // seniors who are homeless or unstably housed", "needs nursing-facility
+  // level of care"). Sending the entry letter bare would hide that. So the
+  // letter is rewritten ONCE with the caveat: keep their program, say who it
+  // is for, and name the agreed alternative as the better first call if that
+  // is not them. No person reviews it; after the rewrite the same read falls
+  // through to the normal holds below.
+  if (consensus === "questionable" && input.recomposeTarget) {
+    if (!input.pickIsEntry) {
+      return {
+        route: "recompose",
+        holds: [`both models would start with ${input.recomposeTarget.name} instead`],
+      };
+    }
+    if (!input.caveatApplied) {
+      return {
+        route: "recompose",
+        holds: [
+          `${CAVEAT_HOLD_PREFIX} keep their program, state the condition, offer ${input.recomposeTarget.name}`,
+        ],
+        caveat: true,
+      };
+    }
   }
 
   const holds: string[] = [];
@@ -380,6 +418,48 @@ export function routePacket(input: RouteInput): { route: PacketRoute; holds: str
   if (input.errors?.length) holds.push(...input.errors.map((e) => `stage failed: ${e}`));
 
   return { route: holds.length > 0 ? "review" : "auto", holds };
+}
+
+/**
+ * Re-decide a STORED packet's route under the current rules, from the gate
+ * results it already holds. No model call: routing is a pure function of the
+ * gates, so this costs nothing and cannot vary.
+ *
+ * Why: packets rebuild only when the letter changes, never on a clock. So a
+ * routing-rule change (the entry program leads, 2026-09-24; the caveat path,
+ * same day) would otherwise never reach letters already judged. Measured on
+ * the live queue that day: all 35 entry letters with a questionable read and
+ * an agreed alternative carried the OLD verdict, a switch recompose, and the
+ * autopilot would have moved every one of them off the program the family
+ * came for. Returns the packet unchanged when the route and holds agree.
+ */
+export function rerouteStoredPacket(
+  packet: NavigatorPacket,
+  opts: { pickIsEntry: boolean; caveatApplied: boolean },
+): NavigatorPacket {
+  if (!packet || !packet.facts || !Array.isArray(packet.fit)) return packet;
+  const r = routePacket({
+    facts: packet.facts,
+    fit: packet.fit,
+    recomposeTarget: packet.recomposeTarget ?? null,
+    pickIsEntry: opts.pickIsEntry,
+    caveatApplied: opts.caveatApplied,
+    rails: packet.rails ?? [],
+    clearance: packet.clearance ?? null,
+    lint: packet.lint ?? [],
+    intakeAgeDays: packet.intakeAgeDays ?? null,
+    statesDollarFigure: !!packet.statesDollarFigure,
+    errors: packet.errors,
+  });
+  const same =
+    r.route === packet.route &&
+    !!r.caveat === !!packet.caveat &&
+    r.holds.length === (packet.holds ?? []).length &&
+    r.holds.every((h, i) => h === packet.holds[i]);
+  if (same) return packet;
+  const { caveat: _drop, ...rest } = packet;
+  void _drop;
+  return { ...rest, route: r.route, holds: r.holds, ...(r.caveat ? { caveat: true } : {}) };
 }
 
 /** Does the letter name a dollar amount? Cheap pre-check for the money rail. */
@@ -423,6 +503,25 @@ export const ROUTE_LABEL: Record<PacketRoute, string> = {
   auto: "Ready to send",
 };
 
+/** Is this a caveat recompose (keep the program, add the condition)? */
+export function isCaveatPacket(packet: Pick<NavigatorPacket, "route" | "holds" | "caveat">): boolean {
+  return (
+    packet.route === "recompose" &&
+    (packet.caveat === true || !!packet.holds[0]?.startsWith(CAVEAT_HOLD_PREFIX))
+  );
+}
+
+/**
+ * Readable form of a hold for the admin queue. The caveat hold is a machine
+ * instruction; a reviewer should read what it does.
+ */
+export function holdLabel(hold: string): string {
+  return hold.startsWith(CAVEAT_HOLD_PREFIX) ? "Kept their program, added the condition" : hold;
+}
+
+/** Chip label for a caveat recompose, in place of "Recompose". */
+export const CAVEAT_ROUTE_LABEL = "Adding condition";
+
 /**
  * One line explaining the route, for the queue row. The holds carry the
  * detail; this is what a reviewer reads before deciding to open anything.
@@ -432,6 +531,11 @@ export function routeSummary(packet: NavigatorPacket): string {
     case "ask":
       return "We do not know what they need. Ask before picking a program.";
     case "recompose":
+      if (isCaveatPacket(packet)) {
+        return packet.recomposeTarget
+          ? `Kept their program, adding the condition and ${packet.recomposeTarget.name} as the other call`
+          : "Kept their program, adding the condition";
+      }
       return packet.holds[0] ?? "The pick is ruled out by their own facts.";
     case "review":
       return packet.holds.length === 1

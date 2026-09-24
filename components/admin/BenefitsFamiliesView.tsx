@@ -13,7 +13,10 @@ import {
 } from "@/lib/benefits/navigator-review-prompt";
 import NavigatorPacketPanel from "@/components/admin/NavigatorPacketPanel";
 import {
+  CAVEAT_ROUTE_LABEL,
   ROUTE_LABEL,
+  holdLabel,
+  isCaveatPacket,
   type NavigatorPacket,
   type PacketRoute,
 } from "@/lib/benefits/navigator-packet";
@@ -113,6 +116,8 @@ interface FamilyRow {
     packet: {
       route: PacketRoute;
       topHold: string | null;
+      /** A caveat recompose: keep the program, add the condition. */
+      caveat?: boolean;
       holdCount: number;
       builtAt: string;
     } | null;
@@ -1000,7 +1005,7 @@ export default function BenefitsFamiliesView() {
                         className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
                         title={f.navigator.packet.topHold ?? ""}
                       >
-                        {ROUTE_LABEL[f.navigator.packet.route]}
+                        {f.navigator.packet.caveat ? CAVEAT_ROUTE_LABEL : ROUTE_LABEL[f.navigator.packet.route]}
                       </span>
                     )}
                     <span className="shrink-0 text-[11px] text-gray-400">
@@ -1218,7 +1223,7 @@ export default function BenefitsFamiliesView() {
                                   className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
                                   title={f.navigator.packet.topHold ?? ""}
                                 >
-                                  {ROUTE_LABEL[f.navigator.packet.route]}
+                                  {f.navigator.packet.caveat ? CAVEAT_ROUTE_LABEL : ROUTE_LABEL[f.navigator.packet.route]}
                                 </span>
                               )}
                             </>
@@ -1231,7 +1236,7 @@ export default function BenefitsFamiliesView() {
                                   : "Clean on every gate"
                               }
                             >
-                              {ROUTE_LABEL[f.navigator.packet.route]}
+                              {f.navigator.packet.caveat ? CAVEAT_ROUTE_LABEL : ROUTE_LABEL[f.navigator.packet.route]}
                               {f.navigator.packet.holdCount > 1 && (
                                 <span className="ml-1 font-normal opacity-70">
                                   {f.navigator.packet.holdCount}
@@ -1504,9 +1509,12 @@ function NavigatorDraftEditor({
             const blocked = navigator.packet?.route;
             let override = false;
             if (blocked === "recompose" || blocked === "ask") {
-              const reason = navigator.packet?.holds[0] ?? "";
+              const reason = holdLabel(navigator.packet?.holds[0] ?? "");
+              const caveat = !!navigator.packet && isCaveatPacket(navigator.packet);
               override = window.confirm(
-                blocked === "recompose"
+                caveat
+                  ? `This letter is waiting for an automatic rewrite that keeps ${navigator.pick?.shortName ?? "their program"} and adds its condition${navigator.packet?.recomposeTarget ? ` plus ${navigator.packet.recomposeTarget.name} as the other call` : ""}.\n\nSend the current version anyway?`
+                  : blocked === "recompose"
                   ? `This letter's program was ruled out.\n\n${reason}\n\nSend it anyway?`
                   : `We do not know enough about this family to pick a program for them.\n\n${reason}\n\nSend it anyway?`,
               );
@@ -1546,8 +1554,11 @@ function NavigatorDraftEditor({
             // On a `recompose` verdict the current program is excluded and the
             // letter comes back about something else entirely; otherwise it is
             // the fact-check loop and the program stays put.
-            const ruledOut = navigator.packet?.route === "recompose";
-            const prompt = ruledOut
+            const caveat = !!navigator.packet && isCaveatPacket(navigator.packet);
+            const ruledOut = navigator.packet?.route === "recompose" && !caveat;
+            const prompt = caveat
+              ? `Re-draft this letter keeping ${navigator.pick?.shortName ?? "their program"}, and add the condition the checks flagged${navigator.packet?.recomposeTarget ? ` with ${navigator.packet.recomposeTarget.name} as the better first call if it does not fit` : ""}? Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`
+              : ruledOut
               ? `The verdict ruled out ${navigator.pick?.shortName ?? "this program"} for this family, so re-drafting will pick a DIFFERENT program. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`
               : `Re-draft this letter from current program data? Same program, today's facts. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`;
             if (window.confirm(prompt)) {

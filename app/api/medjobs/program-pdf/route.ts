@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const asked = url.searchParams.get("audience");
   const audience: PdfAudience =
-    asked === "student" || asked === "advisor" ? asked : "provider";
+    asked === "student" || asked === "advisor" || asked === "recruit" ? asked : "provider";
   // Default to the generic config so a bare URL always renders something
   // campus-agnostic. Providers used to default to the Texas A&M brochure,
   // from when that was the only provider config there was — which meant a

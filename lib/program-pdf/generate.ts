@@ -20,6 +20,7 @@ import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import React, { type ReactElement } from "react";
 import { ProgramPdfTemplate, type ProgramPdfAssets } from "./Template";
 import { getProgramPdfConfig, type PdfAudience, type ProgramPdfConfig } from "./configs";
+import { RecruitFlyerDocument } from "./RecruitFlyer";
 
 /**
  * Read a file from /public as a base64 data URI. Returns undefined
@@ -104,6 +105,16 @@ export async function renderProgramPdf(
     );
   }
   const assets = await loadAssets(config);
+
+  // The recruitment flyer is a fixed page, not a templated brochure — it takes
+  // the shared assets and nothing from the config.
+  if (audience === "recruit") {
+    const flyer = React.createElement(RecruitFlyerDocument, {
+      assets,
+    }) as unknown as ReactElement<DocumentProps>;
+    return renderToBuffer(flyer);
+  }
+
   // @react-pdf/renderer's renderToBuffer is typed against
   // ReactElement<DocumentProps>. Our template returns a Document
   // root, so the runtime is correct; the cast quiets the structural
@@ -122,7 +133,12 @@ export function programPdfFilename(
   audience: PdfAudience = "provider",
 ): string {
   const config = getProgramPdfConfig(universitySlug, audience);
-  const suffix = audience === "student" ? "student-program" : "student-caregiver-program";
+  const suffix =
+    audience === "recruit"
+      ? "student-recruitment-flyer"
+      : audience === "student"
+        ? "student-program"
+        : "student-caregiver-program";
   if (!config) return `${suffix}.pdf`;
   return `${config.slug}-${suffix}.pdf`;
 }

@@ -20,7 +20,15 @@ export type { ProgramPdfConfig };
 
 /** Audience for a program PDF. Provider = agency brochure; student = the flyer
  *  partners share with pre-health students. */
-export type PdfAudience = "provider" | "student" | "advisor";
+/**
+ * Who a Program PDF is written for.
+ *
+ * "recruit" is the one-page student recruitment flyer on its own — the same
+ * page the advisor document carries as its last sheet. A student org is
+ * forwarding something to its members, not reading a brochure about the
+ * programme, so one page they can post is the whole job.
+ */
+export type PdfAudience = "provider" | "student" | "advisor" | "recruit";
 
 /** The campus-agnostic floor config per audience. Every campus resolves to one
  *  of these when it has no campus-specific config, so outreach is never blocked
@@ -52,7 +60,10 @@ export function getProgramPdfConfig(
 ): ProgramPdfConfig | null {
   if (!slug) return null;
   const map =
-    audience === "student"
+    // "recruit" renders a fixed page and reads nothing from the config, but it
+    // still needs one to load the shared assets — the student map is the
+    // closest thing it belongs to.
+    audience === "student" || audience === "recruit"
       ? PROGRAM_PDF_CONFIGS_STUDENT
       : audience === "advisor"
         ? PROGRAM_PDF_CONFIGS_ADVISOR

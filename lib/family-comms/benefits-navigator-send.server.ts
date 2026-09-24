@@ -93,9 +93,176 @@ export interface NavigatorSendOptions {
 
 export type NavigatorSendResult =
   | { ok: true; navigator: BenefitsNavigatorMeta; /** SMS-only delivery moved to the next legal window. */ deferred?: boolean }
-  | { ok: false; error: string; /** true = state conflict (409-ish), not a transport failure */ conflict?: boolean };
+  | {
+      ok: false;
+      error: string;
+      /** true = state conflict (409-ish), not a transport failure */
+      conflict?: boolean;
+      /** Another caller holds the send lock right now. Not a verdict on the
+       *  letter: automated callers skip it without stamping a failure. */
+      inFlight?: boolean;
+      /** Something may have been delivered. The lock is kept so no caller
+       *  can resend until a person checks. Internal. */
+      keepClaim?: boolean;
+    };
 
+// ── The send lock ──────────────────────────────────────────────────────────
+
+/**
+ * A claim older than this is treated as a crash mid-send (the function was
+ * killed between delivery and the final stamp) and may be reclaimed, but
+ * only after the message log shows nothing went out under it. maxDuration on
+ * every caller is at most 300s, so a live send never holds it this long.
+ */
+export const SEND_CLAIM_STALE_MS = 15 * 60 * 1000;
+
+const IN_FLIGHT_ERROR = "This letter is already being sent. Refresh in a minute before trying again.";
+
+/** Did a first-step email or text go out (or get queued) for this family since `sinceIso`? */
+async function deliveredSince(
+  db: SupabaseClient,
+  profileId: string,
+  email: string | null,
+  phone: string | null,
+  sinceIso: string,
+): Promise<boolean | null> {
+  const recipients = [email, phone].filter((v): v is string => !!v);
+  if (recipients.length > 0) {
+    const { data, error } = await db
+      .from("email_log")
+      .select("id")
+      .in("recipient", recipients)
+      .in("email_type", ["benefits_first_step", "benefits_first_step_sms"])
+      .in("status", ["sent", "pending"])
+      .gte("created_at", sinceIso)
+      .limit(1);
+    if (error) return null;
+    if (data && data.length > 0) return true;
+  }
+  const { data: queued, error: qErr } = await db
+    .from("sms_queue")
+    .select("id")
+    .eq("family_profile_id", profileId)
+    .eq("email_type", "benefits_first_step_sms")
+    .gte("created_at", sinceIso)
+    .limit(1);
+  if (qErr) return null;
+  return !!queued && queued.length > 0;
+}
+
+/**
+ * Take the send lock: a compare-and-set on the profile row that only one
+ * caller can win. The UPDATE is filtered on the draft still being pending
+ * AND on the claim being exactly what this caller read (absent, or the same
+ * stale claim). Under Postgres row locking a second concurrent UPDATE waits,
+ * re-evaluates that filter against the winner's row, matches nothing, and
+ * returns zero rows. Fails safe: any error means no send.
+ */
+async function claimNavigatorSend(
+  db: SupabaseClient,
+  profileId: string,
+  by: NavigatorSendOptions["trigger"],
+): Promise<{ ok: true; claimId: string } | Extract<NavigatorSendResult, { ok: false }>> {
+  const { data: profile, error: readErr } = await db
+    .from("business_profiles")
+    .select("email, phone, metadata")
+    .eq("id", profileId)
+    .maybeSingle();
+  if (readErr) return { ok: false, error: "Couldn't reserve this letter for sending. Try again." };
+  if (!profile) return { ok: false, error: "Family not found", conflict: true };
+  const meta = (profile.metadata as Record<string, unknown>) || {};
+  const navigator = readBenefitsNavigator(meta);
+  if (navigator.status !== "pending" || !navigator.body) {
+    return { ok: false, error: "No pending draft for this family", conflict: true };
+  }
+
+  const prior = navigator.send_claim;
+  if (prior?.at) {
+    const age = Date.now() - Date.parse(prior.at);
+    if (!(age >= SEND_CLAIM_STALE_MS)) {
+      return { ok: false, error: IN_FLIGHT_ERROR, conflict: true, inFlight: true };
+    }
+    // A stale claim: a send was cut off. Before anyone sends again, check
+    // whether that attempt actually delivered.
+    const delivered = await deliveredSince(
+      db,
+      profileId,
+      (profile.email as string | null) ?? null,
+      (profile.phone as string | null) ?? null,
+      prior.at,
+    );
+    if (delivered !== false) {
+      return {
+        ok: false,
+        conflict: true,
+        error:
+          delivered === null
+            ? "An earlier send of this letter was interrupted and the message log could not be checked. Try again shortly."
+            : "An earlier send of this letter was interrupted after a message went out. Check the family's timeline, then dismiss this draft instead of sending it again.",
+      };
+    }
+  }
+
+  const claim = { id: crypto.randomUUID(), at: new Date().toISOString(), by };
+  let update = db
+    .from("business_profiles")
+    .update({ metadata: { ...meta, benefits_navigator: { ...navigator, send_claim: claim } } })
+    .eq("id", profileId)
+    .eq("metadata->benefits_navigator->>status", "pending");
+  update = prior?.id
+    ? update.eq("metadata->benefits_navigator->send_claim->>id", prior.id)
+    : update.is("metadata->benefits_navigator->send_claim", null);
+  const { data: won, error: claimErr } = await update.select("id");
+  if (claimErr) return { ok: false, error: "Couldn't reserve this letter for sending. Try again." };
+  if (!won || won.length === 0) {
+    return { ok: false, error: IN_FLIGHT_ERROR, conflict: true, inFlight: true };
+  }
+  return { ok: true, claimId: claim.id };
+}
+
+/** Drop the lock after a send that delivered nothing, if it is still ours. */
+async function releaseNavigatorSend(db: SupabaseClient, profileId: string, claimId: string) {
+  const { data: row } = await db
+    .from("business_profiles")
+    .select("metadata")
+    .eq("id", profileId)
+    .maybeSingle();
+  const meta = (row?.metadata as Record<string, unknown> | null) || {};
+  const navigator = readBenefitsNavigator(meta);
+  if (navigator.send_claim?.id !== claimId) return;
+  await db
+    .from("business_profiles")
+    .update({ metadata: { ...meta, benefits_navigator: { ...navigator, send_claim: undefined } } })
+    .eq("id", profileId)
+    .eq("metadata->benefits_navigator->send_claim->>id", claimId);
+}
+
+/**
+ * Send a pending navigator letter. Every caller (TJ's button, the scheduler,
+ * the autopilot) goes through the send lock first, so two of them racing on
+ * the same letter produce one delivery: the loser gets `inFlight`.
+ */
 export async function sendNavigatorLetter(
+  db: SupabaseClient,
+  opts: NavigatorSendOptions,
+): Promise<NavigatorSendResult> {
+  const claim = await claimNavigatorSend(db, opts.profileId, opts.trigger);
+  if (!claim.ok) return claim;
+  // Released only when we know nothing went out. A throw is not that: the
+  // email may have been accepted before it. The claim then goes stale and
+  // the next caller checks the message log before sending.
+  const result = await deliverNavigatorLetter(db, opts);
+  if (!result.ok && !result.keepClaim) {
+    try {
+      await releaseNavigatorSend(db, opts.profileId, claim.claimId);
+    } catch (err) {
+      console.error("[navigator send] releasing the send lock failed:", opts.profileId, err);
+    }
+  }
+  return result;
+}
+
+async function deliverNavigatorLetter(
   db: SupabaseClient,
   opts: NavigatorSendOptions,
 ): Promise<NavigatorSendResult> {
@@ -379,6 +546,7 @@ export async function sendNavigatorLetter(
           scheduled_at: sendAfter,
           schedule_failed_at: undefined,
           schedule_failed_reason: undefined,
+          send_claim: undefined,
         };
         const { error: deferErr } = await db
           .from("business_profiles")
@@ -434,6 +602,7 @@ export async function sendNavigatorLetter(
     scheduled_at: undefined,
     schedule_failed_at: undefined,
     schedule_failed_reason: undefined,
+    send_claim: undefined,
   };
 
   const { error: sErr } = await db
@@ -445,7 +614,11 @@ export async function sendNavigatorLetter(
   if (sErr) {
     // A delivery went out; a failed stamp must be visible, not silent.
     console.error("[navigator send] delivery succeeded but stamp failed:", sErr);
-    return { ok: false, error: "Message sent, but recording it failed. Refresh before retrying." };
+    return {
+      ok: false,
+      error: "Message sent, but recording it failed. Refresh before retrying.",
+      keepClaim: true,
+    };
   }
   return { ok: true, navigator: nextNavigator };
 }

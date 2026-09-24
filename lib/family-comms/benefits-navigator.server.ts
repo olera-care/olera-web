@@ -111,6 +111,9 @@ export interface BenefitsNavigatorMeta {
    *  stops retrying; the letter waits for a person. */
   auto_recompose_failed_at?: string;
   auto_recompose_failed_reason?: string;
+  /** The in-flight send lock (benefits-navigator-send.server.ts). Present
+   *  only while one caller is delivering this letter. */
+  send_claim?: { id: string; at: string; by: "admin" | "scheduler" | "auto" };
   /** Final copies as actually sent (TJ may have edited the drafts). */
   sent_subject?: string;
   sent_body?: string;

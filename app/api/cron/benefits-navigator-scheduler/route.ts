@@ -95,6 +95,10 @@ export async function GET(request: NextRequest) {
         if (result.ok) {
           if (result.deferred) counts.deferred++;
           else counts.sent++;
+        } else if (result.inFlight) {
+          // Another caller holds the send lock (TJ's button, an overlapping
+          // run). Leave the schedule alone; their send settles it.
+          continue;
         } else {
           counts.blocked++;
           await markScheduleFailed(db, row.id, result.error);

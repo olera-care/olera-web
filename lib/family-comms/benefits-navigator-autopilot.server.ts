@@ -365,6 +365,10 @@ export async function runNavigatorAutopilot(
           counts.sent++;
           sentLines.push(item.program);
         }
+      } else if (result.inFlight) {
+        // TJ's button or an overlapping run is sending it right now. Theirs
+        // wins; nothing to stamp.
+        counts.retry_later++;
       } else if (isTransientSkip(result.error)) {
         // A frequency cap: the family is fine, today is just full. Leave it
         // unmarked and try again next hour. The staleness guard bounds how

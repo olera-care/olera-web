@@ -199,6 +199,9 @@ export default function ProgramBenefitsCard({
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
+  // The phone save now runs in the background (the card advances at once),
+  // so a failure has to surface on the success card instead.
+  const [phoneSaveFailed, setPhoneSaveFailed] = useState(false);
   const [ageBand, setAgeBand] = useState<string | null>(null);
   const [medicaidChoice, setMedicaidChoice] = useState<string | null>(null);
   const [incomeBand, setIncomeBand] = useState<string | null>(null);
@@ -354,14 +357,12 @@ export default function ProgramBenefitsCard({
   // silently drop a fact. Serializing client-side closes the window.
   const patchChain = useRef<Promise<unknown>>(Promise.resolve());
   const enqueuePatch = useCallback((body: Record<string, unknown>) => {
-    const run = () =>
+    const run = (): Promise<Response | null> =>
       fetch("/api/benefits/update-enrichment", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-      }).catch(() => {
-        // Silent fail — enrichment is best-effort
-      });
+      }).catch(() => null); // best-effort; callers that promise something check it
     const p = patchChain.current.then(run, run);
     patchChain.current = p;
     return p;
@@ -400,7 +401,7 @@ export default function ProgramBenefitsCard({
 
     // Only call API if we have data to save
     if (profileId && (recipient || timeline || payment || phoneToSave)) {
-      void enqueuePatch({
+      const saved = enqueuePatch({
         profileId,
         token: resultToken,
         recipient,
@@ -410,6 +411,13 @@ export default function ProgramBenefitsCard({
         sessionId,
         completedSteps: finalCompletedSteps,
       });
+      if (phoneToSave) {
+        void saved.then((res) => {
+          if (!res || !res.ok) setPhoneSaveFailed(true);
+        });
+      }
+    } else if (phoneToSave) {
+      setPhoneSaveFailed(true);
     }
 
     setCardState("enrichment_5");
@@ -606,7 +614,12 @@ export default function ProgramBenefitsCard({
                 {resultCount} {stateName} {resultCount === 1 ? "program" : "programs"}
               </span>{" "}
               you may qualify for, with eligibility and how to apply for each.
-              {completedSteps.includes(4) && <> Your results link is also on its way by text.</>}
+              {completedSteps.includes(4) &&
+                (phoneSaveFailed ? (
+                  <> We couldn&apos;t save your phone number, so we won&apos;t text you. Your results are in your email.</>
+                ) : (
+                  <> Your results link is also on its way by text.</>
+                ))}
               {(completedSteps.includes(5) || completedSteps.includes(6) || completedSteps.includes(7)) && (
                 <> We sorted your matches around what you shared.</>
               )}

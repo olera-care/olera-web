@@ -236,6 +236,22 @@ function formatPhone(p: string): string {
   return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : p;
 }
 
+/**
+ * Their words only. Gmail snippets arrive HTML-escaped and run on into the
+ * quoted thread ("… On Sun, Sep 20, 2026 at 12:21 AM Olera Support
+ * &lt;support@olera.care&gt;"), which on a reply row reads as if they wrote it.
+ */
+function theirWords(text: string): string {
+  const decoded = text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
+  const cut = decoded.search(/\s(On\s(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|From:\s|-{2,}\s*Original Message)/);
+  return (cut > 0 ? decoded.slice(0, cut) : decoded).trim();
+}
+
 const ORIGINS = ["city_ad", "ad_boost", "benefits", "provider_page", "unknown"] as const;
 const DAY_CHOICES = [14, 45, 90, 180];
 
@@ -548,8 +564,8 @@ function AdminSeekerRelationshipsInner() {
                 {showPhone && <div className="mt-1 font-mono text-[12.5px] text-gray-700">{formatPhone(r.phone!)}</div>}
                 {said && (
                   <div className="mt-1.5 border-l-2 border-gray-200 pl-2 text-[13px] leading-snug text-gray-700">
-                    <span className="font-medium">{said.title}</span>
-                    {said.detail && said.detail !== said.title && <span className="text-gray-500"> — {said.detail}</span>}
+                    <span className="font-medium">{theirWords(said.title)}</span>
+                    {said.detail && said.detail !== said.title && <span className="text-gray-500"> — {theirWords(said.detail)}</span>}
                   </div>
                 )}
                 {retry && <div className="mt-1.5 text-[12.5px] leading-snug text-gray-500">{retry}</div>}

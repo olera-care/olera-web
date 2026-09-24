@@ -313,13 +313,13 @@ export async function POST(req: NextRequest) {
         // So un-archiving is recorded as a person overruling the model, which
         // is what it is.
         const leadId = String(body.leadId ?? "");
-        // TWO STEPS, ARCHIVE FIRST. The city_lead_archive_guard trigger
-        // (migration 228) copies archived_at back on every update, so today
-        // no archived lead can reopen and the update "succeeds" having
-        // changed nothing. Clearing the archive on its own first, and only
-        // recording the overrule once it actually cleared, means a refused
-        // reopen writes nothing at all, and this starts working unchanged
-        // the day the trigger allows it.
+        // TWO STEPS, ARCHIVE FIRST. Until migration 255 the archive guard
+        // trigger copied archived_at back on every update, so no lead could
+        // reopen and this "succeeded" having changed nothing. It now allows an
+        // explicit reopen (status goes back to new) and refuses one for an
+        // opt-out. Clearing the archive on its own first, and recording the
+        // overrule only once it actually cleared, means a refused reopen
+        // writes nothing at all.
         const { data, error } = await db
           .from("city_leads")
           .update({ archived_at: null, archive_reason: null, archived_by: null, updated_at: now })
@@ -327,7 +327,14 @@ export async function POST(req: NextRequest) {
           .not("archived_at", "is", null)
           .select("id, first_name, archived_at")
           .maybeSingle();
-        if (error) throw error;
+        if (error) {
+          // The trigger's refusal for an opt-out, said as a sentence rather
+          // than a 500.
+          if (/opted out/i.test(error.message)) {
+            return NextResponse.json({ error: "They asked us to stop contacting them, so this lead cannot be reopened." }, { status: 409 });
+          }
+          throw error;
+        }
         if (!data) return NextResponse.json({ error: "That lead is not archived" }, { status: 409 });
         // This route used to answer "back in the queue" here regardless.
         if (data.archived_at) {

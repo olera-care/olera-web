@@ -31,6 +31,70 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  */
 const REASONS = new Set(["test_record", "not_a_care_seeker", "duplicate", "resolved_elsewhere", "other"]);
 
+/**
+ * Who a city lead was archived by when the archive came from this board.
+ * Putting a family back only reopens leads carrying this mark, so it never
+ * undoes an archive made on City campaigns, by the classifier, or by an
+ * opt-out.
+ */
+const FROM_BOARD = "relationships:";
+
+/** The one reason whose meaning has a different name in the city vocabulary. */
+const CITY_REASON: Record<string, string> = { resolved_elsewhere: "no_longer_needed" };
+
+/**
+ * ONE ARCHIVE, BOTH PAGES.
+ *
+ * A family archived here stayed live on /admin/city-ads, because that page
+ * reads city_leads.archived_at and this route only wrote seeker_archives. Karl
+ * Taht and Ann McDade were filed on this board and still sat in City
+ * campaigns' queue. Archiving the family now archives their open city leads
+ * too, and the city_lead_archive_cleanup trigger cancels the lead's pending
+ * texts and open offers.
+ *
+ * This became safe with migration 255. Before it, a city archive could never
+ * be reopened, so syncing would have made this board's "Put back" a lie.
+ *
+ * Best effort by design: the family's own archive is already written, and a
+ * failure here is logged rather than turned into an error on a row that did
+ * leave the board.
+ */
+async function syncCityLeads(
+  db: ReturnType<typeof getServiceClient>,
+  seekerId: string,
+  archive: { reason: string; who: string } | null,
+): Promise<number> {
+  const now = new Date().toISOString();
+  const q = archive
+    ? db
+        .from("city_leads")
+        .update({
+          archived_at: now,
+          archive_reason: CITY_REASON[archive.reason] ?? archive.reason,
+          archived_by: `${FROM_BOARD}${archive.who}`,
+          updated_at: now,
+        })
+        .eq("care_seeker_id", seekerId)
+        .is("archived_at", null)
+        // Open leads only. A reopen always returns a lead to "new", because
+        // the status it had before archiving is not kept anywhere, so
+        // archiving a finished lead (not a fit, client) and putting it back
+        // would revive it into the relay. Finished leads are already out of
+        // every queue and need no archive.
+        .in("status", ["new", "offered", "unfilled"])
+    : db
+        .from("city_leads")
+        .update({ archived_at: null, archive_reason: null, archived_by: null, updated_at: now })
+        .eq("care_seeker_id", seekerId)
+        .like("archived_by", `${FROM_BOARD}%`);
+  const { data, error } = await q.select("id");
+  if (error) {
+    console.error("[seeker-archive] city lead sync failed", error);
+    return 0;
+  }
+  return data?.length ?? 0;
+}
+
 async function requireAdmin() {
   const user = await getAuthUser();
   if (!user) return { error: NextResponse.json({ error: "Not authenticated" }, { status: 401 }) };
@@ -69,7 +133,14 @@ export async function POST(request: NextRequest) {
     console.error("[seeker-archive] write failed", error);
     return NextResponse.json({ error: "Could not archive. Try again." }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, seekerId: data.seeker_id, message: "Archived. They have left every queue." });
+  const leads = await syncCityLeads(db, seekerId, { reason, who: gate.who });
+  return NextResponse.json({
+    ok: true,
+    seekerId: data.seeker_id,
+    message: leads
+      ? "Archived here and on City campaigns. Their pending texts and open offers are canceled."
+      : "Archived. They have left every queue.",
+  });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -93,5 +164,6 @@ export async function DELETE(request: NextRequest) {
     console.error("[seeker-archive] delete failed", error);
     return NextResponse.json({ error: "Could not put them back. Try again." }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, message: "Back on the board." });
+  const leads = await syncCityLeads(db, seekerId, null);
+  return NextResponse.json({ ok: true, message: leads ? "Back on the board and on City campaigns." : "Back on the board." });
 }

@@ -790,7 +790,13 @@ export function validateCityOfferToken(token: string): { valid: true; offerId: s
   const offerId = token.slice(0, dot);
   const signature = token.slice(dot + 1);
   if (!/^[0-9a-f-]{36}$/i.test(offerId) || !/^[0-9a-f]{32}$/i.test(signature)) return { valid: false, error: "Invalid token format" };
-  if (!signatureMatches(cityOfferSignatureData(offerId), signature)) return { valid: false, error: "Invalid token signature" };
+  // signatureMatches throws when no signing secret is configured; report that
+  // as invalid like every other validator instead of a 500.
+  try {
+    if (!signatureMatches(cityOfferSignatureData(offerId), signature)) return { valid: false, error: "Invalid token signature" };
+  } catch {
+    return { valid: false, error: "Invalid token" };
+  }
   return { valid: true, offerId };
 }
 

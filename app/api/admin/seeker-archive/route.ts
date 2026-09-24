@@ -29,7 +29,46 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * reached the wrong audience and belongs in that count, the other says we made
  * the row ourselves and it should never have counted at all.
  */
-const REASONS = new Set(["test_record", "not_a_care_seeker", "duplicate", "resolved_elsewhere", "no_answer", "other"]);
+const REASONS = new Set(["test_record", "not_a_care_seeker", "duplicate", "resolved_elsewhere", "no_answer", "opted_out", "other"]);
+
+/**
+ * "Asked us to stop" is a request, not a filing decision, so it goes on
+ * do_not_contact: the cross-channel list sendEmail and sendSMS both check. An
+ * archive alone takes a family off this board and leaves every automated email
+ * running. Written BEFORE the city lead sync, so the city_lead_apply_optout
+ * trigger files their city lead as an opt-out (archived_by do_not_contact),
+ * which "Put back" never reopens.
+ *
+ * do_not_contact.reason is CHECK-constrained and has no care-seeker value, so
+ * this uses "other" with a note saying where it came from.
+ */
+async function recordOptOut(db: ReturnType<typeof getServiceClient>, seekerId: string, who: string): Promise<void> {
+  const { data: p } = await db.from("business_profiles").select("email, phone").eq("id", seekerId).maybeSingle();
+  const email = (p?.email as string | null)?.trim().toLowerCase() || null;
+  const digits = ((p?.phone as string | null) ?? "").replace(/\D/g, "").slice(-10);
+  const phone = digits.length === 10 ? digits : null;
+  if (!email && !phone) return;
+  // EACH IDENTIFIER ON ITS OWN. The usual opt-out is a family who texted STOP,
+  // which already put their PHONE here. Skipping the insert whenever either
+  // was present left their email off the list, so the nudge emails kept
+  // coming: 14 families were in exactly that state, Ann McDade among them.
+  const onList = async (col: "email" | "phone", value: string | null) => {
+    if (!value) return true;
+    const { data, error } = await db.from("do_not_contact").select("id").eq(col, value).limit(1);
+    if (error) throw error;
+    return Boolean(data?.length);
+  };
+  const [emailListed, phoneListed] = await Promise.all([onList("email", email), onList("phone", phone)]);
+  if (emailListed && phoneListed) return;
+  const { error } = await db.from("do_not_contact").insert({
+    email: emailListed ? null : email,
+    phone: phoneListed ? null : phone,
+    reason: "other",
+    note: "Care seeker asked us to stop. Recorded on Care Seeker Relationships.",
+    created_by: who,
+  });
+  if (error) throw error;
+}
 
 /**
  * Who a city lead was archived by when the archive came from this board.
@@ -133,13 +172,29 @@ export async function POST(request: NextRequest) {
     console.error("[seeker-archive] write failed", error);
     return NextResponse.json({ error: "Could not archive. Try again." }, { status: 500 });
   }
+  if (reason === "opted_out") {
+    try {
+      await recordOptOut(db, seekerId, gate.who);
+    } catch (err) {
+      // Archived, but not suppressed. Say so rather than let the row imply
+      // messages have stopped.
+      console.error("[seeker-archive] do_not_contact write failed", err);
+      return NextResponse.json(
+        { error: "Archived, but could not add them to Do Not Contact. Add them at /admin/do-not-contact." },
+        { status: 500 },
+      );
+    }
+  }
   const leads = await syncCityLeads(db, seekerId, { reason, who: gate.who });
   return NextResponse.json({
     ok: true,
     seekerId: data.seeker_id,
-    message: leads
-      ? "Archived here and on City campaigns. Their pending texts and open offers are canceled."
-      : "Archived. They have left every queue.",
+    message:
+      reason === "opted_out"
+        ? "Archived and added to Do Not Contact. No email or text will reach them."
+        : leads
+          ? "Archived here and on City campaigns. Their pending texts and open offers are canceled."
+          : "Archived. They have left every queue.",
   });
 }
 
@@ -159,11 +214,17 @@ export async function DELETE(request: NextRequest) {
   const db = getServiceClient();
   // Deleting the row, not stamping it. A reversed archive should leave no
   // residue, and the flags recompute from events the moment it goes.
+  const { data: was } = await db.from("seeker_archives").select("reason").eq("seeker_id", seekerId).maybeSingle();
   const { error } = await db.from("seeker_archives").delete().eq("seeker_id", seekerId);
   if (error) {
     console.error("[seeker-archive] delete failed", error);
     return NextResponse.json({ error: "Could not put them back. Try again." }, { status: 500 });
   }
   const leads = await syncCityLeads(db, seekerId, null);
+  // An opt-out is the person's request, not ours to undo from here: putting
+  // the row back leaves do_not_contact alone.
+  if (was?.reason === "opted_out") {
+    return NextResponse.json({ ok: true, message: "Back on the board. They stay on Do Not Contact; remove them there only if they ask." });
+  }
   return NextResponse.json({ ok: true, message: leads ? "Back on the board and on City campaigns." : "Back on the board." });
 }

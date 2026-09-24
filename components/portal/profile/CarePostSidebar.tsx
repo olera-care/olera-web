@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
+import { readCareAge, careAgeShort } from "@/lib/benefits/age";
 
 const DELETE_REASONS = [
   "Found care",
@@ -85,7 +86,7 @@ export default function CarePostSidebar({
     : null;
 
   const careForDisplay = relationshipDisplay
-    ? `${relationshipDisplay}${meta.age ? `, age ${meta.age}` : ""}`
+    ? `${relationshipDisplay}${careAgeShort(readCareAge(meta)) ? `, ${careAgeShort(readCareAge(meta))}` : ""}`
     : null;
 
   const scheduleDisplay = meta.schedule_preference || null;

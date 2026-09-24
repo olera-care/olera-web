@@ -401,9 +401,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If user has a provider or student profile and no explicit destination,
-    // redirect to their dashboard instead of home
-    if (next === "/" || next === "") {
+    // ════════════════════════════════════════════════════════════════════════
+    // UNIVERSAL PORTAL ROUTING
+    // ════════════════════════════════════════════════════════════════════════
+    // If user has a provider or student profile, redirect them to their
+    // dashboard — REGARDLESS of where they clicked "Log In" from.
+    //
+    // A student clicking Log In from /browse should land on /portal/medjobs,
+    // not back on /browse confused about where their profile went.
+    //
+    // Exception: If they're already going to their portal (e.g., clicked a
+    // nudge email link to /portal/medjobs), don't redirect them away from it.
+    // ════════════════════════════════════════════════════════════════════════
+    // Check if user is already going to their dashboard (not a public page)
+    // - /portal/medjobs = student portal (yes, skip check)
+    // - /provider = provider dashboard (yes, skip check)
+    // - /provider?... = provider dashboard with params (yes, skip check)
+    // - /provider/acme = PUBLIC provider profile (no, should still check)
+    // - /medjobs/families = PUBLIC job board (no, should still check)
+    const isProviderDashboard = next === "/provider" || next.startsWith("/provider?");
+    const isAlreadyGoingToPortal = next.startsWith("/portal/medjobs") || isProviderDashboard;
+
+    if (!isAlreadyGoingToPortal) {
       try {
         const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

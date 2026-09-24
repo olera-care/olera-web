@@ -114,7 +114,9 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
   const [locationDisplay, setLocationDisplay] = useState("");
   const [previewCount, setPreviewCount] = useState<number | null>(null);
   const [restoredFromDb, setRestoredFromDb] = useState(false);
-  const [publishCarePost, setPublishCarePost] = useState(true); // Default checked to encourage profile sharing
+  // Default UNCHECKED: sharing a care profile with providers is an opt-in,
+  // never something a family has to notice and untick.
+  const [publishCarePost, setPublishCarePost] = useState(false);
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
   const initialized = useRef(false);
   const previewAbort = useRef<AbortController | null>(null);

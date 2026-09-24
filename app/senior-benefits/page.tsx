@@ -61,10 +61,10 @@ export default function WaiverLibraryPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 flex items-center min-h-[360px] md:min-h-[420px]">
           <div className="max-w-2xl">
             <h1 className="font-bold leading-tight font-serif text-3xl sm:text-4xl lg:text-5xl">
-              Save Up to $10,000<br />on Care
+              Find Help Paying<br />for Care
             </h1>
             <p className="mt-1 sm:mt-3 text-base sm:text-lg text-white/80 max-w-md leading-relaxed">
-              Check what benefits you qualify for in 2 minutes.<br />Free, no signup required.
+              Check which benefits you may qualify for in about 2 minutes.<br />Free to use.
             </p>
             <div className="mt-2 flex flex-col gap-4">
               <div>
@@ -133,10 +133,10 @@ export default function WaiverLibraryPage() {
         <div className="hidden md:block max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 md:-mt-16">
           <div className="rounded-2xl bg-white px-6 py-8 md:py-10 text-center shadow-[0_6px_24px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200/60">
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif mb-2">
-              See How Much You Could Save on Care
+              See Which Programs Could Help Pay for Care
             </h3>
             <p className="text-gray-500 text-base md:text-lg mb-5">
-              Free, no signup required. Just a few quick questions.
+              Free. Just a few quick questions.
             </p>
             <Link
               href="/benefits/finder"

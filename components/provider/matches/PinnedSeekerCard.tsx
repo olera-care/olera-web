@@ -8,6 +8,7 @@ import {
   formatWhoNeedsCare,
   generateDescription,
 } from "./FamilyMatchCard";
+import { readCareAge } from "@/lib/benefits/age";
 
 type OutreachStatus = "pending" | "connected" | "declined";
 
@@ -38,7 +39,8 @@ export default function PinnedSeekerCard({
   const name = hasFullAccess ? fullName : fullName.split(" ")[0];
   const location = [family.city, family.state].filter(Boolean).join(", ");
 
-  const age = meta?.age;
+  // Exact typed age only: a one-tap band ("Under 65") is not an age.
+  const age = readCareAge(meta).exact ?? undefined;
   const careType = family.care_types?.[0] || null;
   const timelineConfig = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
   const timelineLabel = timelineConfig

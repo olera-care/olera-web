@@ -8,6 +8,7 @@ import { useProfileCompleteness, type SectionStatus } from "./completeness";
 import { BenefitsFinderBanner } from "./ProfileEditContent";
 import ProfileEditSheet, { type EditSection } from "./ProfileEditSheet";
 import CarePostSidebar from "@/components/portal/profile/CarePostSidebar";
+import { readCareAge, careAgeDisplay } from "@/lib/benefits/age";
 
 // Mobile tab type
 type MobileTab = "profile" | "care-post";
@@ -153,7 +154,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
   const scheduleDisplay = meta.schedule_preference ? SCHEDULE_LABELS[meta.schedule_preference] || meta.schedule_preference : null;
   const contactPrefDisplay = meta.contact_preference ? CONTACT_PREF_LABELS[meta.contact_preference] || meta.contact_preference : null;
   const descriptionDisplay = meta.about_situation || profile.description || null;
-  const ageDisplay = meta.age ? `${meta.age} years old` : null;
+  const ageDisplay = careAgeDisplay(readCareAge(meta));
 
   // Count interested providers (for sidebar display)
   const interestedCount = 0; // We don't have this data here, sidebar will show 0

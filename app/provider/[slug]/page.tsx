@@ -52,7 +52,7 @@ import { BenefitsArmGate, AgentOutreachSlot } from "@/components/providers/Intak
 import { getTopProvidersByCityAndCategory } from "@/lib/agent-outreach-providers";
 import { PROFILE_CAT_TO_SUPABASE_CAT } from "@/lib/types/provider";
 import { buildProviderBreadcrumbs } from "@/lib/provider-breadcrumbs";
-import { getTopProgramsForState, getAllProgramIds, getEnrichedProgram } from "@/lib/program-data";
+import { getTopProgramsForState, getCanonicalProgramIds, getEnrichedProgram } from "@/lib/program-data";
 import {
   getInitials,
   formatCategory,
@@ -697,7 +697,8 @@ export default async function ProviderPage({
   const benefitsData = profile.state ? getTopProgramsForState(profile.state, 3) : null;
   let benefitsAllPrograms: BenefitsProgram[] = [];
   if (benefitsData) {
-    const allIds = getAllProgramIds(benefitsData.stateId);
+    // Canonical ids: legacy duplicates of a current program are dropped.
+    const allIds = getCanonicalProgramIds(benefitsData.stateId);
     benefitsAllPrograms = allIds
       .map((id) => getEnrichedProgram(benefitsData.stateId, id))
       .filter((p): p is NonNullable<typeof p> => !!p)

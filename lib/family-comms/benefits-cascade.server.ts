@@ -37,6 +37,7 @@ import {
 import { withSmsSource } from "@/lib/sms/click-source";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendSlackAlert } from "@/lib/slack";
+import { readCareAge, careAgeShort } from "@/lib/benefits/age";
 
 // ── benefits_cascade metadata (on business_profiles.metadata) ───────────────
 
@@ -622,7 +623,8 @@ export async function selectFirstStepProgram(
 export function benefitsSituationLine(profileMeta: Record<string, any> | null | undefined): string | null {
   const meta = profileMeta || {};
   const parts: string[] = [];
-  if (typeof meta.age === "number" && meta.age > 0) parts.push(`age ${meta.age}`);
+  const ageShort = careAgeShort(readCareAge(meta));
+  if (ageShort) parts.push(ageShort);
   const medicaid = meta.medicaid_status as string | undefined;
   if (medicaid === "alreadyHas") parts.push("on Medicaid");
   else if (medicaid === "doesNotHave") parts.push("not on Medicaid, has not applied");

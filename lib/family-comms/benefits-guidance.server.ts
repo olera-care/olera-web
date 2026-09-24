@@ -20,6 +20,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BenefitProgram } from "@/lib/types/benefits";
 import type { QuizQuestion } from "@/lib/claim-tokens";
 import { normalizeCareLabel } from "@/lib/provider-highlights";
+import { readCareAge, ageMeetsMin, type AgeBand } from "@/lib/benefits/age";
 
 /**
  * A care label safe to drop into prose ("how families pay for memory care").
@@ -80,7 +81,12 @@ export interface FamilyBenefitsFacts {
   medicaidStatus: "alreadyHas" | "applying" | "notSure" | "doesNotHave" | "denied" | null;
   /** From metadata.veteran_status or inferred from payment_methods. */
   veteranStatus: "yes" | "no" | null;
+  /** A typed EXACT age only. Chip answers are bands; see ageBand. */
   age: number | null;
+  /** One-tap age band (or derived from the exact age). Use
+   *  ageMeetsMin({ exact: age, band: ageBand }, min) for any age rule:
+   *  "under_65" cannot meet or fail a 60+ rule, it is unknown. */
+  ageBand: AgeBand | null;
   /** Self-reported monthly income band from metadata.income_range
    *  ("under1500" | "under2500" | "under4000" | "over4000" | legacy
    *  "under6000"/"over6000" | "preferNotToSay"). Bands, never dollars —
@@ -150,7 +156,10 @@ export function familyBenefitsFacts(profile: { state?: string | null; care_types
     veteranStatus = "yes";
   }
 
-  const age = typeof meta.age === "number" && meta.age > 0 ? meta.age : null;
+  // Chip answers are bands, never ages (legacy 60/70/80/87 rows included).
+  const careAge = readCareAge(meta);
+  const age = careAge.exact;
+  const ageBand = careAge.band;
 
   const incomeBand =
     typeof meta.income_range === "string" && meta.income_range ? meta.income_range : null;
@@ -180,6 +189,7 @@ export function familyBenefitsFacts(profile: { state?: string | null; care_types
     medicaidStatus,
     veteranStatus,
     age,
+    ageBand,
     incomeBand,
     hasSpouse: hasCoResidentSpouse(meta),
   };
@@ -321,7 +331,7 @@ export async function getProgramsForFamily(
     // Hard exclusions only on facts we actually hold.
     if (p.requires_veteran === true && facts.veteranStatus === "no") continue;
     if (p.requires_medicaid && (facts.medicaidStatus === "doesNotHave" || facts.medicaidStatus === "denied")) continue;
-    if (p.min_age != null && facts.age != null && facts.age < p.min_age) continue;
+    if (p.min_age != null && ageMeetsMin({ exact: facts.age, band: facts.ageBand }, p.min_age) === false) continue;
     // Income: exclude only when the band's FLOOR clears the program limit —
     // a held fact, not a guess (Phase 3 real-situation capture). Suppressed
     // entirely when a spouse lives in the household, because the band is the
@@ -459,15 +469,15 @@ export function pickQuizQuestion(facts: FamilyBenefitsFacts): QuizAsk | null {
       ],
     };
   }
-  if (!facts.age) {
+  if (!facts.age && !facts.ageBand) {
     return {
       question: "age",
       prompt: "How old is the person needing care?",
       chips: [
-        { label: "Under 65", answer: "60" },
-        { label: "65–74", answer: "70" },
-        { label: "75–84", answer: "80" },
-        { label: "85+", answer: "87" },
+        { label: "Under 65", answer: "under_65" },
+        { label: "65 to 74", answer: "65_74" },
+        { label: "75 to 84", answer: "75_84" },
+        { label: "85 or older", answer: "85_plus" },
       ],
     };
   }

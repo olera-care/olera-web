@@ -21,7 +21,9 @@ import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 import { getStateSlug } from "@/lib/program-data";
 import { resolveBenefitsProgramEntry } from "@/lib/benefits/program-entry";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
-import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
+import { emailReturningUserSignInLink, resolveExistingUserId } from "@/lib/auth/returning-user";
+import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
+import { benefitAmountLabel } from "@/lib/benefits/savings-label";
 
 // ─── Email + SMS body helpers ────────────────────────────────────────────
 //
@@ -358,13 +360,12 @@ export async function POST(req: Request) {
     } else if (createUserErr?.message?.includes("already been registered") ||
                createUserErr?.message?.includes("already exists")) {
       // SECURITY: existing account. Never mint a session for a caller-supplied
-      // email (account takeover). Email a magic link instead; the saved results
-      // still attach to their account via the resolved userId.
-      const { userId: existingUserId } = await emailReturningUserSignInLink(authClient, {
-        email: normalizedEmail,
-        nextPath: "/portal",
-      });
-      userId = existingUserId || "";
+      // email (account takeover), and never hand the caller anything that
+      // opens this family's data (their /m/{token} plan, profile id, user id).
+      // The results still attach to their account via the resolved userId; the
+      // sign-in link is emailed further down, once the plan token exists, so
+      // the real owner lands on their plan from their own inbox.
+      userId = (await resolveExistingUserId(authClient, normalizedEmail)) || "";
       existingUser = true;
     } else {
       console.error("[save-results] Failed to create user:", createUserErr);
@@ -512,13 +513,19 @@ export async function POST(req: Request) {
 
   if (existingFamilyProfile) {
     familyProfileId = existingFamilyProfile.id;
-    // Merge metadata — new fields win, preserve existing ones
-    const mergedMetadata = {
-      ...(existingFamilyProfile.metadata || {}),
-      ...Object.fromEntries(
-        Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
-      ),
-    };
+    const submittedMetadata = Object.fromEntries(
+      Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
+    );
+    // An anonymous caller who typed an existing family's email is unverified:
+    // it could be anyone. Their answers may only fill gaps, never overwrite
+    // what the family already told us, and a phone they typed must never
+    // attach to (or consent texts for) this family.
+    if (existingUser) delete submittedMetadata.sms_consent;
+    // Merge metadata. A verified caller's new fields win; an unverified
+    // caller's fields only fill keys the family has not set.
+    const mergedMetadata: Record<string, unknown> = existingUser
+      ? { ...submittedMetadata, ...(existingFamilyProfile.metadata || {}) }
+      : { ...(existingFamilyProfile.metadata || {}), ...submittedMetadata };
 
     // Calculate profile completeness with merged data
     const completeness = calculateFamilyCompleteness(
@@ -535,17 +542,22 @@ export async function POST(req: Request) {
     );
     mergedMetadata.profile_completeness = completeness.percentage;
 
-    const profileUpdate: Record<string, unknown> = {
-      metadata: mergedMetadata,
-      preferred_contact_channel: contactChannel,
-    };
-    if (stateAbbrev) profileUpdate.state = stateAbbrev;
+    const profileUpdate: Record<string, unknown> = { metadata: mergedMetadata };
+    if (!existingUser) {
+      profileUpdate.preferred_contact_channel = contactChannel;
+      if (stateAbbrev) profileUpdate.state = stateAbbrev;
+    }
     // Don't overwrite an existing email/phone — only fill in if missing.
     // (Caller may have submitted a different email than what's on file from
     // a prior provider-claim or save-nudge flow; preserve original to avoid
     // surprising the user.)
-    if (normalizedEmail) profileUpdate.email = normalizedEmail;
-    if (normalizedPhone) profileUpdate.phone = normalizedPhone;
+    // This path is reachable by anyone who types an existing family's email
+    // (existingUser flow), so overwriting would let a stranger swap the phone
+    // that receives this family's texts.
+    if (normalizedEmail && !existingFamilyProfile.email?.trim()) profileUpdate.email = normalizedEmail;
+    // An unverified caller's phone is dropped entirely: filling an empty phone
+    // would route this family's navigator texts to a stranger.
+    if (normalizedPhone && !existingUser && !existingFamilyProfile.phone?.trim()) profileUpdate.phone = normalizedPhone;
     const { error: updateErr } = await db
       .from("business_profiles")
       .update(profileUpdate)
@@ -557,6 +569,11 @@ export async function POST(req: Request) {
     const cleanedMetadata = Object.fromEntries(
       Object.entries(intakeMetadata).filter(([, v]) => v !== undefined)
     );
+    // Existing account reached anonymously (no family profile yet): the phone
+    // was typed by an unverified caller, so it must not land on this
+    // account's profile or carry text consent for it.
+    const profilePhone = existingUser ? "" : normalizedPhone;
+    if (existingUser) delete cleanedMetadata.sms_consent;
 
     // Calculate profile completeness for new profile
     const completeness = calculateFamilyCompleteness(
@@ -564,7 +581,7 @@ export async function POST(req: Request) {
         display_name: displayName,
         image_url: null,
         city: null,
-        phone: normalizedPhone,
+        phone: profilePhone,
         description: null,
         care_types: null,
         metadata: cleanedMetadata,
@@ -586,7 +603,7 @@ export async function POST(req: Request) {
       preferred_contact_channel: contactChannel,
     };
     if (normalizedEmail) profileInsert.email = normalizedEmail;
-    if (normalizedPhone) profileInsert.phone = normalizedPhone;
+    if (profilePhone) profileInsert.phone = profilePhone;
     const { data: newProfile, error: createErr } = await db
       .from("business_profiles")
       .insert(profileInsert)
@@ -665,9 +682,13 @@ export async function POST(req: Request) {
 
   const isNewProfile = !existingFamilyProfile;
   const [, savedProgramsResult] = await Promise.all([
-    // Set active profile only if we just created one
+    // Set active profile only if we just created one. For an existing account
+    // reached anonymously, never switch the profile they already use (e.g. a
+    // provider or caregiver profile): only fill an empty slot.
     isNewProfile
-      ? db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId)
+      ? existingUser
+        ? db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId).is("active_profile_id", null)
+        : db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId)
       : Promise.resolve(null),
     // Batch save programs (skip if empty). `.select()` returns only the rows
     // actually inserted (duplicates are ignored), so we can report the real
@@ -757,14 +778,9 @@ export async function POST(req: Request) {
     };
     const careNeedLabel = careNeed ? careNeedLabels[careNeed] || null : null;
 
-    // Extract top savings as "Up to $X/yr" from the range string
-    const topSavingsRaw = matchedPrograms[0]?.savingsRange;
-    const topSavings = (() => {
-      if (!topSavingsRaw) return null;
-      const matches = topSavingsRaw.match(/\$[\d,]+/g);
-      if (!matches || matches.length === 0) return null;
-      return `up to ${matches[matches.length - 1]}/yr`;
-    })();
+    // Top savings via the shared parser (a range stays a range, a maximum
+    // stays "Up to"), not the last dollar figure forced to "/yr".
+    const topSavings = benefitAmountLabel(matchedPrograms[0]?.savingsRange)?.text ?? null;
 
     // Slack alert lists the actual contact (email if email-path, phone if SMS).
     // The helper's `email` field is the contact display — we pass whichever
@@ -775,7 +791,10 @@ export async function POST(req: Request) {
     // facts since (enrichment round, /m chips, email quiz) — read them off
     // the profile so the alert stops saying "unknown" about a family we know.
     const priorMeta = (existingFamilyProfile?.metadata as Record<string, unknown>) || {};
-    const priorAge = typeof priorMeta.age === "number" && priorMeta.age > 0 ? priorMeta.age : null;
+    // Through readCareAge: a legacy chip "60" is the "Under 65" band, not age 60.
+    const priorCareAge = readCareAge(priorMeta);
+    const priorAge =
+      priorCareAge.exact ?? (priorCareAge.band ? AGE_BAND_LABELS[priorCareAge.band].toLowerCase() : null);
     const priorMedicaid = typeof priorMeta.medicaid_status === "string" ? priorMeta.medicaid_status : null;
     const priorIncome = typeof priorMeta.income_range === "string" ? priorMeta.income_range : null;
 
@@ -949,6 +968,21 @@ export async function POST(req: Request) {
     })());
   }
 
+  // Existing account reached anonymously: the plan token is NOT returned to
+  // the caller (see the response below). The owner gets it from their own
+  // inbox instead: a sign-in link that lands on their /m/{token} plan.
+  let signInEmailed = false;
+  if (existingUser && normalizedEmail) {
+    welcomeTasks.push((async () => {
+      const { emailed } = await emailReturningUserSignInLink(authClient, {
+        email: normalizedEmail,
+        nextPath: benefitsToken ? `/m/${benefitsToken}` : "/portal",
+        subject: "Your benefits plan is saved",
+      });
+      signInEmailed = emailed;
+    })());
+  }
+
   const welcomeResults = await Promise.allSettled(welcomeTasks);
   for (const result of welcomeResults) {
     if (result.status === "rejected") {
@@ -966,20 +1000,36 @@ export async function POST(req: Request) {
   //    doing it server-side we leverage the fast Vercel↔Supabase region
   //    path and the cookies are already set when the welcome page loads.
   // ═══════════════════════════════════════════════════════════════════
-  const response = NextResponse.json({
-    success: true,
-    profileId: familyProfileId,
-    userId,
-    isNewUser,
-    // When true, no session is minted — an existing account was found and a
-    // sign-in link was emailed. The client should show "check your email"
-    // instead of treating the user as logged in (security: prevents takeover).
-    existingUser,
-    matchCount,
-    programsSaved: matchedPrograms.length,
-    token: benefitsToken,
-    contactChannel,
-  });
+  // SECURITY: when an existing account was reached anonymously, the caller has
+  // only proven they know an email address. Return nothing that opens that
+  // family's data: no plan token (/m/{token} shows their plan and accepts
+  // enrichment writes), no profile id, no user id. The client shows a
+  // "we emailed you a link" state instead. existingUser is only ever true for
+  // an anonymous caller (a signed-in caller takes the currentUser branch).
+  const response = NextResponse.json(
+    existingUser
+      ? {
+          success: true,
+          isNewUser: false,
+          existingUser: true,
+          signInEmailed,
+          matchCount,
+          programsSaved: matchedPrograms.length,
+          token: null,
+          contactChannel,
+        }
+      : {
+          success: true,
+          profileId: familyProfileId,
+          userId,
+          isNewUser,
+          existingUser: false,
+          matchCount,
+          programsSaved: matchedPrograms.length,
+          token: benefitsToken,
+          contactChannel,
+        },
+  );
 
   if (accessToken && refreshToken) {
     const tCookies = Date.now();

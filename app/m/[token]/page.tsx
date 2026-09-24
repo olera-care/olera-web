@@ -233,6 +233,7 @@ export default async function BenefitsResultsPage({
       profileId={bundle.profile.id}
       knownFacts={{
         age: facts.age,
+        ageBand: facts.ageBand,
         medicaidStatus: facts.medicaidStatus,
         incomeBand: facts.incomeBand,
       }}

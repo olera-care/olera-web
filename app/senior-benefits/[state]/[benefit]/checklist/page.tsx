@@ -69,7 +69,7 @@ export default async function ChecklistPage({ params }: Props) {
       {/* Checklist */}
       <section className="py-6 md:py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ChecklistClient programName={program.name} programShortName={program.shortName} stateName={state.name} />
+          <ChecklistClient stateId={state.id} programId={program.id} programName={program.name} programShortName={program.shortName} stateName={state.name} />
         </div>
       </section>
     </div>

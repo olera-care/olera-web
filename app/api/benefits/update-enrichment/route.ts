@@ -8,6 +8,7 @@ import {
   benefitsSituationLine,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { sendSlackAlert } from "@/lib/slack";
+import { chipValueToAgeBand } from "@/lib/benefits/age";
 
 /**
  * PATCH /api/benefits/update-enrichment
@@ -28,15 +29,15 @@ import { sendSlackAlert } from "@/lib/slack";
  *   SMS cascade rungs gate on), and IMMEDIATELY texts the results link
  *   (benefitsResultsSms) so the step's promise is kept in seconds.
  * - ageBand / medicaidStatus / incomeRange: Phase 3 real-situation facts
- *   (one-tap asks after the phone step, and the /m gap chips). Age bands
- *   store the same representative numbers as the email micro-quiz
- *   (60/70/80/87) so every facts reader sees one vocabulary. Values are
+ *   (one-tap asks after the phone step, and the /m gap chips). Age chips
+ *   store a BAND in metadata.age_band ("under_65" | "65_74" | "75_84" |
+ *   "85_plus"), never a fake exact age; legacy "60"/"70"/"80"/"87" values
+ *   are still accepted and mapped to their band. Values are
  *   allowlisted; writes are metadata-only with a quiz_answers provenance
  *   stamp. `source` labels where the tap happened ("benefits_enrichment"
  *   | "m_chips").
  */
 
-const AGE_BAND_VALUES = new Set(["60", "70", "80", "87"]);
 const MEDICAID_VALUES = new Set(["alreadyHas", "applying", "notSure", "doesNotHave"]);
 const INCOME_VALUES = new Set(["under1500", "under2500", "under4000", "over4000", "preferNotToSay"]);
 export async function PATCH(request: Request) {
@@ -86,7 +87,7 @@ export async function PATCH(request: Request) {
 
     // Allowlisted facts only — a garbage value degrades to "not sent",
     // never a wrong fact on the profile.
-    const factAge = ageBand && AGE_BAND_VALUES.has(ageBand) ? parseInt(ageBand, 10) : null;
+    const factAge = ageBand ? chipValueToAgeBand(ageBand) : null;
     const factMedicaid = medicaidStatus && MEDICAID_VALUES.has(medicaidStatus) ? medicaidStatus : null;
     const factIncome = incomeRange && INCOME_VALUES.has(incomeRange) ? incomeRange : null;
 
@@ -193,8 +194,10 @@ export async function PATCH(request: Request) {
       const via = source === "m_chips" ? "m_chips" : "enrichment";
       const at = new Date().toISOString();
       if (factAge) {
-        meta.age = factAge;
-        quizAnswers.age = { answer: String(factAge), at, via };
+        // A band, not an age: metadata.age is reserved for a typed exact age.
+        meta.age_band = factAge;
+        delete meta.age;
+        quizAnswers.age = { answer: factAge, at, via };
       }
       if (factMedicaid) {
         meta.medicaid_status = factMedicaid;

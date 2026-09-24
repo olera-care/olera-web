@@ -110,7 +110,10 @@ export function interpretBenefitsSmsReply(
           outcome: "wants_help",
           outcome_at: at,
         }),
-        response: "Olera: We recorded that you need help for the Olera team. You can reply with what happened.",
+        // Plain words, and a promise the owned help case backs (owner + due
+        // time + overdue escalation, lib/family-comms/benefits-help-cases.server.ts).
+        response:
+          "Olera: Got it, you're stuck. A person on our team will text or email you, usually within 2 business days. You can reply here with what happened so far.",
         needsHuman: true,
         label: "asked Olera for help",
       };

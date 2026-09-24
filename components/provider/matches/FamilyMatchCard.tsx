@@ -3,6 +3,7 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Profile, FamilyMetadata } from "@/lib/types";
+import { readCareAge } from "@/lib/benefits/age";
 
 type OutreachStatus = "pending" | "connected" | "declined";
 type ProfileStatus = "active" | "paused" | "found_care" | "deleted";
@@ -171,7 +172,7 @@ function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): nu
 
   // Care Recipient
   if (meta?.who_needs_care || meta?.relationship_to_recipient) score += weights.who_needs_care;
-  if (meta?.age) score += weights.age;
+  if (meta?.age || meta?.age_band) score += weights.age;
   if (family.description?.trim() || meta?.about_situation?.trim()) score += weights.about_situation;
 
   // Care Needs
@@ -371,7 +372,8 @@ export default function FamilyMatchCard({
   const familyDescription = meta?.about_situation?.trim();
 
   // Extract additional metadata fields
-  const age = meta?.age;
+  // Exact typed age only: a one-tap band ("Under 65") is not an age.
+  const age = readCareAge(meta).exact ?? undefined;
   const contactPreference = meta?.contact_preference;
   const schedulePreference = meta?.schedule_preference;
 

@@ -19,6 +19,7 @@
  */
 import { calculateLeadQualityScore, type LeadQualityResult } from "@/lib/lead-quality-score";
 import type { FamilyMetadata } from "@/lib/types";
+import { readCareAge } from "@/lib/benefits/age";
 
 /** The family business_profile joined onto a connection via from_profile_id. */
 export interface FamilyProfileLike {
@@ -98,7 +99,9 @@ export function deriveLeadSignals(conn: RawLeadConnection): LeadSignals {
 
   const profileCareTypes = familyProfile?.care_types || [];
   const profileCareNeeds = (familyMeta.care_needs as string[]) || [];
-  const careRecipientAge = familyMeta.age as number | undefined;
+  // Exact typed age only; a one-tap band is not an age (lib/benefits/age.ts).
+  const careRecipientAge = readCareAge(familyMeta).exact ?? undefined;
+  const careRecipientAgeBand = readCareAge(familyMeta).band;
   const aboutSituation = (familyMeta.about_situation as string) || familyProfile?.description || undefined;
   const timeline = familyMeta.timeline as string | undefined;
   const schedulePreference = familyMeta.schedule_preference as string | undefined;
@@ -116,7 +119,7 @@ export function deriveLeadSignals(conn: RawLeadConnection): LeadSignals {
   if (phone) completeness += 12;
   if (familyMeta.contact_preference) completeness += 2;
   if (familyMeta.relationship_to_recipient || familyMeta.who_needs_care) completeness += 10;
-  if (careRecipientAge) completeness += 2;
+  if (careRecipientAge || careRecipientAgeBand) completeness += 2;
   if (aboutSituation || familyProfile?.description) completeness += 4;
   if (profileCareTypes.length > 0) completeness += 8;
   if (profileCareNeeds.length > 0) completeness += 6;

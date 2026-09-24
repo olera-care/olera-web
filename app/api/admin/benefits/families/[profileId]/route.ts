@@ -6,11 +6,15 @@ import {
   type BenefitsCaseMeta,
 } from "@/lib/family-comms/benefits-cascade.server";
 import {
-  composeNavigatorDraft,
-  pickSnapshot,
   readBenefitsNavigator,
   renderNavigatorEmail,
 } from "@/lib/family-comms/benefits-navigator.server";
+import {
+  withHoldCleared,
+  holdNeedsExplicitResume,
+  readBenefitsHold,
+  type BenefitsHelpCase,
+} from "@/lib/family-comms/benefits-automation";
 import { sendEmail } from "@/lib/email";
 import { careUnsubscribeUrl } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
@@ -34,6 +38,7 @@ function withLiveVerifiedDate<T extends { pick?: { programId?: string; stateId?:
   };
 }
 import { sendNavigatorLetter } from "@/lib/family-comms/benefits-navigator-send.server";
+import { recomposeNavigatorLetter } from "@/lib/family-comms/benefits-navigator-autopilot.server";
 import { buildNavigatorPacket } from "@/lib/benefits/navigator-packet.server";
 
 /**
@@ -240,6 +245,35 @@ export async function GET(
     for (const n of caseMeta.notes ?? []) push(n.at, "note", `Note by ${n.by}`, n.text);
     push(caseMeta.contacted_at, "case", "Marked contacted");
     push(caseMeta.resolved_at, "case", "Marked resolved");
+    // Help-case ownership and the reply hold (lib/family-comms/benefits-automation.ts).
+    const helpCase = caseMeta as BenefitsHelpCase;
+    push(
+      helpCase.help_opened_at,
+      "case",
+      `Help case opened${helpCase.help_owner ? `, owner ${helpCase.help_owner}` : ""}`,
+      helpCase.help_due_at
+        ? `${helpCase.help_reason === "stuck" ? "Texted STUCK" : "Asked for a person"}. Due ${new Date(helpCase.help_due_at).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric" })} ET`
+        : undefined,
+    );
+    push(helpCase.help_escalated_at, "case", "Help case overdue, escalated in Slack");
+    const hold = readBenefitsHold(meta);
+    if (hold) {
+      push(
+        hold.held_at,
+        "case",
+        hold.reason === "deceased"
+          ? "Reply suggests someone died: automation paused, nudges suppressed"
+          : hold.reason === "sms_opt_out"
+            ? "Texted STOP: automated benefits emails paused too"
+            : `Family replied by ${hold.channel === "email" ? "email" : "text"}: automation paused`,
+        hold.excerpt ? `"${hold.excerpt}"` : undefined,
+      );
+      push(hold.cleared_at, "case", `Automation resumed${hold.cleared_by ? ` by ${hold.cleared_by}` : ""}`);
+    }
+    const emailReply = (meta as { benefits_email_reply?: { at?: string; subject?: string } }).benefits_email_reply;
+    if (emailReply?.at && emailReply.at !== hold?.held_at) {
+      push(emailReply.at, "case", "Replied by email", emailReply.subject);
+    }
 
     // Navigator guidance lifecycle
     const navigator = readBenefitsNavigator(meta);
@@ -258,17 +292,19 @@ export async function GET(
     push(
       navigator.sent_at,
       "navigator",
-      navigator.sent_sms && !navigator.sent_subject
-        ? navigator.sent_via === "scheduler"
-          ? "Navigator text sent (scheduled)"
-          : "Navigator text sent by TJ"
-        : navigator.sent_sms
-          ? navigator.sent_via === "scheduler"
-            ? "Navigator email + text sent (scheduled)"
-            : "Navigator email + text sent by TJ"
-          : navigator.sent_via === "scheduler"
-            ? "Navigator email sent (scheduled)"
-            : "Navigator email sent by TJ",
+      `${
+        navigator.sent_sms && !navigator.sent_subject
+          ? "Navigator text sent"
+          : navigator.sent_sms
+            ? "Navigator email + text sent"
+            : "Navigator email sent"
+      } ${
+        navigator.sent_via === "scheduler"
+          ? "(scheduled)"
+          : navigator.sent_via === "auto"
+            ? "(automatic, verdict was clean)"
+            : "by TJ"
+      }`,
     );
     push(navigator.dismissed_at, "navigator", "Navigator draft dismissed");
 
@@ -390,6 +426,7 @@ export async function POST(
         "navigator_save",
         "navigator_schedule",
         "navigator_unschedule",
+        "hold_clear",
       ].includes(action)
     ) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
@@ -466,87 +503,13 @@ export async function POST(
     //    and dismissed stay terminal; TJ's in-drawer edits are discarded
     //    (the client confirms before calling).
     if (action === "navigator_recompose") {
-      const navigator = readBenefitsNavigator(meta);
-      if (navigator.status !== "pending" || !navigator.body) {
-        return NextResponse.json({ error: "No pending draft for this family" }, { status: 409 });
+      // Shared with the autopilot (lib/family-comms/benefits-navigator-autopilot.server.ts)
+      // so the exclude-the-ruled-out-program rule cannot drift between them.
+      const result = await recomposeNavigatorLetter(db, profileId, { trigger: "admin" });
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, { status: result.status });
       }
-      const intakeAt = (meta as { benefits_results?: { completed_at?: string } }).benefits_results
-        ?.completed_at;
-      if (!intakeAt || !profile.account_id) {
-        return NextResponse.json({ error: "Family is missing intake data" }, { status: 409 });
-      }
-      // A packet routed `recompose` means an independent read found the
-      // family's own stated facts rule THIS program out. Re-running the ladder
-      // unchanged would pick it straight back: selectFirstStepProgram ranks
-      // entry-source first, and the entry page is usually how the family
-      // arrived at the wrong program in the first place. So the ruled-out
-      // program is excluded and the ladder has to find something else.
-      //
-      // Only on that verdict. A plain recompose is the fact-check loop —
-      // re-draft the SAME program against corrected data — and excluding there
-      // would silently change the family's program because a phone number moved.
-      const ruledOut =
-        navigator.packet?.route === "recompose" ? navigator.pick?.programId ?? null : null;
-      // When both fit models independently named the SAME better program, the
-      // recompose has a destination rather than just an exclusion. Prefer it;
-      // selectFirstStepProgram falls back to the ladder if it cannot anchor a
-      // letter, so an unresolvable suggestion costs nothing.
-      const target = navigator.packet?.recomposeTarget ?? null;
-      const prefer =
-        ruledOut && target?.programId
-          ? { programId: target.programId, stateId: navigator.pick?.stateId ?? null }
-          : undefined;
-
-      const draft = await composeNavigatorDraft(db, {
-        profileId,
-        accountId: profile.account_id,
-        displayName: profile.display_name || null,
-        state: profile.state || null,
-        city: profile.city || null,
-        careTypes: (profile.care_types as string[] | null) || [],
-        intakeAt,
-        profileMeta: meta,
-        factsRow: profile,
-        ...(ruledOut ? { exclude: [ruledOut] } : {}),
-        ...(prefer ? { prefer } : {}),
-      });
-      if (!draft) {
-        return NextResponse.json(
-          {
-            error: ruledOut
-              ? "No other qualifying program for this family with current data. The letter is unchanged. This family probably needs a question rather than a program — dismiss the draft."
-              : "No qualifying first-step program with current data — the old draft is unchanged. Dismiss it if the program no longer exists.",
-          },
-          { status: 409 },
-        );
-      }
-      const navStamp = {
-        status: "pending",
-        composed_at: new Date().toISOString(),
-        subject: draft.subject,
-        body: draft.body,
-        sms: draft.sms,
-        model: "claude-opus-5",
-        pick: pickSnapshot(draft.pick),
-        provider_count: draft.providerCount,
-      };
-      // Composition took seconds — re-read metadata so a mid-compose write
-      // (a family tapping /m gap chips) isn't lost to a blind spread.
-      const { data: freshRow } = await db
-        .from("business_profiles")
-        .select("metadata")
-        .eq("id", profileId)
-        .maybeSingle();
-      const freshMeta = (freshRow?.metadata as Record<string, unknown> | null) || meta;
-      freshMeta.benefits_navigator = navStamp;
-      const { error: updateErr } = await db
-        .from("business_profiles")
-        .update({ metadata: { ...freshMeta } })
-        .eq("id", profileId);
-      if (updateErr) {
-        return NextResponse.json({ error: "Couldn't save the new draft" }, { status: 500 });
-      }
-      return NextResponse.json({ success: true, navigator: navStamp });
+      return NextResponse.json({ success: true, navigator: result.navigator });
     }
 
     // ── Build this letter's routing verdict, on demand ──────────────────────
@@ -826,6 +789,24 @@ export async function POST(
     const by = adminUser.display_name || user.email || "admin";
     let next: BenefitsCaseMeta = caseMeta;
 
+    // ── Resume automation after a family reply. The reply hold
+    //    (lib/family-comms/benefits-automation.ts) stops the check-in, the
+    //    scheduler and the autopilot until a person has read what they said.
+    //    Logging a contact or resolving the case below clears it too, since
+    //    both mean a person has dealt with the reply.
+    if (action === "hold_clear") {
+      if (!readBenefitsHold(meta)) {
+        return NextResponse.json({ error: "Automation is not paused for this family" }, { status: 409 });
+      }
+      const cleared = withHoldCleared(meta, by, now);
+      const { error: holdErr } = await db
+        .from("business_profiles")
+        .update({ metadata: cleared })
+        .eq("id", profileId);
+      if (holdErr) return NextResponse.json({ error: "Save failed" }, { status: 500 });
+      return NextResponse.json({ success: true, hold: cleared.benefits_automation_hold ?? null });
+    }
+
     if (action === "note") {
       const text = typeof body.text === "string" ? body.text.trim().slice(0, 1000) : "";
       if (!text) return NextResponse.json({ error: "Note text required" }, { status: 400 });
@@ -838,9 +819,18 @@ export async function POST(
       next = { ...caseMeta, resolved_at: undefined, contacted_at: undefined };
     }
 
+    // A logged contact or a resolution means a person has handled the
+    // family's reply, so the automation hold lifts with it. Not a death
+    // report: a condolence call is not a signal to resume "How is it going?"
+    // and re-enable nudges, and a STOP is not undone by a logged call. Those
+    // take the explicit "Resume automation" button, the same rule
+    // resumeAfterHumanReply follows.
+    const liftsHold =
+      (action === "contacted" || action === "resolved") && !holdNeedsExplicitResume(meta);
+    const baseMeta = liftsHold ? withHoldCleared(meta, by, now) : meta;
     const { error: updErr } = await db
       .from("business_profiles")
-      .update({ metadata: { ...meta, benefits_case: next } })
+      .update({ metadata: { ...baseMeta, benefits_case: next } })
       .eq("id", profileId);
     if (updErr) {
       console.error("Admin benefits case update failed:", updErr);

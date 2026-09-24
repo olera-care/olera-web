@@ -618,7 +618,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "family-comms-coordinator",
     name: "Family comms coordinator — help-cascade arbiter",
     description:
-      "The family-side arbitration brain. One daily cron picks the single highest-priority help message per family. In the benefits cascade it composes B1 into TJ's review queue, then sends B2 3–14 days after the approved first step. B2 email uses outcome choices; B2 text accepts structured progress replies and can send by itself to a consented text-only family. STUCK becomes a human alert. Generic completion asks stay suppressed while the benefits cascade is active.",
+      "The family-side arbitration brain. One daily cron picks the single highest-priority help message per family. In the benefits cascade it composes B1 into the review queue (clean letters then send automatically from the navigator scheduler), then sends B2 3–14 days after the first step. B2 email uses outcome choices; B2 text accepts structured progress replies and can send by itself to a consented text-only family. Any family reply pauses B2 until a person resumes it. STUCK opens an owned help case. Generic completion asks never go to benefits-only families (benefits intake, no provider inquiry) and stay suppressed for other benefits families while the cascade is active.",
     recipientCohort:
       "Every family with an open inquiry/request connection PLUS every benefits-intake family (cascade rungs) PLUS incomplete profiles (completion track); at most one governed email per family per run, chosen by the ladder. SMS mirrors require stored phone + sms_consent.",
     audience: "Care seekers",
@@ -666,11 +666,11 @@ export const CRON_REGISTRY: CronJob[] = [
   },
   {
     id: "benefits-navigator-scheduler",
-    name: "Benefits navigator — scheduled sends",
+    name: "Benefits navigator — scheduled + automatic sends",
     description:
-      "Fires navigator drafts TJ scheduled from /admin/benefits at/after their chosen time. It uses the same path as the manual button: email when available and a consent-gated first-step text, including text-only delivery. Both manual and scheduled texts respect the recipient's 8am–8pm window. A blocked fire clears the schedule and surfaces the reason; transport errors remain retryable.",
+      "Fires navigator drafts TJ scheduled from /admin/benefits at/after their chosen time, then runs the autopilot: letters whose verdict routed `auto` and whose text is at most 7 days old send automatically (up to 15 per run); `auto` letters older than that, and letters routed `recompose`, are recomposed (up to 6 per run, at most twice per letter) so the packet builder judges fresh text. `review` and `ask` stay human-only. Every send uses the same path as the manual button: unsubscribe, reply hold, DNC, suppression, the family nudge cap, SMS consent and the recipient's 8am-8pm window all apply. It also sweeps help requests (\"I'd like help\" / STUCK) into owned cases with a 2-business-day due time and escalates once when overdue. Blocked sends are stamped in the queue and named in Slack.",
     recipientCohort:
-      "Benefits families with a pending navigator draft whose metadata.benefits_navigator.scheduled_at is due.",
+      "Benefits families with a pending navigator draft that is either scheduled and due, or routed `auto` by its packet with fresh text. Families who replied (automation hold) or unsubscribed are skipped.",
     audience: "Care seekers",
     fn: "nudge",
     schedule: "10 * * * *",
@@ -679,7 +679,7 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: ["benefits_first_step"],
     channels: ["email", "sms"],
     smsTypes: ["benefits_first_step_sms"],
-    successSignal: "Scheduled guidance reaches the family in the channels TJ reviewed; after-hours text-only sends remain visibly pending until the recipient's next legal window.",
+    successSignal: "Clean first steps reach families within the hour their verdict lands; scheduled guidance reaches the family in the channels TJ reviewed; every help request has an owner and a due time.",
     relatedAdminPath: "/admin/benefits",
   },
   {

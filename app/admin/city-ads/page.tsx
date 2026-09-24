@@ -392,6 +392,12 @@ export default function CityAdsAdminPage() {
         ))}
       </div>
 
+      {readout.spendMissing && (
+        <p className="mt-3 text-xs text-gray-400">
+          Cost per family shows once every ad&rsquo;s spend is recorded. Meta and Nextdoor spend isn&rsquo;t synced yet.
+        </p>
+      )}
+
       {readout.arrivals.length > 0 && (
         <div className="mt-10">
           <p className="mb-2 text-xs font-semibold text-gray-400">Arriving from the ads · each name opens the family</p>
@@ -517,7 +523,8 @@ function cityReadout(campaigns: Campaign[], leads: Lead[]) {
     const ls = leadsFor(c);
     const last = ls.map((l) => new Date(l.created_at).getTime()).sort((a, b) => b - a)[0] ?? started;
     const quietDays = Math.floor((now - last) / DAY);
-    if (now - started >= 3 * DAY && quietDays >= 3) {
+    const endsSoon = c.flight_end ? new Date(`${c.flight_end}T23:59:59`).getTime() - now <= DAY : false;
+    if (now - started >= 3 * DAY && quietDays >= 3 && !endsSoon) {
       const ends = c.flight_end ? ` It stops ${new Date(`${c.flight_end}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.` : "";
       fired.push({
         slug: c.slug,
@@ -546,18 +553,13 @@ function cityReadout(campaigns: Campaign[], leads: Lead[]) {
     }
   }
   const top = fired[0] ?? null;
-  const more = fired.length > 1 ? ` And ${fired.length - 1} more below.` : "";
 
   const rows = slugs.map((slug) => {
     const fams = real.filter((l) => l.slug === slug);
     const cs = campaigns.filter((c) => c.slug === slug);
     const spendKnown = cs.every((c) => c.status === "draft" || c.ad_spend_cents != null);
     const spend = cs.reduce((sum, c) => sum + (c.ad_spend_cents ?? 0), 0);
-    const cost = !spendKnown
-      ? "spend not recorded for every ad"
-      : fams.length > 0 && spend > 0
-        ? `about $${Math.round(spend / 100 / fams.length)} each`
-        : "";
+    const cost = spendKnown && fams.length > 0 && spend > 0 ? `about $${Math.round(spend / 100 / fams.length)} each` : "";
     const mine = fired.find((f) => f.slug === slug);
     const lastAt = fams.map((l) => new Date(l.created_at).getTime()).sort((a, b) => b - a)[0];
     return {
@@ -566,7 +568,14 @@ function cityReadout(campaigns: Campaign[], leads: Lead[]) {
       families: fams.length,
       cost,
       lit: top?.slug === slug,
-      say: mine?.say ?? (lastAt ? `Last family arrived ${Math.max(0, Math.floor((now - lastAt) / DAY))} days ago.` : "No families yet."),
+      say:
+        mine?.say ??
+        (lastAt
+          ? `Last family arrived ${(() => {
+              const d = Math.max(0, Math.floor((now - lastAt) / DAY));
+              return d === 0 ? "today" : d === 1 ? "yesterday" : `${d} days ago`;
+            })()}.`
+          : "No families yet."),
     };
   });
   rows.sort((a, b) => Number(b.lit) - Number(a.lit) || b.families - a.families);
@@ -596,7 +605,8 @@ function cityReadout(campaigns: Campaign[], leads: Lead[]) {
 
   return {
     families: real.length,
-    headline: (top?.headline ?? "every ad is finding families.") + more,
+    headline: top?.headline ?? "every ad is finding families.",
+    spendMissing: slugs.some((slug) => campaigns.some((c) => c.slug === slug && c.status !== "draft" && c.ad_spend_cents == null)),
     rows,
     arrivals,
   };

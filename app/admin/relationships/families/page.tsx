@@ -62,11 +62,12 @@ import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, retryL
  * thirty-eight days old and there is nothing useful to say to a family about
  * a referral from last quarter.
  */
-type Tab = "reply" | "call" | "close" | "record" | "reach" | "all" | "archived";
+type Tab = "reply" | "call" | "follow" | "close" | "record" | "reach" | "all" | "archived";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "reply", label: "Reply to them" },
   { key: "call", label: "Call them" },
+  { key: "follow", label: "Follow up" },
   { key: "close", label: "Tried 3 times" },
   { key: "record", label: "Provider never got back to them" },
   { key: "reach", label: "Fix how we reach them" },
@@ -77,6 +78,7 @@ const TABS: { key: Tab; label: string }[] = [
 const TAB_BLURB: Record<Tab, string> = {
   reply: "They wrote to us and nobody has answered.",
   call: "We promised a call and have not reached them. A logged missed call parks them for 24 hours.",
+  follow: "Tried and waiting, or a next step is set. A missed call comes back to Call them after 24 hours.",
   close: "Called three times and never reached. Send one last text or email, then archive as Never answered.",
   record: "They told us the provider never got back to them, in the last two weeks.",
   reach: "No working phone or email, so nothing we send can land.",
@@ -100,6 +102,12 @@ function matches(r: SeekerRelationshipRow, tab: Tab): boolean {
       return r.flags.includes("promise_owed");
     case "close":
       return r.flags.includes("tried_three");
+    // WHERE A LOGGED CALL GOES. Ces logged calls and watched the families
+    // vanish from "Call them" with nowhere to find them: a missed call parks
+    // them for a day, and a dated next step takes them off the list too. Both
+    // are families someone is actively working, so they get their own place.
+    case "follow":
+      return Boolean(r.call_retry_at) || Boolean(r.open_action);
     case "record":
       return r.flags.includes("provider_no_show");
     case "reach":
@@ -148,6 +156,7 @@ const ARCHIVE_REASONS: { key: string; label: string }[] = [
   { key: "duplicate", label: "Duplicate" },
   { key: "resolved_elsewhere", label: "Sorted elsewhere" },
   { key: "no_answer", label: "Never answered" },
+  { key: "opted_out", label: "Asked us to stop" },
   { key: "other", label: "Something else" },
 ];
 
@@ -337,7 +346,7 @@ function AdminSeekerRelationshipsInner() {
   }, [load]);
 
   const counts = useMemo(() => {
-    const c: Record<Tab, number> = { reply: 0, call: 0, close: 0, record: 0, reach: 0, all: 0, archived: 0 };
+    const c: Record<Tab, number> = { reply: 0, call: 0, follow: 0, close: 0, record: 0, reach: 0, all: 0, archived: 0 };
     for (const r of rows ?? []) for (const t of TABS) if (matches(r, t.key)) c[t.key] += 1;
     return c;
   }, [rows]);

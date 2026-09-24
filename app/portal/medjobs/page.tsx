@@ -1125,6 +1125,20 @@ function StudentPortalContent({
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  // Read dismissal state from sessionStorage after mount (avoids hydration mismatch)
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("olera-medjobs-banner-dismissed") === "true") {
+        setBannerDismissed(true);
+      }
+    } catch { /* sessionStorage unavailable */ }
+  }, []);
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try {
+      sessionStorage.setItem("olera-medjobs-banner-dismissed", "true");
+    } catch { /* sessionStorage unavailable */ }
+  };
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
 
@@ -1328,7 +1342,7 @@ function StudentPortalContent({
             {/* Mobile X button - top right */}
             <button
               type="button"
-              onClick={() => setBannerDismissed(true)}
+              onClick={dismissBanner}
               className="sm:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
               aria-label="Dismiss"
             >
@@ -1353,7 +1367,7 @@ function StudentPortalContent({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setBannerDismissed(true)}
+                  onClick={dismissBanner}
                   className="hidden sm:block px-4 py-2.5 text-white/80 hover:text-white font-medium text-sm transition-colors"
                 >
                   Not Now

@@ -321,13 +321,60 @@ function MagicLinkHandler() {
           // localStorage not available
         }
 
+        // ════════════════════════════════════════════════════════════════════
+        // UNIVERSAL PORTAL ROUTING
+        // ════════════════════════════════════════════════════════════════════
+        // If user has a student profile, redirect them to their dashboard —
+        // REGARDLESS of where they clicked "Log In" from.
+        //
+        // A student clicking Log In from /browse should land on /portal/medjobs,
+        // not back on /browse confused about where their profile went.
+        // ════════════════════════════════════════════════════════════════════
+        // Check if user is already going to their dashboard (not a public page)
+        // - /portal/medjobs = student portal (yes, skip check)
+        // - /provider = provider dashboard (yes, skip check)
+        // - /provider?... = provider dashboard with params (yes, skip check)
+        // - /provider/acme = PUBLIC provider profile (no, should still check)
+        // - /medjobs/families = PUBLIC job board (no, should still check)
+        let studentPortalRedirect: string | null = null;
+        const isProviderDashboard = next === "/provider" || next.startsWith("/provider?");
+        const isAlreadyGoingToPortal = next.startsWith("/portal/medjobs") || isProviderDashboard;
+
+        if (!isAlreadyGoingToPortal && accountReady && data.session?.user?.id) {
+          try {
+            // Fetch user's profiles directly from Supabase to check for student type
+            const { data: accountData } = await supabase
+              .from("accounts")
+              .select("id")
+              .eq("user_id", data.session.user.id)
+              .maybeSingle();
+
+            if (accountData) {
+              const { data: profiles } = await supabase
+                .from("business_profiles")
+                .select("type")
+                .eq("account_id", accountData.id)
+                .in("type", ["student", "caregiver"]);
+
+              if (profiles && profiles.length > 0) {
+                studentPortalRedirect = "/portal/medjobs";
+              }
+            }
+          } catch {
+            // Non-blocking — fall through to normal routing
+          }
+        }
+
         // Determine final destination
         // If we have pending connection info, include it in the welcome URL
         // New user (onboarding_completed=false) + no deferred action → /welcome
         const hasDeferredAction = !!getDeferredAction()?.action;
         let finalDestination: string;
 
-        if (pendingConnection) {
+        if (studentPortalRedirect) {
+          // Student → always go to their portal
+          finalDestination = studentPortalRedirect;
+        } else if (pendingConnection) {
           // Guest connection flow - go to welcome with connection info
           finalDestination = `/welcome?connection=${pendingConnection.connectionId}&provider=${pendingConnection.providerSlug}`;
         } else if (isNewUser && !hasDeferredAction && !skipsWelcome(next)) {

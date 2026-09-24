@@ -24,8 +24,7 @@ type PreviewKey =
   | "celebrate"
   | "steady"
   | "live_questions"
-  | "live_empty"
-  | "live_questions_today";
+  | "live_empty";
 
 /** Sample families, one per status, shaped like Hoop Cares' first week on the
  *  Facebook form. Invented names and numbers: this page is screenshotted. */
@@ -99,12 +98,7 @@ const PREVIEWS: {
   {
     key: "live_questions",
     label: "Live · no families, questions waiting",
-    blurb: "A live campaign that hasn't found a family yet but has unanswered questions from the same traffic. The questions are the one lit thing. Sample: 19 visitors, 2 unanswered questions, free intro.",
-  },
-  {
-    key: "live_questions_today",
-    label: "Live · questions waiting, data view",
-    blurb: "The same campaign as the one above, drawn with the data view providers see today, so the two can be compared on identical numbers.",
+    blurb: "A live campaign that hasn't found a family yet keeps the data view; unanswered questions show as a dismissible card under the numbers. Dismissing hides it until a new question arrives. Sample: 19 visitors, 2 unanswered questions, free intro.",
   },
   {
     key: "live_empty",
@@ -246,7 +240,7 @@ export default function AdBoostPreviewPage() {
               error={fakeError}
             />
           )}
-          {(view === "live_questions" || view === "live_empty" || view === "live_questions_today") && (
+          {(view === "live_questions" || view === "live_empty") && (
             <CampaignInMotion
               key={view}
               request={{ ...sampleFor(view), flight_end_date: daysFromNow(6), promo_complete_email_sent_at: null }}
@@ -256,7 +250,7 @@ export default function AdBoostPreviewPage() {
                 questions: view !== "live_empty" ? { received: 3, unanswered: 3, uniqueUnanswered: 2 } : { received: 0, unanswered: 0, uniqueUnanswered: 0 },
                 since: isoFromNow(-24),
               }}
-              families={view === "live_questions_today" ? null : { families: [], counts: { replied: 0, warming: 0, hard_to_reach: 0 }, screenedOut: 0 }}
+              families={{ families: [], counts: { replied: 0, warming: 0, hard_to_reach: 0 }, screenedOut: 0 }}
               providerName="Hoop Cares"
               onCheckout={stubCheckout}
               submitting={fakeSubmitting}

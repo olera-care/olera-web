@@ -92,17 +92,11 @@ export default function CampaignHome({
   data,
   providerName,
   footer,
-  quiet,
 }: {
   data: CampaignFamiliesData;
   providerName: string;
   /** Quiet lines under the families: the plan, visitors, questions. */
   footer?: React.ReactNode;
-  /**
-   * What the ads have brought besides families, for the page before the first
-   * family arrives: people on her page, and questions still waiting for her.
-   */
-  quiet?: { visitors: number; unansweredQuestions: number } | null;
 }) {
   const [families, setFamilies] = useState<Family[]>(() => order(data.families));
   const [selectedId, setSelectedId] = useState<string | null>(() => order(data.families).find((f) => !f.outcome)?.id ?? null);
@@ -119,31 +113,16 @@ export default function CampaignHome({
     setFamilies((prev) => prev.map((f) => (f.id === id ? { ...f, ...p } : f)));
   }
 
-  // Before the first family arrives, light the one thing she can do: answer
-  // the questions the same ads brought to her page. The parent only shows this
-  // page with no families when a question is waiting; with neither, the data
-  // view stays (hasSomethingToDo in BoostCampaignViews).
+  // The parent shows this page only once there is a family (hasFamilies in
+  // BoostCampaignViews); this is a safe fallback, not a designed state.
   if (n === 0) {
-    const q = quiet?.unansweredQuestions ?? 0;
     return (
       <section className="py-4">
-        <h2 className="font-display text-3xl leading-tight text-gray-900 md:text-4xl" style={{ textWrap: "balance" }}>
-          {q > 0 ? `${q} ${q === 1 ? "question is" : "questions are"} waiting on your page.` : "Your ads are running."}
-        </h2>
+        <h2 className="font-display text-3xl leading-tight text-gray-900 md:text-4xl">Your ads are running.</h2>
         <p className="mt-3 max-w-md text-[15px] leading-relaxed text-gray-500">
-          {q > 0
-            ? "Families asked them since your ads started. Your answer stays on your page for every family who reads it."
-            : "When a family reaches out, they appear here with a message ready for you to send."}
+          Families appear here as they arrive, with what they told us and a message ready for you to send.
         </p>
-        {q > 0 && (
-          <Link
-            href="/provider/qna"
-            className="mt-6 inline-block rounded-2xl bg-primary-800 px-6 py-4 text-[17px] font-semibold text-white transition-colors hover:bg-primary-900"
-          >
-            {q === 1 ? "Answer it" : "Answer them"}
-          </Link>
-        )}
-        {footer && <div className="mt-10 text-sm text-gray-500">{footer}</div>}
+        {footer && <div className="mt-10">{footer}</div>}
       </section>
     );
   }

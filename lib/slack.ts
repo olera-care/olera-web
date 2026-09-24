@@ -1375,7 +1375,8 @@ export function slackBenefitsCompleted(opts: {
   email: string;
   stateCode: string | null;
   careNeedLabel: string | null;
-  age: number | null;
+  /** An exact age, or a band label ("under 65") for a one-tap answer. */
+  age: number | string | null;
   medicaidStatus: string | null;
   incomeRange: string | null;
   matchCount: number;

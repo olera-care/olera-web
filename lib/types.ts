@@ -362,7 +362,11 @@ export interface NudgeSequence {
 }
 
 export interface FamilyMetadata {
+  /** A typed EXACT age. One-tap chip answers go in age_band instead; read
+   *  both through readCareAge() in lib/benefits/age.ts. */
   age?: number;
+  /** One-tap age band: "under_65" | "65_74" | "75_84" | "85_plus". */
+  age_band?: string;
   care_needs?: string[];
   timeline?: "immediate" | "within_1_month" | "within_3_months" | "exploring";
   budget_min?: number;

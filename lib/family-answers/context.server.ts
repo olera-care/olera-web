@@ -2,6 +2,7 @@ import "server-only";
 
 import { getServiceClient } from "@/lib/admin";
 import type { FamilyFact, Provenance } from "./types";
+import { readCareAge, AGE_BAND_LABELS } from "@/lib/benefits/age";
 
 /**
  * Assemble what we know about a family, with provenance attached to every fact.
@@ -110,12 +111,18 @@ export async function assembleFamilyFacts(profileId: string | null): Promise<Fam
       unverified: true,
       correctedByFamily: true,
     });
-  } else if (meta.age != null) {
+  } else if (readCareAge(meta).band != null) {
+    // A one-tap chip answer is a BAND, never an exact age (legacy rows stored
+    // 60/70/80/87 as if exact). "Under 65" does not meet a 60+ rule.
+    const careAge = readCareAge(meta);
     const quizAge = asRecord(quiz.age);
     facts.push({
       key: "age",
       label: "Age",
-      value: String(meta.age),
+      value:
+        careAge.exact != null
+          ? String(careAge.exact)
+          : `${AGE_BAND_LABELS[careAge.band!]} (an age range they picked, not an exact age${careAge.band === "under_65" ? "; do not assume they meet any 60+ age rule" : ""})`,
       provenance: quizProvenance(),
       at: typeof quizAge.at === "string" ? quizAge.at : null,
       unverified: true,

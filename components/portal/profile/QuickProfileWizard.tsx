@@ -8,6 +8,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
+import { exactAgeInput } from "@/lib/benefits/age";
 
 // ============================================================
 // Types
@@ -250,7 +251,7 @@ export default function QuickProfileWizard({
       ? `${providerCity}, ${providerState}`
       : ""
   );
-  const [age, setAge] = useState<string>(meta.age ? String(meta.age) : "");
+  const [age, setAge] = useState<string>(exactAgeInput(meta));
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const cityInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

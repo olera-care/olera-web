@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { validateBriefToken, generateQuizToken, type QuizQuestion } from "@/lib/claim-tokens";
 import { familyBenefitsFacts, type FamilyBenefitsFacts } from "@/lib/family-comms/benefits-guidance.server";
 import { recordGuidanceEvent } from "@/lib/family-comms/guidance-events.server";
+import { ageMeetsMin } from "@/lib/benefits/age";
 import type { BenefitProgram, AreaAgency } from "@/lib/types/benefits";
 
 /**
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
     const facts: FamilyBenefitsFacts = profile
       ? familyBenefitsFacts(profile)
-      : { state: null, careTypes: [], careNeed: null, financialPath: null, medicaidStatus: null, veteranStatus: null, age: null, incomeBand: null, hasSpouse: null };
+      : { state: null, careTypes: [], careNeed: null, financialPath: null, medicaidStatus: null, veteranStatus: null, age: null, ageBand: null, incomeBand: null, hasSpouse: null };
 
     const chipFor = (question: QuizQuestion, options: { label: string; answer: string }[]) => ({
       question,
@@ -80,32 +81,37 @@ export async function GET(request: NextRequest) {
     if (isState && program.state_code && facts.state) {
       checklist.push(
         program.state_code === facts.state
-          ? { label: `You live in ${program.state_code} — this program covers your state`, status: "met" }
+          ? { label: `You live in ${program.state_code}. This program covers your state`, status: "met" }
           : { label: `This is a ${program.state_code} program; you're in ${facts.state}`, status: "notMet" },
       );
     }
     if (program.min_age != null) {
-      if (facts.age == null) {
+      if (facts.age == null && facts.ageBand == null) {
         checklist.push({
           label: `Age ${program.min_age}+`,
           status: "unknown",
           chip: chipFor("age", [
-            { label: "Under 65", answer: "60" },
-            { label: "65–74", answer: "70" },
-            { label: "75–84", answer: "80" },
-            { label: "85+", answer: "87" },
+            { label: "Under 65", answer: "under_65" },
+            { label: "65 to 74", answer: "65_74" },
+            { label: "75 to 84", answer: "75_84" },
+            { label: "85 or older", answer: "85_plus" },
           ]),
         });
       } else {
+        // A band like "Under 65" can't settle a 60+ rule either way; show it
+        // as still to confirm rather than claiming (or denying) eligibility.
+        const meets = ageMeetsMin({ exact: facts.age, band: facts.ageBand }, program.min_age);
         checklist.push(
-          facts.age >= program.min_age
-            ? { label: `Age ${program.min_age}+ — met`, status: "met" }
-            : { label: `Age ${program.min_age}+ — not yet`, status: "notMet" },
+          meets === true
+            ? { label: `Age ${program.min_age}+: met`, status: "met" }
+            : meets === false
+              ? { label: `Age ${program.min_age}+: not yet`, status: "notMet" }
+              : { label: `Age ${program.min_age}+: to confirm`, status: "unknown" },
         );
       }
     }
     if (program.requires_medicaid) {
-      if (facts.medicaidStatus === "alreadyHas") checklist.push({ label: "Has Medicaid — met", status: "met" });
+      if (facts.medicaidStatus === "alreadyHas") checklist.push({ label: "Has Medicaid: met", status: "met" });
       else if (facts.medicaidStatus === "doesNotHave") checklist.push({ label: "Requires Medicaid", status: "notMet" });
       else
         checklist.push({
@@ -119,7 +125,7 @@ export async function GET(request: NextRequest) {
         });
     }
     if (program.requires_veteran === true) {
-      if (facts.veteranStatus === "yes") checklist.push({ label: "Veteran or surviving spouse — met", status: "met" });
+      if (facts.veteranStatus === "yes") checklist.push({ label: "Veteran or surviving spouse: met", status: "met" });
       else if (facts.veteranStatus === "no") checklist.push({ label: "For veterans and surviving spouses", status: "notMet" });
       else
         checklist.push({
@@ -133,7 +139,7 @@ export async function GET(request: NextRequest) {
     }
     if (program.max_income_single != null) {
       checklist.push({
-        label: `Income limits apply (around $${Math.round(program.max_income_single).toLocaleString()}/mo for one person). The program confirms this with you — you don't need to share it here.`,
+        label: `Income limits apply (around $${Math.round(program.max_income_single).toLocaleString()}/mo for one person). The program confirms this with you, so you don't need to share it here.`,
         status: "info",
       });
     }

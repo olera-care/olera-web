@@ -20,6 +20,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ageMeetsMin } from "@/lib/benefits/age";
 import {
   type FamilyBenefitsFacts,
   incomeBandFloor,
@@ -257,7 +258,9 @@ export function evaluateProgramForFamily(
   const altPathway = (program.eligibilitySummary || []).some((s) =>
     /disab|blind|18\s*[-–]\s*64/i.test(s),
   );
-  if (!altPathway && facts.age != null && draftAge != null && facts.age < draftAge) {
+  const careAge = { exact: facts.age, band: facts.ageBand };
+  // Only a held fact rules out: "Under 65" against a 60+ rule is unknown.
+  if (!altPathway && draftAge != null && ageMeetsMin(careAge, draftAge) === false) {
     return { ruledOut: true, reason: `For age ${draftAge} and up`, boost: 0 };
   }
 
@@ -299,7 +302,7 @@ export function evaluateProgramForFamily(
   const ceiling = incomeUsable ? incomeBandCeiling(facts.incomeBand) : null;
   if (ceiling != null && incomeLimit != null && ceiling <= incomeLimit) boost += 6;
   const boostMinAge = draftAge ?? sbf?.min_age ?? null;
-  if (facts.age != null && boostMinAge != null && facts.age >= boostMinAge) boost += 8;
+  if (boostMinAge != null && ageMeetsMin(careAge, boostMinAge) === true) boost += 8;
   if (facts.medicaidStatus === "alreadyHas" && gated) boost += 10;
   return { ruledOut: false, reason: null, boost };
 }
@@ -309,6 +312,7 @@ export function evaluateProgramForFamily(
 export function hasEligibilityFacts(facts: FamilyBenefitsFacts): boolean {
   return (
     facts.age != null ||
+    facts.ageBand != null ||
     facts.medicaidStatus != null ||
     facts.veteranStatus != null ||
     // Recipient-only income against a household limit is not a fact we can

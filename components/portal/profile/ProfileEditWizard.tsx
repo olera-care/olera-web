@@ -9,6 +9,7 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 import { calculateProfileCompletenessPercentage } from "./completeness";
+import { exactAgeInput } from "@/lib/benefits/age";
 
 // ============================================================
 // Types
@@ -275,7 +276,7 @@ export default function ProfileEditWizard({
 
   // Step 3: Care Preferences
   const [whoNeedsCare, setWhoNeedsCare] = useState(meta.relationship_to_recipient || "");
-  const [age, setAge] = useState<string>(meta.age ? String(meta.age) : "");
+  const [age, setAge] = useState<string>(exactAgeInput(meta));
   const [careTypes, setCareTypes] = useState<string[]>(profile.care_types || []);
   const [careNeeds, setCareNeeds] = useState<string[]>(meta.care_needs || []);
   const [timeline, setTimeline] = useState(meta.timeline || "");

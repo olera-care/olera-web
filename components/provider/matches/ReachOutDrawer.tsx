@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { Profile, FamilyMetadata } from "@/lib/types";
+import { readCareAge } from "@/lib/benefits/age";
 
 interface ReachOutDrawerProps {
   family: Profile | null;
@@ -246,7 +247,7 @@ function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): nu
   if (family.phone?.trim()) score += weights.phone;
   if (meta?.contact_preference) score += weights.contact_preference;
   if (meta?.who_needs_care || meta?.relationship_to_recipient) score += weights.who_needs_care;
-  if (meta?.age) score += weights.age;
+  if (meta?.age || meta?.age_band) score += weights.age;
   if (family.description?.trim() || meta?.about_situation?.trim()) score += weights.about_situation;
   if (family.care_types && family.care_types.length > 0) score += weights.care_types;
   if (meta?.care_needs && meta.care_needs.length > 0) score += weights.care_needs;
@@ -397,7 +398,9 @@ export default function ReachOutDrawer({
   const familyQuote = meta?.about_situation;
   const paymentMethods = meta?.payment_methods || [];
   const publishedAt = meta?.care_post?.published_at || family?.created_at;
-  const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient, meta?.age);
+  // Exact typed age only: a one-tap band ("Under 65") is not an age.
+  const exactAge = readCareAge(meta).exact ?? undefined;
+  const whoNeedsCare = formatWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient, exactAge);
   const contactPreference = meta?.contact_preference;
   const schedulePreference = meta?.schedule_preference;
   const whoNeedsCareParsed = parseWhoNeedsCare(meta?.who_needs_care || meta?.relationship_to_recipient);
@@ -423,7 +426,7 @@ export default function ReachOutDrawer({
   const generatedDescription = !familyQuote ? generateDescription({
     name: displayName,
     who: whoNeedsCareParsed,
-    age: meta?.age,
+    age: exactAge,
     careType: primaryCareType || null,
     careNeeds,
     location,

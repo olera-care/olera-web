@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { isAgeBand, type AgeBand } from "@/lib/benefits/age";
 
 /**
  * FactChips — the tappable half of the /m recognition row (Phase 3).
@@ -16,7 +17,10 @@ import { useRouter } from "next/navigation";
  */
 
 export interface KnownFacts {
+  /** Typed exact age only. */
   age: number | null;
+  /** One-tap age band ("under_65" | "65_74" | "75_84" | "85_plus"). */
+  ageBand?: AgeBand | null;
   medicaidStatus: string | null;
   incomeBand: string | null;
 }
@@ -30,11 +34,11 @@ interface FactChipsProps {
   suppressMedicaidChip?: boolean;
 }
 
-const AGE_LABELS: Record<number, string> = {
-  60: "Under 65",
-  70: "Age 65 to 74",
-  80: "Age 75 to 84",
-  87: "Age 85 or older",
+const AGE_LABELS: Record<AgeBand, string> = {
+  under_65: "Under 65",
+  "65_74": "Age 65 to 74",
+  "75_84": "Age 75 to 84",
+  "85_plus": "Age 85 or older",
 };
 
 const MEDICAID_LABELS: Record<string, string> = {
@@ -61,10 +65,10 @@ const ASK_CONFIG: Record<Ask, { addLabel: string; prompt: string; options: { lab
     addLabel: "+ Add age",
     prompt: "How old is the person needing care?",
     options: [
-      { label: "Under 65", value: "60" },
-      { label: "65 to 74", value: "70" },
-      { label: "75 to 84", value: "80" },
-      { label: "85 or older", value: "87" },
+      { label: "Under 65", value: "under_65" },
+      { label: "65 to 74", value: "65_74" },
+      { label: "75 to 84", value: "75_84" },
+      { label: "85 or older", value: "85_plus" },
     ],
   },
   medicaid: {
@@ -78,7 +82,7 @@ const ASK_CONFIG: Record<Ask, { addLabel: string; prompt: string; options: { lab
   },
   income: {
     addLabel: "+ Add income",
-    prompt: "About how much is their monthly income?",
+    prompt: "About how much is the monthly income of the person needing care? Just their own, not the whole family's.",
     options: [
       { label: "Under $1,500", value: "under1500" },
       { label: "$1,500 to $2,500", value: "under2500" },
@@ -104,8 +108,9 @@ export default function FactChips({ token, profileId, facts, suppressMedicaidChi
   const [isRefreshing, startTransition] = useTransition();
 
   const knownChips: string[] = [];
-  if (facts.age != null) knownChips.push(AGE_LABELS[facts.age] || `Age ${facts.age}`);
-  else if (saved.age) knownChips.push(AGE_LABELS[parseInt(saved.age, 10)] || `Age ${saved.age}`);
+  if (facts.age != null) knownChips.push(`Age ${facts.age}`);
+  else if (facts.ageBand) knownChips.push(AGE_LABELS[facts.ageBand]);
+  else if (saved.age && isAgeBand(saved.age)) knownChips.push(AGE_LABELS[saved.age]);
   if (facts.medicaidStatus) {
     if (!suppressMedicaidChip) knownChips.push(MEDICAID_LABELS[facts.medicaidStatus] || "Medicaid: answered");
   } else if (saved.medicaid) knownChips.push(MEDICAID_LABELS[saved.medicaid] || "Medicaid: answered");
@@ -116,7 +121,7 @@ export default function FactChips({ token, profileId, facts, suppressMedicaidChi
   }
 
   const gaps: Ask[] = [];
-  if (facts.age == null && !saved.age) gaps.push("age");
+  if (facts.age == null && !facts.ageBand && !saved.age) gaps.push("age");
   if (!facts.medicaidStatus && !saved.medicaid) gaps.push("medicaid");
   if (!facts.incomeBand && !saved.income) gaps.push("income");
 

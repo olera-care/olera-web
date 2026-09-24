@@ -21,7 +21,8 @@
 
 import crypto from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getEnrichedProgram, getAllProgramIds, getStateSlug } from "./program-data";
+import { getEnrichedProgram, getCanonicalProgramIds, getStateSlug } from "./program-data";
+import { US_STATES } from "./us-states";
 import type { WaiverProgram } from "@/data/waiver-library";
 import { matchesCareNeed, type CareNeed } from "./benefits/match-care-need";
 
@@ -94,8 +95,11 @@ export async function lookupResultByToken(
   const stateId = getStateSlug(tokenRow.state_code);
   if (!stateId) return null;
 
-  // Recompute matched programs from current pipeline data
-  const allIds = getAllProgramIds(stateId);
+  // Recompute matched programs from current pipeline data. Canonical ids
+  // only: a legacy waiver-library entry that duplicates a current program
+  // (TX "Texas SNAP Food Benefits" vs "SNAP") is dropped, so each program
+  // appears once, with the current page's numbers.
+  const allIds = getCanonicalProgramIds(stateId);
   const allPrograms = allIds
     .map((id) => getEnrichedProgram(stateId, id))
     .filter((p): p is WaiverProgram => !!p)
@@ -117,9 +121,13 @@ export async function lookupResultByToken(
       if (error) console.error("[benefits-token] last_viewed_at update failed:", error);
     });
 
-  // State name from waiver-library or fallback
+  // Proper state name ("New York", not "New york" from the slug).
   const stateName =
-    stateId.charAt(0).toUpperCase() + stateId.slice(1).replace(/-/g, " ");
+    US_STATES.find((s) => s.value === String(tokenRow.state_code).toUpperCase())?.label ||
+    stateId
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
 
   return {
     token: tokenRow as BenefitsTokenRow,

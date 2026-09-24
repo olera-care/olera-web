@@ -8,6 +8,7 @@ import Pill from "@/components/providers/connection-card/Pill";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
+import { exactAgeInput, legacyChipAgeToKeep } from "@/lib/benefits/age";
 
 const STEPS = [
   "Basic Info",
@@ -109,7 +110,7 @@ export default function ProfileEditContent({
   const [phone, setPhone] = useState(profile.phone || "");
   const [contactPref, setContactPref] = useState<string>(meta.contact_preference || "");
   const [careRecipient, setCareRecipient] = useState(meta.relationship_to_recipient || "");
-  const [age, setAge] = useState(meta.age ? String(meta.age) : "");
+  const [age, setAge] = useState(exactAgeInput(meta));
   const [careTypes, setCareTypes] = useState<string[]>(profile.care_types || []);
   const [careNeeds, setCareNeeds] = useState<string[]>(meta.care_needs || []);
   const [timeline, setTimeline] = useState(meta.timeline || "");
@@ -179,7 +180,7 @@ export default function ProfileEditContent({
     setPhone(profile.phone || "");
     setContactPref(m.contact_preference || "");
     setCareRecipient(m.relationship_to_recipient || "");
-    setAge(m.age ? String(m.age) : "");
+    setAge(exactAgeInput(m));
     setCareTypes(profile.care_types || []);
     setCareNeeds(m.care_needs || []);
     setTimeline(m.timeline || "");
@@ -206,7 +207,7 @@ export default function ProfileEditContent({
         country: country || undefined,
         contact_preference: contactPref || undefined,
         relationship_to_recipient: careRecipient || undefined,
-        age: age ? Number(age) : undefined,
+        age: age ? Number(age) : legacyChipAgeToKeep(current?.metadata),
         timeline: timeline || undefined,
         payment_methods: payments.length > 0 ? payments : undefined,
         care_needs: careNeeds.length > 0 ? careNeeds : undefined,

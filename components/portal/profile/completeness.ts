@@ -35,7 +35,7 @@ const FIELD_CHECKS: {
   { weight: 2, step: 1, check: (p) => !!(p.metadata as FamilyMetadata)?.contact_preference },
   // Step 2: Care Recipient (16 total)
   { weight: 10, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.relationship_to_recipient || !!(p.metadata as FamilyMetadata)?.who_needs_care }, // Enrichment Step 1
-  { weight: 2, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.age },
+  { weight: 2, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.age || !!(p.metadata as FamilyMetadata)?.age_band },
   { weight: 4, step: 2, check: (p) => !!p.description || !!(p.metadata as FamilyMetadata)?.about_situation },
   // Step 3: Care Needs (28 total)
   { weight: 8, step: 3, check: (p) => (p.care_types?.length ?? 0) > 0 }, // Required for Go Live
@@ -109,7 +109,7 @@ export function calculateProfileCompletenessPercentage(
 
   // Care Recipient (16 total)
   if (meta.relationship_to_recipient || meta.who_needs_care) earned += 10; // Enrichment Step 1
-  if (meta.age) earned += 2;
+  if (meta.age || meta.age_band) earned += 2;
   if (profileData.description || meta.about_situation) earned += 4;
 
   // Care Needs (28 total)

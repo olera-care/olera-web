@@ -16,25 +16,18 @@ import { X } from "@phosphor-icons/react";
 import { type CareNeed } from "@/lib/benefits/match-care-need";
 import ProgramBenefitsCard, { type ProgramBenefitsCardProps } from "./ProgramBenefitsCard";
 import { trackGrowthEvent } from "@/lib/analytics/growth-attribution";
+import { benefitAmountLabel, benefitAmountShortCaption } from "@/lib/benefits/savings-label";
 
 type Props = Omit<ProgramBenefitsCardProps, "variant"> & {
   careNeed: CareNeed;
 };
 
-/** Same upper-bound parse as the card — kept local so the bar can show the
- *  value without rendering the full card. */
-function topSavingsLabel(range?: string): string | null {
-  if (!range) return null;
-  const matches = range.match(/\$[\d,]+/g);
-  if (!matches || matches.length === 0) return null;
-  const top = matches[matches.length - 1];
-  const period = /\bmo\b|month/i.test(range) ? "/mo" : "/yr";
-  return `${top}${period}`;
-}
 
 export default function ProgramBenefitsMobileCTA(props: Props) {
   const [open, setOpen] = useState(false);
-  const savings = topSavingsLabel(props.savingsRange);
+  // Same shared parse as the card: a maximum is labelled as one, never as
+  // the expected benefit.
+  const savings = benefitAmountLabel(props.savingsRange);
 
   const close = useCallback(() => setOpen(false), []);
   const openCard = useCallback(() => {
@@ -74,9 +67,9 @@ export default function ProgramBenefitsMobileCTA(props: Props) {
             {savings ? (
               <>
                 <p className="truncate text-[15px] font-bold leading-tight text-gray-900">
-                  Up to {savings}
+                  {savings.text}
                 </p>
-                <p className="truncate text-[12px] text-gray-500">Estimated benefit</p>
+                <p className="truncate text-[12px] text-gray-500">{benefitAmountShortCaption(savings.kind)}</p>
               </>
             ) : (
               <>

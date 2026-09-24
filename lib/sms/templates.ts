@@ -36,9 +36,9 @@ export function pendingInquirySms(p: { fromName: string; url: string }): string 
 /** Stable labels written to email_log.metadata.copy_version. They let us
  * compare this full-cohort rollout with later copy without inferring versions
  * from message text. */
-export const BENEFITS_RESULTS_SMS_COPY_VERSION = "continuity_question_v1_2026_08_19";
+export const BENEFITS_RESULTS_SMS_COPY_VERSION = "continuity_question_v2_2026_09_24";
 export const BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION = "zero_match_v1";
-export const BENEFITS_HELP_REQUEST_SMS_COPY_VERSION = "help_request_v1_2026_08_19";
+export const BENEFITS_HELP_REQUEST_SMS_COPY_VERSION = "help_request_v2_2026_09_24";
 
 /** Benefits results text — match/no-match branch lives here, next to the copy. */
 export function benefitsResultsSms(p: {
@@ -47,28 +47,26 @@ export function benefitsResultsSms(p: {
   context?: "results" | "help_requested";
 }): string {
   if (p.context === "help_requested") {
-    return `Olera care team: We got your request. What should we help with first? Plan: ${p.url} We'll reply within 48h. STOP to opt out.`;
+    return `Olera care team: We got your request. What should we tackle first? Plan: ${p.url} We reply in 2 business days. STOP to opt out.`;
   }
   return p.matchCount > 0
-    ? `Olera care team: We got your answers. Any questions about next steps? Plan: ${p.url} We'll reply within 48h. STOP to opt out.`
+    ? `Olera care team: We got your answers. Questions about next steps? Plan: ${p.url} We reply in 2 business days. STOP to opt out.`
     : `Olera: We created your private Olera plan. No strong match yet; we'll keep checking. See it here: ${p.url} Reply STOP to opt out.`;
 }
 
-/** Benefits Cascade B1 — the ten-minute first step, texted. Mirrors the
- *  email; sent only with stored sms_consent. Direct URLs (no magic links —
- *  length budget). */
+/** Benefits Cascade B1, texted. The one program number plus the plan link.
+ *
+ *  The number is the point. The earlier navigator texts were link-only, and
+ *  families answered "I need the phone number"; that text had our worst STOP
+ *  rate (5.6%). Documents moved to the plan page to keep this at two
+ *  segments: roughly 190 characters with a real plan URL. Sent only with
+ *  stored sms_consent. Direct URL, no magic link (length budget). */
 export function benefitsFirstStepSms(p: {
   programShortName: string;
   phone: string;
-  topDocs: string[];
   url: string;
 }): string {
-  const docs = p.topDocs
-    .slice(0, 2)
-    .map((d) => d.toLowerCase().replace(/^(a|an|the)\s+/, ""))
-    .join(" + ");
-  const docLine = docs ? ` Have nearby: ${docs}.` : "";
-  return `Olera: Your first step for ${p.programShortName}: call ${p.phone}.${docLine} Plan: ${p.url} Reply CALLED, NO ANSWER, or STUCK. Reply STOP to opt out.`;
+  return `Olera: For ${p.programShortName}, call ${p.phone}. What to say and what to have ready: ${p.url} Reply CALLED, NO ANSWER, or STUCK. Reply STOP to opt out.`;
 }
 
 /** Benefits Cascade B2 — the check-in, texted. Links to the family's living

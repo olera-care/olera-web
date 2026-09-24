@@ -57,7 +57,11 @@ export default function ProgramCard({ match, isSaved, onToggleSave, defaultExpan
           <div className="flex items-baseline gap-2 mb-1 flex-wrap">
             <h4 className="font-display text-lg font-medium text-gray-900 leading-snug">
               {program.name}
-              {program.short_name && program.short_name !== program.name && (
+              {/* Skip the acronym when the name already carries it, or the
+                  title reads "...Program (LIHEAP) (LIHEAP)". */}
+              {program.short_name &&
+                program.short_name !== program.name &&
+                !program.name.toLowerCase().includes(program.short_name.toLowerCase()) && (
                 <span className="text-sm font-normal text-gray-400 ml-1.5">({program.short_name})</span>
               )}
             </h4>

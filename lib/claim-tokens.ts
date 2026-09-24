@@ -787,3 +787,36 @@ export function generateCityOfferUrl(offerId: string, baseUrl?: string): string 
   const base = (baseUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care").replace(/\/$/, "");
   return `${base}/p/offer/${generateCityOfferToken(offerId)}`;
 }
+
+// ============================================================
+// City lead thread links (lib/city-ads/thread.server.ts)
+// ============================================================
+//
+// A family from a provider's own ad reads and answers the provider's messages
+// at /f/thread/{token}. The text we send carries only this link (our carrier
+// registration covers "a provider sent you a message, read and reply here",
+// not the provider's words), so the link is the whole channel. Same compact
+// shape as the offer token so it fits in a text. No expiry: the lead's own
+// state (archived, opted out) decides what the page allows.
+
+function cityThreadSignatureData(leadId: string): string {
+  return `citythread:${leadId}`;
+}
+
+export function generateCityThreadToken(leadId: string): string {
+  return `${leadId}.${hmacSignature(cityThreadSignatureData(leadId), TOKEN_SECRET)}`;
+}
+
+export function validateCityThreadToken(token: string): { valid: true; leadId: string } | { valid: false; error: string } {
+  const dot = token.lastIndexOf(".");
+  if (dot <= 0) return { valid: false, error: "Invalid token format" };
+  const leadId = token.slice(0, dot);
+  const signature = token.slice(dot + 1);
+  if (!/^[0-9a-f-]{36}$/i.test(leadId) || !/^[0-9a-f]{32}$/i.test(signature)) return { valid: false, error: "Invalid token format" };
+  if (!signatureMatches(cityThreadSignatureData(leadId), signature)) return { valid: false, error: "Invalid token signature" };
+  return { valid: true, leadId };
+}
+
+export function generateCityThreadUrl(leadId: string, baseUrl: string): string {
+  return `${baseUrl.replace(/\/$/, "")}/f/thread/${generateCityThreadToken(leadId)}`;
+}

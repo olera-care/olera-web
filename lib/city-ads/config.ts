@@ -83,7 +83,8 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
   //
   // Routing no longer depends on it. Since 24 Sep the form is registered as
   // an ad on Hoop's own campaign, so primary.server.ts hands each lead to her
-  // campaign page once it answers or after an hour, and nobody at Olera calls.
+  // campaign page once it answers or after an hour. She leads the calls and
+  // our team can still follow up on the shared thread.
   // THE FORM COPY ABOVE IS NOW STALE: it promises an Olera call first. Change
   // it in Ads Manager to say Hoop Cares will be in touch.
   //

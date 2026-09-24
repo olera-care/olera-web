@@ -381,8 +381,8 @@ async function captureCityQualification(
     // First word only. Meta sends a full name in one field, so "Hi Jyotsna U
     // Patel" is what an unsplit greeting produces.
     const firstName = String(lead.first_name ?? "").trim().split(/\s+/)[0] || "there";
-    // A lead from a provider's own ad goes to her, and she calls. Say so to
-    // the family, and do not tell our side to call.
+    // A lead from a provider's own ad goes to her; she leads the calls and we
+    // back her up. Tell the family both of us will be in touch.
     let primaryName: string | null = null;
     try {
       const primary = await resolvePrimaryCampaign(db, {
@@ -398,7 +398,7 @@ async function captureCityQualification(
       const { sendSlackAlert } = await import("@/lib/slack");
       await sendSlackAlert(
         primaryName
-          ? `City lead ${String(lead.id).slice(0, 8)} (${cfg?.city ?? lead.slug}): ${firstName} answered the qualifying text. "${body.slice(0, 300)}" From ${primaryName}'s own ad, so it goes to their campaign page once judged; nobody here calls. ${getSiteUrl()}/admin/city-ads`
+          ? `City lead ${String(lead.id).slice(0, 8)} (${cfg?.city ?? lead.slug}): ${firstName} answered the qualifying text. "${body.slice(0, 300)}" From ${primaryName}'s own ad, so it goes to their campaign page once judged. They lead the calls; follow up if it helps. ${getSiteUrl()}/admin/city-ads`
           : `City lead ${String(lead.id).slice(0, 8)} (${cfg?.city ?? lead.slug}): ${firstName} answered the qualifying text. "${body.slice(0, 300)}" Read it before you call: ${getSiteUrl()}/admin/city-ads`,
       );
     } catch (err) {
@@ -473,7 +473,26 @@ async function triageFamilyQuestion(args: {
     const claimed = await captureCityQualification(db, phone, body);
     if (claimed) {
       console.log(`[sms-webhook] Qualifying reply captured for city lead ${claimed}`);
+      // Already on a provider's campaign page: she should hear about it.
+      try {
+        const { getThreadLead, notifyProviderOfReply } = await import("@/lib/city-ads/thread.server");
+        const tl = await getThreadLead(db, claimed);
+        if (tl?.handed_at) await notifyProviderOfReply(db, tl, body);
+      } catch (err) {
+        console.error("[sms-webhook] Handed-lead reply notice failed:", err);
+      }
       return;
+    }
+    // A later text from a family already with a provider is part of their
+    // conversation with her, not a care question for the research engine.
+    try {
+      const { relayHandedReply } = await import("@/lib/city-ads/thread.server");
+      if (await relayHandedReply(db, phone, body)) {
+        console.log(`[sms-webhook] Reply relayed to the provider for ${phone}`);
+        return;
+      }
+    } catch (err) {
+      console.error("[sms-webhook] Handed-lead relay failed:", err);
     }
   }
 

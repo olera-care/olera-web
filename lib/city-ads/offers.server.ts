@@ -2,6 +2,7 @@ import { cityLeadBlocked } from "./messages.server";
 import { getLeadExchange } from "./exchange.server";
 import { classifyQualification, BLOCKING_CATEGORIES, type ClassifyLead } from "./classify.server";
 import { resolvePrimaryCampaign, handToPrimary, HANDOVER_AFTER_MS } from "./primary.server";
+import { getThreadLead, notifyProviderOfHandover } from "./thread.server";
 /**
  * City lead offer chain — server only.
  *
@@ -212,6 +213,15 @@ export async function startOrAdvance(
       const waited = Date.now() - new Date(lead.created_at).getTime() >= HANDOVER_AFTER_MS;
       if (!replied && !waited) return { action: "held" };
       const handed = await handToPrimary(db, lead, primary, replied ? "replied" : "timer");
+      if (handed) {
+        // Best-effort: the family is on her page either way.
+        try {
+          const tl = await getThreadLead(db, lead.id);
+          if (tl) await notifyProviderOfHandover(db, tl);
+        } catch (e) {
+          console.error("[city-ads] handover notice failed", e);
+        }
+      }
       return { action: handed ? "handed" : "noop", providerName: primary.providerName ?? undefined };
     }
   }

@@ -9,7 +9,8 @@
  * What changes versus the pool:
  *   - No 30-minute offer and no Take/Pass. The lead appears on her campaign
  *     page with a status that says what we know about it.
- *   - Nobody on our side calls. We screen by text; she makes the calls.
+ *   - She leads the calls. We screen by text and can still follow up; both
+ *     sides see everything on the shared thread (thread.server.ts).
  *   - Speed beats qualification. A lead that has not answered the qualifying
  *     text after HANDOVER_AFTER_MS is handed over as "warming" rather than
  *     paged to a person. One the classifier files as a job seeker or spam is
@@ -159,7 +160,7 @@ export async function handToPrimary(
         ? "handed over by hand"
         : "no reply to our text after an hour, so handed over as warming";
   await sendSlackAlert(
-    `📬 City lead ${lead.id.slice(0, 8)} (${city}): ${who} is now on ${primary.providerName ?? "the provider"}'s campaign page, from their own ad (${why}). Nobody on our side calls; they do. /admin/city-ads`,
+    `📬 City lead ${lead.id.slice(0, 8)} (${city}): ${who} is now on ${primary.providerName ?? "the provider"}'s campaign page, from their own ad (${why}). They lead the calls; follow up if it helps. /admin/city-ads`,
   );
   return true;
 }

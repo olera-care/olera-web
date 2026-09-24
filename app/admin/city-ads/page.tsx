@@ -232,7 +232,8 @@ function silentOffers(l: Lead): Offer[] {
 /** Why a lead is in "Needs you", or null. */
 function needsReason(l: Lead): string | null {
   if(l.archived_at || ["stopped","client","no_fit","redirected"].includes(l.status)) return null;
-  // Handed to the provider whose ad it came from: she makes the calls, not us.
+  // Handed to the provider whose ad it came from. She leads, we can still
+  // follow up, so it is never "nobody has this" and never in Needs you.
   if (l.handed_at) return null;
   // Before the other "call them" rules: an unanswered Meta lead is waiting on
   // the family for its first hour, not on you, and saying otherwise every five
@@ -286,7 +287,7 @@ function stateLine(l: Lead): { text: string; tone: "ok" | "wait" | "warn" | "qui
   if (l.status === "unreachable") return { text: "unreachable", tone: "quiet" };
   if (l.status === "stopped") return { text: "stopped", tone: "quiet" };
   if (l.status === "redirected") return { text: "medical, redirected", tone: "quiet" };
-  if (l.handed_at && ["new", "offered", "unfilled"].includes(l.status)) return { text: "on the provider's campaign page", tone: "ok" };
+  if (l.handed_at && ["new", "offered", "unfilled"].includes(l.status)) return { text: "with the provider · you can still follow up", tone: "ok" };
   if (awaitingQualification(l) && !l.qualification_escalated_at) return { text: "waiting on their reply", tone: "wait" };
   if (needsReason(l)) return { text: "needs you", tone: "warn" };
   const a = acceptedOffer(l);
@@ -893,7 +894,7 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {l.handed_at && (
             <span className="text-xs font-medium text-primary-700">
-              On the provider&rsquo;s campaign page since {new Date(l.handed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              Handed to the provider whose ad it was, {new Date(l.handed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}. They see every text you send and every call you log.
             </span>
           )}
           {!l.accepted_offer_id && !l.handed_at && l.meta_campaign_id && (

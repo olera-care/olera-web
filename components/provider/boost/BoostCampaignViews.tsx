@@ -231,8 +231,9 @@ export function CampaignFamilies({ data }: { data: CampaignFamiliesData }) {
         </p>
       )}
       <p className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-600">
-        We text every family first to check they need care, then pass them to you to call. This is new, and
-        we&rsquo;re still smoothing it out. Tell us what&rsquo;s working.
+        We text every family first to check they need care, then pass them to you. Our team can follow up too,
+        and you both see every message and call under Conversation. This is new, and we&rsquo;re still smoothing
+        it out. Tell us what&rsquo;s working.
       </p>
       <Link href="/portal/inbox" className="mt-3 inline-block text-sm font-medium text-primary-600 hover:underline">
         Messages
@@ -337,7 +338,138 @@ function FamilyCard({ family: f }: { family: CampaignFamilyData }) {
         ))}
       </div>
       {error && <p className="mt-2 text-xs text-error-700" role="alert">{error}</p>}
+      {f.kind === "form" && <FamilyThread leadId={f.id} firstName={f.firstName} />}
     </li>
+  );
+}
+
+interface ThreadEntryView {
+  at: string;
+  author: "olera" | "provider" | "family";
+  kind: "message" | "event";
+  text: string;
+  channel?: string;
+}
+
+/**
+ * The shared thread under a family card: every text, call, reply, check-in
+ * and outcome from Olera, from her and from the family, oldest first, plus a
+ * box to write to the family. The family reads her message on a page we link
+ * them to by text (our carrier registration covers the notice, not her words).
+ */
+function FamilyThread({ leadId, firstName }: { leadId: string; firstName: string }) {
+  const [open, setOpen] = useState(false);
+  const [entries, setEntries] = useState<ThreadEntryView[] | null>(null);
+  const [closed, setClosed] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sentNote, setSentNote] = useState(false);
+
+  async function load() {
+    setLoadError(null);
+    try {
+      const res = await fetch(`/api/provider/ad-boost/family-thread?leadId=${encodeURIComponent(leadId)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Couldn\u2019t load the conversation.");
+      setEntries(data.entries ?? []);
+      setClosed(!!data.closed);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : "Couldn\u2019t load the conversation.");
+    }
+  }
+
+  async function send() {
+    if (!draft.trim()) return;
+    setSending(true);
+    setSendError(null);
+    setSentNote(false);
+    try {
+      const res = await fetch("/api/provider/ad-boost/family-thread", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId, body: draft }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Couldn\u2019t send that. Try again.");
+      setDraft("");
+      setSentNote(true);
+      await load();
+    } catch (e) {
+      setSendError(e instanceof Error ? e.message : "Couldn\u2019t send that. Try again.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const label = (a: ThreadEntryView["author"]) => (a === "provider" ? "You" : a === "family" ? firstName : "Olera");
+  return (
+    <div className="mt-3 border-t border-gray-100 pt-3">
+      <button
+        type="button"
+        onClick={() => {
+          const next = !open;
+          setOpen(next);
+          if (next && entries === null) void load();
+        }}
+        aria-expanded={open}
+        className="text-sm font-semibold text-primary-700 hover:underline"
+      >
+        {open ? "Hide conversation" : "Conversation"}
+      </button>
+      {open && (
+        <div className="mt-3">
+          {loadError && <p className="text-sm text-error-700" role="alert">{loadError}</p>}
+          {!loadError && entries === null && <p className="text-sm text-gray-500">Loading…</p>}
+          {entries && (
+            <ol className="space-y-2">
+              {entries.map((e, i) => (
+                <li key={i} className={e.kind === "event" ? "text-xs text-gray-500" : "text-sm"}>
+                  <span className={`font-semibold ${e.author === "provider" ? "text-primary-700" : e.author === "family" ? "text-gray-900" : "text-gray-600"}`}>
+                    {label(e.author)}
+                  </span>
+                  <span className="text-gray-400">
+                    {" "}
+                    · {new Date(e.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                    {e.channel && e.kind === "message" ? ` · ${e.channel === "page" ? "on Olera" : e.channel}` : ""}
+                  </span>
+                  <p className={e.kind === "event" ? "" : "mt-0.5 whitespace-pre-wrap break-words text-gray-800"}>{e.text}</p>
+                </li>
+              ))}
+            </ol>
+          )}
+          {entries && !closed && (
+            <div className="mt-3">
+              <label htmlFor={`thread-${leadId}`} className="sr-only">
+                Message {firstName}
+              </label>
+              <textarea
+                id={`thread-${leadId}`}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={3}
+                maxLength={2000}
+                placeholder={`Message ${firstName}. We text them a link to read and reply.`}
+                className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+              />
+              <div className="mt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={send}
+                  disabled={sending || !draft.trim()}
+                  className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {sending ? "Sending…" : "Send"}
+                </button>
+                {sentNote && <span className="text-xs text-primary-700">Sent. {firstName} gets a text with a link to read it.</span>}
+              </div>
+              {sendError && <p className="mt-2 text-xs text-error-700" role="alert">{sendError}</p>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

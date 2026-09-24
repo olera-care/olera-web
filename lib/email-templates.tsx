@@ -7000,3 +7000,27 @@ export function cityOutcomePingEmail(opts: { firstName: string; city: string; ca
     `Did ${opts.firstName} become a client?`,
   );
 }
+
+// ============================================================
+// Shared family thread (lib/city-ads/thread.server.ts)
+// ============================================================
+
+/** To a provider: something new about a family from her own ad. */
+export function cityThreadProviderEmail(opts: {
+  eyebrow: string;
+  headline: string;
+  quote?: string | null;
+  body: string;
+  ctaUrl: string;
+  ctaLabel: string;
+}): string {
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${escapeHtml(opts.eyebrow)}</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${escapeHtml(opts.headline)}</h1>
+    ${opts.quote ? `<p style="font-size:15px;color:#111827;background:#f9fafb;border-radius:8px;padding:12px 14px;margin:0 0 16px;line-height:1.6;">&ldquo;${escapeHtml(opts.quote)}&rdquo;</p>` : ""}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">${escapeHtml(opts.body)}</p>
+    <div>${button(opts.ctaLabel, opts.ctaUrl)}</div>`,
+    opts.headline,
+  );
+}

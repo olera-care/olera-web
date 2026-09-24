@@ -40,6 +40,7 @@ import {
 } from "@/lib/sms/templates";
 import { CARE_LABEL, formatUSPhone, getCityConfig, hourIn } from "@/lib/city-ads/config";
 import { startOrAdvance } from "@/lib/city-ads/offers.server";
+import { getThreadLead, notifyProvider, threadProvider, firstWordOf } from "@/lib/city-ads/thread.server";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** Day 2 in practice: asked the morning after the day the provider took it. */
@@ -308,7 +309,103 @@ export async function runFollowups(db: SupabaseClient): Promise<FollowupCounts> 
       out.errors++;
     }
   }
+  await runHandedFollowups(db, out, now, nowIso);
   return out;
+}
+
+/**
+ * The same questions for a family handed to the provider whose own ad found
+ * them (lib/city-ads/primary.server.ts). No offer row exists, so the clock runs
+ * from handed_at, the provider comes from the ad's campaign, and there is no
+ * re-offer rung: secondary routing is deliberately off. Every answer lands on
+ * the shared thread, which is how calls made from her own phone become visible.
+ */
+async function runHandedFollowups(db: SupabaseClient, out: FollowupCounts, now: number, nowIso: string): Promise<void> {
+  const { data: rows } = await db
+    .from("city_leads")
+    .select("id, slug")
+    .not("handed_at", "is", null)
+    .is("archived_at", null)
+    .eq("is_test", false)
+    .in("status", ["new", "contacted"])
+    .limit(200);
+  for (const row of (rows ?? []) as Array<{ id: string; slug: string }>) {
+    if (!politeNow(row.slug)) {
+      out.skipped_outside_hours++;
+      continue;
+    }
+    try {
+      if (await cityLeadBlocked(db, row.id)) continue;
+      const lead = await getThreadLead(db, row.id);
+      if (!lead?.handed_at) continue;
+      const provider = await threadProvider(db, lead);
+      if (!provider) continue;
+      const first = firstWordOf(lead.first_name);
+      const handedAt = new Date(lead.handed_at).getTime();
+
+      // Rung 1: ask the family, once, the day after. Skipped for a phone our
+      // texts have never reached; asking again only logs another failure.
+      if (!lead.family_check_sent_at) {
+        if (now - handedAt < FAMILY_CHECK_AFTER_MS || lead.outcome) continue;
+        const { data: logs } = await db
+          .from("email_log")
+          .select("status, delivered_at")
+          .eq("metadata->>lead_id", lead.id)
+          .like("recipient", "+%");
+        const everDelivered = (logs ?? []).some((l) => l.delivered_at);
+        const everFailed = (logs ?? []).some((l) => l.status === "failed");
+        if (everFailed && !everDelivered) continue;
+        await db.from("city_leads").update({ family_check_sent_at: nowIso, updated_at: nowIso }).eq("id", lead.id);
+        const r = await sendSMS({
+          to: lead.phone,
+          body: cityFamilyCheckSms({ firstName: first, providerName: provider.name }),
+          emailType: "city_lead_family_check",
+          recipientType: "family",
+          metadata: { lead_id: lead.id, handed: true },
+        });
+        if (r.success && !r.skipped) out.family_checks++;
+        else await db.from("city_leads").update({ family_check_sent_at: null }).eq("id", lead.id);
+        continue;
+      }
+
+      // Rung 2: the family said not yet. One reminder to her, no re-offer.
+      if (lead.family_check_reply === "not_yet" && !lead.provider_nudged_at && !lead.outcome) {
+        await db.from("city_leads").update({ provider_nudged_at: nowIso, updated_at: nowIso }).eq("id", lead.id);
+        await notifyProvider(db, lead, provider, {
+          sms: `Olera: ${first} says they haven't had a call yet. Their number is on your campaign page:`,
+          subject: `${first} hasn't heard from you yet`,
+          headline: `${first} is still waiting for a call`,
+          body: `We asked ${first} yesterday and they said nobody had reached them yet. Their number is on your campaign page. If now isn't a good time, reply to this email and our team will follow up.`,
+          emailType: "city_thread_nudge_provider",
+        });
+        out.provider_nudges++;
+        continue;
+      }
+
+      // Rung 3: how did it go, at one week and three.
+      if (lead.outcome === "client") continue;
+      const ageDays = (now - handedAt) / DAY_MS;
+      const which =
+        !lead.outcome_ping_1_at && ageDays >= PING_1_DAYS
+          ? ("outcome_ping_1_at" as const)
+          : lead.outcome_ping_1_at && !lead.outcome_ping_2_at && ageDays >= PING_2_DAYS
+            ? ("outcome_ping_2_at" as const)
+            : null;
+      if (!which) continue;
+      await db.from("city_leads").update({ [which]: nowIso, updated_at: nowIso }).eq("id", lead.id);
+      await notifyProvider(db, lead, provider, {
+        sms: `Olera: how did it go with ${first}? One tap on your campaign page tells us:`,
+        subject: `How did it go with ${first}?`,
+        headline: `How did it go with ${first}?`,
+        body: `Talked, became a client, or not a fit: one tap on ${first}'s card. It is the number that tells us whether your ads are working, and it is only ever shown to you and our team.`,
+        emailType: "city_thread_outcome_ping",
+      });
+      out.outcome_pings++;
+    } catch (err) {
+      console.error("[city-followups] handed lead", row.id, err);
+      out.errors++;
+    }
+  }
 }
 
 /**
@@ -330,7 +427,7 @@ export async function handleFamilyCheckReply(
 
   const { data: rows } = await db
     .from("city_leads")
-    .select("id, slug, first_name, accepted_offer_id")
+    .select("id, slug, first_name, accepted_offer_id, handed_at")
     .eq("phone", phone)
     .not("family_check_sent_at", "is", null)
     .is("family_check_reply", null)
@@ -345,12 +442,22 @@ export async function handleFamilyCheckReply(
       .from("city_leads")
       .update({ family_check_reply: "reached", family_check_reply_at: now, reached_at: now, status: "contacted", updated_at: now })
       .eq("id", lead.id);
-    return "Good to hear. If they turn out not to be the right fit, reply here and we will send another.";
+    return lead.handed_at
+      ? "Good to hear. Reply here any time if there is anything else we can help with."
+      : "Good to hear. If they turn out not to be the right fit, reply here and we will send another.";
   }
   await db
     .from("city_leads")
     .update({ family_check_reply: "not_yet", family_check_reply_at: now, updated_at: now })
     .eq("id", lead.id);
+  if (lead.handed_at) {
+    // Her own ad's family: no re-offer. She is reminded on the next run, and
+    // our team can follow up from the shared thread.
+    await sendSlackAlert(
+      `City lead ${lead.id.slice(0, 8)}: ${lead.first_name} says the provider has NOT called yet. Reminding the provider; follow up from /admin/city-ads if it helps.`,
+    );
+    return "Thanks for telling us. We are reminding them, and someone from our team will follow up too.";
+  }
   await sendSlackAlert(
     `City lead ${lead.id.slice(0, 8)}: ${lead.first_name} says the provider has NOT called yet. Nudging them; re-offer in 24h if still nothing. /admin/city-ads`,
   );

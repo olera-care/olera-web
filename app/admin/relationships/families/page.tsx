@@ -565,7 +565,8 @@ function AdminSeekerRelationshipsInner() {
                 {said && (
                   <div className="mt-1.5 border-l-2 border-gray-200 pl-2 text-[13px] leading-snug text-gray-700">
                     <span className="font-medium">{theirWords(said.title)}</span>
-                    {said.detail && said.detail !== said.title && <span className="text-gray-500"> — {theirWords(said.detail)}</span>}
+                    {/* A text's detail is the matched keyword, not more of what they said. */}
+                    {said.channel === "email" && said.detail && said.detail !== said.title && <span className="text-gray-500"> — {theirWords(said.detail)}</span>}
                   </div>
                 )}
                 {retry && <div className="mt-1.5 text-[12.5px] leading-snug text-gray-500">{retry}</div>}

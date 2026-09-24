@@ -251,9 +251,9 @@ export default function EditOverviewModal({
   const canSave = displayName.trim().length > 0;
 
   // For display warnings (not blocking save):
-  const isValidEmail = email.trim().length > 0 && email.toLowerCase().endsWith(".edu");
   const phoneDigits = phone.replace(/\D/g, "");
   const isValidPhone = phoneDigits.length >= 10;
+  const isEduEmail = email.toLowerCase().endsWith(".edu");
 
   async function handlePhotoUpload(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -543,12 +543,12 @@ export default function EditOverviewModal({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@school.edu"
                 className={`w-full bg-white border focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all ${
-                  email && !email.toLowerCase().endsWith(".edu")
+                  email && !isEduEmail
                     ? "border-red-300 focus:border-red-400"
                     : "border-gray-200 focus:border-primary-600"
                 }`}
               />
-              {email && !email.toLowerCase().endsWith(".edu") && (
+              {email && !isEduEmail && (
                 <p className="mt-2 text-xs text-red-600">
                   A .edu email is required for student verification
                 </p>

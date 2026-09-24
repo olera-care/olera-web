@@ -28,6 +28,7 @@ import VerificationStatusCard from "./VerificationStatusCard";
 import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
 import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
 import { useBoostRequestSummary } from "@/hooks/useHasActiveBoostRequest";
+import { loadBoostState } from "@/lib/ad-boost/boost-state";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -57,6 +58,9 @@ const EDITABLE_SECTIONS: readonly SectionId[] = [
   "hire_caregivers",
 ];
 
+/** How long after a campaign ends its page is still where the provider lands. */
+const CAMPAIGN_HOME_ENDED_DAYS = 30;
+
 export default function DashboardPage() {
   // The business_profile is the canonical, hydrated provider record (the
   // directory row is copied in at claim time), so read it directly.
@@ -65,6 +69,43 @@ export default function DashboardPage() {
   const { user, refreshAccountData } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // A provider with a live campaign, or one that ended in the last 30 days,
+  // starts on her campaign page: the families her ads found and who to call.
+  // Everyone else keeps this dashboard. Once per browser session and only on a
+  // bare /provider, so "Back to dashboard" and every deep link (?from=, edit
+  // flows) still land here.
+  useEffect(() => {
+    if (searchParams.toString() !== "") return;
+    const KEY = "olera:campaign-home-landed";
+    try {
+      if (sessionStorage.getItem(KEY)) return;
+    } catch {
+      return;
+    }
+    let cancelled = false;
+    loadBoostState().then((state) => {
+      if (cancelled || !state?.request) return;
+      const r = state.request;
+      const endedRecently =
+        r.status === "ended" &&
+        !!r.flight_end_date &&
+        Date.now() - new Date(r.flight_end_date).getTime() <= CAMPAIGN_HOME_ENDED_DAYS * 86_400_000;
+      if (r.status !== "live" && !endedRecently) return;
+      try {
+        sessionStorage.setItem(KEY, "1");
+      } catch {
+        return;
+      }
+      router.replace("/provider/boost");
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Mount only: this decides where a visit starts, not where it goes after.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Capture ?from=qa-success on the very first render, before the
   // dashboard_arrival effect below strips it. Passed to DashboardContent (which
   // mounts only after profile loads, potentially after the strip) so the

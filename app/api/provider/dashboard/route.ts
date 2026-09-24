@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
+import { getCampaignFamilies } from "@/lib/ad-boost/families.server";
 import { isTrustedMetricsSource } from "@/lib/ad-boost/metrics-provenance";
 
 /**
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
       db
         .from("ad_campaign_requests")
         .select(
-          "id, status, campaign_tag, ad_impressions, ad_clicks, ad_spend_cents, metrics_source, flight_end_date, ended_at",
+          "id, status, campaign_tag, ad_impressions, ad_clicks, metrics_source, flight_end_date, ended_at, flight_start_date, requested_setup_week, created_at",
         )
         .eq("provider_id", profile.id)
         .is("deleted_at", null)
@@ -539,18 +539,28 @@ export async function GET(request: NextRequest) {
         // dashboard had no dependency on the ad-boost readers at all. A lead
         // count that fails should cost the campaign banner its strongest line,
         // not 500 the entire provider dashboard.
-        let delivered: Record<string, number> = {};
+        //
+        // The count is the campaign page's families list, so the banner and the
+        // page can never disagree: form leads handed to her plus page inquiries.
+        let families = 0;
         try {
-          delivered = await countDeliveredByCampaign(db, [tag]);
+          const list = await getCampaignFamilies(
+            db,
+            { ...campaignRow, campaign_tag: tag },
+            [profile.slug, profile.id].filter(Boolean) as string[],
+          );
+          families = list.families.length;
         } catch (e) {
-          console.error("[provider/dashboard] campaign lead count failed:", e);
+          console.error("[provider/dashboard] campaign family count failed:", e);
         }
         campaign = {
           status: campaignRow.status,
           shown: trusted ? (campaignRow.ad_impressions ?? null) : null,
           clicked: trusted ? (campaignRow.ad_clicks ?? null) : null,
-          spendCents: trusted ? (campaignRow.ad_spend_cents ?? null) : null,
-          leads: delivered[tag] ?? 0,
+          // Never a dollar figure on a provider's screen (see the ad-boost
+          // request route). Kept in the shape so older clients read null.
+          spendCents: null,
+          leads: families,
         };
       }
     }

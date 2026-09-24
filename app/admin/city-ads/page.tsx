@@ -100,6 +100,7 @@ type Lead = {
   meta_lead_id?: string | null;
   meta_form_id?: string | null;
   meta_campaign_id?: string | null;
+  handed_at?: string | null;
   consent_form_version?: string;
   consent_at?: string;
   id: string;
@@ -887,6 +888,16 @@ function LeadDetail({ lead: l, pool, busy, act }: { lead: Lead; pool: PoolRow[];
 
       {!closed && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {l.handed_at && (
+            <span className="text-xs font-medium text-primary-700">
+              On the provider&rsquo;s campaign page since {new Date(l.handed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </span>
+          )}
+          {!l.accepted_offer_id && !l.handed_at && l.meta_campaign_id && (
+            <button className={btn} disabled={busy} onClick={() => void act("Hand to campaign owner", { action: "hand_to_primary", leadId: l.id })}>
+              Hand to campaign owner
+            </button>
+          )}
           {!l.accepted_offer_id && (
             <>
               <button className={btn} disabled={busy} onClick={() => void act("Offer next", { action: "offer_next", leadId: l.id })}>

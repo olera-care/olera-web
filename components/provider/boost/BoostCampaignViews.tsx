@@ -6,6 +6,9 @@ import {
   boostChannelLabel,
   type BoostRequest,
   type CampaignReceiptData,
+  type CampaignFamiliesData,
+  type CampaignFamilyData,
+  type FamilyStatus,
 } from "@/lib/ad-boost/boost-state";
 import {
   BUDGET_STOPS,
@@ -32,15 +35,10 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
   const hasPaidPlan =
     (request.plan_status === "active" || request.plan_status === "past_due") &&
     request.plan_value != null;
-  const configuredBudget =
-    request.ad_budget_cents != null
-      ? request.ad_budget_type === "daily"
-        ? `$${(request.ad_budget_cents / 100).toLocaleString()}/day`
-        : `$${(request.ad_budget_cents / 100).toLocaleString()} total`
-      : null;
-  const budget = hasPaidPlan
-    ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`)
-    : configuredBudget ?? budgetLabel(request.intended_monthly_budget);
+  // Only her plan price. Ad spend and daily budgets never reach this screen:
+  // they are R&D numbers that will not look like this in a year, and "$3.50 a
+  // day" anchors her on a price that is not hers.
+  const budget = hasPaidPlan ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`) : null;
   const flightStart = request.flight_start_date ?? request.requested_setup_week;
   const facts: { label: string; value: string }[] = [
     {
@@ -51,7 +49,7 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
     },
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
-  if (budget) facts.push({ label: hasPaidPlan ? "Paid plan" : "Campaign budget", value: budget });
+  if (budget) facts.push({ label: "Paid plan", value: budget });
   // Flight time context — the "day N of M" that makes a live campaign feel
   // like a running clock instead of a static state. Only when the end date
   // has been entered from the ad platform.
@@ -85,7 +83,11 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
  *  every flight as lead-or-failure.) */
 export function CampaignPerformance({
   stats,
+  familyCount,
 }: {
+  /** When set, the third cell counts families from every door (form and page),
+   *  the same number the families list above it shows. */
+  familyCount?: number;
   stats: {
     visitors: number;
     leads: number;
@@ -97,7 +99,9 @@ export function CampaignPerformance({
   const cells: { label: string; value: string }[] = [
     { label: "Visitors", value: stats.visitors.toLocaleString() },
     { label: "Questions", value: questions.toLocaleString() },
-    { label: "Leads", value: stats.leads.toLocaleString() },
+    familyCount != null
+      ? { label: "Families", value: familyCount.toLocaleString() }
+      : { label: "Leads", value: stats.leads.toLocaleString() },
   ];
   return (
     <div className="mt-8">
@@ -114,7 +118,9 @@ export function CampaignPerformance({
         ))}
       </dl>
       <p className="text-sm text-gray-500 mt-3">
-        {stats.leads > 0 ? (
+        {familyCount != null ? (
+          <>Since launch.</>
+        ) : stats.leads > 0 ? (
           <>
             Since launch. Find them on your{" "}
             <Link
@@ -142,6 +148,196 @@ export function CampaignPerformance({
         )}
       </p>
     </div>
+  );
+}
+
+/**
+ * The families her ads produced — the first thing a provider with a campaign
+ * sees. One card per family, each with a status set by something we know
+ * (answered our text, text delivered but no answer, text undelivered), what to
+ * do next, and a one-tap outcome. Screened-out job seekers are counted, never
+ * listed. Reads lib/ad-boost/families.server.ts; no dollar figures.
+ */
+const FAMILY_STATUS: Record<FamilyStatus, { label: string; chip: string; tile: string }> = {
+  replied: {
+    label: "Replied, needs care",
+    chip: "bg-primary-50 text-primary-700",
+    tile: "bg-primary-50 text-primary-800",
+  },
+  warming: {
+    label: "We’re warming up",
+    chip: "bg-warning-50 text-warning-700",
+    tile: "bg-warning-50 text-warning-800",
+  },
+  hard_to_reach: {
+    label: "Hard to reach",
+    chip: "bg-error-50 text-error-700",
+    tile: "bg-error-50 text-error-800",
+  },
+};
+
+const OUTCOME_LABEL: Record<"talking" | "client" | "no", string> = {
+  talking: "Talked",
+  client: "Became a client",
+  no: "Not a fit",
+};
+
+function formatPhone(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(-10);
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : raw;
+}
+
+function arrivedLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+export function CampaignFamilies({ data }: { data: CampaignFamiliesData }) {
+  const { families, counts, screenedOut } = data;
+  const n = families.length;
+  const tiles: { key: string; n: number; label: string; cls: string }[] = (
+    ["replied", "warming", "hard_to_reach"] as FamilyStatus[]
+  ).map((k) => ({ key: k, n: counts[k], label: FAMILY_STATUS[k].label, cls: FAMILY_STATUS[k].tile }));
+  if (screenedOut > 0) {
+    tiles.push({ key: "screened", n: screenedOut, label: "Screened out", cls: "bg-gray-50 text-gray-600" });
+  }
+  return (
+    <section className="mt-7" aria-labelledby="campaign-families-heading">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">Families from your ads</p>
+      <h3 id="campaign-families-heading" className="mt-2 text-2xl font-display font-semibold text-gray-900 text-balance">
+        {n === 0
+          ? "Families will appear here as they arrive."
+          : `${n} ${n === 1 ? "family" : "families"} found you through your ads`}
+      </h3>
+      {n > 0 && (
+        <div className={`mt-4 grid gap-2 ${tiles.length === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+          {tiles.map((t) => (
+            <div key={t.key} className={`rounded-xl px-3 py-2.5 ${t.cls}`}>
+              <div className="text-xl font-semibold tabular-nums leading-none">{t.n}</div>
+              <div className="mt-1 text-xs leading-snug">{t.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {n > 0 && (
+        <ul className="mt-4 space-y-3">
+          {families.map((f) => (
+            <FamilyCard key={f.id} family={f} />
+          ))}
+        </ul>
+      )}
+      {screenedOut > 0 && (
+        <p className="mt-3 text-sm text-gray-500">
+          {screenedOut} {screenedOut === 1 ? "person was" : "people were"} asking about jobs, not care. We didn&rsquo;t send them to you.
+        </p>
+      )}
+      <p className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-600">
+        We text every family first to check they need care, then pass them to you to call. This is new, and
+        we&rsquo;re still smoothing it out. Tell us what&rsquo;s working.
+      </p>
+      <Link href="/portal/inbox" className="mt-3 inline-block text-sm font-medium text-primary-600 hover:underline">
+        Messages
+      </Link>
+    </section>
+  );
+}
+
+function FamilyCard({ family: f }: { family: CampaignFamilyData }) {
+  const [outcome, setOutcome] = useState(f.outcome);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const meta = FAMILY_STATUS[f.status];
+
+  async function record(value: "talking" | "client" | "no") {
+    const previous = outcome;
+    setOutcome(value);
+    setSaving(true);
+    setError(null);
+    try {
+      const res =
+        f.kind === "form"
+          ? await fetch("/api/provider/ad-boost/family-outcome", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ leadId: f.id, value }),
+            })
+          : await fetch("/api/provider/lead-outcome", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ cid: f.id, value }),
+            });
+      if (!res.ok) throw new Error();
+    } catch {
+      setOutcome(previous);
+      setError("Couldn’t save that. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const action =
+    "inline-flex items-center rounded-lg border border-primary-600 px-3 py-1.5 text-sm font-semibold text-primary-700 hover:bg-primary-50";
+  const primaryAction =
+    "inline-flex items-center rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700";
+  return (
+    <li className="rounded-2xl border border-gray-200/80 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-base font-semibold text-gray-900">{f.firstName}</p>
+          <p className="text-xs text-gray-500">
+            {f.source} · {arrivedLabel(f.arrivedAt)}
+          </p>
+        </div>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.chip}`}>{meta.label}</span>
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-gray-700">{f.note}</p>
+      {(f.phone || f.email) && (
+        <p className="mt-1 text-sm text-gray-500 break-words">
+          {[f.phone ? formatPhone(f.phone) : null, f.email].filter(Boolean).join(" · ")}
+        </p>
+      )}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {f.phone && (
+          <a href={`tel:${f.phone}`} className={primaryAction}>
+            Call
+          </a>
+        )}
+        {f.phone && f.status !== "hard_to_reach" && (
+          <a href={`sms:${f.phone}`} className={action}>
+            Text
+          </a>
+        )}
+        {f.email && (
+          <a href={`mailto:${f.email}`} className={f.phone ? action : primaryAction}>
+            Email
+          </a>
+        )}
+        {f.kind === "page" && (
+          <Link href={`/portal/inbox?id=${f.id}`} className={action}>
+            Open in Messages
+          </Link>
+        )}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+        <span>How did it go?</span>
+        {(["talking", "client", "no"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            disabled={saving}
+            onClick={() => record(v)}
+            aria-pressed={outcome === v}
+            className={`rounded-full border px-2.5 py-1 transition-colors ${
+              outcome === v
+                ? "border-primary-600 bg-primary-600 text-white"
+                : "border-gray-200 text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            {OUTCOME_LABEL[v]}
+          </button>
+        ))}
+      </div>
+      {error && <p className="mt-2 text-xs text-error-700" role="alert">{error}</p>}
+    </li>
   );
 }
 
@@ -507,9 +703,11 @@ export function ReceiptMathLine({ receipt }: { receipt: CampaignReceiptData }) {
 export function PlanActive({
   request,
   campaignStats,
+  families,
   celebrate,
 }: {
   request: BoostRequest;
+  families?: CampaignFamiliesData | null;
   campaignStats: {
     visitors: number;
     leads: number;
@@ -536,8 +734,9 @@ export function PlanActive({
         dashboard as they come in. A month with zero family inquiries is free.
       </p>
 
+      {families && <CampaignFamilies data={families} />}
       <CampaignFacts request={request} />
-      {campaignStats && <CampaignPerformance stats={campaignStats} />}
+      {campaignStats && <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} />}
 
       <p className="mt-6 text-sm text-gray-500">
         Change or cancel anytime by replying to any campaign email, or{" "}
@@ -905,6 +1104,7 @@ export function CampaignInMotion({
   request,
   campaignStats,
   receipt,
+  families,
   onCheckout,
   submitting,
   error,
@@ -919,6 +1119,7 @@ export function CampaignInMotion({
     since: string;
   } | null;
   receipt?: CampaignReceiptData | null;
+  families?: CampaignFamiliesData | null;
   onCheckout: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
@@ -999,16 +1200,19 @@ export function CampaignInMotion({
         </div>
       )}
 
-      {/* The campaign they committed to — week, channel, budget, flight clock. */}
+      {/* When live, the families her ads found come first: who to call, and
+          what we know about each. The ad-reach receipt (times shown, clicks)
+          used to sit here; it counted Google only and read like a bill, so the
+          live view no longer shows it. */}
+      {isLive && families && <CampaignFamilies data={families} />}
+
+      {/* The campaign they committed to — week, channel, plan, flight clock. */}
       <CampaignFacts request={request} />
 
-      {/* When live, real performance — the funnel at equal weight — is THE
-          focal point, with the week's momentum right under it. */}
-      {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
+      {isLive && campaignStats && (
+        <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} />
+      )}
       {isLive && receipt && <MomentumLine week={receipt.week} />}
-
-      {/* The accruing receipt: ad reach, saves, questions, reported outcomes. */}
-      {isLive && receipt && <CampaignReceiptBlock receipt={receipt} flightKey={request.campaign_tag || request.id} />}
 
       {/* The early plan choice uses the same visible cards as the wrap-up.
           Providers should not have to discover that a section-heading-looking

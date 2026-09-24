@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { BoostRequest, CampaignReceiptData } from "@/lib/ad-boost/boost-state";
+import type { BoostRequest, CampaignFamiliesData, CampaignReceiptData } from "@/lib/ad-boost/boost-state";
 import {
   CampaignInMotion,
   PlanActive,
@@ -23,6 +23,19 @@ type PreviewKey =
   | "weak"
   | "celebrate"
   | "steady";
+
+/** Sample families, one per status, shaped like Hoop Cares' first week on the
+ *  Facebook form. Invented names and numbers: this page is screenshotted. */
+const SAMPLE_FAMILIES: CampaignFamiliesData = {
+  families: [
+    { id: "s1", kind: "form", firstName: "Marian", phone: "+15555550101", email: "marian@example.com", arrivedAt: new Date(Date.now() - 86_400_000).toISOString(), status: "replied", note: "Answered our text: \u201cMy mother, she needs help most mornings.\u201d", source: "Filled in your Facebook form", outcome: null },
+    { id: "s2", kind: "form", firstName: "Joan", phone: "+15555550102", email: null, arrivedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(), status: "warming", note: "We texted to confirm what they need. No reply yet. Their number works.", source: "Filled in your Facebook form", outcome: null },
+    { id: "s3", kind: "page", firstName: "A family", phone: null, email: "family@example.com", arrivedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(), status: "warming", note: "Asked through your Olera page. Left an email, no phone.", source: "Asked on your Olera page", outcome: null },
+    { id: "s4", kind: "form", firstName: "Ruth", phone: "+15555550104", email: "ruth@example.com", arrivedAt: new Date(Date.now() - 4 * 86_400_000).toISOString(), status: "hard_to_reach", note: "Landline. Texts don't reach it, so call.", source: "Filled in your Facebook form", outcome: "talking" },
+  ],
+  counts: { replied: 1, warming: 2, hard_to_reach: 1 },
+  screenedOut: 2,
+};
 
 /** Sample receipts — Miracle-Lightstar-shaped numbers for the zero-lead demand
  *  receipt, Franchil-shaped for the outcome receipt. */
@@ -208,6 +221,7 @@ export default function AdBoostPreviewPage() {
               request={{ ...sampleFor("live"), flight_end_date: daysFromNow(6), promo_complete_email_sent_at: null }}
               campaignStats={stats(1)}
               receipt={RECEIPT_STRONG}
+              families={SAMPLE_FAMILIES}
               onCheckout={stubCheckout}
               submitting={fakeSubmitting}
               error={fakeError}
@@ -249,7 +263,7 @@ export default function AdBoostPreviewPage() {
             <PlanActive request={sampleFor(view, active)} campaignStats={stats(3)} celebrate />
           )}
           {view === "steady" && (
-            <PlanActive request={sampleFor(view, active)} campaignStats={stats(5)} celebrate={false} />
+            <PlanActive request={sampleFor(view, active)} campaignStats={stats(5)} families={SAMPLE_FAMILIES} celebrate={false} />
           )}
         </div>
       </div>

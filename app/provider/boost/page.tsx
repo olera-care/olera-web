@@ -436,6 +436,7 @@ export default function ProviderBoostPage() {
           <PlanActive
             request={state.request}
             campaignStats={state.campaignStats}
+            families={state.families ?? null}
             celebrate={justSubscribed}
           />
         </div>
@@ -474,6 +475,7 @@ export default function ProviderBoostPage() {
             request={openRequest}
             campaignStats={state.campaignStats}
             receipt={state.receipt}
+            families={state.families ?? null}
             onCheckout={startCheckout}
             onPlanSelected={trackPlanSelected}
             submitting={checkoutSubmitting}

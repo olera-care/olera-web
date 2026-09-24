@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { loadAdBoostEligibility } from "@/lib/ad-boost/eligibility.server";
 import { countDeliveredByCampaign, getCampaignStats, getCampaignQuestions } from "@/lib/ad-boost/delivered.server";
 import { getCampaignReceipt } from "@/lib/ad-boost/receipts.server";
+import { getCampaignFamilies, type CampaignFamilies } from "@/lib/ad-boost/families.server";
 import { sendAdBoostRequestEmail } from "@/lib/ad-boost/notifications.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
 import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
@@ -129,6 +130,7 @@ export async function GET() {
     | { visitors: number; leads: number; questions: { received: number; unanswered: number }; since: string }
     | null = null;
   let receipt: Awaited<ReturnType<typeof getCampaignReceipt>> | null = null;
+  let families: CampaignFamilies | null = null;
   // Ended campaigns keep their stats too — the wrap-up moment leads with them.
   if (latest && (latest.status === "live" || latest.status === "ended")) {
     const since = new Date(
@@ -139,7 +141,7 @@ export async function GET() {
     // as visitors/leads. Parallel with the page-traffic query. The receipt
     // (demand + outcomes) is composed from the same readers, so every surface
     // shows one set of numbers.
-    const [stats, questions, fullReceipt] = await Promise.all([
+    const [stats, questions, fullReceipt, familyList] = await Promise.all([
       getCampaignStats(db, { providerIdVariants, since }),
       getCampaignQuestions(db, {
         providerIdVariants,
@@ -162,7 +164,9 @@ export async function GET() {
         metrics_source: latest.metrics_source ?? null,
         provider_reported_outcome: latest.provider_reported_outcome ?? null,
       }),
+      getCampaignFamilies(db, latest, providerIdVariants),
     ]);
+    families = familyList;
     campaignStats = { ...stats, questions, since };
     // Providers see their leads on /provider/connections — the receipt payload
     // carries only the rollups.
@@ -196,13 +200,18 @@ export async function GET() {
       category: elig.category,
     },
     demand,
-    request: latest ?? null,
+    // No dollar figure reaches a provider's screen. Spend and per-click cost
+    // are R&D numbers that will not look like this in a year, and a provider
+    // anchored on "$300 of ads" reads a price that is not hers. Her plan
+    // price is separate and stays.
+    request: latest ? { ...latest, ad_spend_cents: null, ad_budget_cents: null } : null,
     delivered,
+    families,
     campaignStats,
     wrapupReady,
     receipt: receipt
       ? {
-          google: receipt.google,
+          google: { ...receipt.google, spendCents: null, cpcCents: null },
           engagement: receipt.engagement,
           outcomes: receipt.outcomes,
           expectedLeads: receipt.expectedLeads,

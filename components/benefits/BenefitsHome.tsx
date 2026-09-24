@@ -109,7 +109,7 @@ const GROUP_ORDER = [
 ];
 
 // Shared parser: a typical range stays a range, a maximum stays "Up to".
-function savingsLine(range?: string): string | null {
+function savingsLine(range?: string | null): string | null {
   return benefitAmountLabel(range)?.text ?? null;
 }
 

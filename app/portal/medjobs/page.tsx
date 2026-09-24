@@ -1317,9 +1317,20 @@ function StudentPortalContent({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Review Request Banner — shown when profile is 100% complete */}
         {showReviewBanner && (
-          <div className="mb-6 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 shadow-lg shadow-primary-500/20">
+          <div className="mb-6 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 shadow-lg shadow-primary-500/20 relative">
+            {/* Mobile X button - top right */}
+            <button
+              type="button"
+              onClick={() => setBannerDismissed(true)}
+              className="sm:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              aria-label="Dismiss"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start sm:items-center gap-3">
+              <div className="flex items-start sm:items-center gap-3 pr-8 sm:pr-0">
                 <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1336,14 +1347,14 @@ function StudentPortalContent({
                 <button
                   type="button"
                   onClick={() => setBannerDismissed(true)}
-                  className="px-4 py-2.5 text-white/80 hover:text-white font-medium text-sm transition-colors"
+                  className="hidden sm:block px-4 py-2.5 text-white/80 hover:text-white font-medium text-sm transition-colors"
                 >
                   Not Now
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowGoLiveReview(true)}
-                  className="px-6 py-2.5 bg-white text-primary-700 font-semibold text-sm rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-white text-primary-700 font-semibold text-sm rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
                 >
                   Request Review
                 </button>

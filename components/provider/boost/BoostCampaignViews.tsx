@@ -73,19 +73,14 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
   );
 }
 
-/** Live campaign performance — the funnel at equal weight: who visited, who
- *  asked, who reached out (see getCampaignStats/getCampaignQuestions). Leads
- *  are zero for most $50 flights by arithmetic, so questions stand as a
- *  first-class result — each answered one also builds the page's search
- *  visibility — instead of a footnote under a big zero. (Replaced the old
- *  Conversion cell: a percentage over ~20 visitors is noise, and it framed
- *  every flight as lead-or-failure.) */
 /**
  * One dismissible nudge under the traction numbers: questions from the ads
  * still waiting for an answer. The numbers stay the point of the page; this
- * sits below them. Dismissing hides it until a new question arrives (the raw
- * ask count goes up), so a provider who has answered everything never sees
- * it and one who waves it away is asked again only when there is something new.
+ * sits below them. Dismissing hides it until the ask count changes: up when a
+ * new question arrives, and occasionally down when attribution narrows to the
+ * campaign's own tagged asks (getCampaignQuestions), which would otherwise hide
+ * it behind a stale high-water mark. A provider who has answered everything
+ * never sees it; one who waves it away is asked again only when something moved.
  * Remembered per browser: a phone and a laptop each ask once.
  */
 function QuestionsCard({ requestId, waiting, asks }: { requestId: string; waiting: number; asks: number }) {
@@ -101,7 +96,7 @@ function QuestionsCard({ requestId, waiting, asks }: { requestId: string; waitin
     }
     setReady(true);
   }, [key]);
-  if (!ready || waiting <= 0 || (dismissedAt != null && asks <= dismissedAt)) return null;
+  if (!ready || waiting <= 0 || (dismissedAt != null && asks === dismissedAt)) return null;
   return (
     <div className="relative mt-6 rounded-2xl border border-gray-200 bg-white px-5 py-4 pr-12">
       <p className="text-xs font-medium text-gray-400">Questions</p>
@@ -132,6 +127,13 @@ function QuestionsCard({ requestId, waiting, asks }: { requestId: string; waitin
   );
 }
 
+/** Live campaign performance — the funnel at equal weight: who visited, who
+ *  asked, who reached out (see getCampaignStats/getCampaignQuestions). Leads
+ *  are zero for most $50 flights by arithmetic, so questions stand as a
+ *  first-class result — each answered one also builds the page's search
+ *  visibility — instead of a footnote under a big zero. (Replaced the old
+ *  Conversion cell: a percentage over ~20 visitors is noise, and it framed
+ *  every flight as lead-or-failure.) */
 export function CampaignPerformance({
   stats,
   familyCount,

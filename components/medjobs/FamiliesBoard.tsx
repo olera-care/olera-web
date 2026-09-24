@@ -46,7 +46,7 @@ interface StudentStatus {
 function Board() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { profiles, isLoading: authLoading } = useAuth();
+  const { profiles, isLoading: authLoading, openAuth } = useAuth();
 
   const campusParam = searchParams?.get("campus") || "";
   const autoScreener = searchParams?.get("screener") === "1";
@@ -276,15 +276,19 @@ function Board() {
                     </svg>
                   </Link>
                 )}
-                <a
-                  href="#how-it-works"
+                <button
+                  type="button"
+                  onClick={() => openAuth({
+                    defaultMode: "sign-in",
+                    deferred: {
+                      action: "student-return",
+                      returnUrl: "/portal/medjobs",
+                    },
+                  })}
                   className="inline-flex items-center px-5 py-3.5 text-gray-500 text-[15px] font-medium hover:text-gray-900 transition-colors"
                 >
-                  See how it works
-                  <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </a>
+                  Login
+                </button>
               </div>
               {/* Founder attribution */}
               <div className="mt-6 flex items-center gap-2.5">

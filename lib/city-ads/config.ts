@@ -39,34 +39,6 @@ export interface CityConfig {
   timeZone: string;
   /** Campaign tag shared across channels for this city (= utm_campaign). */
   campaignTag: string;
-  /**
-   * The provider's OWN managed-ads campaign tag, when this arm is funded as
-   * part of a provider's Managed Ads subscription rather than out of Olera's
-   * city-ads R&D budget.
-   *
-   * Set it and an accepted offer writes a `lead_received` provider_activity
-   * row against that tag, so the lead shows up on the provider's dashboard and
-   * in `countDeliveredByCampaign`. A native instant-form lead never touches the
-   * provider page, so without this the family arrives by text while the product
-   * they pay for still reads zero leads.
-   *
-   * LEAVE IT UNSET for Olera-funded city arms. Crediting a city-pool lead to a
-   * provider's own campaign would tell them their ad produced a family that our
-   * ad produced.
-   *
-   * Requires `managedProviderId`. The tag belongs to ONE provider, but a pool
-   * can hold several, so the receipt has to name whose campaign it is.
-   */
-  managedCampaignTag?: string;
-  /**
-   * The `business_profiles.id` that owns `managedCampaignTag`. The receipt is
-   * written only when this provider is the one who accepted.
-   *
-   * Without it, adding a second provider to the pool would silently credit
-   * their accepted lead to the first provider's campaign — a number on someone
-   * else's dashboard for a family they never received.
-   */
-  managedProviderId?: string;
 }
 
 export const CITY_CONFIGS: Record<string, CityConfig> = {
@@ -109,10 +81,12 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
   // before any introduction — which this form's own copy does say: "someone
   // from Olera will call you, then introduce you to Hoop Cares."
   //
-  // It costs nothing in automation. offers.server.ts:208 only holds a lead
-  // while it is UNANSWERED; once the family replies the chain falls through to
-  // the pool and offers to Hoop on its own. Concierge buys the honest sequence,
-  // not a manual handoff.
+  // Routing no longer depends on it. Since 24 Sep the form is registered as
+  // an ad on Hoop's own campaign, so primary.server.ts hands each lead to her
+  // campaign page once it answers or after an hour. She leads the calls and
+  // our team can still follow up on the shared thread.
+  // THE FORM COPY ABOVE IS NOW STALE: it promises an Olera call first. Change
+  // it in Ads Manager to say Hoop Cares will be in touch.
   //
   // The area is her own, confirmed by her on the 16 Sep orientation call:
   // Jackson, Harrison and George County, not a radius around Pascagoula.
@@ -125,8 +99,8 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
     zipPrefill: "39563",
     timeZone: "America/Chicago",
     campaignTag: "olera-pascagoula-native-sep26",
-    managedCampaignTag: "hoop-pascagoula-sep26",
-    managedProviderId: "d0c4738f-77e9-4b4a-a02c-e9cbab6597d3",
+    // Whose leads these are is data, not config: the form's city_campaigns row
+    // names Hoop's campaign in request_id (migration 256, primary.server.ts).
   },
 };
 

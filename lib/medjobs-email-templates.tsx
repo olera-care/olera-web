@@ -455,30 +455,32 @@ export function applicationReceivedEmail({
   studentName,
   university,
   programTrack,
-  profileSlug,
+  viewUrl,
 }: {
   providerName: string;
   studentName: string;
   university: string;
   programTrack: string;
-  profileSlug: string;
+  viewUrl: string;
 }): string {
+  const safeProviderName = escapeHtml(firstName(providerName, "there"));
+  const safeStudentName = escapeHtml(studentName);
   const studentFirst = firstName(studentName);
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">New Student Application</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Hi ${providerName ? escapeHtml(providerName) : "there"}, a student has applied to work with you through Olera MedJobs.
+      Hi ${safeProviderName}, a student has applied to work with you through Olera MedJobs.
     </p>
     <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
       <tr><td>
-        <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 8px;">${escapeHtml(studentName)}</p>
+        <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 8px;">${safeStudentName}</p>
         <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">${escapeHtml(university)}</p>
         <p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(programTrack)}</p>
       </td></tr>
     </table>
     <p style="margin:0 0 16px;">
-      ${button("View Candidate", `${BASE_URL}/medjobs/candidates/${profileSlug}`)}
+      ${button("View Candidate", viewUrl)}
     </p>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
@@ -489,14 +491,19 @@ export function applicationReceivedEmail({
 export function applicationSentEmail({
   studentName,
   providerName,
+  viewUrl,
 }: {
   studentName: string;
   providerName: string;
+  viewUrl: string;
 }): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
+
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Application Sent!</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Hi ${studentName}, your application to <strong>${providerName}</strong> has been sent.
+      Hi ${safeStudentName}, your application to <strong>${safeProviderName}</strong> has been sent.
       They&apos;ll receive your profile and can reach out if interested.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
@@ -504,27 +511,32 @@ export function applicationSentEmail({
       and video intros get 3x more responses.
     </p>
     <p style="margin:0;">
-      ${button("View Your Profile", `${BASE_URL}/portal/medjobs`)}
+      ${button("View Your Profile", viewUrl)}
     </p>
-  `);
+    ${authorBylineBlock()}
+  `, `Your application to ${safeProviderName} was sent`);
 }
 
 export function applicationResponseEmail({
   studentName,
   providerName,
   accepted,
+  viewUrl,
 }: {
   studentName: string;
   providerName: string;
   accepted: boolean;
+  viewUrl: string;
 }): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
   const statusText = accepted ? "accepted" : "declined";
   const statusColor = accepted ? "#059669" : "#dc2626";
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Application Update</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Hi ${studentName}, <strong>${providerName}</strong> has
+      Hi ${safeStudentName}, <strong>${safeProviderName}</strong> has
       <span style="color:${statusColor};font-weight:600;">${statusText}</span>
       your application.
     </p>
@@ -539,9 +551,61 @@ export function applicationResponseEmail({
     </p>
     `}
     <p style="margin:0;">
-      ${button("Browse More Opportunities", `${BASE_URL}/medjobs`)}
+      ${button(accepted ? "View Your Applications" : "Browse More Opportunities", viewUrl)}
     </p>
-  `);
+    ${authorBylineBlock()}
+  `, `${safeProviderName} ${statusText} your application`);
+}
+
+/**
+ * Confirmation sent to student after they request an interview with a provider.
+ */
+export function interviewRequestSentEmail({
+  studentName,
+  providerName,
+  interviewType,
+  proposedTime,
+  alternativeTime,
+  viewUrl,
+}: {
+  studentName: string;
+  providerName: string;
+  interviewType: string;
+  proposedTime: string;
+  alternativeTime?: string | null;
+  viewUrl: string;
+}): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Request Sent!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeStudentName}, your interview request to <strong>${safeProviderName}</strong> has been sent.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 8px;">Interview Details</p>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 4px;"><strong>Type:</strong> ${escapeHtml(interviewType)}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 4px;"><strong>Proposed:</strong> ${escapeHtml(proposedTime)}</p>
+        ${alternativeTime ? `<p style="font-size:13px;color:#6b7280;margin:0;"><strong>Alternative:</strong> ${escapeHtml(alternativeTime)}</p>` : ""}
+      </td></tr>
+    </table>
+    <table cellpadding="0" cellspacing="0" style="background:#fef3c7;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#92400e;margin:0 0 6px;">What happens next?</p>
+        <ol style="font-size:13px;color:#92400e;margin:0;padding-left:16px;line-height:1.8;">
+          <li>${safeProviderName} will review your request</li>
+          <li>They'll confirm, suggest a new time, or decline</li>
+          <li>You'll get an email when they respond</li>
+        </ol>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("View Your Interviews", viewUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `Your interview request was sent to ${safeProviderName}`);
 }
 
 export function newCandidateAlertEmail({
@@ -742,4 +806,193 @@ export function invitationSentEmail({
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, `Your invite to ${safeStudentName} was sent`);
+}
+
+// ── Placement Templates ────────────────────────────────────────────
+
+/**
+ * Sent to student when a provider offers to hire them (placement offer).
+ * Includes magic link for one-click access to accept/decline.
+ */
+export function placementOfferedEmail({
+  studentName,
+  providerName,
+  notes,
+  viewUrl,
+}: {
+  studentName: string;
+  providerName: string;
+  notes?: string | null;
+  viewUrl: string;
+}): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
+  const safeNotes = notes ? escapeHtml(notes) : null;
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">You've received a job offer!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Congratulations, ${safeStudentName}! <strong>${safeProviderName}</strong> wants to hire you as a caregiver.
+    </p>
+    ${safeNotes ? `
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 6px;">Message from ${safeProviderName}:</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.6;">${safeNotes}</p>
+      </td></tr>
+    </table>
+    ` : ""}
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 6px;">What happens next?</p>
+        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
+          <li>Review the offer details</li>
+          <li>Accept or decline the offer</li>
+          <li>If accepted, coordinate start date with ${safeProviderName}</li>
+        </ol>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("View Offer", viewUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `${safeProviderName} wants to hire you!`);
+}
+
+/**
+ * Sent to provider when student accepts their placement offer.
+ */
+export function placementAcceptedEmail({
+  providerName,
+  studentName,
+  viewUrl,
+}: {
+  providerName: string;
+  studentName: string;
+  viewUrl: string;
+}): string {
+  const safeProviderName = escapeHtml(firstName(providerName, "there"));
+  const safeStudentName = escapeHtml(studentName);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Great news — ${safeStudentName} accepted!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProviderName}, <strong>${safeStudentName}</strong> has accepted your job offer. You now have a new team member!
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 6px;">Next steps:</p>
+        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
+          <li>Reach out to ${safeStudentName} to coordinate onboarding</li>
+          <li>Schedule their first day and training</li>
+          <li>Complete any required paperwork</li>
+        </ol>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("View Details", viewUrl)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${safeStudentName} accepted your job offer`);
+}
+
+/**
+ * Confirmation sent to student after they accept a placement offer.
+ */
+export function placementAcceptedStudentEmail({
+  studentName,
+  providerName,
+  viewUrl,
+}: {
+  studentName: string;
+  providerName: string;
+  viewUrl: string;
+}): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">You're hired!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Congratulations, ${safeStudentName}! You've accepted the offer from <strong>${safeProviderName}</strong>.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 6px;">What happens next?</p>
+        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
+          <li>${safeProviderName} will reach out to coordinate your start date</li>
+          <li>Complete any onboarding paperwork they require</li>
+          <li>Get ready for your first day!</li>
+        </ol>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("View Your Placements", viewUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `You accepted the offer from ${safeProviderName}`);
+}
+
+/**
+ * Sent to provider when student declines their placement offer.
+ */
+export function placementDeclinedEmail({
+  providerName,
+  studentName,
+  viewUrl,
+}: {
+  providerName: string;
+  studentName: string;
+  viewUrl: string;
+}): string {
+  const safeProviderName = escapeHtml(firstName(providerName, "there"));
+  const safeStudentName = escapeHtml(studentName);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">${safeStudentName} declined your offer</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProviderName}, unfortunately <strong>${safeStudentName}</strong> has decided not to accept your job offer at this time.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Don't be discouraged — there are many talented students looking for caregiving opportunities. Browse other candidates who might be a great fit.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Browse Candidates", viewUrl)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${safeStudentName} declined your job offer`);
+}
+
+/**
+ * Sent to student when provider cancels/withdraws a placement offer.
+ */
+export function placementCancelledEmail({
+  studentName,
+  providerName,
+  viewUrl,
+}: {
+  studentName: string;
+  providerName: string;
+  viewUrl: string;
+}): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Offer Update</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeStudentName}, <strong>${safeProviderName}</strong> has withdrawn their job offer.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Don't be discouraged — there are many providers looking for student caregivers like you. Keep your profile updated and continue exploring opportunities.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Find More Opportunities", viewUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `${safeProviderName} withdrew their offer`);
 }

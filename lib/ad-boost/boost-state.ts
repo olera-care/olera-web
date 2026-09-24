@@ -123,6 +123,35 @@ export interface BoostStateResponse {
   /** The campaign receipt (demand + outcomes), composed server-side by
    *  getCampaignReceipt. Null until the campaign is live/ended. */
   receipt: CampaignReceiptData | null;
+  /** Every family her campaign produced, with a status. Null until the
+   *  campaign is live/ended. Mirrors lib/ad-boost/families.server.ts. */
+  families?: CampaignFamiliesData | null;
+}
+
+export type FamilyStatus = "replied" | "warming" | "hard_to_reach";
+
+export interface CampaignFamilyData {
+  id: string;
+  kind: "form" | "page";
+  firstName: string;
+  phone: string | null;
+  email: string | null;
+  arrivedAt: string;
+  status: FamilyStatus;
+  note: string;
+  source: string;
+  outcome: "talking" | "client" | "no" | null;
+  /** The family's own latest words, when they have written any. */
+  words: string | null;
+  contact: "none" | "messaged" | "talked";
+  /** How a message reaches them: text, email only, not at all (call), or Messages. */
+  reach: "text" | "email" | "call" | "inbox";
+}
+
+export interface CampaignFamiliesData {
+  families: CampaignFamilyData[];
+  counts: Record<FamilyStatus, number>;
+  screenedOut: number;
 }
 
 /** Client mirror of the server CampaignReceipt, minus the per-lead list

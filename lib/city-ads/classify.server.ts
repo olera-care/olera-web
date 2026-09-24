@@ -197,12 +197,17 @@ export async function classifyQualification(
     const asked = exchange.find((t) => t.who === "olera")?.text ?? null;
 
     const cfg = getCityConfig(lead.slug);
-    const { data: campaign } = await db
+    // A city can hold more than one ad per channel (a provider's instant form
+    // beside her traffic ads), so take the row for this lead's own ad when it
+    // has one, and never maybeSingle(): two rows would error it into "unclear".
+    const { data: campaigns } = await db
       .from("city_campaigns")
-      .select("care_types")
+      .select("care_types, platform_campaign_id")
       .eq("slug", lead.slug)
-      .eq("channel", lead.capture_method === "meta_instant_form" ? "meta" : "google")
-      .maybeSingle();
+      .eq("channel", lead.capture_method === "meta_instant_form" ? "meta" : "google");
+    const metaId = (lead as { meta_campaign_id?: string | null }).meta_campaign_id ?? null;
+    const campaign =
+      (campaigns ?? []).find((c) => metaId && c.platform_campaign_id === metaId) ?? (campaigns ?? [])[0] ?? null;
     const types: string[] = (campaign?.care_types as string[] | null) ?? ["home_care"];
     const advertised = `${types.map((t) => CARE_LABEL[t as keyof typeof CARE_LABEL] ?? t).join(" or ")} in ${cfg?.city ?? lead.slug}`;
 

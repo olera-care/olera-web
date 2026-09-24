@@ -9,7 +9,9 @@ import BrowseCard from "@/components/browse/BrowseCard";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import ProviderBottomSheet from "@/components/medjobs/ProviderBottomSheet";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { ProviderCard } from "@/app/api/medjobs/providers/route";
+import type { StudentMetadata } from "@/lib/types";
 
 /**
  * FindJobsBoard — the signed-in student's "Find Jobs" board at
@@ -38,6 +40,7 @@ type TabType = "near" | "all";
 interface StudentInfo {
   profileId: string | null;
   isLive: boolean;
+  completeness: number;
   campus: string;
 }
 
@@ -108,6 +111,7 @@ export default function FindJobsBoard() {
   const [student, setStudent] = useState<StudentInfo>({
     profileId: null,
     isLive: false,
+    completeness: 0,
     campus: "",
   });
   const [activeTab, setActiveTab] = useState<TabType>("near");
@@ -123,12 +127,12 @@ export default function FindJobsBoard() {
 
   const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === student.campus)?.name ?? null;
 
-  // Resolve the signed-in student's profile, live status, and home campus.
+  // Resolve the signed-in student's profile, live status, completeness, and home campus.
   useEffect(() => {
     if (authLoading) return;
     const sp = studentProfile;
     if (!sp) {
-      setStudent({ profileId: null, isLive: false, campus: "" });
+      setStudent({ profileId: null, isLive: false, completeness: 0, campus: "" });
       return;
     }
     let cancelled = false;
@@ -137,19 +141,32 @@ export default function FindJobsBoard() {
         const sb = createClient();
         const { data } = await sb
           .from("business_profiles")
-          .select("is_active, metadata")
+          .select("is_active, display_name, email, phone, city, state, image_url, metadata")
           .eq("id", sp.id)
           .single();
         if (cancelled) return;
-        const meta = (data?.metadata || {}) as Record<string, unknown>;
+        const meta = (data?.metadata || {}) as StudentMetadata;
         const homeCampus = typeof meta.campus === "string" ? meta.campus : "";
+
+        // Calculate completeness
+        const hasPhoto = !!data?.image_url;
+        const hasBasicInfo = {
+          hasName: !!data?.display_name,
+          hasEmail: !!data?.email,
+          hasPhone: !!data?.phone,
+          hasUniversity: !!meta.university,
+          hasLocation: !!(data?.city && data?.state),
+        };
+        const completeness = calculateCompleteness(meta, hasPhoto, hasBasicInfo);
+
         setStudent({
           profileId: sp.id,
           isLive: !!data?.is_active,
+          completeness,
           campus: homeCampus,
         });
       } catch {
-        if (!cancelled) setStudent({ profileId: sp.id, isLive: false, campus: "" });
+        if (!cancelled) setStudent({ profileId: sp.id, isLive: false, completeness: 0, campus: "" });
       }
     })();
     return () => {
@@ -232,11 +249,13 @@ export default function FindJobsBoard() {
       window.location.href = "/portal/medjobs";
       return;
     }
-    if (!student.isLive) {
+    if (student.completeness < 100) {
       // Profile not complete — redirect to profile
       window.location.href = "/portal/medjobs";
       return;
     }
+    // Profile is 100% complete — allow proceeding to schedule modal
+    // Approval status will be checked at final submission step
     setScheduleTarget(provider);
   };
 
@@ -253,15 +272,15 @@ export default function FindJobsBoard() {
         </p>
       </div>
 
-      {/* Profile completion banner */}
-      {student.profileId && !student.isLive && (
+      {/* Profile completion banner — only show when profile is incomplete */}
+      {student.profileId && student.completeness < 100 && (
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-gray-900">
-              Complete your profile to apply
+              Complete your profile to apply ({student.completeness}% done)
             </p>
             <p className="text-sm text-gray-600">
-              Providers can&apos;t see your profile until it&apos;s complete.
+              Finish your profile to start applying to providers.
             </p>
           </div>
           <Link
@@ -351,7 +370,11 @@ export default function FindJobsBoard() {
                     // Mobile: open bottom sheet for quick preview
                     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
                     if (isDesktop) {
-                      const url = `/provider/${provider.slug}${student.campus ? `?campus=${student.campus}` : ""}`;
+                      // Include ctx=medjobs-student so server renders the "About this opportunity" section
+                      const params = new URLSearchParams();
+                      params.set("ctx", "medjobs-student");
+                      if (student.campus) params.set("campus", student.campus);
+                      const url = `/provider/${provider.slug}?${params.toString()}`;
                       window.open(url, "_blank");
                     } else {
                       setSelectedProvider(provider);
@@ -369,8 +392,8 @@ export default function FindJobsBoard() {
                     requestLabel={
                       requested.has(provider.id)
                         ? "Requested"
-                        : student.isLive
-                        ? "Request interview"
+                        : student.completeness >= 100
+                        ? "Apply"
                         : "Complete profile to apply"
                     }
                     onRequestInterview={
@@ -411,8 +434,8 @@ export default function FindJobsBoard() {
           requestLabel={
             requested.has(selectedProvider.id)
               ? "Interview Requested"
-              : student.isLive
-              ? "Request Interview"
+              : student.completeness >= 100
+              ? "Apply"
               : "Complete profile to apply"
           }
           onRequestInterview={() => {

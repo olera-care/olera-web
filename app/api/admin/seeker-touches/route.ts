@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { getRoutingPlan } from "@/lib/city-ads/plan.server";
+import { resolvePrimaryCampaign } from "@/lib/city-ads/primary.server";
 import { cityLeadBlocked } from "@/lib/city-ads/messages.server";
 import { extractHeard, saveHeard, summariseManual } from "@/lib/seeker-touches/extract.server";
 import { careSummary, type Heard } from "@/lib/seeker-touches/types";
@@ -86,7 +87,7 @@ async function loadRouting(seekerId: string, leadId: string) {
   const db = getServiceClient();
   const { data: lead } = await db
     .from("city_leads")
-    .select("id, slug, status, archived_at, accepted_offer_id, qualification_reply, qualification_reply_at")
+    .select("id, slug, status, archived_at, accepted_offer_id, qualification_reply, qualification_reply_at, admin_note, handed_at, meta_campaign_id, phone, email, first_name, capture_method")
     .eq("id", leadId)
     .maybeSingle();
   if (!lead) return null;
@@ -100,17 +101,40 @@ async function loadRouting(seekerId: string, leadId: string) {
       .eq("slug", lead.slug)
       .eq("is_test", false)
       .order("position", { ascending: true }),
-    db.from("city_lead_offers").select("provider_id, accepted_at").eq("lead_id", leadId),
+    db
+      .from("city_lead_offers")
+      .select("id, provider_id, position, offered_at, expires_at, accepted_at, declined_at, expired_at")
+      .eq("lead_id", leadId)
+      .order("position", { ascending: true }),
     db.from("business_profiles").select("metadata").eq("id", seekerId).maybeSingle(),
   ]);
 
   const pool = (poolRows ?? []) as { provider_id: string; position: number; enabled: boolean }[];
-  const ids = pool.map((p) => p.provider_id);
+  const offers = (offerRows ?? []) as {
+    id: string;
+    provider_id: string;
+    position: number;
+    offered_at: string;
+    expires_at: string;
+    accepted_at: string | null;
+    declined_at: string | null;
+    expired_at: string | null;
+  }[];
+  const ids = Array.from(new Set([...pool.map((p) => p.provider_id), ...offers.map((o) => o.provider_id)]));
   const { data: names } = ids.length
     ? await db.from("business_profiles").select("id, display_name").in("id", ids)
     : { data: [] as { id: string; display_name: string | null }[] };
   const nameOf = new Map((names ?? []).map((n) => [n.id as string, (n.display_name as string | null) ?? "a provider"]));
-  const offered = new Set((offerRows ?? []).map((o) => o.provider_id as string));
+  const offered = new Set(offers.map((o) => o.provider_id));
+  const [primary, { data: pending }] = await Promise.all([
+    resolvePrimaryCampaign(db, lead as { id: string; slug: string; meta_campaign_id: string | null }).catch(() => null),
+    db
+      .from("city_lead_messages")
+      .select("id, channel, subject, body, send_after")
+      .eq("lead_id", leadId)
+      .eq("status", "pending")
+      .order("send_after", { ascending: true }),
+  ]);
 
   // The same check every city-ads action runs first (archived, test, stopped,
   // or on do_not_contact). Without it an opted-out family showed the buttons,
@@ -138,6 +162,23 @@ async function loadRouting(seekerId: string, leadId: string) {
       already_offered: offered.has(p.provider_id),
     })),
     care_summary: careSummary((profile?.metadata as { care_details?: Heard | null } | null)?.care_details ?? null),
+    // Everything the City campaigns lead card used to be the only home for,
+    // so the family page can be the one place a family is worked.
+    closed,
+    offers: offers.map((o) => ({
+      id: o.id,
+      provider_name: nameOf.get(o.provider_id) ?? "a provider",
+      offered_at: o.offered_at,
+      state: o.accepted_at ? "accepted" : o.declined_at ? "declined" : o.expired_at || new Date(o.expires_at) < new Date() ? "expired" : "open",
+    })),
+    has_provider: Boolean(lead.accepted_offer_id) || offers.some((o) => o.accepted_at) || Boolean(lead.handed_at),
+    handed_at: (lead.handed_at as string | null) ?? null,
+    campaign_owner: primary?.providerName ?? null,
+    can_hand: !closed && !lead.handed_at && !lead.accepted_offer_id && Boolean(primary),
+    admin_note: (lead.admin_note as string | null) ?? null,
+    has_phone: Boolean(lead.phone),
+    has_email: Boolean(lead.email),
+    pending_messages: ((pending ?? []) as { id: string; channel: string; subject: string | null; body: string; send_after: string }[]),
   };
 }
 

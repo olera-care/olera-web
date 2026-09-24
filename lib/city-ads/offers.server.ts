@@ -1,6 +1,8 @@
 import { cityLeadBlocked } from "./messages.server";
 import { getLeadExchange } from "./exchange.server";
 import { classifyQualification, BLOCKING_CATEGORIES, type ClassifyLead } from "./classify.server";
+import { resolvePrimaryCampaign, handToPrimary, HANDOVER_AFTER_MS } from "./primary.server";
+import { getThreadLead, notifyProviderOfHandover } from "./thread.server";
 /**
  * City lead offer chain — server only.
  *
@@ -75,6 +77,8 @@ export interface CityLeadRow {
   qualification_escalated_at: string | null;
   qualification_verdict: string | null;
   qualification_verdict_category: string | null;
+  meta_campaign_id?: string | null;
+  handed_at?: string | null;
 }
 
 export interface CityOfferRow {
@@ -110,7 +114,7 @@ interface ProviderLite {
 }
 
 const LEAD_COLS =
-  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at, created_at, qualification_reply, qualification_reply_at, qualification_escalated_at, qualification_verdict, qualification_verdict_category";
+  "capture_method, id, slug, care_recipient, care_type, urgency, zip, first_name, phone, note, payment_type, status, accepted_offer_id, offer_count, next_offer_at, created_at, qualification_reply, qualification_reply_at, qualification_escalated_at, qualification_verdict, qualification_verdict_category, meta_campaign_id, handed_at";
 
 /**
  * How long a native lead waits for its qualifying reply before a person is
@@ -182,7 +186,7 @@ export async function startOrAdvance(
   db: SupabaseClient,
   leadId: string,
   opts: { force?: boolean; providerId?: string } = {},
-): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "escalated" | "held" | "noop"; providerName?: string }> {
+): Promise<{ action: "offered" | "parked" | "unfilled" | "closed" | "escalated" | "held" | "handed" | "noop"; providerName?: string }> {
   if (await cityLeadBlocked(db, leadId)) return { action: "noop" };
   const lead = await getLead(db, leadId);
   if (!lead) return { action: "noop" };
@@ -192,6 +196,35 @@ export async function startOrAdvance(
   const cfg = getCityConfig(lead.slug);
   const tz = cfg?.timeZone ?? "America/New_York";
   const city = cfg?.city ?? lead.slug;
+
+  // A LEAD FROM A PROVIDER'S OWN AD IS HERS. It skips the pool, the offer clock
+  // and the person-calls-it escalation below: it is handed to her campaign page
+  // once it has either answered as a family or had an hour to answer. See
+  // primary.server.ts. A handed lead is closed to the relay; only an explicit
+  // admin "Offer to…" (providerId or force) moves it anywhere else.
+  if (!opts.providerId && !opts.force) {
+    if (lead.handed_at) return { action: "closed" };
+    const primary = await resolvePrimaryCampaign(db, lead);
+    if (primary) {
+      // Judged not a family (job seeker, spam): the qualification pass has
+      // already filed it, and it never reaches her.
+      if (lead.qualification_verdict === "not_care_seeker") return { action: "held" };
+      const replied = lead.qualification_verdict === "care_seeker";
+      const waited = Date.now() - new Date(lead.created_at).getTime() >= HANDOVER_AFTER_MS;
+      if (!replied && !waited) return { action: "held" };
+      const handed = await handToPrimary(db, lead, primary, replied ? "replied" : "timer");
+      if (handed) {
+        // Best-effort: the family is on her page either way.
+        try {
+          const tl = await getThreadLead(db, lead.id);
+          if (tl) await notifyProviderOfHandover(db, tl);
+        } catch (e) {
+          console.error("[city-ads] handover notice failed", e);
+        }
+      }
+      return { action: handed ? "handed" : "noop", providerName: primary.providerName ?? undefined };
+    }
+  }
 
   // NO REQUEST GOES TO A PROVIDER UNANSWERED. One rule, both front doors.
   //
@@ -613,8 +646,11 @@ export async function acceptOffer(
     `✅ City lead ${lead.id.slice(0, 8)} (${city}) ACCEPTED by ${providerName}${source === "admin" ? " (admin)" : source === "provider_page" ? " (link)" : " (text)"}. ${lead.first_name} told to expect a call ${callBy}. /admin/city-ads`,
   );
 
-  // The receipt. Only for an arm the provider is actually paying for — see
-  // `managedCampaignTag` in config.ts for why this is opt-in per city.
+  // The receipt. Only for an ad the provider is actually paying for: one whose
+  // city_campaigns row names her campaign (see primary.server.ts). An
+  // Olera-funded city arm has no primary provider and writes nothing, because
+  // crediting a pool lead to her own campaign would tell her that her ad
+  // produced a family that ours did.
   //
   // Awaited, not fire-and-forget: this runs inside a serverless request and a
   // dangling promise is the one that does not survive the response.
@@ -625,15 +661,16 @@ export async function acceptOffer(
   // conversion id would be worse than a missing one.
   // Both halves required: the tag names a campaign, the id names whose it is.
   // A pool can hold several providers and only one of them is paying for this
-  // arm, so an unguarded write would put a lead on the wrong dashboard.
-  if (cfg?.managedCampaignTag && cfg.managedProviderId === offer.provider_id) {
+  // ad, so an unguarded write would put a lead on the wrong dashboard.
+  const primary = await resolvePrimaryCampaign(db, lead);
+  if (primary?.campaignTag && primary.providerId === offer.provider_id) {
     await recordProviderEvent({
       provider_id: provider?.slug ?? offer.provider_id,
       event_type: "lead_received",
       profile_id: offer.provider_id,
       metadata: {
         utm_source: "olera_managed",
-        utm_campaign: cfg.managedCampaignTag,
+        utm_campaign: primary.campaignTag,
         city_lead_id: lead.id,
         city_offer_id: offer.id,
         capture_method: lead.capture_method ?? null,
@@ -790,15 +827,23 @@ async function runQualificationPass(db: SupabaseClient): Promise<{ judged: numbe
     const city = getCityConfig(row.slug)?.city ?? row.slug;
     const who = String(row.first_name ?? "").trim().split(/\s+/)[0] || "there";
     const said = (row.qualification_reply ?? "").slice(0, 200);
+    // A lead already handed to its ad's provider has been on her campaign
+    // page since before this reply, so the usual "nothing went to a provider"
+    // would be false. Filing it takes it off her page.
+    const handed = !!row.handed_at;
     if (file) {
       out.filed++;
       await sendSlackAlert(
-        `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and will NOT go to a provider. They said: "${said}" ${result.reason} Wrong? Put them back at /admin/city-ads.`,
+        handed
+          ? `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and taken off the provider's campaign page, where it had been since the hand-over. They said: "${said}" ${result.reason} Wrong? Put them back at /admin/city-ads.`
+          : `🗂️ City lead ${row.id.slice(0, 8)} (${city}): ${who} filed as ${result.category.replace(/_/g, " ")} and will NOT go to a provider. They said: "${said}" ${result.reason} Wrong? Put them back at /admin/city-ads.`,
       );
     } else if (result.verdict !== "care_seeker") {
       out.holding++;
       await sendSlackAlert(
-        `🕵️ City lead ${row.id.slice(0, 8)} (${city}): ${who} is held as ${result.category.replace(/_/g, " ")}, nothing has gone to a provider. They said: "${said}" ${result.reason} Read it and decide at /admin/city-ads.`,
+        handed
+          ? `🕵️ City lead ${row.id.slice(0, 8)} (${city}): ${who} replied and reads as ${result.category.replace(/_/g, " ")}. They are still on the provider's campaign page. They said: "${said}" ${result.reason} Archive at /admin/city-ads if it should come off.`
+          : `🕵️ City lead ${row.id.slice(0, 8)} (${city}): ${who} is held as ${result.category.replace(/_/g, " ")}, nothing has gone to a provider. They said: "${said}" ${result.reason} Read it and decide at /admin/city-ads.`,
       );
     }
   }
@@ -868,6 +913,9 @@ export async function runOfferMaintenance(db: SupabaseClient): Promise<{
     .eq("is_test", false)
     .in("status", ["new", "offered"])
     .is("accepted_offer_id", null)
+    // Handed leads belong to a provider's campaign page and are closed to the
+    // relay. Excluding them keeps them from crowding this 50-row window.
+    .is("handed_at", null)
     .or(`next_offer_at.lte.${now},and(next_offer_at.is.null,created_at.lte.${twoMinAgo})`)
     .limit(50);
   for (const w of waiting ?? []) {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ORIGIN_LABEL, EPISODE_WORD } from "@/lib/seeker-touches/present";
 import type { PlanStep, RoutingPlan } from "@/lib/city-ads/plan.server";
 import LogFamilyTouch from "@/components/admin/LogFamilyTouch";
+import CityLeadTools, { type CityLeadToolsData } from "@/components/admin/CityLeadTools";
 import {
   SEEKER_FLAG_LABEL,
   type SeekerFlag,
@@ -111,7 +112,7 @@ function fmt(iso: string): string {
 }
 
 /** What the route returns alongside the plan for a city lead. */
-type Routing = {
+type Routing = Partial<Omit<CityLeadToolsData, "lead_id" | "status">> & {
   lead_id: string;
   status: string;
   can_route: boolean;
@@ -516,6 +517,12 @@ function AdminSeekerTimelineInner() {
           the relay reads, so it cannot promise something different. */}
       {plan && (plan.steps.length > 0 || plan.state === "held" || data.routing?.can_route) && (
         <RoutingPanel plan={plan} routing={data.routing ?? null} citySlug={data.city_slug} onRouted={load} />
+      )}
+
+      {/* Everything else a city lead needs, so this page is the one place a
+          family is worked: hand-over, offers, how it went, messages, a note. */}
+      {data.routing && Array.isArray(data.routing.offers) && (
+        <CityLeadTools data={data.routing as CityLeadToolsData} onChanged={load} />
       )}
 
       {providers.length > 0 && (

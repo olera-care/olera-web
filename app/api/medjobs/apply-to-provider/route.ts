@@ -4,11 +4,14 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/email";
 import { applicationReceivedEmail, applicationSentEmail } from "@/lib/medjobs-email-templates";
+import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import { sendSlackAlert, slackMedJobsApplication } from "@/lib/slack";
 import { sendSMS } from "@/lib/twilio";
 import { medjobsApplicationSms } from "@/lib/sms/templates";
 import { getTrackLabel } from "@/lib/medjobs-helpers";
 import type { StudentMetadata } from "@/lib/types";
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
 function getSupabaseAdmin() {
@@ -114,8 +117,11 @@ export async function POST(req: NextRequest) {
     const studentMeta = studentProfile.metadata as StudentMetadata;
 
     // Fire-and-forget: email to provider
+    // Note: Provider email uses direct URL (no magic link for MedJobs provider portal yet)
     if (providerProfile.email) {
       try {
+        const providerViewUrl = `${BASE_URL}/medjobs/candidates/${studentProfile.slug}`;
+
         await sendEmail({
           to: providerProfile.email,
           subject: `New MedJobs Application from ${studentProfile.display_name}`,
@@ -124,7 +130,7 @@ export async function POST(req: NextRequest) {
             studentName: studentProfile.display_name,
             university: studentMeta.university || "Not specified",
             programTrack: getTrackLabel(studentMeta) || "Not specified",
-            profileSlug: studentProfile.slug,
+            viewUrl: providerViewUrl,
           }),
           emailType: "application_received",
           recipientType: "provider",
@@ -135,18 +141,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fire-and-forget: email to student
+    // Fire-and-forget: email to student (with magic link)
     if (studentProfile.email) {
       try {
+        const studentViewUrl = generateStudentPortalUrl(studentProfile.email, "/portal/medjobs");
+
         await sendEmail({
           to: studentProfile.email,
           subject: `Application sent to ${providerProfile.display_name}`,
           html: applicationSentEmail({
             studentName: studentProfile.display_name,
             providerName: providerProfile.display_name,
+            viewUrl: studentViewUrl,
           }),
           emailType: "application_sent",
           recipientType: "student",
+          recipientProfileId: studentProfile.id,
         });
       } catch (err) {
         console.error("[medjobs/apply-to-provider] student email error:", err);

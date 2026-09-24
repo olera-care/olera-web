@@ -3,9 +3,10 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail, reserveEmailLogId } from "@/lib/email";
 import { connectionResponseEmail, providerSilentEmail, careUnsubscribeUrl } from "@/lib/email-templates";
+import { applicationResponseEmail } from "@/lib/medjobs-email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
+import { generateFamilyInboxUrl, generateStudentPortalUrl } from "@/lib/claim-tokens";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 import { connectionResponseSms } from "@/lib/sms/templates";
 
@@ -128,6 +129,73 @@ export async function POST(request: Request) {
         if (statusError) {
           console.error(`[manage] ${action} error:`, statusError);
           return NextResponse.json({ error: `Failed to ${action}` }, { status: 500 });
+        }
+
+        // MedJobs Application flow: student applied to provider
+        // Send applicationResponseEmail to student when provider accepts/declines
+        if (connection.type === "application") {
+          try {
+            // For applications: from_profile_id = student, to_profile_id = provider
+            const studentProfileId = connection.from_profile_id;
+            const providerProfileId = connection.to_profile_id;
+
+            const [{ data: studentBp }, { data: providerBp }] = await Promise.all([
+              admin
+                .from("business_profiles")
+                .select("email, display_name, account_id")
+                .eq("id", studentProfileId)
+                .single(),
+              admin
+                .from("business_profiles")
+                .select("display_name")
+                .eq("id", providerProfileId)
+                .single(),
+            ]);
+
+            // Look up student's auth email via accounts table
+            let studentEmail = studentBp?.email;
+            if (!studentEmail && studentBp?.account_id) {
+              const { data: acct } = await admin
+                .from("accounts")
+                .select("user_id")
+                .eq("id", studentBp.account_id)
+                .single();
+              if (acct?.user_id) {
+                const { data: { user: authUser } } = await admin.auth.admin.getUserById(acct.user_id);
+                studentEmail = authUser?.email;
+              }
+            }
+
+            if (studentEmail) {
+              const studentName = studentBp?.display_name || "there";
+              const providerName = providerBp?.display_name || "The provider";
+
+              // Magic link for student portal
+              const viewUrl = generateStudentPortalUrl(studentEmail, "/portal/medjobs");
+
+              const subject = action === "accept"
+                ? `${providerName} accepted your application!`
+                : `Update on your application to ${providerName}`;
+
+              await sendEmail({
+                to: studentEmail,
+                subject,
+                html: applicationResponseEmail({
+                  studentName,
+                  providerName,
+                  accepted: action === "accept",
+                  viewUrl,
+                }),
+                emailType: "application_response",
+                recipientType: "student",
+                recipientProfileId: studentProfileId,
+              });
+            }
+          } catch (emailErr) {
+            console.error(`[manage] application ${action} email failed:`, emailErr);
+          }
+
+          return NextResponse.json({ status: newStatus });
         }
 
         // Send email to the initiator (the one who started the connection)

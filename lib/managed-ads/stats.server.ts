@@ -145,7 +145,10 @@ export async function getManagedAdsStats(): Promise<ManagedAdsStats | null> {
       db
         .from("city_campaigns")
         .select("slug, status, campaign_tag, ad_spend_cents, ad_clicks, ad_impressions, metrics_updated_at")
-        .in("status", SERVED_STATUSES),
+        .in("status", SERVED_STATUSES)
+        // An ad that belongs to a provider's campaign is already counted through
+        // that campaign; counting it here too would add a metro and double spend.
+        .is("request_id", null),
     ]);
 
     const providerRows = (providerRes.data ?? []) as CampaignMetricRow[];

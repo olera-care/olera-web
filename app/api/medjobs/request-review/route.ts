@@ -50,6 +50,8 @@ export async function POST(_request: NextRequest) {
     const meta = (student.metadata ?? {}) as StudentMetadata & {
       application_completed?: boolean;
       review_requested_at?: string;
+      rejected_at?: string;
+      rejection_reason?: string;
     };
 
     // If already approved (application_completed), they should use toggle-visibility
@@ -60,10 +62,30 @@ export async function POST(_request: NextRequest) {
       );
     }
 
-    // If already has a pending review request
+    // Check if there's a pending review request (not yet acted on by admin)
+    // A student can re-request if they were rejected (rejected_at > review_requested_at)
     if (meta.review_requested_at) {
+      const wasRejectedAfterRequest = meta.rejected_at &&
+        new Date(meta.rejected_at) > new Date(meta.review_requested_at);
+
+      if (!wasRejectedAfterRequest) {
+        // Still pending — don't allow duplicate request
+        return NextResponse.json(
+          { error: "Review already requested. Please wait for admin approval." },
+          { status: 400 }
+        );
+      }
+      // Otherwise: was rejected, allow re-request (fall through)
+    }
+
+    // Require .edu email for student verification (go-live gate)
+    // Students can save partial progress with any email, but must have .edu to request review
+    const email = student.email?.trim().toLowerCase() || "";
+    if (!email.endsWith(".edu")) {
       return NextResponse.json(
-        { error: "Review already requested. Please wait for admin approval." },
+        {
+          error: "A .edu email is required for student verification. Please update your email in Profile Overview.",
+        },
         { status: 400 }
       );
     }
@@ -89,12 +111,18 @@ export async function POST(_request: NextRequest) {
       );
     }
 
-    // Set review_requested_at timestamp
+    // Set review_requested_at timestamp and clear any previous rejection
     const nowIso = new Date().toISOString();
+    const { rejected_at: _cleared1, rejection_reason: _cleared2, ...restMeta } = meta;
+    void _cleared1; void _cleared2; // Intentionally removing these fields
+    const updatedMeta = {
+      ...restMeta,
+      review_requested_at: nowIso,
+    };
     const { error: updateError } = await admin
       .from("business_profiles")
       .update({
-        metadata: { ...meta, review_requested_at: nowIso },
+        metadata: updatedMeta,
         updated_at: nowIso,
       })
       .eq("id", student.id);

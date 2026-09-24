@@ -15,6 +15,17 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient, type SupabaseClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email";
+import { generateStudentPortalUrl } from "@/lib/claim-tokens";
+import {
+  placementOfferedEmail,
+  placementAcceptedEmail,
+  placementAcceptedStudentEmail,
+  placementDeclinedEmail,
+  placementCancelledEmail,
+} from "@/lib/medjobs-email-templates";
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
 type Ctx =
   | { error: NextResponse }
@@ -84,6 +95,20 @@ export async function POST(request: Request) {
     .maybeSingle();
   if (existing) return NextResponse.json({ ok: true, placement: existing, existing: true });
 
+  // Fetch both profiles for email
+  const [{ data: studentProfile }, { data: providerProfile }] = await Promise.all([
+    supabase
+      .from("business_profiles")
+      .select("id, display_name, email, slug")
+      .eq("id", body.student_profile_id)
+      .single(),
+    supabase
+      .from("business_profiles")
+      .select("id, display_name, email, slug")
+      .eq("id", providerProfileId)
+      .single(),
+  ]);
+
   const nowIso = new Date().toISOString();
   const { data, error } = await supabase
     .from("medjobs_placements")
@@ -99,6 +124,32 @@ export async function POST(request: Request) {
     .select("*")
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Send placement offer email to student
+  if (studentProfile?.email && providerProfile?.display_name) {
+    try {
+      // Use generic student portal URL (authenticates and redirects to MedJobs portal)
+      const studentViewUrl = generateStudentPortalUrl(studentProfile.email, "/portal/medjobs");
+
+      await sendEmail({
+        to: studentProfile.email,
+        subject: `${providerProfile.display_name} wants to hire you!`,
+        html: placementOfferedEmail({
+          studentName: studentProfile.display_name || "there",
+          providerName: providerProfile.display_name,
+          notes: body.notes || null,
+          viewUrl: studentViewUrl,
+        }),
+        emailType: "placement_offered",
+        recipientType: "student",
+        recipientProfileId: studentProfile.id,
+      });
+    } catch (err) {
+      console.error("[medjobs/placements] placement offer email error:", err);
+      // Non-fatal — placement still created
+    }
+  }
+
   return NextResponse.json({ ok: true, placement: data });
 }
 
@@ -157,6 +208,106 @@ export async function PATCH(request: Request) {
     .select("*")
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Fetch profiles for email notifications
+  const [{ data: studentProfile }, { data: providerProfile }] = await Promise.all([
+    supabase
+      .from("business_profiles")
+      .select("id, display_name, email, slug")
+      .eq("id", p.student_profile_id)
+      .single(),
+    supabase
+      .from("business_profiles")
+      .select("id, display_name, email, slug")
+      .eq("id", p.provider_profile_id)
+      .single(),
+  ]);
+
+  // Send emails based on action
+  try {
+    if (body.action === "accept" && studentProfile && providerProfile) {
+      // Student accepted — notify provider
+      // Note: Provider URLs use direct links (no magic link for MedJobs provider portal yet)
+      if (providerProfile.email) {
+        const providerViewUrl = `${BASE_URL}/provider/medjobs/candidates`;
+
+        await sendEmail({
+          to: providerProfile.email,
+          subject: `${studentProfile.display_name || "A student"} accepted your job offer!`,
+          html: placementAcceptedEmail({
+            providerName: providerProfile.display_name || "there",
+            studentName: studentProfile.display_name || "The student",
+            viewUrl: providerViewUrl,
+          }),
+          emailType: "placement_accepted",
+          recipientType: "provider",
+          recipientProfileId: providerProfile.id,
+        });
+      }
+
+      // Send confirmation to student
+      if (studentProfile.email) {
+        const studentViewUrl = generateStudentPortalUrl(studentProfile.email, "/portal/medjobs");
+
+        await sendEmail({
+          to: studentProfile.email,
+          subject: `You accepted the offer from ${providerProfile.display_name || "the provider"}`,
+          html: placementAcceptedStudentEmail({
+            studentName: studentProfile.display_name || "there",
+            providerName: providerProfile.display_name || "The provider",
+            viewUrl: studentViewUrl,
+          }),
+          emailType: "placement_accepted_confirmation",
+          recipientType: "student",
+          recipientProfileId: studentProfile.id,
+        });
+      }
+    }
+
+    if (body.action === "decline" && studentProfile && providerProfile) {
+      // Student declined — notify provider
+      if (providerProfile.email) {
+        const providerViewUrl = `${BASE_URL}/provider/medjobs/candidates`;
+
+        await sendEmail({
+          to: providerProfile.email,
+          subject: `${studentProfile.display_name || "A student"} declined your job offer`,
+          html: placementDeclinedEmail({
+            providerName: providerProfile.display_name || "there",
+            studentName: studentProfile.display_name || "The student",
+            viewUrl: providerViewUrl,
+          }),
+          emailType: "placement_declined",
+          recipientType: "provider",
+          recipientProfileId: providerProfile.id,
+        });
+      }
+    }
+
+    if (body.action === "cancel" && studentProfile && providerProfile) {
+      // Provider cancelled — notify student
+      if (studentProfile.email) {
+        const studentViewUrl = generateStudentPortalUrl(studentProfile.email, "/portal/medjobs");
+
+        await sendEmail({
+          to: studentProfile.email,
+          subject: `Offer update from ${providerProfile.display_name || "a provider"}`,
+          html: placementCancelledEmail({
+            studentName: studentProfile.display_name || "there",
+            providerName: providerProfile.display_name || "The provider",
+            viewUrl: studentViewUrl,
+          }),
+          emailType: "placement_cancelled",
+          recipientType: "student",
+          recipientProfileId: studentProfile.id,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("[medjobs/placements] placement email error:", err);
+    // Non-fatal — placement action still succeeded
+  }
+
   return NextResponse.json({ ok: true, placement: data });
 }
 

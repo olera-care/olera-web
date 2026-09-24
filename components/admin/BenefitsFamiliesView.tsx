@@ -1872,7 +1872,11 @@ function CasePanel({
             onClick={() => onAction("hold_clear")}
             disabled={busy}
             className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 disabled:opacity-40"
-            title="Logging a contact or resolving the case also resumes it"
+            title={
+              automationHold.reason === "deceased"
+                ? "Only this button resumes it after a death report"
+                : "Logging a contact or resolving the case also resumes it"
+            }
           >
             Resume automation
           </button>

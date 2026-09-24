@@ -170,14 +170,18 @@ export function defaultHelpOwner(): string {
  * date that is a day early is the safe direction to be wrong in.
  */
 export function addBusinessDays(fromIso: string, days: number): string {
-  const d = new Date(fromIso);
+  // Count on the Eastern calendar date. Shifting by 5h makes the UTC fields
+  // read as the ET wall clock (within an hour across DST), so a request at
+  // 9pm ET Thursday counts from Thursday, not from the UTC Friday it already
+  // is. Counting on the UTC date put evening requests a day late.
+  const d = new Date(new Date(fromIso).getTime() - 5 * 3600e3);
   let added = 0;
   while (added < days) {
     d.setUTCDate(d.getUTCDate() + 1);
-    const dow = new Date(d.getTime() - 5 * 3600e3).getUTCDay();
+    const dow = d.getUTCDay();
     if (dow !== 0 && dow !== 6) added++;
   }
-  // 22:00 UTC = 6pm EDT / 5pm EST, end of the working day either way.
+  // 22:00 UTC on that ET date = 6pm EDT / 5pm EST, end of the working day.
   d.setUTCHours(22, 0, 0, 0);
   return d.toISOString();
 }

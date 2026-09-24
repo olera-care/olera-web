@@ -817,9 +817,13 @@ export async function POST(
     }
 
     // A logged contact or a resolution means a person has handled the
-    // family's reply, so the automation hold lifts with it.
-    const baseMeta =
-      action === "contacted" || action === "resolved" ? withHoldCleared(meta, by, now) : meta;
+    // family's reply, so the automation hold lifts with it. Not a death
+    // report: a condolence call is not a signal to resume "How is it going?"
+    // and re-enable nudges. That one takes the explicit "Resume automation"
+    // button, the same rule resumeAfterHumanReply follows.
+    const liftsHold =
+      (action === "contacted" || action === "resolved") && readBenefitsHold(meta)?.reason !== "deceased";
+    const baseMeta = liftsHold ? withHoldCleared(meta, by, now) : meta;
     const { error: updErr } = await db
       .from("business_profiles")
       .update({ metadata: { ...baseMeta, benefits_case: next } })

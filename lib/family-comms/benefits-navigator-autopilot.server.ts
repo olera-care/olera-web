@@ -89,6 +89,11 @@ export function classifyForAutopilot(
   const ageMs = changedAt ? now - new Date(changedAt).getTime() : Infinity;
   const recomposes = nav.auto_recompose_count ?? 0;
   const humanEdited = !!nav.edited_at;
+  // An automatic recompose of THIS text already failed (no program, model
+  // error, unparseable draft). Retrying hourly would re-bill the model for
+  // the same result; the letter waits for a person. A person's recompose
+  // writes a fresh navigator without the stamp.
+  const recomposeFailed = !!nav.auto_recompose_failed_at;
 
   if (nav.packet.route === "auto") {
     // A previous send of THIS text was blocked for a non-transient reason
@@ -99,13 +104,14 @@ export function classifyForAutopilot(
     }
     if (ageMs <= STALE_LETTER_DAYS * DAY) return { kind: "send" };
     if (humanEdited) return { kind: "skip", why: "stale, but a person edited it" };
+    if (recomposeFailed) return { kind: "skip", why: "automatic recompose failed" };
     if (recomposes >= MAX_AUTO_RECOMPOSES) return { kind: "skip", why: "recompose limit reached" };
     return { kind: "recompose", why: "stale" };
   }
 
   if (nav.packet.route === "recompose") {
     if (humanEdited) return { kind: "skip", why: "ruled out, but a person edited it" };
-    if (nav.auto_recompose_failed_at) return { kind: "skip", why: "no other qualifying program" };
+    if (recomposeFailed) return { kind: "skip", why: "automatic recompose failed" };
     if (recomposes >= MAX_AUTO_RECOMPOSES) return { kind: "skip", why: "recompose limit reached" };
     return { kind: "recompose", why: "ruled_out" };
   }
@@ -114,6 +120,35 @@ export function classifyForAutopilot(
 }
 
 // ── Recompose (shared with the admin button) ───────────────────────────────
+
+/** The auto-recompose result when a person acted on the letter mid-redraft. */
+const RECOMPOSE_CONFLICT = "The letter changed while it was being redrafted";
+const NO_PENDING_DRAFT = "No pending draft for this family";
+
+/** Record that an automatic recompose failed, on the still-pending letter. */
+async function stampRecomposeFailed(db: SupabaseClient, profileId: string, reason: string) {
+  const { data: fresh } = await db
+    .from("business_profiles")
+    .select("metadata")
+    .eq("id", profileId)
+    .maybeSingle();
+  const freshMeta = (fresh?.metadata as Record<string, unknown> | null) || {};
+  const freshNav = readBenefitsNavigator(freshMeta);
+  if (freshNav.status !== "pending") return;
+  await db
+    .from("business_profiles")
+    .update({
+      metadata: {
+        ...freshMeta,
+        benefits_navigator: {
+          ...freshNav,
+          auto_recompose_failed_at: new Date().toISOString(),
+          auto_recompose_failed_reason: reason.slice(0, 300),
+        },
+      },
+    })
+    .eq("id", profileId);
+}
 
 export type RecomposeResult =
   | { ok: true; navigator: BenefitsNavigatorMeta }
@@ -142,7 +177,7 @@ export async function recomposeNavigatorLetter(
   const meta = (profile.metadata as Record<string, unknown>) || {};
   const navigator = readBenefitsNavigator(meta);
   if (navigator.status !== "pending" || !navigator.body) {
-    return { ok: false, status: 409, error: "No pending draft for this family" };
+    return { ok: false, status: 409, error: NO_PENDING_DRAFT };
   }
   const intakeAt = (meta as { benefits_results?: { completed_at?: string } }).benefits_results
     ?.completed_at;
@@ -228,7 +263,7 @@ export async function recomposeNavigatorLetter(
       freshNav.scheduled_at ||
       freshNav.composed_at !== navigator.composed_at
     ) {
-      return { ok: false, status: 409, error: "The letter changed while it was being redrafted" };
+      return { ok: false, status: 409, error: RECOMPOSE_CONFLICT };
     }
   }
   const { error: updateErr } = await db
@@ -363,37 +398,32 @@ export async function runNavigatorAutopilot(
         recomposeLines.push(`${item.label} → ${result.navigator.pick?.shortName ?? "?"}`);
       } else {
         counts.recompose_failed++;
-        // "No qualifying program" will not change by itself. Stamp it so the
-        // autopilot stops retrying and the queue shows why it is waiting.
-        if (result.error.startsWith("No ")) {
-          const { data: fresh } = await db
-            .from("business_profiles")
-            .select("metadata")
-            .eq("id", item.id)
-            .maybeSingle();
-          const freshMeta = (fresh?.metadata as Record<string, unknown> | null) || {};
-          const freshNav = readBenefitsNavigator(freshMeta);
-          if (freshNav.status === "pending") {
-            await db
-              .from("business_profiles")
-              .update({
-                metadata: {
-                  ...freshMeta,
-                  benefits_navigator: {
-                    ...freshNav,
-                    auto_recompose_failed_at: new Date().toISOString(),
-                    auto_recompose_failed_reason: result.error.slice(0, 300),
-                  },
-                },
-              })
-              .eq("id", item.id);
-          }
-          blockedLines.push(`${item.label}: could not recompose, no other qualifying program`);
+        // A person acting on the letter (mid-redraft, or sending / dismissing
+        // it since the list was read) is not a failure; their action stands.
+        if (result.error !== RECOMPOSE_CONFLICT && result.error !== NO_PENDING_DRAFT) {
+          // Every other failure (no qualifying program, unparseable draft,
+          // failed save) would repeat next hour at full model cost. Stamp it
+          // so the autopilot stops and the reason is on record.
+          await stampRecomposeFailed(db, item.id, result.error);
+          blockedLines.push(
+            result.error.startsWith("No ")
+              ? `${item.label}: could not recompose, no other qualifying program`
+              : `${item.label}: could not recompose (${result.error})`,
+          );
         }
       }
     } catch (err) {
       counts.recompose_failed++;
       console.error("[navigator-autopilot] recompose threw:", item.id, err);
+      // A thrown compose (model timeout, API error) is stamped too: without
+      // it the same letter re-bills the model every hour, and nothing counts
+      // failed attempts toward MAX_AUTO_RECOMPOSES.
+      await stampRecomposeFailed(
+        db,
+        item.id,
+        `Automatic recompose errored: ${err instanceof Error ? err.message : String(err)}`,
+      ).catch((e) => console.error("[navigator-autopilot] failure stamp failed:", item.id, e));
+      blockedLines.push(`${item.label}: automatic recompose errored`);
     }
   }
 

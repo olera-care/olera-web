@@ -9,6 +9,7 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import type { CitySearchResult } from "@/lib/us-city-search";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
+import { exactAgeInput, legacyChipAgeToKeep } from "@/lib/benefits/age";
 
 // ============================================================
 // Types
@@ -246,7 +247,7 @@ export default function ProfileEditSheet({
 
   // Recipient section state
   const [whoNeedsCare, setWhoNeedsCare] = useState(meta.relationship_to_recipient || "");
-  const [age, setAge] = useState<string>(meta.age ? String(meta.age) : "");
+  const [age, setAge] = useState<string>(exactAgeInput(meta));
   const [description, setDescription] = useState(meta.about_situation || profile.description || "");
 
   // Needs section state
@@ -368,7 +369,7 @@ export default function ProfileEditSheet({
 
       updatedMeta.contact_preference = contactPref || null;
       updatedMeta.relationship_to_recipient = whoNeedsCare || null;
-      updatedMeta.age = age ? parseInt(age, 10) : null;
+      updatedMeta.age = age ? parseInt(age, 10) : (legacyChipAgeToKeep(existingMeta) ?? null);
       updatedMeta.care_needs = careNeeds.length > 0 ? careNeeds : [];
       updatedMeta.timeline = timeline || null;
       updatedMeta.schedule_preference = schedulePreference || null;

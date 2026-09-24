@@ -150,7 +150,7 @@ export default function AboutPage() {
           </h2>
           <p className="mt-4 text-primary-100 text-lg">
             Browse thousands of vetted providers or check what benefits your family
-            qualifies for — free, no signup required.
+            may qualify for. It&apos;s free.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link

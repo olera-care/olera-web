@@ -9,6 +9,7 @@ import {
   pickQuizQuestion,
 } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
+import { chipValueToAgeBand } from "@/lib/benefits/age";
 import { recordGuidanceEvent, slackQuizAnswer } from "@/lib/family-comms/guidance-events.server";
 import { ARCHETYPE_ANSWERS, archetypePayoff, type Archetype } from "@/lib/family-comms/archetype";
 
@@ -36,7 +37,9 @@ const ALLOWED_ANSWERS: Record<QuizQuestion, Set<string>> = {
   path: new Set(["a", "b", "c"]),
   medicaid: new Set(["alreadyHas", "applying", "notSure", "doesNotHave"]),
   veteran: new Set(["yes", "no"]),
-  age: new Set(["60", "70", "80", "87"]),
+  // Bands. Legacy "60"/"70"/"80"/"87" answers are still accepted because
+  // signed tokens already sitting in inboxes carry them; both map to a band.
+  age: new Set(["60", "70", "80", "87", "under_65", "65_74", "75_84", "85_plus"]),
   // Intent/urgency self-sort (the guidance journey's FIRST question). Not a
   // benefits fact — it drives tone/cadence + which help we lead with.
   archetype: new Set([...ARCHETYPE_ANSWERS]),
@@ -87,10 +90,18 @@ export async function POST(request: NextRequest) {
     if (question === "path") meta.financial_path = answer;
     else if (question === "medicaid") meta.medicaid_status = answer;
     else if (question === "veteran") meta.veteran_status = answer;
-    else if (question === "age") meta.age = parseInt(answer, 10);
+    else if (question === "age") {
+      // Store the band, never a fake exact age (see lib/benefits/age.ts).
+      const band = chipValueToAgeBand(answer);
+      if (band) {
+        meta.age_band = band;
+        delete meta.age;
+      }
+    }
     else if (question === "archetype") meta.archetype = answer;
     const quizAnswers = (meta.quiz_answers as Record<string, unknown>) || {};
-    quizAnswers[question] = { answer, at: new Date().toISOString(), via: "one_tap", ...(src ? { src } : {}) };
+    const storedAnswer = question === "age" ? chipValueToAgeBand(answer) || answer : answer;
+    quizAnswers[question] = { answer: storedAnswer, at: new Date().toISOString(), via: "one_tap", ...(src ? { src } : {}) };
     meta.quiz_answers = quizAnswers;
 
     const { error: updErr } = await db

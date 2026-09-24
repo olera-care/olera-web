@@ -263,7 +263,7 @@ export function ChecklistClient({
         {/* Bottom CTA */}
         <div className="mt-6 bg-white rounded-xl border border-gray-200 py-10 text-center">
           <h3 className="text-2xl font-bold text-gray-900">Ready to Apply?</h3>
-          <p className="mt-2 text-sm text-gray-500">Check if you qualify for {programShortName} in 2 minutes. Free, no signup required.</p>
+          <p className="mt-2 text-sm text-gray-500">Check if you qualify for {programShortName} in about 2 minutes. Free to use.</p>
           <a
             href="/benefits/finder"
             className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"

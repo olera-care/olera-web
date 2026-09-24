@@ -316,10 +316,11 @@ export async function composeNavigatorDraft(
   const missing: string[] = [];
   const pMeta = input.profileMeta as {
     age?: unknown;
+    age_band?: unknown;
     medicaid_status?: unknown;
     income_range?: unknown;
   };
-  if (!pMeta.age) missing.push("the age of the person needing care");
+  if (!pMeta.age && !pMeta.age_band) missing.push("the age of the person needing care");
   if (!pMeta.medicaid_status) missing.push("whether they are on Medicaid");
   if (!pMeta.income_range) missing.push("a rough monthly income range");
   // The intake asks for the recipient's income, but every means test counts

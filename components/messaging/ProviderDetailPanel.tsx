@@ -7,6 +7,7 @@ import type { Profile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import VerifyToUnlockPrompt from "@/components/provider/VerifyToUnlockPrompt";
+import { readCareAge, careAgeDisplay, hasCareAge } from "@/lib/benefits/age";
 
 interface ProviderDetailPanelProps {
   profile: Profile;
@@ -60,7 +61,7 @@ function calculateFamilyCompleteness(profile: Profile, meta: FamilyMetadata): nu
     !!profile.phone,
     !!meta.contact_preference,
     !!meta.relationship_to_recipient,
-    !!meta.age,
+    hasCareAge(readCareAge(meta)),
     !!profile.description || !!meta.about_situation,
     (profile.care_types?.length ?? 0) > 0,
     (meta.care_needs?.length ?? 0) > 0,
@@ -412,7 +413,7 @@ export default function ProviderDetailPanel({
                           <p className="text-sm text-gray-500">Who needs care</p>
                           <p className="text-[14px] font-medium text-gray-700">
                             {meta.relationship_to_recipient || meta.who_needs_care || "Not specified"}
-                            {meta.age && `, ${meta.age} years old`}
+                            {careAgeDisplay(readCareAge(meta)) && `, ${careAgeDisplay(readCareAge(meta))}`}
                           </p>
                         </div>
                       )}

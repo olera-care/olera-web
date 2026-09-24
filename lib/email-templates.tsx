@@ -518,25 +518,11 @@ export function adBoostTractionEmail(opts: {
   questionTopics?: number | null;
   unansweredQuestionTopics?: number | null;
 }): string {
-  const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : null;
-  const costPerClick =
-    opts.spendCents != null && opts.spendCents > 0 && opts.clicks != null && opts.clicks > 0
-      ? `$${(opts.spendCents / 100 / opts.clicks).toFixed(2)}`
-      : "—";
-  // The ad-platform row is hand-copied from the Google/Meta/Nextdoor dashboard
-  // and only appears when there is something real in it. This email can now be
-  // triggered by measured landings alone, so a campaign that is demonstrably
-  // delivering may still carry 0 typed clicks and $0 typed spend — printing
-  // "0 Ad clicks / $0.00 Ad spend" under a headline that says the campaign is
-  // getting activity reads as broken, and to the provider it looks like we are
-  // reporting failure while calling it traction. Same rule the provider's own
-  // boost view already applies (BoostCampaignViews: render clicks only when
-  // > 0). The visitors/questions/leads row carries the message on its own.
-  const hasPlatformFigures =
-    (opts.clicks ?? 0) > 0 || (opts.spendCents ?? 0) > 0;
-  // Only rule between the two rows when there IS a second row, otherwise the
-  // line doubles up against the table's own bottom border.
-  const rowRule = hasPlatformFigures ? "border-bottom:1px solid #e5e7eb;" : "";
+  // No ad-platform row. It printed ad spend and cost per click, and no dollar
+  // figure goes to a provider: spend is an R&D number that will not look like
+  // this in a year, and it anchors her on a price that is not hers. `clicks`
+  // and `spendCents` are still accepted so existing callers compile.
+  const rowRule = "";
   const questionsReceived = opts.questionsReceived ?? 0;
   const questionsUnanswered = opts.questionsUnanswered ?? 0;
   const questionTopics = opts.questionTopics ?? questionsReceived;
@@ -572,24 +558,6 @@ export function adBoostTractionEmail(opts: {
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Leads</p>
         </td>
       </tr>
-      ${
-        hasPlatformFigures
-          ? `<tr>
-        <td style="padding:14px;border-right:1px solid #e5e7eb;">
-          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${opts.clicks != null ? opts.clicks.toLocaleString() : "—"}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad clicks</p>
-        </td>
-        <td style="padding:14px;border-right:1px solid #e5e7eb;">
-          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${spend ?? "—"}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad spend</p>
-        </td>
-        <td style="padding:14px;">
-          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${costPerClick}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / click</p>
-        </td>
-      </tr>`
-          : ""
-      }
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
       unansweredQuestionTopics > 0
@@ -7062,5 +7030,29 @@ export function cityOutcomePingEmail(opts: { firstName: string; city: string; ca
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">You took their request for ${escapeHtml(opts.careLabel)} in ${escapeHtml(opts.city)}. One tap tells us whether this is working, and it is the only number we report back to you.</p>
     <div>${button("Answer in one tap", opts.offerUrl)}</div>`,
     `Did ${opts.firstName} become a client?`,
+  );
+}
+
+// ============================================================
+// Shared family thread (lib/city-ads/thread.server.ts)
+// ============================================================
+
+/** To a provider: something new about a family from her own ad. */
+export function cityThreadProviderEmail(opts: {
+  eyebrow: string;
+  headline: string;
+  quote?: string | null;
+  body: string;
+  ctaUrl: string;
+  ctaLabel: string;
+}): string {
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${escapeHtml(opts.eyebrow)}</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${escapeHtml(opts.headline)}</h1>
+    ${opts.quote ? `<p style="font-size:15px;color:#111827;background:#f9fafb;border-radius:8px;padding:12px 14px;margin:0 0 16px;line-height:1.6;">&ldquo;${escapeHtml(opts.quote)}&rdquo;</p>` : ""}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">${escapeHtml(opts.body)}</p>
+    <div>${button(opts.ctaLabel, opts.ctaUrl)}</div>`,
+    opts.headline,
   );
 }

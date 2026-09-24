@@ -14,6 +14,8 @@ import { buildArmRollup, type ArmEvent, type ArmLead } from "@/lib/city-ads/arm-
 const ARM_WINDOW_START: string | null = null;
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { acceptOffer, declineOffer, startOrAdvance, type CityOfferRow } from "@/lib/city-ads/offers.server";
+import { resolvePrimaryCampaign, handToPrimary } from "@/lib/city-ads/primary.server";
+import { getThreadLead, notifyProviderOfHandover } from "@/lib/city-ads/thread.server";
 import { suppressPhone } from "@/lib/sms/inbound-store.server";
 import { cityLeadBlocked, citySendWindow, deliverCityMessage } from "@/lib/city-ads/messages.server";
 
@@ -359,6 +361,37 @@ export async function POST(req: NextRequest) {
       case "offer_next": {
         const r = await startOrAdvance(db, String(body.leadId ?? ""), { force: true });
         return NextResponse.json({ ok: true, result: r });
+      }
+      case "hand_to_primary": {
+        // Put a lead on the campaign page of the provider whose ad it came
+        // from, now, without waiting for the reply or the hour.
+        const { data: lead } = await db
+          .from("city_leads")
+          .select("id, slug, first_name, capture_method, meta_campaign_id, archived_at, handed_at")
+          .eq("id", String(body.leadId ?? ""))
+          .maybeSingle();
+        if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+        if (lead.archived_at) return NextResponse.json({ error: `${lead.first_name} is archived. Put them back first.` }, { status: 409 });
+        if (lead.handed_at) return NextResponse.json({ error: `${lead.first_name} is already on the provider's campaign page.` }, { status: 409 });
+        if (await cityLeadBlocked(db, lead.id)) {
+          return NextResponse.json({ error: `${lead.first_name} asked us to stop contacting them, so they can't be handed to a provider.` }, { status: 409 });
+        }
+        const primary = await resolvePrimaryCampaign(db, lead);
+        if (!primary) {
+          return NextResponse.json(
+            { error: "This lead's ad isn't linked to a provider campaign, so there is nobody to hand it to. Use Offer to… instead." },
+            { status: 409 },
+          );
+        }
+        const handed = await handToPrimary(db, lead, primary, "admin");
+        if (!handed) return NextResponse.json({ error: "Nothing changed. It may have been handed over a moment ago." }, { status: 409 });
+        try {
+          const tl = await getThreadLead(db, lead.id);
+          if (tl) await notifyProviderOfHandover(db, tl);
+        } catch (e) {
+          console.error("[admin/city-ads] handover notice failed", e);
+        }
+        return NextResponse.json({ ok: true, message: `${lead.first_name} is now on ${primary.providerName ?? "the provider"}'s campaign page.` });
       }
       case "offer_to": {
         const r = await startOrAdvance(db, String(body.leadId ?? ""), { force: true, providerId: String(body.providerId ?? "") });

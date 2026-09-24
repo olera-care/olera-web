@@ -6,7 +6,9 @@ import {
   boostChannelLabel,
   type BoostRequest,
   type CampaignReceiptData,
+  type CampaignFamiliesData,
 } from "@/lib/ad-boost/boost-state";
+import CampaignHome from "./CampaignHome";
 import {
   BUDGET_STOPS,
   CUSTOM_SCALE_STOP,
@@ -32,15 +34,10 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
   const hasPaidPlan =
     (request.plan_status === "active" || request.plan_status === "past_due") &&
     request.plan_value != null;
-  const configuredBudget =
-    request.ad_budget_cents != null
-      ? request.ad_budget_type === "daily"
-        ? `$${(request.ad_budget_cents / 100).toLocaleString()}/day`
-        : `$${(request.ad_budget_cents / 100).toLocaleString()} total`
-      : null;
-  const budget = hasPaidPlan
-    ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`)
-    : configuredBudget ?? budgetLabel(request.intended_monthly_budget);
+  // Only her plan price. Ad spend and daily budgets never reach this screen:
+  // they are R&D numbers that will not look like this in a year, and "$3.50 a
+  // day" anchors her on a price that is not hers.
+  const budget = hasPaidPlan ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`) : null;
   const flightStart = request.flight_start_date ?? request.requested_setup_week;
   const facts: { label: string; value: string }[] = [
     {
@@ -51,7 +48,7 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
     },
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
-  if (budget) facts.push({ label: hasPaidPlan ? "Paid plan" : "Campaign budget", value: budget });
+  if (budget) facts.push({ label: "Paid plan", value: budget });
   // Flight time context — the "day N of M" that makes a live campaign feel
   // like a running clock instead of a static state. Only when the end date
   // has been entered from the ad platform.
@@ -85,7 +82,11 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
  *  every flight as lead-or-failure.) */
 export function CampaignPerformance({
   stats,
+  familyCount,
 }: {
+  /** When set, the third cell counts families from every door (form and page),
+   *  the same number the families list above it shows. */
+  familyCount?: number;
   stats: {
     visitors: number;
     leads: number;
@@ -97,7 +98,9 @@ export function CampaignPerformance({
   const cells: { label: string; value: string }[] = [
     { label: "Visitors", value: stats.visitors.toLocaleString() },
     { label: "Questions", value: questions.toLocaleString() },
-    { label: "Leads", value: stats.leads.toLocaleString() },
+    familyCount != null
+      ? { label: "Families", value: familyCount.toLocaleString() }
+      : { label: "Leads", value: stats.leads.toLocaleString() },
   ];
   return (
     <div className="mt-8">
@@ -114,7 +117,9 @@ export function CampaignPerformance({
         ))}
       </dl>
       <p className="text-sm text-gray-500 mt-3">
-        {stats.leads > 0 ? (
+        {familyCount != null ? (
+          <>Since launch.</>
+        ) : stats.leads > 0 ? (
           <>
             Since launch. Find them on your{" "}
             <Link
@@ -507,9 +512,13 @@ export function ReceiptMathLine({ receipt }: { receipt: CampaignReceiptData }) {
 export function PlanActive({
   request,
   campaignStats,
+  families,
+  providerName,
   celebrate,
 }: {
   request: BoostRequest;
+  families?: CampaignFamiliesData | null;
+  providerName?: string | null;
   campaignStats: {
     visitors: number;
     leads: number;
@@ -519,6 +528,28 @@ export function PlanActive({
   celebrate: boolean;
 }) {
   const tier = budgetStop(request.plan_value);
+  // A running plan's home is its families: who to reach next. The plan itself
+  // is one quiet line underneath. The celebration moment keeps its own view.
+  if (families && !celebrate) {
+    return (
+      <CampaignHome
+        data={families}
+        providerName={providerName || "your team"}
+        footer={
+          <p>
+            {tier ? `Your ${tier.name} plan (${tier.amount}/mo, all-in) is active.` : "Your monthly plan is active."}
+            {campaignStats
+              ? ` ${campaignStats.visitors.toLocaleString()} visitors and ${(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.`
+              : ""}{" "}
+            Change or cancel by replying to any campaign email.{" "}
+            <Link href="/managed-ads-terms" target="_blank" className="underline decoration-gray-300 underline-offset-4 hover:text-gray-700">
+              How the plan works
+            </Link>
+          </p>
+        }
+      />
+    );
+  }
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -537,7 +568,7 @@ export function PlanActive({
       </p>
 
       <CampaignFacts request={request} />
-      {campaignStats && <CampaignPerformance stats={campaignStats} />}
+      {campaignStats && <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} />}
 
       <p className="mt-6 text-sm text-gray-500">
         Change or cancel anytime by replying to any campaign email, or{" "}
@@ -905,6 +936,8 @@ export function CampaignInMotion({
   request,
   campaignStats,
   receipt,
+  families,
+  providerName,
   onCheckout,
   submitting,
   error,
@@ -919,6 +952,8 @@ export function CampaignInMotion({
     since: string;
   } | null;
   receipt?: CampaignReceiptData | null;
+  families?: CampaignFamiliesData | null;
+  providerName?: string | null;
   onCheckout: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
@@ -936,6 +971,52 @@ export function CampaignInMotion({
     !isLive && request.photo_readiness_status === "update_requested";
   const photoReviewRequested =
     !isLive && request.photo_readiness_status === "review_requested";
+
+  // A live campaign's home is its families. For a provider still on the free
+  // intro, progress and the plan choice sit underneath: value first, then the
+  // ask, which is the order that converted our first subscriber.
+  if (isLive && families) {
+    const since = request.flight_start_date ?? request.requested_setup_week;
+    const days = since ? Math.max(1, Math.round((Date.now() - new Date(since).getTime()) / 86_400_000)) : null;
+    const n = families.families.length;
+    return (
+      <div>
+        <CampaignHome
+          data={families}
+          providerName={providerName || "your team"}
+          footer={
+            campaignStats ? (
+              <p>
+                {campaignStats.visitors.toLocaleString()} visitors and {(campaignStats.questions?.received ?? 0).toLocaleString()} questions on your page since launch.
+              </p>
+            ) : null
+          }
+        />
+        {canChoosePlan && (
+          <div className="mt-16 max-w-2xl border-t border-vanilla-200 pt-10">
+            <p className="font-display text-[26px] leading-tight text-gray-950 md:text-[30px]">
+              {n > 0
+                ? `Your ads found ${n} ${n === 1 ? "family" : "families"}${days ? ` in ${days} ${days === 1 ? "day" : "days"}` : ""}.`
+                : "Your ads are running."}
+            </p>
+            <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-gray-500">
+              {request.flight_end_date
+                ? `Keep them running past ${formatWeek(request.flight_end_date)} with a monthly plan. It takes over when your free intro ends, and nothing becomes paid until you confirm in Stripe.`
+                : "Keep them running with a monthly plan. It takes over when your free intro ends, and nothing becomes paid until you confirm in Stripe."}
+            </p>
+            <PlanChooser
+              request={request}
+              onCheckout={onCheckout}
+              onPlanSelected={onPlanSelected}
+              submitting={submitting}
+              error={error}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -999,16 +1080,17 @@ export function CampaignInMotion({
         </div>
       )}
 
-      {/* The campaign they committed to — week, channel, budget, flight clock. */}
+      {/* When live, the families her ads found come first: who to call, and
+          what we know about each. The ad-reach receipt (times shown, clicks)
+          used to sit here; it counted Google only and read like a bill, so the
+          live view no longer shows it. */}
+      {/* The campaign they committed to — week, channel, plan, flight clock. */}
       <CampaignFacts request={request} />
 
-      {/* When live, real performance — the funnel at equal weight — is THE
-          focal point, with the week's momentum right under it. */}
-      {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
+      {isLive && campaignStats && (
+        <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} />
+      )}
       {isLive && receipt && <MomentumLine week={receipt.week} />}
-
-      {/* The accruing receipt: ad reach, saves, questions, reported outcomes. */}
-      {isLive && receipt && <CampaignReceiptBlock receipt={receipt} flightKey={request.campaign_tag || request.id} />}
 
       {/* The early plan choice uses the same visible cards as the wrap-up.
           Providers should not have to discover that a section-heading-looking

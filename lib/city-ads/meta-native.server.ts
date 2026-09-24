@@ -3,6 +3,7 @@ import { getCityConfig } from "./config";
 import { ensureCareSeekerForCityLead } from "./care-seeker.server";
 import { normalizeMetaLead, parseNativeForms, type NativeReceipt, type MetaLead } from "./meta-native";
 import { cityQualifyingQuestion } from "./qualify";
+import { resolvePrimaryCampaign } from "./primary.server";
 
 /**
  * How many times a receipt is retried before it is left alone. Exported because
@@ -69,7 +70,17 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
       // The question clause comes from the shared builder so the two front
       // doors cannot drift apart. A native lead has no care_recipient by
       // construction, so this is the "who is this for" branch, unchanged.
-      const confirmation = `Olera: Hi ${name}, we have your request for home care in ${cfg.city}. So we can point you to the right provider, ${cityQualifyingQuestion(null)} Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
+      // A form that already asked who the care is for gets the next question
+      // instead (see qualify.ts). A form that belongs to a provider's own ad
+      // names her: that form told the family she would be in touch, and a
+      // text promising to "point you to the right provider" contradicts it.
+      // A job seeker filed by the form is never texted (the import skips it).
+      const primary = await resolvePrimaryCampaign(db, {
+        id: receipt.leadgen_id, slug: normalized.slug, meta_campaign_id: normalized.meta_campaign_id });
+      const question = cityQualifyingQuestion(normalized.care_recipient);
+      const confirmation = primary?.providerName
+        ? `Olera: Hi ${name}, we have your request for home care in ${cfg.city} and have passed it to ${primary.providerName}, who will be in touch. So they know how to help, ${question} Reply in a few words. Reply STOP to opt out.`
+        : `Olera: Hi ${name}, we have your request for home care in ${cfg.city}. So we can point you to the right provider, ${question} Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
       const { error: insertError } = await db.rpc("import_meta_city_lead", {
         receipt_id: receipt.leadgen_id, lead_data: normalized, confirmation,
       });

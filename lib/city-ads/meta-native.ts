@@ -70,6 +70,37 @@ export function extractNativeReceipts(body: unknown, forms: NativeForm[]): Nativ
   return [...receipts.values()];
 }
 
+/**
+ * The one screening question a form may carry: who the care is for, with a
+ * "caregiving job" option so job seekers file themselves before anyone texts
+ * them. The Pascagoula form asked it from day one and this import discarded
+ * the answer: 6 of its first 7 leads chose "I'm looking for a job", and four
+ * of them were handed to the provider as families. The follow-up text had
+ * caught only the 2 who replied. Read by answer, not by field key: Meta derives the key from the
+ * question wording, and a reworded form must not silently stop screening.
+ */
+export type FormScreen =
+  | { recipient: "parent" | "spouse" | "self" | "other" }
+  | { careSeeker: true }
+  | { jobSeeker: true };
+const CONTACT_FIELDS = new Set(["full_name", "first_name", "last_name", "phone_number", "email",
+  "zip_code", "post_code", "city", "state", "street_address"]);
+export function readFormScreen(fields: Map<string, string>): FormScreen | null {
+  for (const [name, raw] of fields) {
+    if (CONTACT_FIELDS.has(name)) continue;
+    const v = raw.toLowerCase().replace(/_/g, " ");
+    if (/\b(job|jobs|work|employment|position|hiring)\b/.test(v)) return { jobSeeker: true };
+    // "Care for myself or a family member" (the live Pascagoula answer) says
+    // care, not whom: a care seeker with the recipient still to ask.
+    if (/\b(myself|me)\b/.test(v) && /\bor\b/.test(v)) return { careSeeker: true };
+    if (/\b(myself|me)\b/.test(v)) return { recipient: "self" };
+    if (/\b(spouse|partner|husband|wife)\b/.test(v)) return { recipient: "spouse" };
+    if (/\b(parent|mother|father|mom|dad)\b/.test(v)) return { recipient: "parent" };
+    if (/\b(relative|friend|someone|family|grand\w*|aunt|uncle)\b/.test(v)) return { recipient: "other" };
+  }
+  return null;
+}
+
 export interface MetaLead {
   id?: string; form_id?: string; created_time?: string; campaign_id?: string; adset_id?: string; ad_id?: string;
   field_data?: { name: string; values: string[] }[];
@@ -87,7 +118,10 @@ export function normalizeMetaLead(lead: MetaLead, receipt: NativeReceipt, form: 
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Lead email is invalid");
   const zip = fields.get("zip_code") || fields.get("post_code") || "";
   if (zip && !/^\d{5}(-\d{4})?$/.test(zip)) throw new Error("Lead ZIP is invalid");
+  const screen = readFormScreen(fields);
   return { slug: form.slug, campaign_tag: form.campaignTag, first_name: fullName.slice(0,60),
+    care_recipient: screen && "recipient" in screen ? screen.recipient : null,
+    job_seeker: !!screen && "jobSeeker" in screen,
     phone: `+1${digits}`, email: email?.slice(0,200) ?? null, zip: zip.slice(0,5) || null,
     consent_form_version: form.consentVersion, consent_text: form.consentText,
     meta_campaign_id: id(lead.campaign_id) ? lead.campaign_id : null,

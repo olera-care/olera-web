@@ -1122,6 +1122,7 @@ function StudentPortalContent({
   const [showGoLiveReview, setShowGoLiveReview] = useState(false);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
 
@@ -1309,7 +1310,7 @@ function StudentPortalContent({
   const currentSemester = getCurrentSemester();
 
   // Show banner when profile is 100% complete but hasn't requested review yet
-  const showReviewBanner = completenessPercent === 100 && !isPendingReview && !hasCompletedApplication;
+  const showReviewBanner = completenessPercent === 100 && !isPendingReview && !hasCompletedApplication && !bannerDismissed;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -1331,13 +1332,22 @@ function StudentPortalContent({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowGoLiveReview(true)}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white text-primary-700 font-semibold text-sm rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
-              >
-                Request Review
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setBannerDismissed(true)}
+                  className="px-4 py-2.5 text-white/80 hover:text-white font-medium text-sm transition-colors"
+                >
+                  Not Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGoLiveReview(true)}
+                  className="px-6 py-2.5 bg-white text-primary-700 font-semibold text-sm rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
+                >
+                  Request Review
+                </button>
+              </div>
             </div>
           </div>
         )}

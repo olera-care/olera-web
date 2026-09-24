@@ -111,6 +111,12 @@ import {
   placementAcceptedStudentEmail,
   placementDeclinedEmail,
   placementCancelledEmail,
+  // interview request sent
+  interviewRequestSentEmail,
+  // application emails
+  applicationReceivedEmail,
+  applicationSentEmail,
+  applicationResponseEmail,
 } from "@/lib/medjobs-email-templates";
 
 export interface EmailVariant {
@@ -215,6 +221,7 @@ const SAMPLE_STUDENT = {
   studentName: "Jessica Chen",
   university: "Texas A&M University",
   city: "College Station",
+  programTrack: "Pre-Nursing",
   profileSlug: "jessica-chen-tamu",
   profileUrl: "https://olera.care/medjobs/candidates/jessica-chen-tamu",
   magicLink: "https://olera.care/portal/medjobs?tok=sample",
@@ -1725,6 +1732,99 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
       studentName: SAMPLE_STUDENT.studentName,
       viewUrl: SAMPLE_INTERVIEW.providerViewUrl,
+    }),
+  },
+
+  // ─────────────── Student · Interview Request Sent ───────────────
+  {
+    id: "interview_request_sent_student",
+    audience: "student",
+    group: "Student · Interviews",
+    label: "Interview request sent (confirmation)",
+    subject: `Interview request sent to ${SAMPLE_MEDJOBS_PROVIDER.providerName}`,
+    emailType: "interview_request_sent",
+    timing: "When student requests interview with provider",
+    who: "Student who just requested an interview with a provider.",
+    why: "Confirm that their interview request was sent and set expectations.",
+    render: () => interviewRequestSentEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      interviewType: SAMPLE_INTERVIEW.interviewType,
+      proposedTime: SAMPLE_INTERVIEW.proposedTime,
+      alternativeTime: null,
+      viewUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+
+  // ─────────────── Student · Applications ───────────────
+  {
+    id: "application_sent_student",
+    audience: "student",
+    group: "Student · Applications",
+    label: "Application sent (confirmation)",
+    subject: `Application sent to ${SAMPLE_MEDJOBS_PROVIDER.providerName}`,
+    emailType: "application_sent",
+    timing: "When student applies to a provider",
+    who: "Student who just applied to work with a provider.",
+    why: "Confirm that their application was sent and encourage profile completion.",
+    render: () => applicationSentEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      viewUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "application_accepted_student",
+    audience: "student",
+    group: "Student · Applications",
+    label: "Application accepted",
+    subject: `${SAMPLE_MEDJOBS_PROVIDER.providerName} accepted your application!`,
+    emailType: "application_response",
+    timing: "When provider accepts a student's application",
+    who: "Student whose application was accepted by a provider.",
+    why: "Notify them of the acceptance and outline next steps.",
+    render: () => applicationResponseEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      accepted: true,
+      viewUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "application_declined_student",
+    audience: "student",
+    group: "Student · Applications",
+    label: "Application declined",
+    subject: `Update on your application to ${SAMPLE_MEDJOBS_PROVIDER.providerName}`,
+    emailType: "application_response",
+    timing: "When provider declines a student's application",
+    who: "Student whose application was declined by a provider.",
+    why: "Inform them of the decline and encourage them to keep applying.",
+    render: () => applicationResponseEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      accepted: false,
+      viewUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+
+  // ─────────────── MedJobs · Applications (Provider side) ───────────────
+  {
+    id: "application_received_provider",
+    audience: "provider",
+    group: "MedJobs · Applications",
+    label: "Application received",
+    subject: `New MedJobs Application from ${SAMPLE_STUDENT.studentName}`,
+    emailType: "application_received",
+    timing: "When student applies to work with a provider",
+    who: "Provider who received a student application.",
+    why: "Alert them to a new candidate and drive them to review the profile.",
+    render: () => applicationReceivedEmail({
+      providerName: SAMPLE_MEDJOBS_PROVIDER.providerName,
+      studentName: SAMPLE_STUDENT.studentName,
+      university: SAMPLE_STUDENT.university,
+      programTrack: SAMPLE_STUDENT.programTrack,
+      viewUrl: SAMPLE_STUDENT.profileUrl,
     }),
   },
 

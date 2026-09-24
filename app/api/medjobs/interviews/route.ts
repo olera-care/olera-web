@@ -8,7 +8,7 @@ import { getAccessTier } from "@/lib/medjobs-access";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail, interviewRescheduleSentEmail, interviewCancelledAdminEmail, interviewScheduledConfirmationEmail } from "@/lib/email-templates";
-import { studentInterestColdEmail } from "@/lib/medjobs-email-templates";
+import { studentInterestColdEmail, interviewRequestSentEmail } from "@/lib/medjobs-email-templates";
 import { getUniversityBySlug } from "@/lib/staffing-outreach/partner-universities";
 import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
 import type { InterviewStatus } from "@/lib/types";
@@ -449,6 +449,51 @@ export async function POST(request: NextRequest) {
               recipientProfileId: resolvedProviderId,
             });
           }
+
+          // Send confirmation email to the proposer (student → provider flow)
+          // The student gets confirmation that their interview request was sent
+          if (!recipientIsStudent && studentProfile.email) {
+            const studentViewUrl = generateMedJobsStudentInterviewUrl(studentProfile.email, interview.id);
+            const providerFirstName = providerProfile.display_name?.split(" ")[0] || "the provider";
+
+            await sendEmail({
+              to: studentProfile.email,
+              subject: `Interview request sent to ${providerFirstName}`,
+              html: interviewRequestSentEmail({
+                studentName: studentProfile.display_name || "there",
+                providerName: providerProfile.display_name || "the provider",
+                interviewType: typeLabel,
+                proposedTime: time,
+                alternativeTime: formattedAltTime,
+                viewUrl: studentViewUrl,
+              }),
+              emailType: "interview_request_sent",
+              recipientType: "student",
+              recipientProfileId: resolvedStudentId,
+            });
+          }
+        }
+
+        // Also send confirmation to student for cold provider flow
+        // (The student should know their request was sent even if provider is unclaimed)
+        if (isColdProviderApply && studentProfile.email) {
+          const studentViewUrl = generateMedJobsStudentInterviewUrl(studentProfile.email, interview.id);
+
+          await sendEmail({
+            to: studentProfile.email,
+            subject: `Interview request sent to ${providerProfile.display_name?.split(" ")[0] || "the provider"}`,
+            html: interviewRequestSentEmail({
+              studentName: studentProfile.display_name || "there",
+              providerName: providerProfile.display_name || "the provider",
+              interviewType: typeLabel,
+              proposedTime: time,
+              alternativeTime: formattedAltTime,
+              viewUrl: studentViewUrl,
+            }),
+            emailType: "interview_request_sent",
+            recipientType: "student",
+            recipientProfileId: resolvedStudentId,
+          });
         }
       } catch (err) {
         console.error("[medjobs/interviews] email error:", err);

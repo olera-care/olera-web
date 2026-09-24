@@ -73,6 +73,60 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
   );
 }
 
+/**
+ * One dismissible nudge under the traction numbers: questions from the ads
+ * still waiting for an answer. The numbers stay the point of the page; this
+ * sits below them. Dismissing hides it until the ask count changes: up when a
+ * new question arrives, and occasionally down when attribution narrows to the
+ * campaign's own tagged asks (getCampaignQuestions), which would otherwise hide
+ * it behind a stale high-water mark. A provider who has answered everything
+ * never sees it; one who waves it away is asked again only when something moved.
+ * Remembered per browser: a phone and a laptop each ask once.
+ */
+function QuestionsCard({ requestId, waiting, asks }: { requestId: string; waiting: number; asks: number }) {
+  const key = `olera:questions-card:${requestId}`;
+  const [dismissedAt, setDismissedAt] = useState<number | null>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(key);
+      setDismissedAt(v ? Number(v) : null);
+    } catch {
+      // Storage blocked: show the card; dismissing just won't stick.
+    }
+    setReady(true);
+  }, [key]);
+  if (!ready || waiting <= 0 || (dismissedAt != null && asks === dismissedAt)) return null;
+  return (
+    <div className="relative mt-6 rounded-2xl border border-gray-200 bg-white px-5 py-4 pr-12">
+      <p className="text-xs font-medium text-gray-400">Questions</p>
+      <p className="mt-1 text-[17px] leading-snug text-gray-900">
+        {waiting} {waiting === 1 ? "question is" : "questions are"} waiting on your page.
+      </p>
+      <Link href="/provider/qna" className="mt-2 inline-block text-[15px] font-semibold text-primary-700 underline decoration-primary-200 underline-offset-4 hover:text-primary-800">
+        {waiting === 1 ? "Answer it" : "Answer them"}
+      </Link>
+      <button
+        type="button"
+        aria-label="Dismiss"
+        onClick={() => {
+          setDismissedAt(asks);
+          try {
+            localStorage.setItem(key, String(asks));
+          } catch {
+            // Not remembered; it hides for this visit.
+          }
+        }}
+        className="absolute right-3 top-3 rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 /** Live campaign performance — the funnel at equal weight: who visited, who
  *  asked, who reached out (see getCampaignStats/getCampaignQuestions). Leads
  *  are zero for most $50 flights by arithmetic, so questions stand as a
@@ -83,18 +137,23 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
 export function CampaignPerformance({
   stats,
   familyCount,
+  questionsCardFor,
 }: {
   /** When set, the third cell counts families from every door (form and page),
    *  the same number the families list above it shows. */
   familyCount?: number;
+  /** The request id, to show the dismissible questions card under the numbers. */
+  questionsCardFor?: string;
   stats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   };
 }) {
   const questions = stats.questions?.received ?? 0;
+  const waiting = stats.questions?.uniqueUnanswered ?? stats.questions?.unanswered ?? 0;
+  const card = !!questionsCardFor && waiting > 0;
   const cells: { label: string; value: string }[] = [
     { label: "Visitors", value: stats.visitors.toLocaleString() },
     { label: "Questions", value: questions.toLocaleString() },
@@ -130,7 +189,7 @@ export function CampaignPerformance({
             </Link>
             .
           </>
-        ) : questions > 0 ? (
+        ) : questions > 0 && !card ? (
           <>
             Since launch. Every question you answer stays on your page, builds
             your visibility in search, and helps families beyond the one who
@@ -146,6 +205,7 @@ export function CampaignPerformance({
           <>Since launch. Families will appear here as they arrive.</>
         )}
       </p>
+      {card && questionsCardFor && <QuestionsCard requestId={questionsCardFor} waiting={waiting} asks={questions} />}
     </div>
   );
 }
@@ -505,6 +565,15 @@ export function ReceiptMathLine({ receipt }: { receipt: CampaignReceiptData }) {
 }
 
 /**
+ * The families view takes the page once there is a family to reach. Before
+ * that, the data view (flight, visitors, what the ads bought) stays, with any
+ * waiting questions as a dismissible card under the numbers.
+ */
+function hasFamilies(families: CampaignFamiliesData | null | undefined): families is CampaignFamiliesData {
+  return !!families && families.families.length > 0;
+}
+
+/**
  * Plan active — the celebration + steady state after checkout. `celebrate` is
  * the just-returned-from-Stripe moment (may render before the webhook lands,
  * so plan_value can still be null; copy degrades gracefully).
@@ -522,7 +591,7 @@ export function PlanActive({
   campaignStats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   } | null;
   celebrate: boolean;
@@ -530,7 +599,7 @@ export function PlanActive({
   const tier = budgetStop(request.plan_value);
   // A running plan's home is its families: who to reach next. The plan itself
   // is one quiet line underneath. The celebration moment keeps its own view.
-  if (families && !celebrate) {
+  if (hasFamilies(families) && !celebrate) {
     return (
       <CampaignHome
         data={families}
@@ -568,7 +637,10 @@ export function PlanActive({
       </p>
 
       <CampaignFacts request={request} />
-      {campaignStats && <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} />}
+      {/* No questions card on the just-paid moment: that screen is a thank-you. */}
+      {campaignStats && (
+        <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} questionsCardFor={celebrate ? undefined : request.id} />
+      )}
 
       <p className="mt-6 text-sm text-gray-500">
         Change or cancel anytime by replying to any campaign email, or{" "}
@@ -776,7 +848,7 @@ export function WrapUpMoment({
   campaignStats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   } | null;
   receipt?: CampaignReceiptData | null;
@@ -948,7 +1020,7 @@ export function CampaignInMotion({
   campaignStats: {
     visitors: number;
     leads: number;
-    questions?: { received: number; unanswered: number };
+    questions?: { received: number; unanswered: number; uniqueUnanswered?: number };
     since: string;
   } | null;
   receipt?: CampaignReceiptData | null;
@@ -975,7 +1047,7 @@ export function CampaignInMotion({
   // A live campaign's home is its families. For a provider still on the free
   // intro, progress and the plan choice sit underneath: value first, then the
   // ask, which is the order that converted our first subscriber.
-  if (isLive && families) {
+  if (isLive && hasFamilies(families)) {
     const since = request.flight_start_date ?? request.requested_setup_week;
     const days = since ? Math.max(1, Math.round((Date.now() - new Date(since).getTime()) / 86_400_000)) : null;
     const n = families.families.length;
@@ -995,9 +1067,7 @@ export function CampaignInMotion({
         {canChoosePlan && (
           <div className="mt-16 max-w-2xl border-t border-vanilla-200 pt-10">
             <p className="font-display text-[26px] leading-tight text-gray-950 md:text-[30px]">
-              {n > 0
-                ? `Your ads found ${n} ${n === 1 ? "family" : "families"}${days ? ` in ${days} ${days === 1 ? "day" : "days"}` : ""}.`
-                : "Your ads are running."}
+              {`Your ads found ${n} ${n === 1 ? "family" : "families"}${days ? ` in ${days} ${days === 1 ? "day" : "days"}` : ""}.`}
             </p>
             <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-gray-500">
               {request.flight_end_date
@@ -1088,7 +1158,7 @@ export function CampaignInMotion({
       <CampaignFacts request={request} />
 
       {isLive && campaignStats && (
-        <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} />
+        <CampaignPerformance stats={campaignStats} familyCount={families?.families.length} questionsCardFor={request.id} />
       )}
       {isLive && receipt && <MomentumLine week={receipt.week} />}
 

@@ -71,8 +71,9 @@ export default function DashboardPage() {
   const router = useRouter();
 
   // A provider with a live campaign, or one that ended in the last 30 days,
-  // starts on her campaign page: the families her ads found and who to call.
-  // Everyone else keeps this dashboard. Once per browser session and only on a
+  // starts on her campaign page, but only once her ads have found a family.
+  // Until then she keeps this dashboard, which already surfaces questions;
+  // questions alone never pull her away from it. Once per browser session and only on a
   // bare /provider, so "Back to dashboard" and every deep link (?from=, edit
   // flows) still land here.
   useEffect(() => {
@@ -92,6 +93,7 @@ export default function DashboardPage() {
         !!r.flight_end_date &&
         Date.now() - new Date(r.flight_end_date).getTime() <= CAMPAIGN_HOME_ENDED_DAYS * 86_400_000;
       if (r.status !== "live" && !endedRecently) return;
+      if ((state.families?.families.length ?? 0) === 0) return;
       try {
         sessionStorage.setItem(KEY, "1");
       } catch {

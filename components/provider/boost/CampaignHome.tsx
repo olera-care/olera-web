@@ -113,6 +113,8 @@ export default function CampaignHome({
     setFamilies((prev) => prev.map((f) => (f.id === id ? { ...f, ...p } : f)));
   }
 
+  // The parent shows this page only once there is a family (hasFamilies in
+  // BoostCampaignViews); this is a safe fallback, not a designed state.
   if (n === 0) {
     return (
       <section className="py-4">

@@ -1,6 +1,8 @@
 import { sendEmail } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
 
+const SIGNIN_EMAILS_PER_DAY = 5;
+
 /**
  * Returning-user (existing-account) sign-in for guest-capture flows.
  *
@@ -53,6 +55,20 @@ export async function emailReturningUserSignInLink(
 
     if (error || !actionLink) {
       console.error("[returning-user] generateLink failed:", error?.message);
+      return { userId, emailed: false };
+    }
+
+    // Anyone can trigger this by typing a family's email into a public form,
+    // so cap how many sign-in emails one inbox gets. Over the cap the caller
+    // still gets userId (its data is saved) but nothing is emailed. If the
+    // count itself fails, send anyway: a missed sign-in is worse than a spare email.
+    const { count: recentSignins, error: countError } = await authClient
+      .from("email_log")
+      .select("id", { count: "exact", head: true })
+      .eq("email_type", "returning_signin")
+      .eq("recipient", email)
+      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+    if (!countError && (recentSignins ?? 0) >= SIGNIN_EMAILS_PER_DAY) {
       return { userId, emailed: false };
     }
 

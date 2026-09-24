@@ -100,7 +100,7 @@ async function loadRouting(seekerId: string, leadId: string) {
       .eq("slug", lead.slug)
       .eq("is_test", false)
       .order("position", { ascending: true }),
-    db.from("city_lead_offers").select("provider_id").eq("lead_id", leadId),
+    db.from("city_lead_offers").select("provider_id, accepted_at").eq("lead_id", leadId),
     db.from("business_profiles").select("metadata").eq("id", seekerId).maybeSingle(),
   ]);
 
@@ -124,7 +124,11 @@ async function loadRouting(seekerId: string, leadId: string) {
     status: lead.status as string,
     // Nothing to route once a provider has it or the lead is finished; the
     // page hides the controls rather than offering a button that 409s.
-    can_route: !closed && !lead.accepted_offer_id,
+    // An accepted OFFER counts, not just the lead's pointer to it. Rudy's
+    // offer was accepted while his lead row kept status "offered" and no
+    // accepted_offer_id, so a pointer-only check showed "Offer to next" on a
+    // family a provider already had.
+    can_route: !closed && !lead.accepted_offer_id && !(offerRows ?? []).some((o) => o.accepted_at),
     qualification_reply: (lead.qualification_reply as string | null) ?? null,
     pool: pool.map((p) => ({
       provider_id: p.provider_id,

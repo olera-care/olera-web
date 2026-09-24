@@ -263,10 +263,13 @@ export async function postProviderMessage(
   }
   const sendAfter = window.allowed ? new Date().toISOString() : window.nextStart;
   const createdBy = `${PROVIDER_SENDER_PREFIX}${provider.id}`;
-  const rows = [
+  // One shape for both rows: the build's supabase-js rejects a union where
+  // only one member carries `subject`.
+  const rows: Array<{ lead_id: string; channel: string; subject: string | null; body: string; send_after: string; created_by: string }> = [
     {
       lead_id: lead.id,
       channel: "sms",
+      subject: null,
       body: `Olera: ${provider.name} sent you a message about your care request. Read & reply: ${url}\n\nReply STOP to opt out, HELP for help.`,
       send_after: sendAfter,
       created_by: createdBy,

@@ -225,6 +225,18 @@ export function nextLine(r: SeekerRelationshipRow): string | null {
   return `Next: ${r.open_action.text}${due}`;
 }
 
+/**
+ * A family parked by a missed call, said with when they come back. Without it
+ * the row would drop out of "Call them" with no trace of why.
+ */
+export function retryLine(r: SeekerRelationshipRow, now: Date = new Date()): string | null {
+  if (!r.call_retry_at || r.flags.includes("opted_out")) return null;
+  const at = new Date(r.call_retry_at);
+  if (at.getTime() <= now.getTime()) return null;
+  const when = at.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" });
+  return `Missed call logged. Back in Call them ${when} ET.`;
+}
+
 /** What we're allowed to do, when it restricts us. Silent when it doesn't. */
 export function consentWarning(r: SeekerRelationshipRow): string | null {
   if (r.consent === "olera_only") return "Olera only — providers hear about them from us, never the reverse";

@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { SeekerRelationshipRow } from "@/lib/seeker-touches/types";
-import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, stateOf, type Tone } from "@/lib/seeker-touches/present";
+import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, retryLine, stateOf, type Tone } from "@/lib/seeker-touches/present";
 
 /**
  * Relationships — care seekers.
@@ -75,7 +75,7 @@ const TABS: { key: Tab; label: string }[] = [
 
 const TAB_BLURB: Record<Tab, string> = {
   reply: "They wrote to us and nobody has answered.",
-  call: "We promised a call and have not reached them.",
+  call: "We promised a call and have not reached them. A logged missed call parks them for 24 hours.",
   record: "They told us the provider never got back to them, in the last two weeks.",
   reach: "No working phone or email, so nothing we send can land.",
   all: "Everyone with a live episode in the window.",
@@ -228,6 +228,12 @@ function ArchiveControl({ row, onDone }: { row: SeekerRelationshipRow; onDone: (
       )}
     </div>
   );
+}
+
+/** "+14693187159" -> "(469) 318-7159". Anything else is shown as stored. */
+function formatPhone(p: string): string {
+  const d = p.replace(/\D/g, "").slice(-10);
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : p;
 }
 
 const ORIGINS = ["city_ad", "ad_boost", "benefits", "provider_page", "unknown"] as const;
@@ -503,6 +509,11 @@ function AdminSeekerRelationshipsInner() {
           const problem = problemLine(r);
           const consent = consentWarning(r);
           const next = nextLine(r);
+          const retry = retryLine(r);
+          // What you need to act without opening the row: the number on a
+          // call, their own words on a reply.
+          const showPhone = Boolean(r.phone) && (r.flags.includes("promise_owed") || r.flags.includes("unreachable"));
+          const said = r.flags.includes("awaiting_reply") ? r.last_inbound : null;
           return (
             <div
               key={r.seeker_id}
@@ -534,6 +545,14 @@ function AdminSeekerRelationshipsInner() {
                 {problem && (
                   <div className={`mt-1.5 text-[13px] font-medium leading-snug ${PROBLEM_TONE[st.tone]}`}>{problem}</div>
                 )}
+                {showPhone && <div className="mt-1 font-mono text-[12.5px] text-gray-700">{formatPhone(r.phone!)}</div>}
+                {said && (
+                  <div className="mt-1.5 border-l-2 border-gray-200 pl-2 text-[13px] leading-snug text-gray-700">
+                    <span className="font-medium">{said.title}</span>
+                    {said.detail && said.detail !== said.title && <span className="text-gray-500"> — {said.detail}</span>}
+                  </div>
+                )}
+                {retry && <div className="mt-1.5 text-[12.5px] leading-snug text-gray-500">{retry}</div>}
                 {next && <div className="mt-1.5 text-[13px] leading-snug text-teal-800">{next}</div>}
                 {consent && <div className="mt-1 text-[11.5px] leading-snug text-gray-400">{consent}</div>}
               </div>

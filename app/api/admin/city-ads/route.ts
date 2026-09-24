@@ -327,10 +327,21 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", leadId)
           .not("archived_at", "is", null)
-          .select("id, first_name")
+          .select("id, first_name, archived_at")
           .maybeSingle();
         if (error) throw error;
         if (!data) return NextResponse.json({ error: "That lead is not archived" }, { status: 409 });
+        // The database will not let an archived lead reopen: the
+        // city_lead_archive_guard trigger (migration 228) copies archived_at
+        // back on every update. The update above "succeeded" and changed
+        // nothing, and this route used to answer that the family was back in
+        // the queue. Say what actually happened until the trigger allows it.
+        if (data.archived_at) {
+          return NextResponse.json(
+            { error: `${data.first_name} is still archived. The database does not allow reopening an archived lead yet, so nothing changed.` },
+            { status: 409 },
+          );
+        }
         return NextResponse.json({ ok: true, id: data.id, message: `${data.first_name} is back in the queue and will be offered to a provider.` });
       }
       case "offer_next": {

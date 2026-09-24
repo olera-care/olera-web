@@ -96,6 +96,9 @@ interface BrowseCardProps {
   campus?: string;
   /** When true, card is purely informational (no link, not clickable). */
   disableLink?: boolean;
+  /** student variant — show provider name as title instead of care type.
+   *  Use for Find Jobs (employer-focused) vs Browse (opportunity-focused). */
+  showProviderName?: boolean;
 }
 
 export default function BrowseCard({
@@ -115,6 +118,7 @@ export default function BrowseCard({
   isInvited = false,
   campus,
   disableLink = false,
+  showProviderName = false,
 }: BrowseCardProps) {
   const isStudent = variant === "student";
   const isCandidate = variant === "candidate";
@@ -346,7 +350,7 @@ export default function BrowseCard({
         {/* Name + Rating */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-sans font-semibold text-base text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">
-            {isStudent ? opportunityLabel : provider.name}
+            {isStudent && !showProviderName ? opportunityLabel : provider.name}
           </h3>
           {provider.rating > 0 && (
             <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
@@ -366,7 +370,9 @@ export default function BrowseCard({
             default: care type + location. */}
         <p className="text-sm text-gray-500 mt-1 line-clamp-1">
           {isStudent
-            ? `${provider.address ? `${provider.address} · ` : ""}through ${provider.name}`
+            ? showProviderName
+              ? `${opportunityLabel}${provider.address ? ` · ${provider.address}` : ""}`
+              : `${provider.address ? `${provider.address} · ` : ""}through ${provider.name}`
             : isCandidate
               ? `${provider.primaryCategory}${provider.address ? ` · ${provider.address}` : ""}`
               : `${careTypeLabel}${provider.address ? ` · ${provider.address}` : ""}`}

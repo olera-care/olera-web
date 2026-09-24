@@ -2,6 +2,7 @@ import { getServiceClient } from "@/lib/admin";
 import { seekerEventLabel } from "@/lib/activity/seeker-categories";
 import { getConnectionTemperature, providerResponded, type ConnectionLike } from "@/lib/connection-temperature";
 import { getCityConfig } from "@/lib/city-ads/config";
+import { matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import { isImpossibleUsPhone, last10, seekerLabel } from "./label";
 import { EPISODE_WORD, ORIGIN_LABEL, detailLine, problemLine, stateOf } from "./present";
 import type {
@@ -325,7 +326,51 @@ function emailToItem(e: EmailRow): SeekerTimelineItem {
   };
 }
 
-function smsToItem(r: SmsRow): SeekerTimelineItem {
+/** How a benefits check-in answer reads on the timeline. */
+const CHECKIN_WORD: Record<string, string> = {
+  CALLED: "called the program",
+  NOANSWER: "no answer from the program",
+  NEEDDOCS: "needs documents",
+  APPLIED: "application submitted",
+  WAITING: "waiting on the agency",
+  NOTELIGIBLE: "not eligible",
+};
+
+/**
+ * A short, unambiguous answer to the benefits check-in text ("Reply CALLED,
+ * NO ANSWER, or STUCK"), other than STUCK.
+ *
+ * lib/family-comms/benefits-sms-replies.server.ts already answers these
+ * automatically and moves the family's plan, so nobody owes them a reply. But
+ * the webhook never marks them handled, and every "APPLIED" landed in "Reply
+ * to them" as work: por2gloria sat at the top of the queue for ten days for
+ * telling us she had applied. STUCK is left alone because it is a request for
+ * a person, and so is anything longer than a few words, which may be a real
+ * message that happens to contain the word.
+ */
+function checkinAnswer(body: string | null, at: string, prompts: string[]): string | null {
+  // Only as an answer to a check-in we actually sent in the two weeks before
+  // it. A city family asked "Did Assisting Hands reach you?" can reply "Yes
+  // they called", which parses as CALLED, and that is a reply a person has to
+  // see.
+  const t = new Date(at).getTime();
+  const asked = prompts.some((p) => {
+    const pt = new Date(p).getTime();
+    return pt <= t && t - pt <= 14 * DAY_MS;
+  });
+  if (!asked) return null;
+  const text = (body ?? "").trim();
+  // A question ("applied?") is asking us something, not telling us.
+  if (!text || text.includes("?") || text.split(/\s+/).length > 3) return null;
+  const m = matchOutcomeReply(text);
+  return m.keyword && !m.ambiguous && m.keyword !== "STUCK" ? m.keyword : null;
+}
+
+/** When we sent this family a benefits check-in text ("Reply CALLED, …"). */
+const CHECKIN_PROMPT = /Reply (CALLED|APPLIED)\b/i;
+
+function smsToItem(r: SmsRow, prompts: string[] = []): SeekerTimelineItem {
+  const checkin = checkinAnswer(r.body, r.created_at, prompts);
   return {
     id: `sms:${r.id}`,
     kind: "sms",
@@ -333,9 +378,9 @@ function smsToItem(r: SmsRow): SeekerTimelineItem {
     channel: "text",
     occurred_at: r.created_at,
     title: clip(r.body, 160) ?? "(empty text)",
-    detail: r.keyword ? `keyword ${r.keyword}` : null,
+    detail: checkin ? `answered the benefits check-in: ${CHECKIN_WORD[checkin]}` : r.keyword ? `keyword ${r.keyword}` : null,
     source: "twilio",
-    status: r.handled_at ? null : "needs reply",
+    status: r.handled_at || checkin ? null : "needs reply",
     contact_handle: r.from_phone,
     href: "/admin/inbox",
   };
@@ -402,17 +447,31 @@ function cityLeadToItem(l: CityLeadRow): SeekerTimelineItem {
   };
 }
 
+/**
+ * A queued city message is ours by hand only when a person queued it.
+ *
+ * The admin composer stamps the sender's email in created_by. Everything else
+ * that writes this table is automation — the Meta intake confirmation
+ * ("meta_native_intake", 15 of the first 35 rows), backfills, scripts — and
+ * read as "You:" it made every Meta family look contacted by a person a minute
+ * after they submitted, and counted toward human_touch_count and never_human.
+ */
+function cityMsgIsHuman(m: CityMsgRow): boolean {
+  return (m.created_by ?? "").includes("@");
+}
+
 function cityMsgToItem(m: CityMsgRow): SeekerTimelineItem {
   const failed = m.status === "failed";
+  const human = cityMsgIsHuman(m);
   return {
     id: `citymsg:${m.id}`,
     kind: "city",
-    actor: "out",
+    actor: human ? "out" : "system",
     channel: m.channel === "sms" ? "text" : "email",
     occurred_at: m.created_at,
-    title: clip(m.body, 160) ?? m.subject ?? "(sent by hand)",
+    title: clip(m.body, 160) ?? m.subject ?? (human ? "(sent by hand)" : "(sent automatically)"),
     detail: null,
-    source: "manual",
+    source: human ? "manual" : "system",
     status: failed ? `failed · ${clip(m.last_error, 60)}` : m.delivery ?? m.status,
     contact_handle: m.created_by,
     href: `/admin/city-ads`,
@@ -1119,7 +1178,8 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   const contact = toContact(p);
   const conns = (f.conns.get(p.id) ?? []).slice().sort(byCreatedDesc);
   const emails = (f.emails.get(p.id) ?? []).slice().sort(byCreatedDesc);
-  const sms = (f.sms.get(p.id) ?? []).map(smsToItem);
+  const checkinPrompts = emails.filter((e) => isSms(e) && CHECKIN_PROMPT.test(e.html_body ?? "")).map((e) => e.created_at);
+  const sms = (f.sms.get(p.id) ?? []).map((r) => smsToItem(r, checkinPrompts));
   const support = f.support.get(p.id) ?? [];
   const lead = f.cityLeads.get(p.id);
   const cityMsgs = (f.cityMsgs.get(p.id) ?? []).map(cityMsgToItem);
@@ -1148,7 +1208,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   // A human touch is anything a person did on either side: their text, their
   // support email, a message we sent by hand. System sends do not count.
   const inbound = [...support, ...sms].sort(byNewest);
-  const humanTouches = [...inbound, ...cityMsgs, ...touches].sort(byNewest);
+  const humanTouches = [...inbound, ...cityMsgs.filter((m) => m.actor === "out"), ...touches].sort(byNewest);
   const lastHuman = humanTouches[0] ?? null;
 
   const candidates: LastSeekerTouch[] = [];
@@ -1253,20 +1313,42 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
   }
   if (humanTouches.length === 0) flags.push("never_human");
   if (contact.label_is_fallback) flags.push("no_name");
+
+  // A MISSED CALL TAKES THEM OFF THE CALL LIST FOR A DAY, NOT FOR GOOD.
+  //
+  // The rule below keeps a call owed until somebody actually speaks to them,
+  // and that stays true. But without a pause, a family Ces rang an hour ago
+  // sat at the top of "Call them" looking untouched, the list never shrank as
+  // it was worked, and the team went back to keeping the real state in their
+  // heads. The newest attempt that did not reach them parks the row for
+  // twenty-four hours; if nobody reaches them by then, it comes back.
+  const lastMiss = touchRows.find((t) => t.direction === "out" && t.reached === false);
+  const retryAtMs = lastMiss ? new Date(lastMiss.occurred_at).getTime() + DAY_MS : null;
+  const missedRecently = Boolean(retryAtMs && retryAtMs > now.getTime());
+
   // A promised call stays owed until somebody actually SPOKE to them, or until
   // a dated next action says when we will try again. Logging "called, mailbox
   // full" must not clear it — trying is not reaching, and clearing on the
   // attempt would quietly drop the families who are hardest to get hold of.
-  if (
-    lead &&
-    !lead.reached_at &&
+  const callOwed =
+    Boolean(lead) &&
+    !lead!.reached_at &&
     !cityClosed &&
-    getCityConfig(lead.slug)?.routingMode === "concierge" &&
+    getCityConfig(lead!.slug)?.routingMode === "concierge" &&
     !everReached &&
-    !(openAction && openAction.due)
-  ) {
-    flags.push("promise_owed");
-  }
+    !(openAction && openAction.due);
+  // Only a family who still owes a call can be parked. Helen Garner had a
+  // missed call logged after she had already been reached, and read "back in
+  // Call them tomorrow" for a list she was never going back to.
+  // THREE STRIKES. The pause above repeats forever on its own, so a family
+  // who never picks up came back to "Call them" every day indefinitely. After
+  // three logged misses the ask changes: one last text or email, then archive
+  // as "Never answered". Nothing is sent automatically; the row only says so.
+  const missedCalls = touchRows.filter((t) => t.direction === "out" && t.reached === false).length;
+  const triedThree = callOwed && missedCalls >= 3;
+  const callRetryAt = callOwed && !triedThree && missedRecently ? new Date(retryAtMs!).toISOString() : null;
+  if (triedThree) flags.push("tried_three");
+  else if (callOwed && !callRetryAt) flags.push("promise_owed");
 
   // ARCHIVING IS A DECISION ABOUT THE ROW, NOT ABOUT THE EVENTS.
   //
@@ -1282,7 +1364,7 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     // erasing the opt-out in particular would quietly drop the one flag that
     // says they told us to stop.
     const work = new Set<SeekerFlag>([
-      "awaiting_reply", "promise_owed", "unreachable",
+      "awaiting_reply", "promise_owed", "tried_three", "unreachable",
       "provider_no_show", "provider_silent", "never_human",
     ]);
     for (let i = flags.length - 1; i >= 0; i--) if (work.has(flags[i])) flags.splice(i, 1);
@@ -1308,6 +1390,10 @@ function assemble(p: ProfileRow, f: Loaded, now: Date, windowDays: number) {
     lastHuman,
     lastMeaningfulAt,
     humanTouchCount: humanTouches.length,
+    // Their own latest words, for a row that is waiting on our answer.
+    lastInbound: inbound[0] ?? null,
+    callRetryAt,
+    missedCalls,
     openAction,
     everReached,
     lead,
@@ -1352,6 +1438,16 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
       archived: a.archived,
       origin: a.origin,
       outcome: a.outcome,
+      call_retry_at: a.callRetryAt,
+      missed_calls: a.missedCalls,
+      last_inbound: a.lastInbound
+        ? {
+            occurred_at: a.lastInbound.occurred_at,
+            channel: a.lastInbound.channel,
+            title: a.lastInbound.title,
+            detail: a.lastInbound.detail ?? null,
+          }
+        : null,
     };
   });
 
@@ -1360,7 +1456,7 @@ export async function loadSeekerRelationships(opts?: { days?: number }): Promise
   // within "open", because a dormant family being quiet is not news.
   const rank = (r: SeekerRelationshipRow): number => {
     if (r.flags.includes("awaiting_reply")) return 0;
-    if (r.flags.includes("promise_owed")) return 1;
+    if (r.flags.includes("promise_owed") || r.flags.includes("tried_three")) return 1;
     if (r.flags.includes("unreachable")) return 2;
     if (r.flags.includes("provider_no_show")) return 3;
     if (r.episode.state === "open") return 4;

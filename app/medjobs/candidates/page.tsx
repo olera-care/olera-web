@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import DrDuBoseWelcome from "@/components/medjobs/DrDuBoseWelcome";
-import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import ScheduleInterviewModal, { type JobDetails } from "@/components/medjobs/ScheduleInterviewModal";
+import { DEMAND_PROFILE_KEY, type DemandProfile } from "@/lib/medjobs/eligibility";
+import { REQUIREMENTS_KEY, type MedjobsRequirements } from "@/lib/medjobs/hiring-needs-questions";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import Pagination from "@/components/ui/Pagination";
@@ -76,6 +78,20 @@ function CandidateBrowseInner() {
       "medjobs_demand_profile"
     ] as { coverage_buckets?: string[] } | undefined
   )?.coverage_buckets;
+
+  // Extract hiring defaults for interview metadata snapshot
+  const providerMeta = (providerProfile?.metadata ?? {}) as Record<string, unknown>;
+  const jobDetails = useMemo((): JobDetails | undefined => {
+    const demand = providerMeta[DEMAND_PROFILE_KEY] as Partial<DemandProfile> | undefined;
+    const requirements = providerMeta[REQUIREMENTS_KEY] as MedjobsRequirements | undefined;
+    if (!demand && !requirements) return undefined;
+    return {
+      job_description: demand?.job_description,
+      coverage_buckets: demand?.coverage_buckets,
+      prn_open: demand?.prn_open,
+      requirements,
+    };
+  }, [providerMeta]);
 
   const claimConflict = searchParams?.get("claim_conflict") === "1";
   // Cold-cadence link (Chunk 5): public board + ?outreach_id=...&screener=1.
@@ -656,6 +672,7 @@ function CandidateBrowseInner() {
           otherName={scheduleTarget.display_name}
           onClose={() => setScheduleTarget(null)}
           onScheduled={() => setScheduleTarget(null)}
+          jobDetails={jobDetails}
         />
       )}
 

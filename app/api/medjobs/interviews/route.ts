@@ -7,7 +7,7 @@ import { generateMedJobsNotificationUrl, generateMedJobsStudentInterviewUrl } fr
 import { getAccessTier } from "@/lib/medjobs-access";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
-import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail, interviewRescheduleSentEmail, interviewCancelledAdminEmail } from "@/lib/email-templates";
+import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail, interviewRescheduleSentEmail, interviewCancelledAdminEmail, interviewScheduledConfirmationEmail } from "@/lib/email-templates";
 import { studentInterestColdEmail } from "@/lib/medjobs-email-templates";
 import { getUniversityBySlug } from "@/lib/staffing-outreach/partner-universities";
 import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
@@ -424,6 +424,31 @@ export async function POST(request: NextRequest) {
             recipientType: recipientIsStudent ? "student" : "provider",
             recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
           });
+
+          // Send confirmation email to the proposer (provider → student flow)
+          // The provider gets confirmation that their interview request was sent
+          if (recipientIsStudent && providerProfile.email) {
+            const providerViewUrl = providerProfile.slug
+              ? generateMedJobsNotificationUrl(providerProfile.slug, providerProfile.email, "interview", interview.id)
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
+            const studentFirstName = studentProfile.display_name?.split(" ")[0] || "the student";
+
+            await sendEmail({
+              to: providerProfile.email,
+              subject: `Interview request sent to ${studentFirstName}`,
+              html: interviewScheduledConfirmationEmail({
+                studentFirstName,
+                interviewType: typeLabel,
+                proposedTime: time,
+                alternativeTime: formattedAltTime,
+                notes: notes || null,
+                viewUrl: providerViewUrl,
+              }),
+              emailType: "interview_scheduled_confirmation",
+              recipientType: "provider",
+              recipientProfileId: resolvedProviderId,
+            });
+          }
         }
       } catch (err) {
         console.error("[medjobs/interviews] email error:", err);

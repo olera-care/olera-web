@@ -623,6 +623,15 @@ export interface Interview {
   proposed_by: string;
   /** When true, interview is saved but student not notified until provider verifies */
   is_pending_verification: boolean;
+  /** Extensible JSON for interview context (e.g., job_details snapshot at scheduling time) */
+  metadata?: {
+    job_details?: {
+      shifts?: string[];
+      prn?: boolean;
+      job_description?: string;
+    };
+    [key: string]: unknown;
+  };
   created_at: string;
   updated_at: string;
 }

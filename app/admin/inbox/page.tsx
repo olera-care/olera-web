@@ -348,6 +348,20 @@ function FactGroup({
  * last message. A search looks across every conversation, whatever tab is
  * open: the person you are looking for is rarely in the tab you are on.
  */
+/**
+ * A full US number typed into search, as its last ten digits, or null.
+ * "+1 469 318 7159", "14693187159" and "(469) 318-7159" all give 4693187159.
+ */
+function numberFromQuery(raw: string): string | null {
+  const all = raw.replace(/\D/g, "");
+  const d = all.length === 11 && all.startsWith("1") ? all.slice(1) : all;
+  return d.length === 10 && /^[2-9]/.test(d) ? d : null;
+}
+
+function formatUs(d: string): string {
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
 function threadMatches(thread: Thread, raw: string): boolean {
   const q = raw.trim().toLowerCase();
   if (!q) return true;
@@ -372,6 +386,13 @@ export default function AdminSmsInboxPage() {
   const [inboxMode, setInboxMode] = useState<InboxMode>("needs_reply");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  /**
+   * A conversation opened on purpose that is not in the list yet: a number
+   * typed into search, or ?phone= from a family's page. The list only holds
+   * numbers that have texted in, so without this the auto-select below would
+   * swap it for the first real thread the moment search was cleared.
+   */
+  const [fresh, setFresh] = useState<string | null>(null);
   const [detail, setDetail] = useState<ThreadDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [reply, setReply] = useState("");
@@ -687,6 +708,7 @@ export default function AdminSmsInboxPage() {
     // on every keystroke would yank away the thread being read or replied to.
     // Pick a result to open it.
     if (!threads?.length || window.innerWidth < 1024 || query.trim()) return;
+    if (selected && selected === fresh) return;
 
     const belongsToMode = (thread: Thread) =>
       inboxMode === "all" || thread.state === inboxMode;
@@ -701,7 +723,20 @@ export default function AdminSmsInboxPage() {
     } else if (selected) {
       closeThread();
     }
-  }, [closeThread, inboxMode, openThread, query, selected, threads]);
+  }, [closeThread, fresh, inboxMode, openThread, query, selected, threads]);
+
+  // ?phone= opens that conversation, texted before or not. This is how
+  // "Text them" on a family's page lands here.
+  const openedFromUrl = useRef(false);
+  useEffect(() => {
+    if (openedFromUrl.current) return;
+    openedFromUrl.current = true;
+    const d = numberFromQuery(new URLSearchParams(window.location.search).get("phone") ?? "");
+    if (d) {
+      setFresh(d);
+      openThread(d);
+    }
+  }, [openThread]);
 
   async function discardDraft() {
     if (!selected) return;
@@ -1018,7 +1053,7 @@ export default function AdminSmsInboxPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Escape") updateQuery("");
                 }}
-                placeholder="Search name, number or message"
+                placeholder="Search, or type a number to start a text"
                 aria-label="Search conversations"
                 autoComplete="off"
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-teal-500"
@@ -1042,7 +1077,26 @@ export default function AdminSmsInboxPage() {
               ))}
             </div>
           )}
-          {threads !== null && visible.length === 0 && !listError && (
+          {/* COMPOSE. The inbox could only answer people who had written in;
+              Ces had no way to start a text and was using the Zoom line. A
+              full number that no conversation matches can be texted from
+              here, through the same send path as a reply: do-not-contact
+              refusal, quiet hours, one scheduled send at a time. */}
+          {searching && numberFromQuery(query) && !(threads ?? []).some((t) => t.phone_last10 === numberFromQuery(query)) && (
+            <button
+              type="button"
+              onClick={() => {
+                const d = numberFromQuery(query)!;
+                setFresh(d);
+                openThread(d);
+              }}
+              className="w-full border-b border-gray-100 bg-teal-50/60 px-4 py-3 text-left text-[13px] font-medium text-teal-800 hover:bg-teal-50"
+            >
+              New text to {formatUs(numberFromQuery(query)!)}
+              <span className="block text-[12px] font-normal text-teal-700/80">No conversation with this number yet</span>
+            </button>
+          )}
+          {threads !== null && visible.length === 0 && !listError && !numberFromQuery(query) && (
             <p className="px-3 py-6 text-[13px] text-gray-500">
               {searching
                 ? `No conversation matches "${query.trim()}".`

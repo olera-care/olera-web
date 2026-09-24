@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { SeekerRelationshipRow } from "@/lib/seeker-touches/types";
-import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, stateOf, type Tone } from "@/lib/seeker-touches/present";
+import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, retryLine, stateOf, type Tone } from "@/lib/seeker-touches/present";
 
 /**
  * Relationships — care seekers.
@@ -62,11 +62,13 @@ import { ORIGIN_LABEL, consentWarning, detailLine, nextLine, problemLine, stateO
  * thirty-eight days old and there is nothing useful to say to a family about
  * a referral from last quarter.
  */
-type Tab = "reply" | "call" | "record" | "reach" | "all" | "archived";
+type Tab = "reply" | "call" | "follow" | "close" | "record" | "reach" | "all" | "archived";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "reply", label: "Reply to them" },
   { key: "call", label: "Call them" },
+  { key: "follow", label: "Follow up" },
+  { key: "close", label: "Tried 3 times" },
   { key: "record", label: "Provider never got back to them" },
   { key: "reach", label: "Fix how we reach them" },
   { key: "all", label: "All" },
@@ -75,7 +77,9 @@ const TABS: { key: Tab; label: string }[] = [
 
 const TAB_BLURB: Record<Tab, string> = {
   reply: "They wrote to us and nobody has answered.",
-  call: "We promised a call and have not reached them.",
+  call: "We promised a call and have not reached them. A logged missed call parks them for 24 hours.",
+  follow: "Tried and waiting, or a next step is set. A missed call comes back to Call them after 24 hours.",
+  close: "Called three times and never reached. Send one last text or email, then archive as Never answered.",
   record: "They told us the provider never got back to them, in the last two weeks.",
   reach: "No working phone or email, so nothing we send can land.",
   all: "Everyone with a live episode in the window.",
@@ -96,6 +100,14 @@ function matches(r: SeekerRelationshipRow, tab: Tab): boolean {
       return r.flags.includes("awaiting_reply");
     case "call":
       return r.flags.includes("promise_owed");
+    case "close":
+      return r.flags.includes("tried_three");
+    // WHERE A LOGGED CALL GOES. Ces logged calls and watched the families
+    // vanish from "Call them" with nowhere to find them: a missed call parks
+    // them for a day, and a dated next step takes them off the list too. Both
+    // are families someone is actively working, so they get their own place.
+    case "follow":
+      return Boolean(r.call_retry_at) || Boolean(r.open_action);
     case "record":
       return r.flags.includes("provider_no_show");
     case "reach":
@@ -143,6 +155,8 @@ const ARCHIVE_REASONS: { key: string; label: string }[] = [
   { key: "not_a_care_seeker", label: "Not looking for care" },
   { key: "duplicate", label: "Duplicate" },
   { key: "resolved_elsewhere", label: "Sorted elsewhere" },
+  { key: "no_answer", label: "Never answered" },
+  { key: "opted_out", label: "Asked us to stop" },
   { key: "other", label: "Something else" },
 ];
 
@@ -230,8 +244,43 @@ function ArchiveControl({ row, onDone }: { row: SeekerRelationshipRow; onDone: (
   );
 }
 
+/** "+14693187159" -> "(469) 318-7159". Anything else is shown as stored. */
+function formatPhone(p: string): string {
+  const d = p.replace(/\D/g, "").slice(-10);
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : p;
+}
+
+/**
+ * Their words only. Gmail snippets arrive HTML-escaped and run on into the
+ * quoted thread ("… On Sun, Sep 20, 2026 at 12:21 AM Olera Support
+ * &lt;support@olera.care&gt;"), which on a reply row reads as if they wrote it.
+ */
+function theirWords(text: string): string {
+  const decoded = text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
+  const cut = decoded.search(/\s(On\s(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|From:\s|-{2,}\s*Original Message)/);
+  return (cut > 0 ? decoded.slice(0, cut) : decoded).trim();
+}
+
 const ORIGINS = ["city_ad", "ad_boost", "benefits", "provider_page", "unknown"] as const;
 const DAY_CHOICES = [14, 45, 90, 180];
+const PAGE = 50;
+
+/**
+ * Name, email, phone or place. Phone matches on digits alone, so "469 318"
+ * finds +14693187159 however either side was typed.
+ */
+function matchesSearch(r: SeekerRelationshipRow, q: string): boolean {
+  const needle = q.toLowerCase();
+  const hay = [r.label, r.email, r.city, r.state, r.city_slug].filter(Boolean).join(" ").toLowerCase();
+  if (hay.includes(needle)) return true;
+  const digits = q.replace(/\D/g, "");
+  return digits.length >= 3 && (r.phone ?? "").replace(/\D/g, "").includes(digits);
+}
 
 /**
  * WHICH QUEUE, WHICH ORIGIN AND HOW FAR BACK LIVE IN THE URL, NOT IN STATE.
@@ -297,7 +346,7 @@ function AdminSeekerRelationshipsInner() {
   }, [load]);
 
   const counts = useMemo(() => {
-    const c: Record<Tab, number> = { reply: 0, call: 0, record: 0, reach: 0, all: 0, archived: 0 };
+    const c: Record<Tab, number> = { reply: 0, call: 0, follow: 0, close: 0, record: 0, reach: 0, all: 0, archived: 0 };
     for (const r of rows ?? []) for (const t of TABS) if (matches(r, t.key)) c[t.key] += 1;
     return c;
   }, [rows]);
@@ -314,8 +363,40 @@ function AdminSeekerRelationshipsInner() {
     };
   }, [rows]);
 
+  // SEARCH LOOKS EVERYWHERE. Finding one person is a different job from
+  // working a queue: the person you are looking for may be in any tab, or
+  // archived, and making you guess which first is the scroll this replaces.
+  const urlQ = params.get("q") ?? "";
+  // The box owns what is typed; the URL follows a moment later. Reading the
+  // box straight from the URL dropped keystrokes, because router.replace
+  // lands after the next key, so typing "dawnavyn" left "n".
+  const [draft, setDraft] = useState(urlQ);
+  useEffect(() => {
+    // Blank-but-spaces counts as empty, or it would re-replace forever.
+    const want = draft.trim() ? draft : "";
+    if (want === urlQ) return;
+    const t = setTimeout(() => setQuery({ q: want || null }), 250);
+    return () => clearTimeout(t);
+  }, [draft, urlQ, setQuery]);
+  const q = draft.trim();
+  const searching = q.length > 0;
   const inTab = (rows ?? []).filter((r) => matches(r, tab)).length;
-  const shown = (rows ?? []).filter((r) => matches(r, tab) && (origin === "all" || r.origin === origin));
+  const shown = searching
+    ? (rows ?? []).filter((r) => matchesSearch(r, q))
+    : (rows ?? []).filter((r) => matches(r, tab) && (origin === "all" || r.origin === origin));
+
+  // Fifty at a time. The work queues are a dozen rows; All is ~400 and was one
+  // long scroll. Paging the render, not the fetch: the load time is the
+  // server assembling every family's history, which is the same for 50 rows
+  // as for 400, so a paged API would add round trips and save nothing.
+  const [limit, setLimit] = useState(PAGE);
+  const viewKey = `${tab}|${origin}|${q}|${days}`;
+  const [limitFor, setLimitFor] = useState(viewKey);
+  if (limitFor !== viewKey) {
+    setLimitFor(viewKey);
+    setLimit(PAGE);
+  }
+  const visible = shown.slice(0, limit);
 
   // Counted against the CURRENT queue, so the chips say how many of these are
   // ad families rather than how many exist overall.
@@ -424,7 +505,25 @@ function AdminSeekerRelationshipsInner() {
             honest name for the big one — a connection records nothing about
             acquisition, so we know they enquired from a provider page and not
             how they got there. Paid counts are a floor, never a total. */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-gray-200 px-3.5 pb-3 text-[11px]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-gray-200 px-3.5 pb-3 text-[11px]">
+          <input
+            id="family-search"
+            type="search"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Find anyone: name, email, phone, city"
+            aria-label="Find a family"
+            className="order-last w-full rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 sm:order-none sm:ml-auto sm:w-64"
+          />
+          {searching ? (
+            <span className="text-gray-500">
+              Searching everyone, every tab and archived · {shown.length} found ·{" "}
+              <button type="button" onClick={() => setDraft("")} className="font-medium text-teal-700 hover:underline">
+                Clear
+              </button>
+            </span>
+          ) : (
+          <>
           <span className="mr-0.5 font-mono uppercase tracking-[0.1em] text-gray-400">From</span>
           <button
             type="button"
@@ -452,6 +551,8 @@ function AdminSeekerRelationshipsInner() {
               </button>
             </span>
           ))}
+          </>
+          )}
         </div>
 
         <div className="flex gap-4 border-b border-gray-200 py-2.5 pl-[19px] pr-4 text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-500">
@@ -461,7 +562,10 @@ function AdminSeekerRelationshipsInner() {
 
         {error && <p className="px-4 py-6 text-sm text-red-600">{error}</p>}
         {rows === null && !error && <p className="px-4 py-10 text-center text-sm text-gray-400">Loading…</p>}
-        {rows !== null && shown.length === 0 && (
+        {rows !== null && searching && shown.length === 0 && (
+          <p className="px-4 py-10 text-center text-sm text-gray-500">Nobody in the last {days} days matches &ldquo;{q}&rdquo;. Try a wider window.</p>
+        )}
+        {rows !== null && !searching && shown.length === 0 && (
           // An empty queue is the goal, not an error, and it should say where
           // the remaining work went rather than leaving a dead end.
           <div className="px-4 py-10 text-center">
@@ -498,11 +602,17 @@ function AdminSeekerRelationshipsInner() {
           </div>
         )}
 
-        {shown.map((r) => {
+        {visible.map((r) => {
           const st = stateOf(r);
           const problem = problemLine(r);
           const consent = consentWarning(r);
           const next = nextLine(r);
+          const retry = retryLine(r);
+          // What you need to act without opening the row: the number on a
+          // call, their own words on a reply.
+          const showPhone =
+            Boolean(r.phone) && (r.flags.includes("promise_owed") || r.flags.includes("tried_three") || r.flags.includes("unreachable"));
+          const said = r.flags.includes("awaiting_reply") ? r.last_inbound : null;
           return (
             <div
               key={r.seeker_id}
@@ -534,6 +644,15 @@ function AdminSeekerRelationshipsInner() {
                 {problem && (
                   <div className={`mt-1.5 text-[13px] font-medium leading-snug ${PROBLEM_TONE[st.tone]}`}>{problem}</div>
                 )}
+                {showPhone && <div className="mt-1 font-mono text-[12.5px] text-gray-700">{formatPhone(r.phone!)}</div>}
+                {said && (
+                  <div className="mt-1.5 border-l-2 border-gray-200 pl-2 text-[13px] leading-snug text-gray-700">
+                    <span className="font-medium">{theirWords(said.title)}</span>
+                    {/* A text's detail is the matched keyword, not more of what they said. */}
+                    {said.channel === "email" && said.detail && said.detail !== said.title && <span className="text-gray-500"> — {theirWords(said.detail)}</span>}
+                  </div>
+                )}
+                {retry && <div className="mt-1.5 text-[12.5px] leading-snug text-gray-500">{retry}</div>}
                 {next && <div className="mt-1.5 text-[13px] leading-snug text-teal-800">{next}</div>}
                 {consent && <div className="mt-1 text-[11.5px] leading-snug text-gray-400">{consent}</div>}
               </div>
@@ -548,6 +667,20 @@ function AdminSeekerRelationshipsInner() {
             </div>
           );
         })}
+        {shown.length > visible.length && (
+          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 text-[12.5px]">
+            <span className="text-gray-500">
+              Showing {visible.length} of {shown.length}
+            </span>
+            <button
+              type="button"
+              onClick={() => setLimit((n) => n + PAGE)}
+              className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Show {Math.min(PAGE, shown.length - visible.length)} more
+            </button>
+          </div>
+        )}
       </div>
 
       <p className="mt-3 max-w-3xl text-[11.5px] leading-relaxed text-gray-400">

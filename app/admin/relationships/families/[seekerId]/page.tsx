@@ -77,6 +77,7 @@ const FLAG_STYLE: Record<SeekerFlag, string> = {
   never_human: "bg-gray-100 text-gray-600",
   no_name: "bg-gray-100 text-gray-500",
   promise_owed: "bg-orange-50 text-orange-800",
+  tried_three: "bg-amber-50 text-amber-800",
 };
 
 const KIND_LABEL: Record<SeekerTimelineItem["kind"], string> = {
@@ -109,9 +110,209 @@ function fmt(iso: string): string {
   });
 }
 
-function Fact({ label, value, note, tone }: { label: string; value: string; note?: string | null; tone?: string }) {
+/** What the route returns alongside the plan for a city lead. */
+type Routing = {
+  lead_id: string;
+  status: string;
+  can_route: boolean;
+  qualification_reply: string | null;
+  pool: { provider_id: string; name: string; position: number; enabled: boolean; already_offered: boolean }[];
+  care_summary: string | null;
+};
+
+/**
+ * Where this goes, and the controls to send it there.
+ *
+ * Calls are logged on this page and the lead used to be routable only from
+ * /admin/city-ads, so a good call ended with a trip to another page and the
+ * same sentence typed twice. The buttons post to the same /api/admin/city-ads
+ * actions that page uses (qualify, offer_next, offer_to), so there is one
+ * routing code path and nothing about how providers get offers changes.
+ */
+function RoutingPanel({
+  plan,
+  routing,
+  citySlug,
+  onRouted,
+}: {
+  plan: RoutingPlan;
+  routing: Routing | null;
+  citySlug: string | null;
+  onRouted: () => void | Promise<void>;
+}) {
+  // Starts from the care details already recorded from calls: structured
+  // fields, never the call notes, because this text reaches providers (see
+  // careSummary in the route). Editable before it is saved.
+  const [need, setNeed] = useState(() => routing?.care_summary ?? "");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
+
+  // "Save and route" answers the qualification hold. It does nothing useful
+  // for a lead that every provider has already passed on, so it is not shown.
+  const canQualify = Boolean(routing?.can_route) && plan.state === "held" && routing?.status !== "unfilled";
+  const showCandidates = Boolean(routing?.can_route) && plan.state === "held" && plan.candidates.length > 0;
+
+  async function act(body: Record<string, unknown>, fallback: string) {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/city-ads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
+      // Every outcome startOrAdvance can return, named. A blanket "Offered."
+      // would be false for most of them, and this line is the only thing that
+      // tells the caller whether a provider was actually asked.
+      const r = d.result as { action?: string; providerName?: string } | undefined;
+      const said: Record<string, { tone: "ok" | "err"; text: string }> = {
+        offered: { tone: "ok", text: `Offered to ${r?.providerName ?? "the provider"}.` },
+        parked: { tone: "ok", text: "Saved. It goes to a provider when their morning opens." },
+        unfilled: { tone: "err", text: "Nobody left on call who has not already seen it. Nothing was sent." },
+        closed: { tone: "err", text: "This lead is closed or already taken. Nothing was sent." },
+        held: { tone: "err", text: "Still held. Nothing was sent; the reason is above." },
+        escalated: { tone: "err", text: "Still waiting on their reply. Nothing was sent." },
+        noop: { tone: "err", text: "Nothing was sent. An offer may already be open, or they have opted out." },
+      };
+      setMsg(d.message ? { tone: "ok", text: d.message } : r?.action && said[r.action] ? said[r.action] : { tone: "ok", text: fallback });
+      await onRouted();
+    } catch (e) {
+      setMsg({ tone: "err", text: e instanceof Error ? e.message : "Did not save" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="bg-white px-3.5 py-2.5">
+    <div className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-3">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">Where this goes</p>
+        <span className={`font-mono text-[10px] ${PLAN_TONE[plan.state]}`}>{PLAN_WORD[plan.state]}</span>
+      </div>
+      <p className="mt-1.5 text-sm text-gray-800">{plan.reason}</p>
+      {plan.steps.length > 0 && (
+        <ol className="mt-2.5 space-y-1">
+          {plan.steps.map((st) => (
+            <li key={`${st.position}-${st.providerId}`} className="flex flex-wrap items-baseline gap-x-2 text-sm">
+              <span className="font-mono text-[11px] text-gray-400">{st.position}</span>
+              <span className={st.state === "upcoming" ? "text-gray-500" : "text-gray-800"}>{st.providerName}</span>
+              <span className="font-mono text-[11px] text-gray-400">
+                {/* A projected time is marked, because an early accept or
+                    decline moves everything after it earlier. */}
+                {st.projected ? "~" : ""}
+                {cityTime(st.at, citySlug)}
+              </span>
+              <span className={`font-mono text-[10px] ${STEP_TONE[st.state]}`}>{STEP_WORD[st.state]}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {canQualify && (
+        <div className="mt-3 border-t border-gray-100 pt-3">
+          <label htmlFor="routing-need" className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">
+            What they need
+          </label>
+          {routing?.qualification_reply && (
+            <p className="mt-1 text-[13px] text-gray-700">
+              On file: &ldquo;{routing.qualification_reply}&rdquo;
+            </p>
+          )}
+          <p className="mt-0.5 text-[12px] text-gray-500">
+            The provider sees this as what the family told us, so keep it to who needs care, what kind, and where.
+          </p>
+          {routing?.care_summary && need === routing.care_summary && (
+            <p className="mt-0.5 text-[12px] text-gray-500">Filled from the care details recorded on their calls.</p>
+          )}
+          <textarea
+            id="routing-need"
+            rows={3}
+            value={need}
+            onChange={(e) => setNeed(e.target.value)}
+            placeholder="What they told you on the phone: who needs care, what kind, and where"
+            className="mt-1.5 w-full rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-900"
+            disabled={busy}
+          />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={busy || !need.trim()}
+              onClick={() => void act({ action: "qualify", leadId: routing!.lead_id, reply: need.trim() }, "Saved.")}
+              className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            >
+              {busy ? "Saving…" : "Save and route"}
+            </button>
+            <span className="text-[12px] text-gray-500">Sends it to the first provider on call, 30 minutes each, in their morning hours.</span>
+          </div>
+        </div>
+      )}
+
+      {showCandidates && (
+        <div className="mt-3">
+          <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">Next on call if routed</p>
+          <ol className="mt-1.5 space-y-0.5">
+            {plan.candidates.map((c, i) => (
+              <li key={c.providerId} className="flex items-baseline gap-2 text-sm text-gray-700">
+                <span className="font-mono text-[11px] text-gray-400">{i + 1}</span>
+                {c.providerName}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {routing?.can_route && routing.pool.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void act({ action: "offer_next", leadId: routing.lead_id }, "Offered.")}
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Offer to next
+          </button>
+          <select
+            aria-label="Offer to a specific provider"
+            value=""
+            disabled={busy}
+            onChange={(e) => {
+              if (e.target.value) void act({ action: "offer_to", leadId: routing.lead_id, providerId: e.target.value }, "Offered.");
+            }}
+            className="max-w-[18rem] rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-700"
+          >
+            <option value="">Offer to…</option>
+            {routing.pool.map((p) => (
+              <option key={p.provider_id} value={p.provider_id}>
+                {p.name}
+                {p.already_offered ? " (already offered)" : p.enabled ? "" : " (not on call)"}
+              </option>
+            ))}
+          </select>
+          <span className="text-[12px] text-gray-500">
+            Sends now, even outside their morning hours
+            {plan.state === "held" ? " and before we know what they need" : ""}. Use Save and route unless you have a reason.
+          </span>
+        </div>
+      )}
+
+      {msg && (
+        <p className={`mt-2 text-[13px] ${msg.tone === "ok" ? "text-emerald-700" : "text-red-700"}`}>{msg.text}</p>
+      )}
+    </div>
+  );
+}
+
+/** "+18089406605" -> "(808) 940-6605". Anything else is shown as stored. */
+function formatPhone(p: string): string {
+  const d = p.replace(/\D/g, "").slice(-10);
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : p;
+}
+
+function Fact({ label, value, note, tone, className }: { label: string; value: string; note?: string | null; tone?: string; className?: string }) {
+  return (
+    <div className={`bg-white px-3.5 py-2.5 ${className ?? ""}`}>
       <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">{label}</p>
       <p className={`mt-0.5 text-sm font-medium ${tone ?? "text-gray-900"}`}>{value}</p>
       {note && <p className="mt-0.5 font-mono text-[10.5px] text-gray-500">{note}</p>}
@@ -128,7 +329,7 @@ function AdminSeekerTimelineInner() {
   const backQuery = useSearchParams().get("back");
   const backHref = `/admin/relationships/families${backQuery ? `?${backQuery}` : ""}`;
   // The route returns the timeline plus the routing plan alongside it.
-  const [data, setData] = useState<(SeekerRelationship & { plan?: RoutingPlan | null }) | null>(null);
+  const [data, setData] = useState<(SeekerRelationship & { plan?: RoutingPlan | null; routing?: Routing | null }) | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [unarchiving, setUnarchiving] = useState(false);
@@ -226,8 +427,21 @@ function AdminSeekerTimelineInner() {
           {profile.label}
         </h1>
         <span className="font-mono text-[13px] text-gray-600">
-          {[profile.phone, profile.email].filter(Boolean).join(" · ") || "no contact details"}
+          {[profile.phone ? formatPhone(profile.phone) : null, profile.email].filter(Boolean).join(" · ") || "no contact details"}
         </span>
+        {/* Opens this family's conversation in Messages, whether or not they
+            have ever texted us, with the reply box ready. */}
+        {/* Not for a number we already know is impossible (Jillanna's 121
+            area code): the inbox refuses it, and the button would land on
+            an empty page with no word why. */}
+        {profile.phone && reach.phone !== "impossible" && (
+          <Link
+            href={`/admin/inbox?phone=${encodeURIComponent(profile.phone)}`}
+            className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Text them
+          </Link>
+        )}
         <div className="ml-auto flex flex-wrap items-center gap-1">
           {flags.map((f) => (
             <span key={f} className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${FLAG_STYLE[f]}`}>
@@ -261,7 +475,9 @@ function AdminSeekerTimelineInner() {
         </p>
       )}
 
-      <div className="mt-4 grid gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Five facts, five columns. In four, the missing cells showed the grid's
+          grey gap colour as a slab across the page. */}
+      <div className="mt-4 grid gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-5">
         <Fact
           label="Reachable by"
           value={reach.open.length ? reach.open.join(" + ") : "Nothing"}
@@ -287,6 +503,8 @@ function AdminSeekerTimelineInner() {
         <Fact label="Came from" value={ORIGIN_LABEL[data.origin]} note={data.city_slug ?? null} />
         <Fact
           label="Timeline they gave"
+          // The odd one out in two columns spans the row, so no grey cell.
+          className="sm:col-span-2 lg:col-span-1"
           value={profile.timeline ? profile.timeline.replace(/_/g, " ") : "not stated"}
           note={profile.payment.length ? profile.payment.join(", ") : null}
         />
@@ -296,31 +514,8 @@ function AdminSeekerTimelineInner() {
           minutes apart, so until now a lead read "Open, day 1" while being two
           hours from going to three agencies. This is derived from the same pool
           the relay reads, so it cannot promise something different. */}
-      {plan && (plan.steps.length > 0 || plan.state === "held") && (
-        <div className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-3">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">Where this goes</p>
-            <span className={`font-mono text-[10px] ${PLAN_TONE[plan.state]}`}>{PLAN_WORD[plan.state]}</span>
-          </div>
-          <p className="mt-1.5 text-sm text-gray-800">{plan.reason}</p>
-          {plan.steps.length > 0 && (
-            <ol className="mt-2.5 space-y-1">
-              {plan.steps.map((st) => (
-                <li key={`${st.position}-${st.providerId}`} className="flex flex-wrap items-baseline gap-x-2 text-sm">
-                  <span className="font-mono text-[11px] text-gray-400">{st.position}</span>
-                  <span className={st.state === "upcoming" ? "text-gray-500" : "text-gray-800"}>{st.providerName}</span>
-                  <span className="font-mono text-[11px] text-gray-400">
-                    {/* A projected time is marked, because an early accept or
-                        decline moves everything after it earlier. */}
-                    {st.projected ? "~" : ""}
-                    {cityTime(st.at, data.city_slug)}
-                  </span>
-                  <span className={`font-mono text-[10px] ${STEP_TONE[st.state]}`}>{STEP_WORD[st.state]}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
+      {plan && (plan.steps.length > 0 || plan.state === "held" || data.routing?.can_route) && (
+        <RoutingPanel plan={plan} routing={data.routing ?? null} citySlug={data.city_slug} onRouted={load} />
       )}
 
       {providers.length > 0 && (

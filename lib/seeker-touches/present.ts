@@ -86,6 +86,9 @@ export function stateOf(r: SeekerRelationshipRow): RowState {
   if (r.flags.includes("promise_owed")) {
     return { phrase: "Owed a call", tone: "act", age };
   }
+  if (r.flags.includes("tried_three")) {
+    return { phrase: "Close out", tone: "warn", age };
+  }
   if (r.flags.includes("awaiting_reply")) {
     return { phrase: "Waiting on us", tone: "warn", age: quiet };
   }
@@ -198,6 +201,10 @@ export function problemLine(r: SeekerRelationshipRow): string | null {
     return why ? `${owed}${why}` : `${owed}No working way to contact them.`.trim();
   }
 
+  if (r.flags.includes("tried_three")) {
+    return `Called ${r.missed_calls} times, never reached. Send one last text or email, then archive as Never answered.`;
+  }
+
   if (r.flags.includes("promise_owed")) {
     if (r.reach.note) return `Promised a call. ${capitalise(r.reach.note)}.`;
     return "Promised a call, still not reached.";
@@ -223,6 +230,18 @@ export function nextLine(r: SeekerRelationshipRow): string | null {
   if (!r.open_action) return null;
   const due = r.open_action.due ? ` — due ${r.open_action.due}` : "";
   return `Next: ${r.open_action.text}${due}`;
+}
+
+/**
+ * A family parked by a missed call, said with when they come back. Without it
+ * the row would drop out of "Call them" with no trace of why.
+ */
+export function retryLine(r: SeekerRelationshipRow, now: Date = new Date()): string | null {
+  if (!r.call_retry_at || r.flags.includes("opted_out")) return null;
+  const at = new Date(r.call_retry_at);
+  if (at.getTime() <= now.getTime()) return null;
+  const when = at.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" });
+  return `Missed call logged. Back in Call them ${when} ET.`;
 }
 
 /** What we're allowed to do, when it restricts us. Silent when it doesn't. */

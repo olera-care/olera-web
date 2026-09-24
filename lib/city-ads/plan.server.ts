@@ -55,6 +55,15 @@ export interface RoutingPlan {
   /** When the next send goes out. Null when nothing is scheduled. */
   nextAt: string | null;
   steps: PlanStep[];
+  /**
+   * Who would get it next, in order, even while the lead is held.
+   *
+   * `steps` only projects sends when nothing blocks them, so a held lead showed
+   * no providers at all, and the person about to release it with a call could
+   * not see where "Save and route" was about to send it. Empty once a provider
+   * has taken it or the lead is closed.
+   */
+  candidates: { providerId: string; providerName: string }[];
 }
 
 interface LeadRow {
@@ -145,10 +154,14 @@ export async function getRoutingPlan(
       reason: `${nameOf(accepted.provider_id)} took this request. Nothing further goes out.`,
       nextAt: null,
       steps,
+      candidates: [],
     };
   }
-  if (lead.archived_at) {
-    return { state: "closed", reason: "This lead is closed. Nothing further goes out.", nextAt: null, steps };
+  // Same rule as the relay (startOrAdvance): only new, offered and unfilled
+  // leads can move. A lead marked "not a fit" used to read as held, with a
+  // list of providers it was about to go to.
+  if (lead.archived_at || !["new", "offered", "unfilled"].includes(lead.status)) {
+    return { state: "closed", reason: "This lead is closed. Nothing further goes out.", nextAt: null, steps, candidates: [] };
   }
 
   // A live offer holds the queue: the next provider is not chosen until this
@@ -160,10 +173,11 @@ export async function getRoutingPlan(
   // WHAT WOULD BLOCK THE NEXT SEND. Same order as the relay's own gate.
   let held: string | null = null;
   if (!lead.qualification_reply_at) {
-    held =
-      cfg?.routingMode === "concierge"
-        ? "Nothing sends until they reply to the qualifying text. A call from us does not release it; their reply does."
-        : "Nothing sends until they reply to the qualifying text.";
+    // Either one releases it. "Save and route" records what a caller heard in
+    // the same field the family's reply fills, so a call does release a held
+    // lead. This line used to say it did not, on the page the calls are
+    // logged from.
+    held = "Held until we know what they need. Their reply to the qualifying text, or what you heard on a call, releases it.";
   } else if (lead.qualification_verdict === null) {
     held = "Their reply is waiting to be read. Nothing sends until it has been judged, which happens within five minutes.";
   } else if (lead.qualification_verdict !== "care_seeker") {
@@ -212,14 +226,16 @@ export async function getRoutingPlan(
   }
 
   const firstUpcoming = steps.find((s) => s.state === "upcoming");
+  const candidates = remaining.map((r) => ({ providerId: r.provider_id, providerName: nameOf(r.provider_id) }));
 
-  if (held) return { state: "held", reason: held, nextAt: null, steps };
+  if (held) return { state: "held", reason: held, nextAt: null, steps, candidates };
   if (live) {
     return {
       state: "live",
       reason: `${nameOf(live.provider_id)} has it now and has until ${fmt(live.expires_at, tz)} to take it.`,
       nextAt: firstUpcoming?.at ?? null,
       steps,
+      candidates,
     };
   }
   if (!firstUpcoming) {
@@ -231,6 +247,7 @@ export async function getRoutingPlan(
           : "No provider left in this city's pool matches what they asked for.",
       nextAt: null,
       steps,
+      candidates,
     };
   }
   return {
@@ -238,6 +255,7 @@ export async function getRoutingPlan(
     reason: `Goes to ${firstUpcoming.providerName} at ${fmt(firstUpcoming.at, tz)}.`,
     nextAt: firstUpcoming.at,
     steps,
+    candidates,
   };
 }
 

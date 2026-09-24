@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { getRoutingPlan } from "@/lib/city-ads/plan.server";
+import { cityLeadBlocked } from "@/lib/city-ads/messages.server";
 import { extractHeard, saveHeard, summariseManual } from "@/lib/seeker-touches/extract.server";
+import { careSummary, type Heard } from "@/lib/seeker-touches/types";
 import { HEARD_FIELDS, FAMILY_TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type FamilyTouchInput, type HeardField } from "@/lib/seeker-touches/types";
 import {
   loadSeekerRelationships,
@@ -69,6 +71,77 @@ function md(body: string): NextResponse {
   });
 }
 
+/**
+ * What the family page needs to route a city lead itself.
+ *
+ * Calls are logged on the family page, but until now the lead could only be
+ * routed from /admin/city-ads, so a caller finished a good call, left for
+ * another page, found the family again and typed what they heard a second
+ * time. This returns the lead's routing state, the city's providers for "Offer
+ * to…", and the care details already recorded for the family, which is what
+ * the "what they need" box starts from. The actions themselves stay on
+ * /api/admin/city-ads, so there is still exactly one routing code path.
+ */
+async function loadRouting(seekerId: string, leadId: string) {
+  const db = getServiceClient();
+  const { data: lead } = await db
+    .from("city_leads")
+    .select("id, slug, status, archived_at, accepted_offer_id, qualification_reply, qualification_reply_at")
+    .eq("id", leadId)
+    .maybeSingle();
+  if (!lead) return null;
+
+  const [{ data: poolRows }, { data: offerRows }, { data: profile }] = await Promise.all([
+    // Test providers are left out: a real family offered to the test listing
+    // reaches nobody.
+    db
+      .from("city_pool")
+      .select("provider_id, position, enabled")
+      .eq("slug", lead.slug)
+      .eq("is_test", false)
+      .order("position", { ascending: true }),
+    db.from("city_lead_offers").select("provider_id, accepted_at").eq("lead_id", leadId),
+    db.from("business_profiles").select("metadata").eq("id", seekerId).maybeSingle(),
+  ]);
+
+  const pool = (poolRows ?? []) as { provider_id: string; position: number; enabled: boolean }[];
+  const ids = pool.map((p) => p.provider_id);
+  const { data: names } = ids.length
+    ? await db.from("business_profiles").select("id, display_name").in("id", ids)
+    : { data: [] as { id: string; display_name: string | null }[] };
+  const nameOf = new Map((names ?? []).map((n) => [n.id as string, (n.display_name as string | null) ?? "a provider"]));
+  const offered = new Set((offerRows ?? []).map((o) => o.provider_id as string));
+
+  // The same check every city-ads action runs first (archived, test, stopped,
+  // or on do_not_contact). Without it an opted-out family showed the buttons,
+  // and pressing one came back as a vague "nothing was sent".
+  const blocked = await cityLeadBlocked(db, leadId);
+  const closed =
+    blocked || ["client", "no_fit", "stopped", "redirected", "unreachable"].includes(lead.status);
+
+  return {
+    lead_id: lead.id as string,
+    status: lead.status as string,
+    // Nothing to route once a provider has it or the lead is finished; the
+    // page hides the controls rather than offering a button that 409s.
+    // An accepted OFFER counts, not just the lead's pointer to it. Rudy's
+    // offer was accepted while his lead row kept status "offered" and no
+    // accepted_offer_id, so a pointer-only check showed "Offer to next" on a
+    // family a provider already had.
+    can_route: !closed && !lead.accepted_offer_id && !(offerRows ?? []).some((o) => o.accepted_at),
+    qualification_reply: (lead.qualification_reply as string | null) ?? null,
+    pool: pool.map((p) => ({
+      provider_id: p.provider_id,
+      name: nameOf.get(p.provider_id) ?? "a provider",
+      position: p.position,
+      enabled: p.enabled,
+      already_offered: offered.has(p.provider_id),
+    })),
+    care_summary: careSummary((profile?.metadata as { care_details?: Heard | null } | null)?.care_details ?? null),
+  };
+}
+
+
 export async function GET(request: NextRequest) {
   const gate = await requireAdmin();
   if ("error" in gate) return gate.error;
@@ -91,14 +164,20 @@ export async function GET(request: NextRequest) {
       // Best effort: a failure here must not take the whole timeline down with
       // it, since the timeline is the part that is always worth showing.
       let plan = null;
+      let routing = null;
       if (timeline.city_lead_id) {
         try {
           plan = await getRoutingPlan(getServiceClient(), timeline.city_lead_id);
         } catch (err) {
           console.error("[seeker-touches] routing plan failed:", err);
         }
+        try {
+          routing = await loadRouting(seeker, timeline.city_lead_id);
+        } catch (err) {
+          console.error("[seeker-touches] routing controls failed:", err);
+        }
       }
-      return asMarkdown ? md(seekerTimelineToMarkdown(timeline)) : NextResponse.json({ ...timeline, plan });
+      return asMarkdown ? md(seekerTimelineToMarkdown(timeline)) : NextResponse.json({ ...timeline, plan, routing });
     }
 
     const rows = await loadSeekerRelationships({ days });

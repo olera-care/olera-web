@@ -230,7 +230,13 @@ export type SeekerFlag =
   /** display_name is a placeholder, so the row has nothing to call itself. */
   | "no_name"
   /** A concierge city lead we promised to call and have not reached. */
-  | "promise_owed";
+  | "promise_owed"
+  /**
+   * Called three times and never reached. Takes the place of promise_owed:
+   * a fourth call on the same pattern is not the next step, a last written
+   * message and an archive is.
+   */
+  | "tried_three";
 
 export const SEEKER_FLAG_LABEL: Record<SeekerFlag, string> = {
   awaiting_reply: "they wrote, no reply yet",
@@ -241,6 +247,7 @@ export const SEEKER_FLAG_LABEL: Record<SeekerFlag, string> = {
   never_human: "only ever got automated email",
   no_name: "no name on file",
   promise_owed: "promised a call",
+  tried_three: "called 3 times, no answer",
 };
 
 // ── Rows ──────────────────────────────────────────────────────────────────────
@@ -291,6 +298,15 @@ export type SeekerRelationshipRow = SeekerContact & {
   open_action: SeekerOpenAction | null;
   /** True once a logged touch says we actually spoke to them. */
   ever_reached: boolean;
+  /**
+   * When a missed call parks this family, the moment they come back to "Call
+   * them". Null when no attempt in the last 24 hours failed to reach them.
+   */
+  call_retry_at: string | null;
+  /** Logged calls that did not reach them, since nobody ever has. */
+  missed_calls: number;
+  /** Their newest text or support email, so a reply row shows what they said. */
+  last_inbound: { occurred_at: string; channel: string; title: string; detail: string | null } | null;
   /**
    * A person decided this row is not a case to work. Null for everyone else.
    *
@@ -476,4 +492,35 @@ export function heardCanonical(field: HeardField, value: string): string | null 
   const unique = [...new Set(codes)];
   if (!unique.length) return null;
   return (HEARD_MULTI.includes(field) ? unique : unique.slice(0, 1)).join(",");
+}
+
+/**
+ * The care details recorded from calls, as one line a provider can act on.
+ *
+ * NOT the call notes. A family who never texted back has this saved text shown
+ * to providers as their reply (exchange.server.ts), and notes are written for
+ * us: Helen Garner's only "reached" note is a call to Assisting Hands quoting
+ * their hourly rate, which would have gone to their competitor. These fields
+ * are the structured who, what and where the log form already extracts, and a
+ * person has usually corrected them. Budget is left out on purpose.
+ */
+export function careSummary(heard: Heard | null): string | null {
+  const f = heard?.fields;
+  if (!f) return null;
+  const v = (k: keyof typeof f) => {
+    const raw = f[k]?.value?.trim();
+    return raw ? heardDisplay(k, raw) : null;
+  };
+  const who = v("care_for");
+  const rel = v("relationship");
+  const parts = [
+    who || rel ? `For ${rel ? `their ${rel}` : ""}${rel && who ? ", " : ""}${who ?? ""}` : null,
+    v("care_type"),
+    v("care_zip"),
+    v("hours"),
+    v("transfers") ? `transfers: ${v("transfers")}` : null,
+    v("starts") ? `starts ${v("starts")}` : null,
+    v("payment"),
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ").slice(0, 2000) : null;
 }

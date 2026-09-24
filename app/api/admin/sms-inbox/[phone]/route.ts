@@ -30,6 +30,25 @@ const MAX_THREAD = 200;
 const MAX_BODY = 480;
 
 /** Twilio addresses US numbers in E.164; our thread key is the last 10 digits. */
+/**
+ * The family profile behind a number, for a conversation that has no inbound
+ * row to identify it. business_profiles.phone is stored however it was typed:
+ * of 641 family numbers, 156 are neither +1XXXXXXXXXX nor ten digits
+ * (" +1 912-581-4440", "(704) 351-0788"), so an exact match missed a quarter
+ * of them. Every format ends in the same four digits, so narrow on those in
+ * the query and compare the normalized number here.
+ */
+async function familyIdByPhone(db: ReturnType<typeof getServiceClient>, last10: string): Promise<string | null> {
+  const { data } = await db
+    .from("business_profiles")
+    .select("id, phone")
+    .eq("type", "family")
+    .like("phone", `%${last10.slice(-4)}`)
+    .limit(50);
+  const hit = (data ?? []).find((p) => String(p.phone ?? "").replace(/\D/g, "").slice(-10) === last10);
+  return (hit?.id as string | undefined) ?? null;
+}
+
 function toE164(last10: string): string {
   return `+1${last10}`;
 }
@@ -468,7 +487,11 @@ export async function GET(
     // Identity: take the most recent non-null resolution we have on file.
     const identified = [...inboundRows].reverse().find((r) => r.display_name || r.profile_type);
     const latestOutbound = outboundLogRows.at(-1);
-    const resolvedProfileId = identified?.profile_id ?? latestOutbound?.provider_id ?? null;
+    let resolvedProfileId: string | null = identified?.profile_id ?? latestOutbound?.provider_id ?? null;
+    // A conversation started from here has no inbound row and, for a city
+    // lead, no provider_id on its sends. Find the family by number so the
+    // header names them and quiet hours use their state.
+    if (!resolvedProfileId) resolvedProfileId = await familyIdByPhone(db, last10);
     let resolvedDisplayName = identified?.display_name ?? null;
     let resolvedProfileType = identified?.profile_type ?? latestOutbound?.recipient_type ?? null;
     // Quiet hours are evaluated in the RECIPIENT's timezone, so the state is
@@ -856,7 +879,7 @@ export async function POST(
       // Carry the thread identity into email_log. Older admin replies omitted
       // both fields, which made the outbound ledger unable to say that Olera,
       // not the family, spoke last.
-      const { data: recipientIdentity } = await db
+      let { data: recipientIdentity } = await db
         .from("sms_inbound")
         .select("profile_id, profile_type")
         .eq("phone_last10", last10)
@@ -864,6 +887,15 @@ export async function POST(
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      // A NEW CONVERSATION HAS NO INBOUND ROW. Texts started from the inbox
+      // or a family's page go to people who never wrote in, so the identity
+      // above is empty and quiet hours would fall back to a default zone: a
+      // Dallas family texted on Eastern time. Find the family by number
+      // instead. Stored formats vary, so match the common two.
+      if (!recipientIdentity) {
+        const familyId = await familyIdByPhone(db, last10);
+        if (familyId) recipientIdentity = { profile_id: familyId, profile_type: "family" };
+      }
       const loggedRecipientType =
         recipientIdentity?.profile_type === "family" ||
         recipientIdentity?.profile_type === "provider" ||

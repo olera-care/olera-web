@@ -211,6 +211,20 @@ export default function LogFamilyTouch({ seekerId, onLogged }: Props) {
           </button>
         ))}
       </div>
+      {/* What each answer does to the queue. "Yes" is only for the family:
+          a call to a provider logged as "Yes" (Helen Garner's Assisting Hands
+          call) reads as having reached the family and clears their call. */}
+      {reached === true && (
+        <p className="mt-1 text-[12px] text-gray-500">
+          Only when you spoke to the family. A call to a provider about them is &ldquo;Not applicable&rdquo;.
+        </p>
+      )}
+      {reached === false && (
+        <p className="mt-1 text-[12px] text-gray-500">
+          They leave Call them for 24 hours, then come back if nobody reaches them. After a third missed call they move to
+          Tried 3 times instead.
+        </p>
+      )}
 
       {showNext ? (
         <div className="mt-2.5 flex flex-wrap items-center gap-2">

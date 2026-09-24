@@ -299,7 +299,7 @@ export interface FirstStepPick {
    * the switch has to be said out loud (TJ, 2026-09-24). The plan page turns
    * this into one quiet line above the Start here card.
    */
-  switchReason?: "ruled_out" | "no_contact";
+  switchReason?: "ruled_out" | "no_contact" | "no_steps";
   /** Short name of the entry program that was passed over. */
   switchedFromName?: string;
   /** The verdict's family-readable reason ("Needs Medicaid first") when
@@ -545,7 +545,15 @@ export async function selectFirstStepProgram(
       } else {
         const pick = toPick(draft, abbrev, entry.stateId, "entry");
         if (pick) return pick;
-        switchInfo = { switchReason: "no_contact", switchedFromName: entryName, switchDetail: null };
+        // toPick needs a phone AND a document list. When the phone is there
+        // and only the steps are missing (Seattle Gold Card), saying "no
+        // working number" would be false: the page they came from shows one.
+        const hasPhone = (draft.contacts || []).some((c) => !!c.phone);
+        switchInfo = {
+          switchReason: hasPhone ? "no_steps" : "no_contact",
+          switchedFromName: entryName,
+          switchDetail: null,
+        };
       }
     }
   }

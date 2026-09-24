@@ -468,7 +468,20 @@ export async function GET(
     // Identity: take the most recent non-null resolution we have on file.
     const identified = [...inboundRows].reverse().find((r) => r.display_name || r.profile_type);
     const latestOutbound = outboundLogRows.at(-1);
-    const resolvedProfileId = identified?.profile_id ?? latestOutbound?.provider_id ?? null;
+    let resolvedProfileId: string | null = identified?.profile_id ?? latestOutbound?.provider_id ?? null;
+    // A conversation started from here has no inbound row and, for a city
+    // lead, no provider_id on its sends. Find the family by number so the
+    // header names them and quiet hours use their state.
+    if (!resolvedProfileId) {
+      const { data: byPhone } = await db
+        .from("business_profiles")
+        .select("id")
+        .eq("type", "family")
+        .in("phone", [e164, last10])
+        .limit(1)
+        .maybeSingle();
+      resolvedProfileId = (byPhone?.id as string | undefined) ?? null;
+    }
     let resolvedDisplayName = identified?.display_name ?? null;
     let resolvedProfileType = identified?.profile_type ?? latestOutbound?.recipient_type ?? null;
     // Quiet hours are evaluated in the RECIPIENT's timezone, so the state is
@@ -856,7 +869,7 @@ export async function POST(
       // Carry the thread identity into email_log. Older admin replies omitted
       // both fields, which made the outbound ledger unable to say that Olera,
       // not the family, spoke last.
-      const { data: recipientIdentity } = await db
+      let { data: recipientIdentity } = await db
         .from("sms_inbound")
         .select("profile_id, profile_type")
         .eq("phone_last10", last10)
@@ -864,6 +877,21 @@ export async function POST(
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      // A NEW CONVERSATION HAS NO INBOUND ROW. Texts started from the inbox
+      // or a family's page go to people who never wrote in, so the identity
+      // above is empty and quiet hours would fall back to a default zone: a
+      // Dallas family texted on Eastern time. Find the family by number
+      // instead. Stored formats vary, so match the common two.
+      if (!recipientIdentity) {
+        const { data: byPhone } = await db
+          .from("business_profiles")
+          .select("id")
+          .eq("type", "family")
+          .in("phone", [toE164(last10), last10])
+          .limit(1)
+          .maybeSingle();
+        if (byPhone) recipientIdentity = { profile_id: byPhone.id, profile_type: "family" };
+      }
       const loggedRecipientType =
         recipientIdentity?.profile_type === "family" ||
         recipientIdentity?.profile_type === "provider" ||

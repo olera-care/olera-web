@@ -429,6 +429,16 @@ function AdminSeekerTimelineInner() {
         <span className="font-mono text-[13px] text-gray-600">
           {[profile.phone ? formatPhone(profile.phone) : null, profile.email].filter(Boolean).join(" · ") || "no contact details"}
         </span>
+        {/* Opens this family's conversation in Messages, whether or not they
+            have ever texted us, with the reply box ready. */}
+        {profile.phone && (
+          <Link
+            href={`/admin/inbox?phone=${encodeURIComponent(profile.phone)}`}
+            className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Text them
+          </Link>
+        )}
         <div className="ml-auto flex flex-wrap items-center gap-1">
           {flags.map((f) => (
             <span key={f} className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${FLAG_STYLE[f]}`}>

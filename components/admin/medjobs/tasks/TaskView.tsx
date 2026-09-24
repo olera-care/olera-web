@@ -746,9 +746,13 @@ export default function TaskView({
  * is neither a student nor an advising office gets the provider brochure,
  * which is what it was written for.
  */
-function flyerAudience(section: SectionKey): "student" | "advisor" | "provider" {
+function flyerAudience(section: SectionKey): "student" | "advisor" | "provider" | "recruit" {
   if (section === "students") return "student";
   if (section === "advisors") return "advisor";
+  // A student org forwards what it is given to its members. That is the
+  // one-page recruitment flyer — the same sheet the advisor document ends
+  // with — not a brochure about the programme written for somebody else.
+  if (section === "orgs") return "recruit";
   return "provider";
 }
 

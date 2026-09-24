@@ -35,6 +35,7 @@ import {
 } from "@/components/caregiver-portal/cards";
 import GoLiveCelebrationModal from "@/components/caregiver-portal/GoLiveCelebrationModal";
 import GoLiveReviewModal from "@/components/caregiver-portal/GoLiveReviewModal";
+import { useNavbar } from "@/components/shared/NavbarContext";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -1080,12 +1081,12 @@ export default function StudentPortalPage() {
   /* ── Loading / Empty states ── */
 
   if (authLoading || loading) {
-    return <main className="min-h-screen bg-[#FAFAF8] flex items-center justify-center"><div className="text-gray-300 text-sm">Loading...</div></main>;
+    return <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center"><div className="text-gray-300 text-sm">Loading...</div></div>;
   }
 
   if (!profile) {
     return (
-      <main className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4">
         <div className="max-w-sm text-center">
           <h1 className="text-2xl font-semibold text-gray-900 mb-3">No profile yet</h1>
           <p className="text-gray-400 mb-6">Apply to MedJobs to get started.</p>
@@ -1093,7 +1094,7 @@ export default function StudentPortalPage() {
             Apply now
           </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -1116,14 +1117,35 @@ function StudentPortalContent({
   profile: StudentProfile;
   refresh: () => void;
 }) {
+  const { disableAutoHide } = useNavbar();
   const [editingSection, setEditingSection] = useState<CaregiverSectionId | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingCelebration, setPendingCelebration] = useState(false);
   const [showGoLiveReview, setShowGoLiveReview] = useState(false);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  // Read dismissal state from sessionStorage after mount (avoids hydration mismatch)
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("olera-medjobs-banner-dismissed") === "true") {
+        setBannerDismissed(true);
+      }
+    } catch { /* sessionStorage unavailable */ }
+  }, []);
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try {
+      sessionStorage.setItem("olera-medjobs-banner-dismissed", "true");
+    } catch { /* sessionStorage unavailable */ }
+  };
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
+
+  // Ensure navbar stays visible (sticky) on this page
+  useEffect(() => {
+    disableAutoHide();
+  }, [disableAutoHide]);
 
   // Toggle profile visibility (pause/unpause)
   const handleToggleVisibility = async (visible: boolean) => {
@@ -1309,16 +1331,27 @@ function StudentPortalContent({
   const currentSemester = getCurrentSemester();
 
   // Show banner when profile is 100% complete but hasn't requested review yet
-  const showReviewBanner = completenessPercent === 100 && !isPendingReview && !hasCompletedApplication;
+  const showReviewBanner = completenessPercent === 100 && !isPendingReview && !hasCompletedApplication && !bannerDismissed;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Review Request Banner — shown when profile is 100% complete */}
         {showReviewBanner && (
-          <div className="mb-6 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 shadow-lg shadow-primary-500/20">
+          <div className="mb-6 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 shadow-lg shadow-primary-500/20 relative">
+            {/* Mobile X button - top right */}
+            <button
+              type="button"
+              onClick={dismissBanner}
+              className="sm:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              aria-label="Dismiss"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start sm:items-center gap-3">
+              <div className="flex items-start sm:items-center gap-3 pr-8 sm:pr-0">
                 <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1331,13 +1364,22 @@ function StudentPortalContent({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowGoLiveReview(true)}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white text-primary-700 font-semibold text-sm rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
-              >
-                Request Review
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={dismissBanner}
+                  className="hidden sm:block px-4 py-2.5 text-white/80 hover:text-white font-medium text-sm transition-colors"
+                >
+                  Not Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGoLiveReview(true)}
+                  className="w-full sm:w-auto px-6 py-2.5 bg-white text-primary-700 font-semibold text-sm rounded-xl hover:bg-primary-50 transition-colors shadow-sm"
+                >
+                  Request Review
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -2151,6 +2193,6 @@ function StudentPortalContent({
         onClose={() => setShowCelebration(false)}
         profileSlug={profile.slug}
       />
-    </main>
+    </div>
   );
 }

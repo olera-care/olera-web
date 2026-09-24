@@ -74,7 +74,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   return (
     <NavbarProvider>
       <Navbar />
-      <main className="flex-grow">{children}</main>
+      <main className="flex-grow mt-16">{children}</main>
       {/* Spacer for bottom tabs - ensures content isn't hidden behind fixed nav.
           Always render on provider portal routes to prevent layout shift during navigation.
           Height transitions smoothly if variant changes. */}

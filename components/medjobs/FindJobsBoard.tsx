@@ -8,6 +8,8 @@ import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import ProviderBottomSheet from "@/components/medjobs/ProviderBottomSheet";
+import Pagination from "@/components/ui/Pagination";
+import { useNavbar } from "@/components/shared/NavbarContext";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { ProviderCard } from "@/app/api/medjobs/providers/route";
@@ -36,6 +38,8 @@ const BrowseMap = dynamic(() => import("@/components/browse/BrowseMap"), {
 });
 
 type TabType = "near" | "all";
+
+const PAGE_SIZE = 12;
 
 interface StudentInfo {
   profileId: string | null;
@@ -106,6 +110,7 @@ function NearYouEmptyState({
 
 export default function FindJobsBoard() {
   const { profiles, isLoading: authLoading } = useAuth();
+  const { disableAutoHide } = useNavbar();
   const studentProfile = profiles?.find((p) => p.type === "student");
 
   const [student, setStudent] = useState<StudentInfo>({
@@ -122,8 +127,15 @@ export default function FindJobsBoard() {
   const [scheduleTarget, setScheduleTarget] = useState<ProviderCard | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ProviderCard | null>(null);
   const [requested, setRequested] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
 
   const fetchedRef = useRef(false);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Ensure navbar stays visible (sticky) on this page
+  useEffect(() => {
+    disableAutoHide();
+  }, [disableAutoHide]);
 
   const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === student.campus)?.name ?? null;
 
@@ -242,6 +254,10 @@ export default function FindJobsBoard() {
   const displayProviders = activeTab === "near" ? nearProviders : allProviders;
   const mapCards = displayProviders.filter((p) => p.lat != null && p.lon != null);
 
+  // Pagination
+  const totalPages = Math.ceil(displayProviders.length / PAGE_SIZE);
+  const pageProviders = displayProviders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   // Handle interview request
   const handleRequestInterview = (provider: ProviderCard) => {
     if (!student.profileId) {
@@ -296,7 +312,7 @@ export default function FindJobsBoard() {
       <div className="mb-5 flex items-center gap-1 p-1 bg-gray-100 rounded-xl w-fit">
         <button
           type="button"
-          onClick={() => setActiveTab("near")}
+          onClick={() => { setActiveTab("near"); setPage(1); }}
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
             activeTab === "near"
               ? "bg-white text-gray-900 shadow-sm"
@@ -313,7 +329,7 @@ export default function FindJobsBoard() {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("all")}
+          onClick={() => { setActiveTab("all"); setPage(1); }}
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
             activeTab === "all"
               ? "bg-white text-gray-900 shadow-sm"
@@ -331,7 +347,7 @@ export default function FindJobsBoard() {
 
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div>
+        <div ref={gridRef} className="scroll-mt-20">
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -344,7 +360,7 @@ export default function FindJobsBoard() {
           ) : displayProviders.length === 0 || (activeTab === "near" && !student.campus) ? (
             activeTab === "near" ? (
               <NearYouEmptyState
-                onViewAll={() => setActiveTab("all")}
+                onViewAll={() => { setActiveTab("all"); setPage(1); }}
                 hasCampus={!!student.campus}
               />
             ) : (
@@ -355,56 +371,73 @@ export default function FindJobsBoard() {
               </div>
             )
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {displayProviders.map((provider) => (
-                <div
-                  key={provider.id}
-                  onMouseEnter={() => setHoveredId(provider.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  onClick={(e) => {
-                    // Cmd/ctrl-click always opens in new tab (let Link handle it)
-                    if (e.metaKey || e.ctrlKey) return;
-                    e.preventDefault();
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {pageProviders.map((provider) => (
+                  <div
+                    key={provider.id}
+                    onMouseEnter={() => setHoveredId(provider.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={(e) => {
+                      // Cmd/ctrl-click always opens in new tab (let Link handle it)
+                      if (e.metaKey || e.ctrlKey) return;
+                      e.preventDefault();
 
-                    // Desktop (lg+): open profile in new tab
-                    // Mobile: open bottom sheet for quick preview
-                    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
-                    if (isDesktop) {
-                      // Include ctx=medjobs-student so server renders the "About this opportunity" section
-                      const params = new URLSearchParams();
-                      params.set("ctx", "medjobs-student");
-                      if (student.campus) params.set("campus", student.campus);
-                      const url = `/provider/${provider.slug}?${params.toString()}`;
-                      window.open(url, "_blank");
-                    } else {
-                      setSelectedProvider(provider);
-                    }
-                  }}
-                  className="rounded-2xl transition-shadow hover:shadow-md cursor-pointer"
-                >
-                  <BrowseCard
-                    provider={provider}
-                    variant="student"
-                    campus={student.campus || undefined}
-                    showProviderName={true}
-                    isRequested={requested.has(provider.id)}
-                    canRequest={!!student.profileId}
-                    requestLabel={
-                      requested.has(provider.id)
-                        ? "Requested"
-                        : student.completeness >= 100
-                        ? "Apply"
-                        : "Complete profile to apply"
-                    }
-                    onRequestInterview={
-                      requested.has(provider.id)
-                        ? undefined
-                        : () => handleRequestInterview(provider)
-                    }
+                      // Desktop (lg+): open profile in new tab
+                      // Mobile: open bottom sheet for quick preview
+                      const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+                      if (isDesktop) {
+                        // Include ctx=medjobs-student so server renders the "About this opportunity" section
+                        const params = new URLSearchParams();
+                        params.set("ctx", "medjobs-student");
+                        if (student.campus) params.set("campus", student.campus);
+                        const url = `/provider/${provider.slug}?${params.toString()}`;
+                        window.open(url, "_blank");
+                      } else {
+                        setSelectedProvider(provider);
+                      }
+                    }}
+                    className="rounded-2xl transition-shadow hover:shadow-md cursor-pointer"
+                  >
+                    <BrowseCard
+                      provider={provider}
+                      variant="student"
+                      campus={student.campus || undefined}
+                      showProviderName={true}
+                      isRequested={requested.has(provider.id)}
+                      canRequest={!!student.profileId}
+                      requestLabel={
+                        requested.has(provider.id)
+                          ? "Requested"
+                          : student.completeness >= 100
+                          ? "Apply"
+                          : "Complete profile to apply"
+                      }
+                      onRequestInterview={
+                        requested.has(provider.id)
+                          ? undefined
+                          : () => handleRequestInterview(provider)
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    totalItems={displayProviders.length}
+                    itemsPerPage={PAGE_SIZE}
+                    onPageChange={(p) => {
+                      setPage(p);
+                      gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    itemLabel="providers"
                   />
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
 

@@ -28,6 +28,15 @@ function daysAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+/** "today", "yesterday", "on Sunday", "on Sep 20": when they reached out, said as a person would. */
+function onDay(iso: string): string {
+  const d = daysAgo(iso);
+  return d === "today" || d === "yesterday" ? d : `on ${d}`;
+}
+
+/** Page inquiries can arrive without a name; every form lead has one. */
+const named = (f: Family) => f.firstName !== "A family";
+
 function formatPhone(raw: string): string {
   const d = raw.replace(/\D/g, "").slice(-10);
   return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : raw;
@@ -45,7 +54,7 @@ function order(families: Family[]): Family[] {
 }
 
 function draftFor(f: Family, providerName: string): string {
-  const intro = `Hi ${f.firstName}, this is ${providerName}.`;
+  const intro = named(f) ? `Hi ${f.firstName}, this is ${providerName}.` : `Hi, this is ${providerName}.`;
   if (f.words && f.words.length <= 100) {
     return `${intro} Thanks for your note: "${clip(f.words, 100)}" I'd love to help. When's a good time to talk?`;
   }
@@ -56,9 +65,9 @@ function draftFor(f: Family, providerName: string): string {
 function whoLine(f: Family): string {
   if (f.kind === "page") return `asked on your Olera page ${daysAgo(f.arrivedAt)}`;
   if (f.words) return `wrote to us ${daysAgo(f.arrivedAt)}`;
-  if (f.reach === "call") return `filled in your form ${daysAgo(f.arrivedAt)} · our texts don't reach this phone`;
-  if (f.reach === "email") return `filled in your form ${daysAgo(f.arrivedAt)} · our texts don't reach this phone, email does`;
-  return `filled in your form ${daysAgo(f.arrivedAt)} · hasn't replied yet`;
+  if (f.reach === "call") return "from your ad · our texts don't reach this phone";
+  if (f.reach === "email") return "from your ad · our texts don't reach this phone, email does";
+  return "from your ad";
 }
 
 function quietLine(f: Family): string {
@@ -69,7 +78,7 @@ function quietLine(f: Family): string {
   if (f.words) return "Wrote to us. Message first";
   if (f.kind === "page") return "Asked on your page";
   if (f.reach === "call") return "Call rather than text";
-  return "Hasn't replied yet. Message first";
+  return "Message first";
 }
 
 export default function CampaignHome({
@@ -164,7 +173,7 @@ export default function CampaignHome({
                       onClick={() => setSelectedId(f.id)}
                       className="flex w-full items-baseline justify-between gap-4 py-3 text-left text-[15px] text-gray-800 hover:text-gray-950"
                     >
-                      <span className="min-w-0 truncate">{f.kind === "page" && f.firstName === "A family" ? "A family on your Olera page" : f.firstName}</span>
+                      <span className="min-w-0 truncate">{named(f) ? f.firstName : f.kind === "page" ? "A family on your Olera page" : "A family"}</span>
                       <span className="shrink-0 text-sm text-gray-400">{quietLine(f)}</span>
                     </button>
                   </li>
@@ -270,7 +279,7 @@ function Moment({
       />
       <div className="rounded-3xl bg-white px-6 py-7 md:px-8 md:py-8">
         <p className="text-sm text-gray-600">
-          <span className="text-[15px] font-semibold text-gray-900">{f.firstName}</span> · {whoLine(f)}
+          <span className="text-[15px] font-semibold text-gray-900">{named(f) ? f.firstName : "A family"}</span> · {whoLine(f)}
         </p>
         {f.words ? (
           <p className="mt-4 font-display text-[30px] leading-[1.12] text-gray-950 md:text-[38px]" style={{ textWrap: "balance" }}>
@@ -280,14 +289,14 @@ function Moment({
           </p>
         ) : (
           <p className="mt-4 font-display text-[26px] leading-[1.15] text-gray-950 md:text-[30px]">
-            {f.kind === "page" ? `${f.firstName} asked about your care.` : `${f.firstName} hasn't replied yet.`}
+            {named(f) ? f.firstName : "A family"} asked about {f.kind === "page" ? "your care" : "care"} {onDay(f.arrivedAt)}.
           </p>
         )}
 
         {sent ? (
           <div className="mt-6">
             <p className="text-[15px] leading-relaxed text-gray-700">
-              Sent. {f.firstName} gets {f.reach === "email" ? "an email" : "a text"} with a link to read it. We&rsquo;ll tell you when they reply.
+              Sent. {named(f) ? f.firstName : "They"} get{named(f) ? "s" : ""} {f.reach === "email" ? "an email" : "a text"} with a link to read it. We&rsquo;ll tell you when they reply.
             </p>
             <button type="button" onClick={onNext} className="mt-4 text-[15px] font-semibold text-primary-700 hover:text-primary-800">
               Next family &rarr;
@@ -313,10 +322,10 @@ function Moment({
               disabled={sending || !draft.trim()}
               className="mt-4 w-full rounded-2xl bg-primary-800 px-5 py-4 text-left text-[17px] font-semibold text-white transition-colors hover:bg-primary-900 disabled:opacity-60"
             >
-              {sending ? "Sending…" : `Send to ${f.firstName}`}
+              {sending ? "Sending…" : named(f) ? `Send to ${f.firstName}` : "Send"}
             </button>
             <p className="mt-3 text-sm text-gray-600">
-              {f.firstName} gets it as {f.reach === "email" ? "an email" : "a text"}.{call ? <> You can also {call}.</> : null}
+              {named(f) ? `${f.firstName} gets` : "They get"} it as {f.reach === "email" ? "an email" : "a text"}.{call ? <> You can also {call}.</> : null}
             </p>
             {error && (
               <p className="mt-2 text-sm text-error-700" role="alert">
@@ -342,7 +351,7 @@ function Moment({
                 onClick={onCalled}
                 className="flex w-full items-center justify-between rounded-2xl bg-primary-800 px-5 py-4 text-[17px] font-semibold text-white hover:bg-primary-900"
               >
-                <span>Call {f.firstName}</span>
+                <span>{named(f) ? `Call ${f.firstName}` : "Call"}</span>
                 <span className="text-sm font-medium opacity-80">{formatPhone(f.phone)}</span>
               </a>
             ) : null}
@@ -500,7 +509,7 @@ function HowDidItGo({
       >
         <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-vanilla-300 sm:hidden" aria-hidden />
         <h3 id="how-did-it-go" className="font-display text-[26px] leading-tight text-gray-950">
-          How did it go with {f.firstName}?
+          {named(f) ? `How did it go with ${f.firstName}?` : "How did it go?"}
         </h3>
         <div className="mt-5 space-y-2.5">
           <button type="button" disabled={saving} onClick={() => save("talking")} className={opt}>

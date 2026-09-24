@@ -488,6 +488,19 @@ function Fold({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
+/** Calendar days between two instants, counted in US Eastern, as the team reads them. */
+function etDayGap(fromMs: number, toMs: number): number {
+  const day = (ms: number) => new Date(new Date(ms).toLocaleDateString("en-US", { timeZone: "America/New_York" })).getTime();
+  return Math.round((day(toMs) - day(fromMs)) / 86_400_000);
+}
+
+function relDay(gapDays: number, iso?: string): string {
+  if (gapDays === 0) return "today";
+  if (gapDays === 1) return iso ? "tomorrow" : "yesterday";
+  if (iso) return new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { weekday: "long" });
+  return `${gapDays} days ago`;
+}
+
 const CHANNEL_WORD: Record<string, string> = { google: "Google ad", meta: "Facebook ad", nextdoor: "Nextdoor ad" };
 const DAY = 86_400_000;
 
@@ -547,7 +560,7 @@ function cityReadout(campaigns: Campaign[], leads: Lead[]) {
     if (c.flight_end) {
       const end = new Date(`${c.flight_end}T23:59:59`).getTime();
       if (end - now <= 2 * DAY) {
-        const day = new Date(`${c.flight_end}T12:00:00`).toLocaleDateString("en-US", { weekday: "long" });
+        const day = relDay(etDayGap(now, new Date(`${c.flight_end}T12:00:00`).getTime()), c.flight_end);
         fired.push({ slug: c.slug, headline: `${cityOf(c.slug)} ends ${day}.`, say: `The ${CHANNEL_WORD[c.channel] ?? "ad"} ends ${day}.` });
       }
     }
@@ -571,10 +584,7 @@ function cityReadout(campaigns: Campaign[], leads: Lead[]) {
       say:
         mine?.say ??
         (lastAt
-          ? `Last family arrived ${(() => {
-              const d = Math.max(0, Math.floor((now - lastAt) / DAY));
-              return d === 0 ? "today" : d === 1 ? "yesterday" : `${d} days ago`;
-            })()}.`
+          ? `Last family arrived ${relDay(Math.max(0, etDayGap(lastAt, now)))}.`
           : "No families yet."),
     };
   });

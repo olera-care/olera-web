@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 
-const CALENDLY_URL = "https://calendly.com/caregivers979/olera-demo";
+const CALENDLY_URL = "https://calendly.com/logan-dubose-md/student-meeting";
 
 interface Props {
   organizationName: string;

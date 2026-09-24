@@ -35,6 +35,7 @@ import {
 } from "@/components/caregiver-portal/cards";
 import GoLiveCelebrationModal from "@/components/caregiver-portal/GoLiveCelebrationModal";
 import GoLiveReviewModal from "@/components/caregiver-portal/GoLiveReviewModal";
+import { useNavbar } from "@/components/shared/NavbarContext";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -1116,6 +1117,7 @@ function StudentPortalContent({
   profile: StudentProfile;
   refresh: () => void;
 }) {
+  const { disableAutoHide } = useNavbar();
   const [editingSection, setEditingSection] = useState<CaregiverSectionId | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingCelebration, setPendingCelebration] = useState(false);
@@ -1125,6 +1127,11 @@ function StudentPortalContent({
   const [bannerDismissed, setBannerDismissed] = useState(false);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
+
+  // Ensure navbar stays visible (sticky) on this page
+  useEffect(() => {
+    disableAutoHide();
+  }, [disableAutoHide]);
 
   // Toggle profile visibility (pause/unpause)
   const handleToggleVisibility = async (visible: boolean) => {

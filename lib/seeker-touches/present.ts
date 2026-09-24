@@ -86,6 +86,9 @@ export function stateOf(r: SeekerRelationshipRow): RowState {
   if (r.flags.includes("promise_owed")) {
     return { phrase: "Owed a call", tone: "act", age };
   }
+  if (r.flags.includes("tried_three")) {
+    return { phrase: "Close out", tone: "warn", age };
+  }
   if (r.flags.includes("awaiting_reply")) {
     return { phrase: "Waiting on us", tone: "warn", age: quiet };
   }
@@ -196,6 +199,10 @@ export function problemLine(r: SeekerRelationshipRow): string | null {
     const why = reachProblem(r.reach);
     const owed = r.flags.includes("promise_owed") ? "Promised a call. " : "";
     return why ? `${owed}${why}` : `${owed}No working way to contact them.`.trim();
+  }
+
+  if (r.flags.includes("tried_three")) {
+    return `Called ${r.missed_calls} times, never reached. Send one last text or email, then archive as Never answered.`;
   }
 
   if (r.flags.includes("promise_owed")) {

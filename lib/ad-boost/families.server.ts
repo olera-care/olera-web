@@ -112,6 +112,7 @@ export async function getCampaignFamilies(
     phone: string | null;
     email: string | null;
     created_at: string;
+    handed_at: string | null;
     qualification_verdict: string | null;
     qualification_reply: string | null;
     outcome: string | null;
@@ -149,12 +150,48 @@ export async function getCampaignFamilies(
     }
   }
 
+  // Anyone who has written to her since the hand-over, on the page or by
+  // text. Without this a family mid-conversation still read "no reply yet".
+  const wroteBack = new Set<string>();
+  if (leads.length) {
+    const { data: typed } = await db
+      .from("city_lead_thread")
+      .select("lead_id")
+      .eq("author", "family")
+      .in(
+        "lead_id",
+        leads.map((l) => l.id),
+      );
+    for (const t of (typed ?? []) as Array<{ lead_id: string }>) wroteBack.add(t.lead_id);
+    const byPhone = new Map<string, { id: string; since: string }>();
+    for (const l of leads) {
+      const key = (l.phone ?? "").replace(/\D/g, "").slice(-10);
+      if (key.length === 10 && l.handed_at) byPhone.set(key, { id: l.id, since: l.handed_at });
+    }
+    if (byPhone.size) {
+      const { data: texts } = await db
+        .from("sms_inbound")
+        .select("phone_last10, created_at, keyword, body")
+        .in("phone_last10", Array.from(byPhone.keys()));
+      // Answers to our own "reply 1 or 2" check are not the family writing to
+      // her, so they do not count.
+      const CHECK_ANSWER = /^\s*(1|2|3|y|n|yes|no|yep|nope|not yet)\s*[.!]?\s*$/i;
+      for (const t of (texts ?? []) as Array<{ phone_last10: string; created_at: string; keyword: string | null; body: string | null }>) {
+        const hit = byPhone.get(t.phone_last10);
+        if (hit && !t.keyword && t.created_at > hit.since && !CHECK_ANSWER.test(t.body ?? "")) wroteBack.add(hit.id);
+      }
+    }
+  }
+
   const now = Date.now();
   for (const l of leads) {
     const d = delivery.get(l.id);
     let status: FamilyStatus;
     let note: string;
-    if (l.qualification_verdict === "care_seeker") {
+    if (wroteBack.has(l.id)) {
+      status = "replied";
+      note = "Wrote back. Their message is under Conversation.";
+    } else if (l.qualification_verdict === "care_seeker") {
       status = "replied";
       note = l.qualification_reply
         ? `Answered our text: “${excerpt(l.qualification_reply)}”`

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getServiceClient } from "@/lib/admin";
 import { validateCityThreadToken } from "@/lib/claim-tokens";
 import { getThreadLead, getFamilyTimeline, threadProvider, firstWordOf, type ThreadEntry } from "@/lib/city-ads/thread.server";
+import { getCityConfig } from "@/lib/city-ads/config";
 import ThreadReply from "./ThreadReply";
 
 /**
@@ -39,7 +40,7 @@ export default async function FamilyThreadPage({ params }: { params: Promise<Par
       </p>
       <ol className="mt-6 space-y-3">
         {entries.map((e, i) => (
-          <Bubble key={i} entry={e} providerName={providerName} />
+          <Bubble key={i} entry={e} providerName={providerName} timeZone={getCityConfig(lead.slug)?.timeZone ?? "America/New_York"} />
         ))}
       </ol>
       {lead.archived_at ? (
@@ -51,10 +52,11 @@ export default async function FamilyThreadPage({ params }: { params: Promise<Par
   );
 }
 
-function Bubble({ entry: e, providerName }: { entry: ThreadEntry; providerName: string }) {
+// Rendered on the server, so times need the family's zone, not the server's.
+function Bubble({ entry: e, providerName, timeZone }: { entry: ThreadEntry; providerName: string; timeZone: string }) {
   const mine = e.author === "family";
   const who = mine ? "You" : e.author === "provider" ? providerName : "Olera";
-  const when = new Date(e.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const when = new Date(e.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone });
   return (
     <li className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
       <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">

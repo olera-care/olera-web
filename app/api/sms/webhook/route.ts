@@ -732,6 +732,17 @@ export async function POST(request: NextRequest) {
       // providers, unknown numbers — needs a human told about them here.
       if (senderType !== "family") {
         await alertUnmatchedInbound(normalizedFrom, messageBody, senderName);
+        // A family from a provider's own ad whose number never linked to a
+        // family profile still belongs to that provider's thread.
+        const relayDb = getServiceDb();
+        if (relayDb) {
+          try {
+            const { relayHandedReply } = await import("@/lib/city-ads/thread.server");
+            await relayHandedReply(relayDb, normalizedFrom, messageBody);
+          } catch (err) {
+            console.error("[sms-webhook] Handed-lead relay (unmatched sender) failed:", err);
+          }
+        }
       } else {
         // A family asked something free-form. Acknowledge it and queue the
         // research, unless the message reads as a crisis, in which case a

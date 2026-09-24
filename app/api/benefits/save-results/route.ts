@@ -544,8 +544,11 @@ export async function POST(req: Request) {
     // (Caller may have submitted a different email than what's on file from
     // a prior provider-claim or save-nudge flow; preserve original to avoid
     // surprising the user.)
-    if (normalizedEmail) profileUpdate.email = normalizedEmail;
-    if (normalizedPhone) profileUpdate.phone = normalizedPhone;
+    // This path is reachable by anyone who types an existing family's email
+    // (existingUser flow), so overwriting would let a stranger swap the phone
+    // that receives this family's texts.
+    if (normalizedEmail && !existingFamilyProfile.email?.trim()) profileUpdate.email = normalizedEmail;
+    if (normalizedPhone && !existingFamilyProfile.phone?.trim()) profileUpdate.phone = normalizedPhone;
     const { error: updateErr } = await db
       .from("business_profiles")
       .update(profileUpdate)

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { calculateProfileCompletenessPercentage } from "@/components/portal/profile/completeness";
 
 /**
@@ -8,8 +9,12 @@ import { calculateProfileCompletenessPercentage } from "@/components/portal/prof
  * The empathic_single flow captures email only on the primary submit
  * (single-step capture). Relationship is asked AFTER as a soft pill row in
  * the ResultsSheet hero. When a pill is tapped, this endpoint backfills the
- * family profile created by /api/benefits/save-results, joined by the
- * anonymous session_id that's threaded through both events.
+ * family profile created by /api/benefits/save-results.
+ *
+ * Auth (same as update-enrichment): the benefits results token save-results
+ * returned, OR a signed-in user writing their own active profile. The old
+ * lookup by anonymous session_id let anyone who knew a session id write to
+ * that family's profile, so it is no longer accepted.
  *
  * Best-effort. Returns 200 on most failure modes — the lead is already
  * captured upstream and we don't want to surface a "save failed" error in
@@ -29,16 +34,15 @@ function relationshipDisplayName(rel: Relationship): string {
 }
 
 export async function POST(req: Request) {
-  let payload: { sessionId?: unknown; relationship?: unknown };
+  let payload: { token?: unknown; relationship?: unknown };
   try {
     payload = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const sessionId = typeof payload.sessionId === "string" ? payload.sessionId.trim() : "";
+  const token = typeof payload.token === "string" ? payload.token.trim() : "";
   const relationship = payload.relationship;
-  if (!sessionId) return NextResponse.json({ ok: true }, { status: 200 });
   if (typeof relationship !== "string" || !VALID_RELATIONSHIPS.includes(relationship as Relationship)) {
     return NextResponse.json({ error: "Invalid relationship" }, { status: 400 });
   }
@@ -52,30 +56,39 @@ export async function POST(req: Request) {
   }
   const db = createClient(supabaseUrl, serviceKey);
 
-  // Find the most-recent account for this session. Multiple accounts can
-  // exist if the user re-submitted (legitimate edge — preserve newest).
-  const { data: account, error: acctErr } = await db
-    .from("accounts")
-    .select("id")
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (acctErr) {
-    console.error("[update-relationship] account lookup failed:", acctErr);
-    return NextResponse.json({ ok: true }, { status: 200 });
+  // Resolve the profile the caller is allowed to write.
+  let profileId: string | null = null;
+  if (token) {
+    const { data: tokenRow } = await db
+      .from("benefits_results_tokens")
+      .select("profile_id")
+      .eq("token", token)
+      .maybeSingle();
+    profileId = tokenRow?.profile_id ?? null;
   }
-  if (!account) {
-    // No account yet — possible race with save-results. Return ok so the UI
-    // doesn't show an error; the data point is lost but the lead is intact.
-    return NextResponse.json({ ok: true }, { status: 200 });
+  if (!profileId) {
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data: account } = await db
+        .from("accounts")
+        .select("active_profile_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      profileId = account?.active_profile_id ?? null;
+    }
+  }
+  if (!profileId) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 401 });
   }
 
   // Find the family profile and merge the relationship into metadata.
   const { data: profile, error: profErr } = await db
     .from("business_profiles")
     .select("id, metadata, display_name, image_url, city, phone, description, care_types, email")
-    .eq("account_id", account.id)
+    .eq("id", profileId)
     .eq("type", "family")
     .maybeSingle();
   if (profErr || !profile) {
@@ -86,6 +99,10 @@ export async function POST(req: Request) {
   const mergedMetadata = {
     ...(profile.metadata || {}),
     relationship_to_recipient: relationshipDisplayName(rel),
+    // `relationship` is the enum key save-results writes and readers use
+    // (/m/[token], benefits-guidance). relationship_code was a write-only
+    // typo; kept so rows written before this fix stay consistent.
+    relationship: rel,
     relationship_code: rel,
   };
 

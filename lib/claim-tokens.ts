@@ -9,23 +9,34 @@
 
 import { createHmac } from "crypto";
 
-const TOKEN_SECRET = process.env.CLAIM_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-secret";
+// Signing secret, resolved lazily so a build step without env vars can still
+// import this module. There is deliberately NO literal fallback: a hardcoded
+// secret is public (it's in the repo), so any token signed or accepted with it
+// could be forged by anyone. Missing env = fail closed (throw); the validators
+// below catch and report the token as invalid.
+function tokenSecret(): string {
+  const secret = process.env.CLAIM_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!secret) {
+    throw new Error("[claim-tokens] CLAIM_TOKEN_SECRET / SUPABASE_SERVICE_ROLE_KEY not set");
+  }
+  return secret;
+}
 // Every secret a token may have been signed with. New tokens always sign with
-// TOKEN_SECRET; validation accepts any candidate so that setting a dedicated
+// tokenSecret(); validation accepts any candidate so that setting a dedicated
 // CLAIM_TOKEN_SECRET (or rotating the service-role key) doesn't invalidate
 // links already sitting in provider inboxes.
-const CANDIDATE_SECRETS = [
-  TOKEN_SECRET,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  "fallback-secret",
-].filter((s, i, arr): s is string => !!s && arr.indexOf(s) === i);
+function candidateSecrets(): string[] {
+  return [tokenSecret(), process.env.SUPABASE_SERVICE_ROLE_KEY].filter(
+    (s, i, arr): s is string => !!s && arr.indexOf(s) === i,
+  );
+}
 
 function hmacSignature(data: string, secret: string): string {
   return createHmac("sha256", secret).update(data).digest("hex").slice(0, 32);
 }
 
 function signatureMatches(data: string, signature: string): boolean {
-  return CANDIDATE_SECRETS.some((secret) => hmacSignature(data, secret) === signature);
+  return candidateSecrets().some((secret) => hmacSignature(data, secret) === signature);
 }
 // Token expiry: configurable via env var, default 360 hours (15 days)
 // Must cover the full 7-day cold outreach sequence (Day 0, 3, 5, 7) plus buffer
@@ -47,7 +58,7 @@ interface TokenData extends TokenPayload {
  */
 function generateSignature(payload: TokenPayload): string {
   const data = `${payload.providerId}:${payload.email}:${payload.expiresAt}`;
-  return hmacSignature(data, TOKEN_SECRET);
+  return hmacSignature(data, tokenSecret());
 }
 
 /**
@@ -394,7 +405,7 @@ function introSignatureData(p: IntroTokenPayload): string {
 }
 
 function generateIntroSignature(p: IntroTokenPayload): string {
-  return hmacSignature(introSignatureData(p), TOKEN_SECRET);
+  return hmacSignature(introSignatureData(p), tokenSecret());
 }
 
 export function generateIntroToken(
@@ -483,7 +494,7 @@ function quizSignatureData(p: QuizTokenPayload): string {
 }
 
 function generateQuizSignature(p: QuizTokenPayload): string {
-  return hmacSignature(quizSignatureData(p), TOKEN_SECRET);
+  return hmacSignature(quizSignatureData(p), tokenSecret());
 }
 
 export function generateQuizToken(
@@ -559,7 +570,7 @@ function benefitsOutcomeSignatureData(p: BenefitsOutcomeTokenPayload): string {
 }
 
 function generateBenefitsOutcomeSignature(p: BenefitsOutcomeTokenPayload): string {
-  return hmacSignature(benefitsOutcomeSignatureData(p), TOKEN_SECRET);
+  return hmacSignature(benefitsOutcomeSignatureData(p), tokenSecret());
 }
 
 export function generateBenefitsOutcomeToken(
@@ -623,7 +634,7 @@ function briefSignatureData(p: BriefTokenPayload): string {
 }
 
 function generateBriefSignature(p: BriefTokenPayload): string {
-  return hmacSignature(briefSignatureData(p), TOKEN_SECRET);
+  return hmacSignature(briefSignatureData(p), tokenSecret());
 }
 
 export function generateBriefToken(familyProfileId: string, email: string): string {
@@ -678,7 +689,7 @@ function connectionStatusSignatureData(p: ConnectionStatusTokenPayload): string 
 }
 
 function generateConnectionStatusSignature(p: ConnectionStatusTokenPayload): string {
-  return hmacSignature(connectionStatusSignatureData(p), TOKEN_SECRET);
+  return hmacSignature(connectionStatusSignatureData(p), tokenSecret());
 }
 
 export function generateConnectionStatusToken(
@@ -770,7 +781,7 @@ function cityOfferSignatureData(offerId: string): string {
 }
 
 export function generateCityOfferToken(offerId: string): string {
-  return `${offerId}.${hmacSignature(cityOfferSignatureData(offerId), TOKEN_SECRET)}`;
+  return `${offerId}.${hmacSignature(cityOfferSignatureData(offerId), tokenSecret())}`;
 }
 
 export function validateCityOfferToken(token: string): { valid: true; offerId: string } | { valid: false; error: string } {

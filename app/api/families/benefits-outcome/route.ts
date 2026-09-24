@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { validateBenefitsOutcomeToken, generateFamilyInboxUrl } from "@/lib/claim-tokens";
+import { validateBenefitsOutcomeToken } from "@/lib/claim-tokens";
 import {
   readBenefitsCascade,
   captureFamilyPhoneAndTextResults,
@@ -26,7 +26,8 @@ import { sendSlackAlert, slackBenefitsWantsHelp } from "@/lib/slack";
  *   { tok: string, reason: string } → attach the wrong_program "what didn't
  *                                     fit" one-tap reason (second POST)
  *   { tok: string, phone: string }  → phone capture from the wants_help path:
- *                                     fill-if-empty + sms_consent stamp +
+ *                                     fill-if-empty (never overwrites a
+ *                                     different number) + sms_consent stamp +
  *                                     immediate results-link SMS (shared
  *                                     helper with the enrichment step)
  *
@@ -154,9 +155,9 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .maybeSingle();
     if (resultsToken?.token) matchesUrl = `/m/${resultsToken.token}`;
-    // Signed-in arrival: from the check-in landing page onward, links carry
-    // the one-click auth so the family stays authenticated across surfaces.
-    if (profile.email) matchesUrl = generateFamilyInboxUrl(profile.email, matchesUrl);
+    // Plain URL only, never a one-click sign-in link. The check-in token
+    // travels in an email that can be forwarded, so anyone holding it could
+    // otherwise sign in as the family. /m/{token} needs no login.
 
     return NextResponse.json({
       success: true,

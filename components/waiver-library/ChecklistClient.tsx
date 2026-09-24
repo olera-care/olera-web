@@ -48,10 +48,14 @@ const CHECKLIST_CATEGORIES = [
 ];
 
 export function ChecklistClient({
+  stateId,
+  programId,
   programName,
   programShortName,
   stateName,
 }: {
+  stateId: string;
+  programId: string;
   programName: string;
   programShortName: string;
   stateName: string;
@@ -99,11 +103,12 @@ export function ChecklistClient({
       const res = await fetch("/api/benefits/email-checklist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // Server looks up program/state names from the ids — it never
+        // emails caller-supplied text.
         body: JSON.stringify({
           email,
-          programName,
-          programShortName,
-          stateName,
+          stateId,
+          programId,
           checked: [...checked],
         }),
       });

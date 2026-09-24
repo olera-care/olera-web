@@ -754,7 +754,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                   <>
                     <p className="text-base font-semibold text-gray-900 leading-snug group-hover:text-primary-700 transition-colors">{q.question}</p>
                     <p className="text-sm text-gray-500 mt-2 leading-relaxed line-clamp-3">{q.answer}</p>
-                    <p className="text-sm text-gray-400 mt-2">— {q.providerName}</p>
+                    <p className="text-sm text-gray-400 mt-2">Answered by {q.providerName}</p>
                   </>
                 );
 

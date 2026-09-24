@@ -10,6 +10,7 @@ import { StatePageV3 } from "@/components/waiver-library/StatePageV3";
 import { createClient } from "@/lib/supabase/server";
 import { getEnrichedProgram } from "@/lib/program-data";
 import { shouldDiscoverBenefitsProgram } from "@/lib/benefits/program-content-quality";
+import { getStateFamilyQuestions, type StateFamilyQuestion } from "@/lib/benefits/state-family-questions";
 
 const STATE_FAQS: Record<string, { question: string; answer: string }[]> = {
   texas: [
@@ -115,48 +116,12 @@ export default async function StatePage({ params }: Props) {
       shortName: p.shortName,
     }));
 
-    // Fetch recent answered questions (social proof)
-    // Uses a simple query — no cross-table join to avoid Supabase typed client issues with hyphenated table names
-    let familyQuestions: { question: string; answer: string; providerName: string; answeredAt: string; providerSlug?: string }[] = [];
+    // Social proof: benefits questions families asked providers in THIS state
+    // (see lib/benefits/state-family-questions.ts). Empty hides the section.
+    let familyQuestions: StateFamilyQuestion[] = [];
     try {
       const supabase = await createClient();
-      const { data } = await supabase
-        .from("provider_questions")
-        .select("question, answer, answered_at, answered_by, provider_id")
-        .in("status", ["answered", "approved"])
-        .eq("is_public", true)
-        .eq("answer_status", "published")  // Only show published answers
-        .not("answer", "is", null)
-        .order("answered_at", { ascending: false })
-        .limit(6);
-
-      if (data) {
-        // Look up provider slugs for linking
-        const providerIds = data.map((q) => q.provider_id).filter(Boolean);
-        let slugMap: Record<string, string> = {};
-        if (providerIds.length > 0) {
-          const { data: providers } = await supabase
-            .from("olera-providers")
-            .select("provider_id, slug")
-            .in("provider_id", providerIds);
-          if (providers) {
-            for (const p of providers) {
-              if (p.slug) slugMap[p.provider_id] = p.slug;
-            }
-          }
-        }
-
-        familyQuestions = data
-          .filter((q) => q.question && q.answer)
-          .slice(0, 3)
-          .map((q) => ({
-            question: q.question!,
-            answer: q.answer!,
-            providerName: q.answered_by || "Care provider",
-            answeredAt: q.answered_at || "",
-            providerSlug: q.provider_id ? slugMap[q.provider_id] : undefined,
-          }));
-      }
+      familyQuestions = await getStateFamilyQuestions(supabase, state.abbreviation);
     } catch {
       // Silent — social proof is nice-to-have, not critical
     }

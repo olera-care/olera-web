@@ -20,8 +20,15 @@ import type { CampaignFamiliesData, CampaignFamilyData } from "@/lib/ad-boost/bo
 
 type Family = CampaignFamilyData;
 
+/** Counted by the calendar, not in 24-hour blocks: last night is "yesterday", not "today". */
 function daysAgo(iso: string): string {
-  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  const then = new Date(iso);
+  const now = new Date();
+  const d = Math.round(
+    (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() -
+      new Date(then.getFullYear(), then.getMonth(), then.getDate()).getTime()) /
+      86_400_000,
+  );
   if (d <= 0) return "today";
   if (d === 1) return "yesterday";
   if (d < 7) return new Date(iso).toLocaleDateString("en-US", { weekday: "long" });
@@ -63,8 +70,8 @@ function draftFor(f: Family, providerName: string): string {
 }
 
 function whoLine(f: Family): string {
-  if (f.kind === "page") return `asked on your Olera page ${daysAgo(f.arrivedAt)}`;
-  if (f.words) return `wrote to us ${daysAgo(f.arrivedAt)}`;
+  if (f.kind === "page") return "on your Olera page";
+  if (f.words) return `wrote to us ${onDay(f.arrivedAt)}`;
   if (f.reach === "call") return "from your ad · our texts don't reach this phone";
   if (f.reach === "email") return "from your ad · our texts don't reach this phone, email does";
   return "from your ad";

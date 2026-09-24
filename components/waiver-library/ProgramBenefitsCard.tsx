@@ -158,11 +158,15 @@ const AGE_OPTIONS: { label: string; value: string }[] = [
   { label: "85 or older", value: "85_plus" },
 ];
 
-const MEDICAID_OPTIONS: { label: string; value: string }[] = [
-  { label: "Yes, they have it", value: "alreadyHas" },
-  { label: "Applying or not sure", value: "notSure" },
-  { label: "No", value: "doesNotHave" },
-];
+// Worded for whoever needs care: "Yes, I have it" when the family picked
+// "Myself", "Yes, they have it" otherwise.
+function medicaidOptions(isSelf: boolean): { label: string; value: string }[] {
+  return [
+    { label: isSelf ? "Yes, I have it" : "Yes, they have it", value: "alreadyHas" },
+    { label: "Applying or not sure", value: "notSure" },
+    { label: "No", value: "doesNotHave" },
+  ];
+}
 
 const INCOME_OPTIONS: { label: string; value: string }[] = [
   { label: "Under $1,500 a month", value: "under1500" },
@@ -474,6 +478,9 @@ export default function ProgramBenefitsCard({
   // Medicaid step is redundant when they already told us they'll pay with
   // Medicaid (the facts reader infers alreadyHas from payment_methods).
   const medicaidRedundant = paymentMethod === "medicaid";
+  // "You" vs "they": every question after "Who needs care?" speaks to the
+  // person who needs care when the family picked "Myself".
+  const isSelf = recipient === "self";
 
   // Step 1: Select recipient
   const selectRecipient = useCallback((val: string) => {
@@ -762,7 +769,7 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_2" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              How soon do you need care?
+              {isSelf ? "How soon do you need care?" : "How soon is care needed?"}
             </h3>
             <div className="space-y-2 mb-4">
               {TIMELINE_OPTIONS.map((opt) => (
@@ -794,11 +801,12 @@ export default function ProgramBenefitsCard({
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
               Want this by text?
             </h3>
-            {/* Set the same care-team identity, conditional 48h reply promise,
-                and reply affordance that the Day-0 text carries. */}
+            {/* Set the same care-team identity, reply promise ("2 business
+                days", matching the SMS templates), and reply affordance that
+                the Day-0 text carries. */}
             <p className="text-[13px] text-gray-500 mb-4">
               We&apos;ll text your plan now. You can reply with any questions about next
-              steps; Olera&apos;s care team replies within 48 hours.
+              steps; Olera&apos;s care team replies within 2 business days.
             </p>
             <input
               type="tel"
@@ -839,7 +847,7 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_5" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
-              How old is the person needing care?
+              {isSelf ? "How old are you?" : "How old is the person needing care?"}
             </h3>
             <p className="text-[13px] text-gray-500 mb-4">
               Three quick taps left. These check eligibility so your matches get more accurate.
@@ -872,13 +880,13 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_6" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
-              Do they have Medicaid?
+              {isSelf ? "Do you have Medicaid?" : "Do they have Medicaid?"}
             </h3>
             <p className="text-[13px] text-gray-500 mb-4">
               Several programs need Medicaid first. Knowing this sorts your list.
             </p>
             <div className="space-y-2 mb-4">
-              {MEDICAID_OPTIONS.map((opt) => (
+              {medicaidOptions(isSelf).map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => selectMedicaid(opt.value)}

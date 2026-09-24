@@ -36,6 +36,7 @@ import { stateToTimezone } from "@/lib/sms/quiet-hours";
 import { familyBenefitsFacts, hasCoResidentSpouse } from "./benefits-guidance.server";
 import { countProvidersInArea } from "./provider-recs.server";
 import { smsCarriesPhone } from "./sms-phone";
+import { switchLine } from "@/lib/benefits/switch-line";
 
 // ── Metadata shape: business_profiles.metadata.benefits_navigator ──────────
 
@@ -410,6 +411,12 @@ export async function composeNavigatorDraft(
     entryLabel
       ? `- CAME LOOKING FOR: the ${entryLabel} page${entryLabel === pick.shortName ? " (which is also the first step below)" : " (NOT the first step below)"}`
       : "- CAME LOOKING FOR: nothing specific, they arrived through the site",
+    // The program they came for leads unless ruled out or uncallable, and a
+    // switch must be explained (TJ, 2026-09-24). Hand the composer the reason
+    // so the letter says it in a sentence instead of silently swapping.
+    switchLine(pick)
+      ? `- WHY THE FIRST STEP IS NOT WHAT THEY CAME FOR (say this plainly, once): ${switchLine(pick)}`
+      : null,
     intakeRef.stale
       ? "- TIMING: this was a while ago and we are following up late. Say so plainly in the opening, in a few words, without apologizing at length or explaining ourselves. Never imply they just used it. Their situation may well have changed, so offer the step as something still worth doing rather than as news."
       : null,

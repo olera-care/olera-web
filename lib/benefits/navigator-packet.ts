@@ -290,6 +290,10 @@ export interface RouteInput {
   fit: FitRead[];
   /** Resolved alternative from agreedBetterProgram, when there is one. */
   recomposeTarget?: { name: string; programId: string | null } | null;
+  /** The pick is the program page the family arrived through. The program
+   *  they came for leads unless ruled out (TJ, 2026-09-24), so a
+   *  "questionable" read with an agreed alternative does not move it. */
+  pickIsEntry?: boolean;
   rails: RailHit[];
   clearance: ClearanceRead | null;
   lint: DraftLintHit[];
@@ -330,7 +334,13 @@ export function routePacket(input: RouteInput): { route: PacketRoute; holds: str
   // Both models named the same better program. The action is to re-select,
   // not to wait for a human — nobody reading this letter can produce a
   // better answer than two independent reads that already converged.
-  if (consensus === "questionable" && input.recomposeTarget) {
+  //
+  // Except for the program the family came for. "Questionable" means it
+  // helps but is not the strongest first call, and TJ's rule (2026-09-24) is
+  // that the program they came for leads unless their facts rule it out.
+  // Only a "wrong" verdict (above) moves it; a questionable one falls through
+  // to the normal holds.
+  if (consensus === "questionable" && input.recomposeTarget && !input.pickIsEntry) {
     return {
       route: "recompose",
       holds: [`both models would start with ${input.recomposeTarget.name} instead`],

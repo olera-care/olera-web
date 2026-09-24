@@ -181,6 +181,7 @@ export async function buildNavigatorPacket(
     facts,
     fit,
     recomposeTarget,
+    pickIsEntry: pick?.source === "entry",
     rails,
     clearance,
     lint: base.lint,

@@ -303,9 +303,15 @@ function RoutingPanel({
   );
 }
 
-function Fact({ label, value, note, tone }: { label: string; value: string; note?: string | null; tone?: string }) {
+/** "+18089406605" -> "(808) 940-6605". Anything else is shown as stored. */
+function formatPhone(p: string): string {
+  const d = p.replace(/\D/g, "").slice(-10);
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : p;
+}
+
+function Fact({ label, value, note, tone, className }: { label: string; value: string; note?: string | null; tone?: string; className?: string }) {
   return (
-    <div className="bg-white px-3.5 py-2.5">
+    <div className={`bg-white px-3.5 py-2.5 ${className ?? ""}`}>
       <p className="font-mono text-[9.5px] uppercase tracking-[0.11em] text-gray-500">{label}</p>
       <p className={`mt-0.5 text-sm font-medium ${tone ?? "text-gray-900"}`}>{value}</p>
       {note && <p className="mt-0.5 font-mono text-[10.5px] text-gray-500">{note}</p>}
@@ -420,7 +426,7 @@ function AdminSeekerTimelineInner() {
           {profile.label}
         </h1>
         <span className="font-mono text-[13px] text-gray-600">
-          {[profile.phone, profile.email].filter(Boolean).join(" · ") || "no contact details"}
+          {[profile.phone ? formatPhone(profile.phone) : null, profile.email].filter(Boolean).join(" · ") || "no contact details"}
         </span>
         <div className="ml-auto flex flex-wrap items-center gap-1">
           {flags.map((f) => (
@@ -455,7 +461,9 @@ function AdminSeekerTimelineInner() {
         </p>
       )}
 
-      <div className="mt-4 grid gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Five facts, five columns. In four, the missing cells showed the grid's
+          grey gap colour as a slab across the page. */}
+      <div className="mt-4 grid gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-5">
         <Fact
           label="Reachable by"
           value={reach.open.length ? reach.open.join(" + ") : "Nothing"}
@@ -481,6 +489,8 @@ function AdminSeekerTimelineInner() {
         <Fact label="Came from" value={ORIGIN_LABEL[data.origin]} note={data.city_slug ?? null} />
         <Fact
           label="Timeline they gave"
+          // The odd one out in two columns spans the row, so no grey cell.
+          className="sm:col-span-2 lg:col-span-1"
           value={profile.timeline ? profile.timeline.replace(/_/g, " ") : "not stated"}
           note={profile.payment.length ? profile.payment.join(", ") : null}
         />

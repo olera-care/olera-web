@@ -5,8 +5,8 @@
  * Design: clean, minimal, system font stack. Matches Olera brand colors.
  */
 
-import { DEFAULT_BUDGET } from "@/lib/ad-boost/estimate";
 import { US_STATES } from "@/lib/us-states";
+import { DEFAULT_BUDGET } from "@/lib/ad-boost/estimate";
 
 const BRAND_COLOR = "#198087";
 const FONT_STACK =

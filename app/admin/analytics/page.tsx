@@ -35,6 +35,7 @@ import {
 } from "@/lib/analytics/mobile-nav-variant-copy";
 import CTAVariantSessionsList from "@/components/admin/CTAVariantSessionsList";
 import MobileNavVariantSessionsList from "@/components/admin/MobileNavVariantSessionsList";
+import ProgramCardFlowDial from "@/components/admin/ProgramCardFlowDial";
 import {
   PROVIDER_EMAIL_FUNNEL_LABELS,
   PROVIDER_EMAIL_FUNNEL_ORDER,
@@ -495,6 +496,15 @@ export default function AdminAnalyticsPage() {
           <ManagedAdsVariantsCard summary={summary} loading={loading} range={range} />
         </CollapsibleSection>
       </div>
+
+      <CollapsibleSection
+        title="Benefits Program Card Flow"
+        storageKey="programCardFlow"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <ProgramCardFlowDial />
+      </CollapsibleSection>
 
       <CollapsibleSection
         title="Provider Hub Mobile Nav"

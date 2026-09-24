@@ -5,6 +5,7 @@ import { classifyOrganicPage, normalizeOrganicPagePath } from "@/lib/analytics/c
 import { classifyReferrer, sanitizeReferrer } from "@/lib/analytics/referrer";
 import { classifyUserAgent } from "@/lib/analytics/user-agent";
 import { isCityLandingArm } from "@/lib/city-ads/landing-variant";
+import { isProgramCardFlow } from "@/lib/analytics/program-card-variant";
 
 const CLIENT_EVENTS = new Set([
   "page_landed",
@@ -135,6 +136,9 @@ export async function POST(request: NextRequest) {
       // Which screen a question_viewed fired on. Diagnostic only: it is what
       // tells you WHERE an arm loses people rather than just that it did.
       step: shortText(metadata.step, 40),
+      // Program-card flow experiment arm (control | three_tap) on benefit
+      // program pages. Same rule as `arm`: validated, unknown → null.
+      card_flow: isProgramCardFlow(metadata.card_flow) ? metadata.card_flow : null,
     };
     const { error } = await db.from("growth_attribution_events").insert({
       anonymous_id: anonymousId,

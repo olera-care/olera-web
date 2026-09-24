@@ -28,24 +28,31 @@ interface StudentNudgeRow {
  * Runs daily at 10 AM CT (15:00 UTC).
  *
  * Nudge cadence for incomplete profiles (< 100%):
- *   Every 2 days starting Day 2: Day 2, 4, 6, 8, ...
- *   (Day 2 start avoids double-emailing with the welcome email)
- *   Stop after 30 nudges (~62 days)
+ *   Nudge 1: Day 1 (24hrs after signup)
+ *   Nudge 2: Day 3
+ *   Nudge 3: Day 5
+ *   Nudge 4: Day 7
+ *   Nudge 5-8: Every 2 weeks
+ *   Stop after nudge 8 (~6 weeks)
  *
  * For 100% complete profiles (review nudge cadence):
  *   - If already live (is_active) or approved → skip
  *   - If review requested but not approved → skip (waiting for admin)
  *   - Otherwise, nudge to request review:
- *       Every 2 days: Day 0, 2, 4, 6, ...
- *       Stop after 15 nudges (~30 days)
+ *       Nudge 1: Day 0 (immediate)
+ *       Nudge 2: Day 2
+ *       Nudge 3: Day 5
+ *       Nudge 4: Day 10
+ *       Stop after nudge 4
  */
 
-const NUDGE_INTERVAL_DAYS = 2; // Every 2 days
-const MAX_NUDGES = 30; // Stop after ~60 days
+const NUDGE_CADENCE_DAYS = [1, 3, 5, 7, 21, 35, 49, 63]; // Day thresholds for nudges 1-8
+const MAX_NUDGES = 8;
 
-// Review nudge cadence — same 2-day rhythm
-const REVIEW_NUDGE_INTERVAL_DAYS = 2;
-const MAX_REVIEW_NUDGES = 15; // Stop after ~30 days
+// Review nudge cadence — less aggressive since profile is complete
+// Day 0: immediate, Day 2, Day 5, Day 10 (4 nudges total)
+const REVIEW_NUDGE_CADENCE_DAYS = [0, 2, 5, 10];
+const MAX_REVIEW_NUDGES = 4;
 
 const PAGE_SIZE = 500; // Fetch students in batches to handle >1000 students
 
@@ -151,10 +158,10 @@ export async function GET(request: NextRequest) {
         }
 
         // Check if enough time has passed for the next review nudge
-        // Every 2 days: nudge 0 on day 0, nudge 1 on day 2, nudge 2 on day 4, etc.
+        // First nudge: immediate (day 0). Subsequent: based on cadence from first nudge.
         if (reviewNudgeCount > 0 && reviewNudgeFirstSentAt) {
           const daysSinceFirstNudge = (now - new Date(reviewNudgeFirstSentAt).getTime()) / (1000 * 60 * 60 * 24);
-          const nextNudgeDay = reviewNudgeCount * REVIEW_NUDGE_INTERVAL_DAYS;
+          const nextNudgeDay = REVIEW_NUDGE_CADENCE_DAYS[reviewNudgeCount] ?? Infinity;
           if (daysSinceFirstNudge < nextNudgeDay) {
             skipped++;
             continue;
@@ -224,10 +231,8 @@ export async function GET(request: NextRequest) {
       if (nudgeCount >= MAX_NUDGES) { skipped++; continue; }
 
       // Check if enough time has passed for the next nudge
-      // Every 2 days starting Day 2: nudge 0 on day 2, nudge 1 on day 4, nudge 2 on day 6, etc.
-      // Starts on Day 2 (not Day 0) to avoid double-emailing with the welcome email.
       const daysSinceCreation = (now - new Date(student.created_at).getTime()) / (1000 * 60 * 60 * 24);
-      const nextNudgeDay = (nudgeCount + 1) * NUDGE_INTERVAL_DAYS;
+      const nextNudgeDay = NUDGE_CADENCE_DAYS[nudgeCount] || Infinity;
       if (daysSinceCreation < nextNudgeDay) { skipped++; continue; }
 
       // Check we haven't sent today (safety — cron might run multiple times)

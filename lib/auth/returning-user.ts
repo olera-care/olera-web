@@ -56,7 +56,7 @@ export async function emailReturningUserSignInLink(
       return { userId, emailed: false };
     }
 
-    await sendEmail({
+    const sent = await sendEmail({
       to: email,
       subject: params.subject || "Sign in to your Olera account",
       html: returningSignInHtml(actionLink),
@@ -64,7 +64,10 @@ export async function emailReturningUserSignInLink(
       recipientType: "family",
     });
 
-    return { userId, emailed: true };
+    // sendEmail reports failures and suppressions (bounce, do-not-contact) in
+    // its result rather than throwing, so "emailed" must read it: callers tell
+    // the visitor "we emailed you a link" only when one actually went out.
+    return { userId, emailed: sent.success && !sent.skipped };
   } catch (err) {
     console.error("[returning-user] failed to email sign-in link:", err);
     return { userId: null, emailed: false };

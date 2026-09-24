@@ -217,6 +217,7 @@ export default function EmpathicSingleStep({
   // relationship pills (which write through the token) are hidden and the
   // owner reaches their plan from the sign-in link we emailed.
   const [returningFamily, setReturningFamily] = useState(false);
+  const [signInEmailed, setSignInEmailed] = useState(true);
 
   const handleRelationshipPick = useCallback(
     async (value: Relationship) => {
@@ -310,6 +311,7 @@ export default function EmpathicSingleStep({
       setSubmittedEmail(submittableEmail.toLowerCase());
       setResultsToken(typeof data.token === "string" ? data.token : null);
       setReturningFamily(data.existingUser === true);
+      setSignInEmailed(data.signInEmailed !== false);
       setSaving(false);
       setSubmitted(true);
     } catch (err) {
@@ -355,9 +357,18 @@ export default function EmpathicSingleStep({
               </p>
             </div>
             <p className="text-[15px] text-gray-700 leading-relaxed">
-              We emailed you a link to your plan at{" "}
-              <span className="text-gray-900">{submittedEmail}</span>. Your{" "}
-              {stateName} matches are saved to it.
+              {signInEmailed ? (
+                <>
+                  We emailed you a link to your plan at{" "}
+                  <span className="text-gray-900">{submittedEmail}</span>. Your{" "}
+                  {stateName} matches are saved to it.
+                </>
+              ) : (
+                <>
+                  Your {stateName} matches are saved to your plan. Sign in with{" "}
+                  <span className="text-gray-900">{submittedEmail}</span> to see it.
+                </>
+              )}
             </p>
           </div>
         ) : (

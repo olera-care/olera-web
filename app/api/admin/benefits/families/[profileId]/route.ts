@@ -533,8 +533,9 @@ export async function POST(
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      // The event stores it as care_need (snake case); careNeed never matched.
       const careNeed =
-        ((intake?.metadata as { careNeed?: unknown } | null)?.careNeed as string | null) ??
+        ((intake?.metadata as { care_need?: unknown } | null)?.care_need as string | null) ??
         ((meta as { benefits_results?: { answers?: { careNeed?: string } } }).benefits_results
           ?.answers?.careNeed ?? null);
 
@@ -546,6 +547,7 @@ export async function POST(
             state: (profile.state as string | null) ?? null,
             metadata: meta,
             careNeed,
+            intakeEvent: (intake?.metadata as Record<string, unknown> | null) ?? null,
           },
           navigator,
         );

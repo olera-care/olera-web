@@ -14,6 +14,7 @@ import {
   type RailId,
 } from "./navigator-packet";
 import { readCareAge } from "@/lib/benefits/age";
+import type { CareNeedSource } from "@/lib/benefits/care-need-source";
 
 /**
  * The model-backed gates behind a navigator packet.
@@ -93,12 +94,18 @@ export function factsFromProfile(profile: {
   metadata?: Record<string, unknown> | null;
   /** From the benefits_completed intake event — see FactsInput.careNeed. */
   careNeed?: string | null;
+  /** See FactsInput.careNeedSource. */
+  careNeedSource?: CareNeedSource | null;
+  /** See FactsInput.entryProgram. */
+  entryProgram?: string | null;
 }): FactsRead {
   const meta = (profile.metadata ?? {}) as Record<string, unknown>;
   const situationParts = [meta.benefits_situation, meta.situation, meta.care_context]
     .filter((v): v is string => typeof v === "string" && v.trim().length > 0);
   const input: FactsInput = {
     careNeed: profile.careNeed ?? null,
+    careNeedSource: profile.careNeedSource ?? null,
+    entryProgram: profile.entryProgram ?? null,
     careTypes: Array.isArray(profile.care_types) ? profile.care_types.filter(Boolean) : [],
     age: readCareAge(meta).exact,
     ageBand: readCareAge(meta).band,
@@ -118,14 +125,16 @@ export function factsFromProfile(profile: {
 
 const FIT_SYSTEM = `You are an experienced senior-benefits counselor. Olera picks ONE government program as a family's first phone call and writes them a short letter about it. Judge whether that pick is defensible as a FIRST call, given only what the family told us.
 
+Some families never tell us what kind of help they need: they signed up on one program's page, and that page is all we know. FAMILY says so ("they did not tell us what kind of help they need"). For them the need is UNKNOWN, and the program page they came looking at is what they asked about. Do not assume they need help paying for care, and do not mark a program down for failing to address a need they never stated.
+
 "good"         = a competent counselor in that state could reasonably start here.
-"questionable" = it would help this family, but it is not the strongest first call for what they said they need.
+"questionable" = it would help this family, but it is not the strongest first call for what they asked about.
 "wrong"        = this CANNOT WORK for them. Their own stated facts disqualify them (age, Medicaid status, a level-of-care requirement they do not meet), or the program does not exist for people in their situation at all.
 
 Rules for your judgment:
 - Judge only on the facts given. UNKNOWN facts are never disqualifying.
 - We never claim the family qualifies, only that a program is worth a call. A program they might not qualify for is still "good" if it is a sensible first try.
-- "wrong" is a high bar and it throws the letter away. Reserve it for cannot-work. A program that helps with something adjacent to what they asked about is "questionable", NOT "wrong" — a family who said they need help paying for care and is offered food or energy assistance is being offered real money they can get in weeks, while the program that directly answers them may take months and a waitlist. That is a weaker first call, not a broken one.
+- "wrong" is a high bar and it throws the letter away. Reserve it for cannot-work. A program that helps with something adjacent to what they asked about is "questionable", NOT "wrong" — a family who actually said they need help paying for care and is offered food or energy assistance is being offered real money they can get in weeks, while the program that directly answers them may take months and a waitlist. That is a weaker first call, not a broken one.
 - Prefer naming a concrete better program from the state list over vague advice.
 
 Return ONLY a JSON object:

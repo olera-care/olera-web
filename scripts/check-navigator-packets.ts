@@ -68,15 +68,20 @@ async function main() {
 
   // care_need lives on the benefits_completed event, not the profile.
   const needByProfile = new Map<string, string>();
+  const intakeByProfile = new Map<string, Record<string, unknown>>();
   if (rows.length) {
     const { data: evs } = await db
       .from("seeker_activity")
-      .select("profile_id, metadata")
+      .select("profile_id, metadata, created_at")
       .eq("event_type", "benefits_completed")
-      .in("profile_id", rows.map((r) => r.id));
+      .in("profile_id", rows.map((r) => r.id))
+      .order("created_at", { ascending: true });
     for (const ev of evs ?? []) {
       const need = (ev.metadata as { care_need?: unknown } | null)?.care_need;
-      if (ev.profile_id && typeof need === "string" && need) needByProfile.set(ev.profile_id, need);
+      if (ev.profile_id && typeof need === "string" && need) {
+        needByProfile.set(ev.profile_id, need);
+        intakeByProfile.set(ev.profile_id, ev.metadata as Record<string, unknown>);
+      }
     }
   }
   console.log(`  ${needByProfile.size}/${rows.length} have a stated care need\n`);
@@ -130,7 +135,11 @@ async function main() {
         };
       } else {
         packet = await buildNavigatorPacket(
-          { ...row, careNeed: needByProfile.get(row.id) ?? null },
+          {
+            ...row,
+            careNeed: needByProfile.get(row.id) ?? null,
+            intakeEvent: intakeByProfile.get(row.id) ?? null,
+          },
           nav,
         );
       }

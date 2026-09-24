@@ -32,6 +32,9 @@ export interface BenefitsHomeProps {
   stateName: string;
   stateSlug: string;
   careNeed: CareNeed;
+  /** careNeed was derived from the page they signed up on, not chosen. The
+   *  chip plays back their words, so an inferred need gets no chip. */
+  careNeedInferred?: boolean;
   /** Display value, e.g. "Parent" | "Spouse" | "Self" | "Family member". */
   relationship: string | null;
   /** e.g. "asap" | "within_month" — humanized in the chip row. */
@@ -142,6 +145,7 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     stateName,
     stateSlug,
     careNeed,
+    careNeedInferred = false,
     relationship,
     timeline,
     payments,
@@ -164,7 +168,9 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     memoryHealth: "Memory & health support",
     companionship: "Companionship & support",
   };
-  const careLabel = CARE_NEED_CHIP[careNeed] || CARE_NEED_LABEL[careNeed] || null;
+  const careLabel = careNeedInferred
+    ? null
+    : CARE_NEED_CHIP[careNeed] || CARE_NEED_LABEL[careNeed] || null;
   const chips = [
     stateName,
     careLabel ? careLabel.charAt(0).toUpperCase() + careLabel.slice(1) : null,

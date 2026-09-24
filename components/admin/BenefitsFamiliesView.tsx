@@ -17,6 +17,7 @@ import {
   ROUTE_LABEL,
   holdLabel,
   isCaveatPacket,
+  isRewritePacket,
   type NavigatorPacket,
   type PacketRoute,
 } from "@/lib/benefits/navigator-packet";
@@ -64,6 +65,8 @@ interface FamilyRow {
   email: string | null;
   state: string | null;
   careNeed: string | null;
+  /** Derived from the program page they signed up on; the family never chose it. */
+  careNeedInferred?: boolean;
   matchCount: number | null;
   topProgram: string | null;
   entrySource: string | null;
@@ -595,7 +598,10 @@ export default function BenefitsFamiliesView() {
     const isPlaceholder = !name || name.toLowerCase() === "care seeker";
     return {
       state: f.state,
-      careNeed: f.careNeed ? CARE_NEED_LABELS[f.careNeed] ?? f.careNeed : null,
+      // An inferred need is not "what they are looking into"; the reviewer
+      // would judge the letter against a need the family never stated.
+      careNeed:
+        f.careNeed && !f.careNeedInferred ? CARE_NEED_LABELS[f.careNeed] ?? f.careNeed : null,
       situation: f.situation,
       completedAt: f.completedAt,
       firstName: isPlaceholder ? null : name.split(/\s+/)[0] || null,
@@ -1129,6 +1135,11 @@ export default function BenefitsFamiliesView() {
                     <td className="px-4 py-3">
                       <p className="text-gray-900">
                         {f.careNeed ? CARE_NEED_LABELS[f.careNeed] ?? f.careNeed : "—"}
+                        {f.careNeed && f.careNeedInferred && (
+                          <span className="text-gray-400" title="Derived from the program page they signed up on. The family was not asked.">
+                            {" "}(from page)
+                          </span>
+                        )}
                         {f.state && <span className="text-gray-400"> · {f.state}</span>}
                       </p>
                       {(f.enrichment.timeline || f.enrichment.payments?.length) && (
@@ -1511,8 +1522,11 @@ function NavigatorDraftEditor({
             if (blocked === "recompose" || blocked === "ask") {
               const reason = holdLabel(navigator.packet?.holds[0] ?? "");
               const caveat = !!navigator.packet && isCaveatPacket(navigator.packet);
+              const rewrite = !!navigator.packet && isRewritePacket(navigator.packet);
               override = window.confirm(
-                caveat
+                rewrite
+                  ? `This letter tells the family they said they need something they never told us (their need was inferred from the program page). It is waiting for an automatic re-draft of the same program.\n\nSend the current version anyway?`
+                  : caveat
                   ? `This letter is waiting for an automatic rewrite that keeps ${navigator.pick?.shortName ?? "their program"} and adds its condition${navigator.packet?.recomposeTarget ? ` plus ${navigator.packet.recomposeTarget.name} as the other call` : ""}.\n\nSend the current version anyway?`
                   : blocked === "recompose"
                   ? `This letter's program was ruled out.\n\n${reason}\n\nSend it anyway?`
@@ -1555,7 +1569,8 @@ function NavigatorDraftEditor({
             // letter comes back about something else entirely; otherwise it is
             // the fact-check loop and the program stays put.
             const caveat = !!navigator.packet && isCaveatPacket(navigator.packet);
-            const ruledOut = navigator.packet?.route === "recompose" && !caveat;
+            const rewrite = !!navigator.packet && isRewritePacket(navigator.packet);
+            const ruledOut = navigator.packet?.route === "recompose" && !caveat && !rewrite;
             const prompt = caveat
               ? `Re-draft this letter keeping ${navigator.pick?.shortName ?? "their program"}, and add the condition the checks flagged${navigator.packet?.recomposeTarget ? ` with ${navigator.packet.recomposeTarget.name} as the better first call if it does not fit` : ""}? Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`
               : ruledOut

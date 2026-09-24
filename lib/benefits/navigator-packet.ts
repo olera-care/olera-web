@@ -1,4 +1,5 @@
 import { AGE_BAND_LABELS, type AgeBand } from "@/lib/benefits/age";
+import { isInferredCareNeed, type CareNeedSource } from "@/lib/benefits/care-need-source";
 /**
  * Navigator packet — the computed verdict that decides what happens to a
  * first-step letter, replacing the human copy-paste review loop.
@@ -134,6 +135,19 @@ export interface NavigatorPacket {
    * packets built before 2026-09-24, which reads as a switch.
    */
   caveat?: boolean;
+  /**
+   * The recompose is a same-program REWRITE: the letter tells the family they
+   * said they need something they never said (their need was inferred from
+   * the program page). Keep the program, re-draft the text. Set only
+   * alongside route "recompose".
+   */
+  rewrite?: boolean;
+  /**
+   * The family's care need was inferred (lib/benefits/care-need-source.ts),
+   * decided at build time from the intake event. Absent on packets built
+   * before 2026-09-24; readers then fall back to profile metadata.
+   */
+  needInferred?: boolean;
   /** Human-readable reasons, in the order they were evaluated. */
   holds: string[];
   models: Record<string, string>;
@@ -174,6 +188,14 @@ export interface FactsInput {
    * 92 of 129 letters look fact-free when none of them were.
    */
   careNeed: string | null;
+  /**
+   * Whether the family chose careNeed or a surface derived it
+   * (lib/benefits/care-need-source.ts). The program-page card derives it from
+   * the page, so it is not something they told us. Absent reads as stated.
+   */
+  careNeedSource?: CareNeedSource | null;
+  /** The program page they signed up on, when they came through one. */
+  entryProgram?: string | null;
   careTypes: string[];
   /** Typed exact age only. */
   age: number | null;
@@ -212,9 +234,24 @@ export function readFacts(input: FactsInput): FactsRead {
   const screening: string[] = [];
   const missing: string[] = [];
 
-  if (input.careNeed) directional.push(`what they came for: ${humanCareNeed(input.careNeed)}`);
+  // An inferred need still counts as a directional fact, so routing does not
+  // change (these families came for a specific program, which IS direction).
+  // What changes is the wording: the fit models must read it as the page they
+  // came through, not as a need the family stated.
+  const inferred = !!input.careNeed && isInferredCareNeed(input.careNeedSource);
+  if (input.careNeed && !inferred) {
+    directional.push(`what they came for: ${humanCareNeed(input.careNeed)}`);
+  } else if (inferred && input.entryProgram) {
+    directional.push(
+      `what they came for: the ${input.entryProgram} program page (they did not tell us what kind of help they need)`,
+    );
+  } else if (inferred) {
+    directional.push(
+      `what they came for: not stated (${input.careNeedSource === "inferred_from_question" ? "their question" : "the page they signed up on"} suggests ${humanCareNeed(input.careNeed!)})`,
+    );
+  }
   if (input.careTypes.length > 0) directional.push(`care types: ${input.careTypes.join(", ")}`);
-  if (!input.careNeed && input.careTypes.length === 0) {
+  if ((!input.careNeed || inferred) && input.careTypes.length === 0) {
     missing.push("what kind of care or help they need");
   }
 
@@ -291,6 +328,93 @@ export function agreedBetterProgram(reads: FitRead[]): string | null {
   return allAgree ? names.slice().sort((a, b) => b.length - a.length)[0] : null;
 }
 
+// ── Eligibility gates in fit reasons ───────────────────────────────────────
+
+/**
+ * Phrases that name WHO CAN GET a program: a condition a family either meets
+ * or does not. A "questionable" read that names one is a real caveat the
+ * model could not call "wrong" only because the deciding fact is unknown
+ * (Oregon ERA serves unstably housed seniors; FL SMMC-LTC needs nursing-
+ * facility level of care).
+ *
+ * Most questionable reads are about FIT instead ("doesn't address paying for
+ * care", "not the strongest first call"). Those carry no condition, and
+ * forcing the composer to write "This program is for ..." from them produced
+ * odd or invented condition sentences (pre-test, 2026-09-24). So only these
+ * reasons open the caveat path, and only these reach the composer.
+ *
+ * Deliberately a phrase list, not a model: deterministic, free, and pinned by
+ * scripts/check-navigator-route.ts. Income and asset limits are left out on
+ * purpose: nearly every program has one and it is never known at this stage,
+ * so naming it would caveat every letter and tell the family nothing.
+ */
+const ELIGIBILITY_GATE_PATTERNS: RegExp[] = [
+  // Housing status
+  /\bhomeless/i,
+  /\b(unstabl[ey]|insecurely)\s+housed\b/i,
+  /\bhousing (instability|insecurity|crisis)\b/i,
+  /\bat risk of (homelessness|eviction)\b/i,
+  // Homebound / level of care / functional need
+  /\bhomebound\b/i,
+  /\bnursing[- ](facility|home)[- ]level\b/i,
+  /\blevel[- ]of[- ]care\b/i,
+  /\bLOC\b/,
+  /\binstitutional level\b/i,
+  /\bfunctional(ly)? (eligib|assessment|need|criteria)/i,
+  /\b(ADLs?|activities of daily living)\b/i,
+  // Disability
+  /\bdisabilit(y|ies)\b/i,
+  /\bdisabled\b/i,
+  /\bblind(ness)?\b/i,
+  /\bSSI\b|\bSSDI\b/,
+  // Age thresholds
+  /\b(5[5-9]|[6-9]\d)\s*(\+|or older|and older|or over|and over)/i,
+  /\bunder (age )?\d{2}\b/i,
+  /\bage[- ](threshold|requirement|gate|limit|minimum|cutoff|cut-off)/i,
+  /\bminimum age\b/i,
+  /\bage\s*\/\s*(LOC|level)/i,
+  /\ball[- ]household\b/i,
+  // Income source, residency, citizenship
+  /\bno earned income\b/i,
+  /\bresiden(cy|t) requirement/i,
+  /\bcitizenship\b|\bimmigration status\b|\blawful(ly)? (present|permanent)\b|\bqualified non-?citizen/i,
+  // Medicaid as a precondition
+  // ("Medicaid-enrolled older adult" is a fact about the family, not a gate.)
+  /\b(requires?|required|must (already )?(be on|have)|only for (people|those|members) (on|with)) (full )?Medicaid\b/i,
+  /\b(requires?|needs?|plus) Medicaid[- ]eligibility\b|\bMedicaid[- ]eligibility (is )?(required|requirement)/i,
+  // Property
+  /\bhomeowner(s|ship)?\b/i,
+  // Service history, diagnosis, prognosis
+  /\b(wartime|military) service\b|\bveterans? only\b/i,
+  /\bdiagnos(is|ed) (of|with)\b/i,
+  /\b(terminal|hospice[- ]eligible|life expectancy)\b/i,
+];
+
+/** Does this fit reason name a real eligibility gate (who can get it)? */
+export function namesEligibilityGate(why: string | null | undefined): boolean {
+  if (!why) return false;
+  // Program NAMES carry gate words ("Elderly & Disabled Waiver", "Aged, Blind
+  // and Disabled Medicaid"). A reason that only names the alternative is
+  // not stating a condition on the pick, so strip names before matching.
+  const text = why.replace(
+    /\b(elderly|aged)\s*(&|and|,|-)?\s*(blind\s*(&|and|,|-)?\s*)?disabled\b|\baged[- ]blind[- ]disabled\b/gi,
+    "",
+  );
+  return ELIGIBILITY_GATE_PATTERNS.some((re) => re.test(text));
+}
+
+/** The questionable reads' reasons that name an eligibility gate, deduped. */
+export function eligibilityGateReasons(reads: FitRead[]): string[] {
+  return Array.from(
+    new Set(
+      reads
+        .filter((r) => r.verdict === "questionable")
+        .map((r) => r.why.trim())
+        .filter((w) => w.length > 0 && namesEligibilityGate(w)),
+    ),
+  );
+}
+
 // ── The router ─────────────────────────────────────────────────────────────
 
 export interface RouteInput {
@@ -306,6 +430,14 @@ export interface RouteInput {
    *  caveat_applied_at). The caveat happens once; after it, the same
    *  questionable read falls through to the normal holds. */
   caveatApplied?: boolean;
+  /** The family's need was inferred AND the letter says they stated one
+   *  (claimsStatedNeed). The text is false, so it is rewritten, never sent. */
+  claimsUnstatedNeed?: boolean;
+  /** The stored fit reads were made under the pre-2026-09-24 prompt, which
+   *  told the models an inferred need was what the family said. Such a read
+   *  may not switch or rule out the program (see staleFitRewrite). Only a
+   *  reader re-routing an old packet sets it; a fresh build never does. */
+  fitReadOnInventedNeed?: boolean;
   rails: RailHit[];
   clearance: ClearanceRead | null;
   lint: DraftLintHit[];
@@ -331,11 +463,28 @@ export interface RouteInput {
  */
 /** Prefix on the hold that marks a caveat recompose. Display code keys off it. */
 export const CAVEAT_HOLD_PREFIX = "caveat:";
+/** Prefix on the hold that marks a same-program rewrite recompose. */
+export const REWRITE_HOLD_PREFIX = "rewrite:";
+
+/**
+ * Does the letter tell the family they SAID they need something? Checked only
+ * when their need was inferred, where any such sentence is false. Measured on
+ * 2026-09-24: 37 of 40 pending entry letters with a questionable read carried
+ * "You said you need help paying for care" or a variant of it.
+ */
+export function claimsStatedNeed(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return (
+    /\b(you|they)\s+(also\s+)?(said|told us|mentioned|shared|let us know)\b[^.?!]{0,60}\b(need|looking for|want)/i.test(text) ||
+    /\byou(?:'re| are)\s+(also\s+)?looking for help (paying for care|staying at home|with memory|with companionship)/i.test(text)
+  );
+}
 
 export function routePacket(input: RouteInput): {
   route: PacketRoute;
   holds: string[];
   caveat?: true;
+  rewrite?: true;
 } {
   if (!input.facts.enoughToPick) {
     return {
@@ -345,7 +494,19 @@ export function routePacket(input: RouteInput): {
   }
 
   const consensus = fitConsensus(input.fit);
+
+  // A fit read made against a need the family never stated cannot move them
+  // off their program. Re-draft the same program instead; the rebuilt packet
+  // re-reads fit under the corrected prompt, and a switch that is still
+  // warranted happens then, on honest reads.
+  const staleFitRewrite = {
+    route: "recompose" as const,
+    holds: [`${REWRITE_HOLD_PREFIX} fit was judged against a need they never stated`],
+    rewrite: true as const,
+  };
+
   if (consensus === "wrong") {
+    if (input.fitReadOnInventedNeed) return staleFitRewrite;
     const first = input.fit.find((r) => r.verdict === "wrong");
     return { route: "recompose", holds: [`pick ruled out: ${first?.why ?? "fit verdict wrong"}`] };
   }
@@ -367,14 +528,20 @@ export function routePacket(input: RouteInput): {
   // is for, and name the agreed alternative as the better first call if that
   // is not them. No person reviews it; after the rewrite the same read falls
   // through to the normal holds below.
+  //
+  // Only when a reason names a real eligibility gate (namesEligibilityGate).
+  // A reason about fit ("doesn't address paying for care") has no condition
+  // to state, so the entry letter falls straight through: the program they
+  // came for leads.
   if (consensus === "questionable" && input.recomposeTarget) {
     if (!input.pickIsEntry) {
+      if (input.fitReadOnInventedNeed) return staleFitRewrite;
       return {
         route: "recompose",
         holds: [`both models would start with ${input.recomposeTarget.name} instead`],
       };
     }
-    if (!input.caveatApplied) {
+    if (!input.caveatApplied && eligibilityGateReasons(input.fit).length > 0) {
       return {
         route: "recompose",
         holds: [
@@ -383,6 +550,20 @@ export function routePacket(input: RouteInput): {
         caveat: true,
       };
     }
+  }
+
+  // The letter says "you told us you need help paying for care" to a family
+  // who told us nothing of the kind: the program-page card derives the need
+  // from the page (lib/benefits/care-need-source.ts). Every letter composed
+  // before 2026-09-24 for a program-page family says it. That sentence is
+  // false, so the letter is re-drafted on the same program by the fixed
+  // composer, never sent and never parked for a person.
+  if (input.claimsUnstatedNeed) {
+    return {
+      route: "recompose",
+      holds: [`${REWRITE_HOLD_PREFIX} the letter says they told us a need they never stated`],
+      rewrite: true,
+    };
   }
 
   const holds: string[] = [];
@@ -435,7 +616,12 @@ export function routePacket(input: RouteInput): {
  */
 export function rerouteStoredPacket(
   packet: NavigatorPacket,
-  opts: { pickIsEntry: boolean; caveatApplied: boolean },
+  opts: {
+    pickIsEntry: boolean;
+    caveatApplied: boolean;
+    claimsUnstatedNeed?: boolean;
+    fitReadOnInventedNeed?: boolean;
+  },
 ): NavigatorPacket {
   if (!packet || !packet.facts || !Array.isArray(packet.fit)) return packet;
   const r = routePacket({
@@ -444,6 +630,8 @@ export function rerouteStoredPacket(
     recomposeTarget: packet.recomposeTarget ?? null,
     pickIsEntry: opts.pickIsEntry,
     caveatApplied: opts.caveatApplied,
+    claimsUnstatedNeed: !!opts.claimsUnstatedNeed,
+    fitReadOnInventedNeed: !!opts.fitReadOnInventedNeed,
     rails: packet.rails ?? [],
     clearance: packet.clearance ?? null,
     lint: packet.lint ?? [],
@@ -454,12 +642,20 @@ export function rerouteStoredPacket(
   const same =
     r.route === packet.route &&
     !!r.caveat === !!packet.caveat &&
+    !!r.rewrite === !!packet.rewrite &&
     r.holds.length === (packet.holds ?? []).length &&
     r.holds.every((h, i) => h === packet.holds[i]);
   if (same) return packet;
-  const { caveat: _drop, ...rest } = packet;
+  const { caveat: _drop, rewrite: _dropRewrite, ...rest } = packet;
   void _drop;
-  return { ...rest, route: r.route, holds: r.holds, ...(r.caveat ? { caveat: true } : {}) };
+  void _dropRewrite;
+  return {
+    ...rest,
+    route: r.route,
+    holds: r.holds,
+    ...(r.caveat ? { caveat: true } : {}),
+    ...(r.rewrite ? { rewrite: true } : {}),
+  };
 }
 
 /** Does the letter name a dollar amount? Cheap pre-check for the money rail. */
@@ -511,12 +707,36 @@ export function isCaveatPacket(packet: Pick<NavigatorPacket, "route" | "holds" |
   );
 }
 
+/** Is this a same-program rewrite (the text claims a need they never stated)? */
+export function isRewritePacket(packet: Pick<NavigatorPacket, "route" | "holds" | "rewrite">): boolean {
+  return (
+    packet.route === "recompose" &&
+    (packet.rewrite === true || !!packet.holds[0]?.startsWith(REWRITE_HOLD_PREFIX))
+  );
+}
+
+/**
+ * A recompose that keeps the current program (caveat or rewrite), as opposed
+ * to one that excludes it and picks another.
+ */
+export function recomposeKeepsProgram(
+  packet: Pick<NavigatorPacket, "route" | "holds" | "caveat" | "rewrite">,
+): boolean {
+  return isCaveatPacket(packet) || isRewritePacket(packet);
+}
+
 /**
  * Readable form of a hold for the admin queue. The caveat hold is a machine
  * instruction; a reviewer should read what it does.
  */
 export function holdLabel(hold: string): string {
-  return hold.startsWith(CAVEAT_HOLD_PREFIX) ? "Kept their program, added the condition" : hold;
+  if (hold.startsWith(CAVEAT_HOLD_PREFIX)) return "Kept their program, added the condition";
+  if (hold.startsWith(REWRITE_HOLD_PREFIX)) {
+    return hold.includes("fit was judged")
+      ? "Checked against a need they never stated; re-drafting the same program to re-check"
+      : "Letter says they told us a need they never stated; re-drafting the same program";
+  }
+  return hold;
 }
 
 /** Chip label for a caveat recompose, in place of "Recompose". */
@@ -535,6 +755,11 @@ export function routeSummary(packet: NavigatorPacket): string {
         return packet.recomposeTarget
           ? `Kept their program, adding the condition and ${packet.recomposeTarget.name} as the other call`
           : "Kept their program, adding the condition";
+      }
+      if (isRewritePacket(packet)) {
+        return packet.holds[0]?.includes("fit was judged")
+          ? "Same program, re-drafting: its fit was checked against a need they never stated"
+          : "Same program, re-drafting: the letter claims a need they never stated";
       }
       return packet.holds[0] ?? "The pick is ruled out by their own facts.";
     case "review":

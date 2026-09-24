@@ -90,17 +90,22 @@ export async function GET(request: NextRequest) {
     // The family's stated need lives on the benefits_completed event, not the
     // profile. It is the single most important input to the fit gate, so it
     // is loaded in one query up front rather than per letter.
+    // Oldest first, so the latest intake wins. Its metadata travels with the
+    // need: entry_source decides whether the need was stated or inferred.
     const needByProfile = new Map<string, string>();
+    const intakeByProfile = new Map<string, Record<string, unknown>>();
     if (due.length > 0) {
       const { data: intakeEvents } = await db
         .from("seeker_activity")
-        .select("profile_id, metadata")
+        .select("profile_id, metadata, created_at")
         .eq("event_type", "benefits_completed")
-        .in("profile_id", due.map((r) => r.id));
+        .in("profile_id", due.map((r) => r.id))
+        .order("created_at", { ascending: true });
       for (const ev of intakeEvents ?? []) {
         const need = (ev.metadata as { care_need?: unknown } | null)?.care_need;
         if (ev.profile_id && typeof need === "string" && need) {
           needByProfile.set(ev.profile_id, need);
+          intakeByProfile.set(ev.profile_id, ev.metadata as Record<string, unknown>);
         }
       }
     }
@@ -128,6 +133,7 @@ export async function GET(request: NextRequest) {
             state: row.state as string | null,
             metadata: row.metadata as Record<string, unknown> | null,
             careNeed: needByProfile.get(row.id) ?? null,
+            intakeEvent: intakeByProfile.get(row.id) ?? null,
           },
           nav,
         );

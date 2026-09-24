@@ -9,11 +9,22 @@
  * with the condition stated (route recompose, caveat) instead of either
  * switching programs or sending bare. After the rewrite the same read falls
  * through to the normal holds.
+ *
+ * Only a reason that names a real eligibility gate opens the caveat path;
+ * a fit-only reason falls straight through (namesEligibilityGate). And a care
+ * need inferred from the program page stays a directional fact (no new "ask")
+ * but is worded as the page they came through, not as their words.
  */
 import {
   CAVEAT_HOLD_PREFIX,
+  claimsStatedNeed,
+  eligibilityGateReasons,
   holdLabel,
+  namesEligibilityGate,
+  readFacts,
+  recomposeKeepsProgram,
   isCaveatPacket,
+  isRewritePacket,
   rerouteStoredPacket,
   routePacket,
   type NavigatorPacket,
@@ -146,6 +157,182 @@ const base = (over: Partial<RouteInput>): RouteInput => ({
   check("stored verdict after caveat → auto", b.route === "auto" && !b.caveat && b.holds.length === 0, b);
   const c = rerouteStoredPacket(stored, { pickIsEntry: false, caveatApplied: false });
   check("non-entry stored switch verdict unchanged (same object)", c === stored, c);
+}
+
+// 8. The eligibility-gate classifier, on real fit reasons from the live queue.
+const GATE_REASONS = [
+  "ERA is narrowly for elderly people who are homeless or unstably housed and pays rent",
+  "At 60 with no stated disability or nursing-facility level of care, SMMC-LTC's age/LOC gates make it a long shot",
+  "It could help, but it hinges on a homebound status they never claimed",
+  "It is real money, but it carries narrow restrictions (all-household 65+, no earned income)",
+];
+const FIT_ONLY_REASONS = [
+  "LIHEAP offers real, fast utility money but doesn't address their stated need to pay for care",
+  "SNAP delivers real money quickly but addresses groceries rather than the care costs the family actually asked about",
+  "Medicare Savings Programs cut Medicare premiums and cost-sharing but do not pay for the ongoing care services",
+  "It helps, but it is not the strongest first call for this family",
+  "Real money quickly, though a waiver would answer them more directly",
+  // A program NAME with a gate word, and a fact about the family, are not gates.
+  "AESAP provides real food assistance quickly but doesn't address the family's stated need to pay for care, which the Elderly & Disabled Waiver directly targets",
+  "LIHEAP does not directly pay for long-term care and Community Choices is the more appropriate first call for a Medicaid-enrolled older adult seeking care funding",
+  "LIHEAP is real money they likely qualify for at 60 with under-$1,500 income, but it pays utility bills",
+];
+for (const why of GATE_REASONS) check(`gate: ${why.slice(0, 60)}`, namesEligibilityGate(why));
+for (const why of FIT_ONLY_REASONS) check(`fit only: ${why.slice(0, 60)}`, !namesEligibilityGate(why));
+
+const withWhy = (why: string, verdict: FitRead["verdict"] = "questionable"): FitRead => ({
+  model: why.slice(0, 8) + Math.random(),
+  verdict,
+  why,
+  better: "Oregon Project Independence",
+});
+
+// 9. entry + questionable + target, reasons all about fit → no caveat, auto
+{
+  const fitOnly = [withWhy(FIT_ONLY_REASONS[0]), withWhy(FIT_ONLY_REASONS[1])];
+  const r = routePacket(base({ fit: fitOnly }));
+  check("fit-only questionable on entry → auto (no caveat)", r.route === "auto" && !r.caveat && r.holds.length === 0, r);
+  const held = routePacket(base({ fit: fitOnly, clearance: null }));
+  check("  still takes its other holds (no clearance → review)", held.route === "review" && !held.caveat, held);
+  const nonEntry = routePacket(base({ pickIsEntry: false, fit: fitOnly }));
+  check("  non-entry fit-only still switches", nonEntry.route === "recompose" && !nonEntry.caveat, nonEntry);
+}
+
+// 10. one gate reason + one fit reason → caveat; only the gate reason is a condition
+{
+  const fit = [withWhy(GATE_REASONS[0]), withWhy(FIT_ONLY_REASONS[0])];
+  const r = routePacket(base({ fit }));
+  check("gate + fit reasons → caveat", r.route === "recompose" && r.caveat === true, r);
+  const conds = eligibilityGateReasons(fit);
+  check("  only the gate reason is passed on", conds.length === 1 && conds[0] === GATE_REASONS[0], conds);
+  check(
+    "  a good read's reason is never a condition",
+    eligibilityGateReasons([withWhy(GATE_REASONS[1], "good")]).length === 0,
+  );
+}
+
+// 11. A packet stored as a caveat under the first rule, with fit-only
+//     reasons, re-routes to fall through (auto here) with no model call.
+{
+  const input = base({ fit: [withWhy(FIT_ONLY_REASONS[0]), withWhy(FIT_ONLY_REASONS[2])] });
+  const stored: NavigatorPacket = {
+    version: 1,
+    builtAt: "2026-09-24T00:00:00Z",
+    facts: input.facts,
+    fit: input.fit,
+    rails: [],
+    clearance: clean,
+    lint: [],
+    intakeAgeDays: 10,
+    statesDollarFigure: false,
+    route: "recompose",
+    caveat: true,
+    recomposeTarget: input.recomposeTarget ?? null,
+    holds: [`${CAVEAT_HOLD_PREFIX} keep their program, state the condition, offer Oregon Project Independence`],
+    models: {},
+  };
+  const a = rerouteStoredPacket(stored, { pickIsEntry: true, caveatApplied: false });
+  check("stored fit-only caveat verdict → auto", a.route === "auto" && !a.caveat && !isCaveatPacket(a), a);
+}
+
+// 12. Care need provenance in the facts gate.
+{
+  const common = {
+    careTypes: [],
+    age: null,
+    incomeBand: null,
+    medicaidStatus: null,
+    veteranStatus: null,
+    situation: null,
+  };
+  const stated = readFacts({ ...common, careNeed: "payingForCare", careNeedSource: "stated" });
+  check("stated need → directional 'paying for care'", stated.directional[0] === "what they came for: paying for care", stated);
+  const legacy = readFacts({ ...common, careNeed: "payingForCare" });
+  check("no source reads as stated", legacy.directional[0] === "what they came for: paying for care", legacy);
+  const inferred = readFacts({
+    ...common,
+    careNeed: "payingForCare",
+    careNeedSource: "inferred_from_page",
+    entryProgram: "LIHEAP",
+  });
+  check("inferred need keeps enoughToPick (no new ask)", inferred.enoughToPick, inferred);
+  check(
+    "  worded as the page, not their need",
+    !!inferred.directional[0]?.includes("LIHEAP program page") && !inferred.directional[0]?.includes("paying for care"),
+    inferred.directional,
+  );
+  check("  need listed as missing", inferred.missing.includes("what kind of care or help they need"), inferred.missing);
+  const r = routePacket(base({ facts: inferred }));
+  check("  inferred-need family routes like before (not ask)", r.route !== "ask", r);
+  const noEntry = readFacts({ ...common, careNeed: "payingForCare", careNeedSource: "inferred_from_page" });
+  check(
+    "inferred need without entry name still directional",
+    noEntry.enoughToPick && /not stated/.test(noEntry.directional[0] ?? ""),
+    noEntry,
+  );
+}
+
+// 13. A letter that claims a need the family never stated is rewritten on the
+//     same program, whatever else would have happened to it short of a
+//     program change.
+{
+  const CLAIMS = [
+    "Hi, it's TJ with Olera. You said you need help paying for care.",
+    "You also told us you need help paying for care.",
+    "You are looking for help paying for care.",
+    "You told us you need help staying at home.",
+  ];
+  const NO_CLAIM = [
+    "You were looking at LIHEAP on Olera. That is worth applying for.",
+    "SNAP will not pay for care itself. It frees up money each month.",
+    "This program will not pay for care itself.",
+  ];
+  for (const t of CLAIMS) check(`claims a stated need: ${t.slice(0, 50)}`, claimsStatedNeed(t));
+  for (const t of NO_CLAIM) check(`no claim: ${t.slice(0, 50)}`, !claimsStatedNeed(t));
+
+  const fitOnly = [withWhy(FIT_ONLY_REASONS[0]), withWhy(FIT_ONLY_REASONS[1])];
+  const r = routePacket(base({ fit: fitOnly, claimsUnstatedNeed: true }));
+  check("fit-only entry + false need claim → rewrite", r.route === "recompose" && r.rewrite === true && !r.caveat, r);
+  check("  isRewritePacket reads it", isRewritePacket({ route: r.route, holds: r.holds, rewrite: r.rewrite }));
+  check("  keeps the program", recomposeKeepsProgram({ route: r.route, holds: r.holds, rewrite: r.rewrite }));
+  const caveatFirst = routePacket(base({ claimsUnstatedNeed: true }));
+  check("gate reason still takes the caveat (it rewrites too)", caveatFirst.caveat === true && !caveatFirst.rewrite, caveatFirst);
+  const switched = routePacket(base({ pickIsEntry: false, fit: fitOnly, claimsUnstatedNeed: true }));
+  check("non-entry switch still switches", switched.route === "recompose" && !switched.rewrite, switched);
+
+  const stored: NavigatorPacket = {
+    version: 1,
+    builtAt: "2026-09-20T00:00:00Z",
+    facts: base({}).facts,
+    fit: fitOnly,
+    rails: [],
+    clearance: clean,
+    lint: [],
+    intakeAgeDays: 10,
+    statesDollarFigure: true,
+    route: "review",
+    recomposeTarget: null,
+    holds: ["letter states a dollar figure"],
+    models: {},
+  };
+  const a = rerouteStoredPacket(stored, { pickIsEntry: true, caveatApplied: false, claimsUnstatedNeed: true });
+  check("stored review + false need claim → rewrite", a.route === "recompose" && a.rewrite === true, a);
+  const b = rerouteStoredPacket(stored, { pickIsEntry: true, caveatApplied: false });
+  check("stored review, no claim → unchanged", b === stored, b);
+}
+
+// 14. A fit read made under the invented need cannot move the program: a
+//     switch or a "wrong" becomes a same-program rewrite; a gate caveat stays.
+{
+  const fitOnly = [withWhy(FIT_ONLY_REASONS[0]), withWhy(FIT_ONLY_REASONS[1])];
+  const sw = routePacket(base({ pickIsEntry: false, fit: fitOnly, fitReadOnInventedNeed: true }));
+  check("stale-fit switch → rewrite", sw.route === "recompose" && sw.rewrite === true, sw);
+  const wr = routePacket(base({ fit: [read("wrong"), read("wrong")], fitReadOnInventedNeed: true }));
+  check("stale-fit wrong → rewrite", wr.route === "recompose" && wr.rewrite === true, wr);
+  const cv = routePacket(base({ fitReadOnInventedNeed: true }));
+  check("stale-fit gate caveat stays a caveat", cv.caveat === true && !cv.rewrite, cv);
+  const ok = routePacket(base({ fit: fitOnly, fitReadOnInventedNeed: true }));
+  check("stale-fit, nothing to move, no claim → auto", ok.route === "auto", ok);
 }
 
 if (failures > 0) {

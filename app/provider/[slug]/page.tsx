@@ -1294,6 +1294,7 @@ export default async function ProviderPage({
                 const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as {
                   coverage_buckets?: string[];
                   prn_open?: "yes" | "maybe" | "no";
+                  job_description?: string;
                 } | null;
                 const opp = buildOpportunity({
                   careText: categoryLabel ?? profile.category,
@@ -1302,7 +1303,8 @@ export default async function ProviderPage({
                   profile: oppProfile,
                 });
                 // Surface what the provider entered in their "Hire more
-                // caregivers" block: PRN openness and requirements.
+                // caregivers" block: PRN openness, job description, and requirements.
+                const jobDescription = demand?.job_description?.trim() || null;
                 const prnLabel = demand?.prn_open
                   ? PRN_OPTIONS.find((o) => o.value === demand.prn_open)?.label ?? null
                   : null;
@@ -1315,6 +1317,13 @@ export default async function ProviderPage({
                 return (
                   <div className="py-8 border-b border-gray-200">
                     <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About this opportunity</h2>
+                    {/* Provider's job description — shown first if provided */}
+                    {jobDescription && (
+                      <div className="mb-6 p-4 bg-primary-50/50 border border-primary-100 rounded-xl">
+                        <p className="text-sm font-medium text-primary-800 mb-2">From the provider</p>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{jobDescription}</p>
+                      </div>
+                    )}
                     <p className="text-base font-semibold text-gray-900">{opp.roleLabel}</p>
                     <p className="mt-4 text-sm font-medium text-gray-500">What you&apos;d do</p>
                     <ul className="mt-1 list-disc pl-5 text-sm text-gray-700 space-y-0.5">

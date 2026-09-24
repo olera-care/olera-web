@@ -5,8 +5,10 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
+import ApprovalBlockModal from "@/components/medjobs/ApprovalBlockModal";
 import { EMPLOYER_AGREEMENT_URL, type DemandProfile } from "@/lib/medjobs/eligibility";
 import type { MedjobsRequirements } from "@/lib/medjobs/hiring-needs-questions";
+import type { ApprovalBlock } from "@/app/api/medjobs/check-approval/route";
 
 export interface ScheduleFormData {
   type: "video" | "in_person" | "phone";
@@ -248,6 +250,7 @@ export default function ScheduleInterviewModal({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [approvalBlock, setApprovalBlock] = useState<ApprovalBlock | null>(null);
 
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
@@ -278,6 +281,23 @@ export default function ScheduleInterviewModal({
     // and the student is notified after verification completes.
 
     setSubmitting(true);
+
+    // For student-initiated requests, check approval status before proceeding
+    if (isStudentInitiated) {
+      try {
+        const checkRes = await fetch("/api/medjobs/check-approval");
+        const checkData = await checkRes.json();
+        if (checkData.blocked && checkData.block) {
+          setApprovalBlock(checkData.block);
+          setSubmitting(false);
+          return;
+        }
+      } catch {
+        setError("Could not verify approval status. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+    }
 
     const proposedTime = new Date(`${date}T${time}`).toISOString();
     const alternativeTime = altDate && altTime ? new Date(`${altDate}T${altTime}`).toISOString() : undefined;
@@ -367,6 +387,19 @@ export default function ScheduleInterviewModal({
       </button>
     </div>
   );
+
+  // Show approval block modal for students who need to take action
+  if (approvalBlock) {
+    return (
+      <ApprovalBlockModal
+        block={approvalBlock}
+        onClose={() => {
+          setApprovalBlock(null);
+          onClose();
+        }}
+      />
+    );
+  }
 
   if (showUpgradeModal) {
     return <UpgradeModal creditsUsed={3} onClose={onClose} />;

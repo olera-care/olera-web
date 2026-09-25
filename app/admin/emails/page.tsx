@@ -43,8 +43,6 @@ const EMAIL_TYPE_OPTIONS = [
   { value: "unread_reminder", label: "Unread Reminder" },
   { value: "daily_digest", label: "Daily Digest" },
   { value: "student_signup_welcome", label: "Student Signup Welcome" },
-  { value: "student_welcome", label: "Student Welcome" },
-  { value: "student_account_created", label: "Student Account Created" },
   { value: "student_returning", label: "Student Returning" },
   { value: "student_magic_link", label: "Student Sign-In Link" },
   { value: "student_profile_incomplete_nudge", label: "Student Profile Incomplete" },

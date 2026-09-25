@@ -123,11 +123,13 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit review request" }, { status: 500 });
     }
 
-    // Send Slack notification
+    // Send Slack notification with approve/reject buttons
     try {
       const alert = slackMedJobsReviewRequest({
         studentName: student.display_name || "Unknown",
         studentId: student.id,
+        studentEmail: student.email || "",
+        studentSlug: student.slug,
         university: meta.university || "Not specified",
         location: [student.city, student.state].filter(Boolean).join(", ") || "Not specified",
       });

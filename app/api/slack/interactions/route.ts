@@ -6,6 +6,11 @@ import {
   verificationApprovedEmail,
   verificationRejectedEmail,
 } from "@/lib/email-templates";
+import {
+  medjobsProfileApprovedEmail,
+  medjobsProfileRejectedEmail,
+} from "@/lib/medjobs-email-templates";
+import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
@@ -100,6 +105,18 @@ export async function POST(request: NextRequest) {
       }
       return await handleVerificationAction(
         actionId === "verification_approve" ? "approve" : "reject",
+        actionValue,
+        payload
+      );
+    }
+
+    // Handle student review actions
+    if (actionId === "student_review_approve" || actionId === "student_review_reject") {
+      if (!actionValue) {
+        return updateSlackMessage(payload, "❌ Missing action data");
+      }
+      return await handleStudentReviewAction(
+        actionId === "student_review_approve" ? "approve" : "reject",
         actionValue,
         payload
       );
@@ -307,6 +324,177 @@ async function handleVerificationAction(
     return updateSlackMessage(
       payload,
       `❌ *Rejected* by ${slackUser}\nThe provider will be asked to resubmit.`
+    );
+  }
+}
+
+/**
+ * Handle student review approve/reject actions from Slack buttons.
+ */
+async function handleStudentReviewAction(
+  action: "approve" | "reject",
+  value: string,
+  payload: Record<string, unknown>
+): Promise<NextResponse> {
+  const admin = getAdminClient();
+  if (!admin) {
+    return updateSlackMessage(payload, "❌ Server configuration error");
+  }
+
+  // Parse action value as JSON
+  let studentId: string;
+  let studentEmail: string;
+  let studentName: string;
+  try {
+    const parsed = JSON.parse(value) as { studentId?: string; email?: string; name?: string };
+    studentId = parsed.studentId || "";
+    studentEmail = parsed.email || "";
+    studentName = parsed.name || "";
+  } catch {
+    return updateSlackMessage(payload, "❌ Invalid action data");
+  }
+
+  if (!studentId) {
+    return updateSlackMessage(payload, "❌ Missing student ID");
+  }
+
+  // Get the Slack user who clicked
+  const slackUser = (payload.user as { name?: string })?.name || "Unknown";
+
+  // Fetch the current student profile
+  const { data: student, error: fetchError } = await admin
+    .from("business_profiles")
+    .select("id, slug, display_name, email, is_active, metadata")
+    .eq("id", studentId)
+    .eq("type", "student")
+    .single();
+
+  if (fetchError || !student) {
+    console.error("[slack] Student not found:", studentId, fetchError);
+    return updateSlackMessage(payload, "❌ Student not found");
+  }
+
+  const meta = (student.metadata as Record<string, unknown>) || {};
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const actualStudentName = student.display_name || studentName || "Student";
+  const actualEmail = student.email || studentEmail;
+
+  // Check if already processed
+  if (meta.application_completed && action === "approve") {
+    return updateSlackMessage(payload, "✓ Already approved");
+  }
+
+  const nowIso = new Date().toISOString();
+
+  if (action === "approve") {
+    // Approve: set is_active, application_completed, clear review_requested_at
+    const updatedMeta = {
+      ...meta,
+      application_completed: true,
+      review_requested_at: null,
+      approved_at: nowIso,
+      approved_by: slackUser,
+      approved_via: "slack",
+    };
+
+    const { error: updateError } = await admin
+      .from("business_profiles")
+      .update({
+        is_active: true,
+        metadata: updatedMeta,
+        updated_at: nowIso,
+      })
+      .eq("id", studentId);
+
+    if (updateError) {
+      console.error("[slack] Failed to approve student:", updateError);
+      return updateSlackMessage(payload, "❌ Failed to approve student");
+    }
+
+    // Send approval email
+    if (actualEmail) {
+      try {
+        const portalUrl = generateStudentPortalUrl(actualEmail, "/portal/medjobs");
+        const profileUrl = student.slug
+          ? `${siteUrl}/medjobs/candidates/${student.slug}`
+          : portalUrl;
+
+        await sendEmail({
+          to: actualEmail,
+          subject: "Your MedJobs profile is live!",
+          html: medjobsProfileApprovedEmail({
+            studentName: actualStudentName,
+            profileUrl,
+            portalUrl,
+          }),
+          emailType: "medjobs_profile_approved",
+          recipientType: "student",
+          recipientProfileId: studentId,
+          metadata: { approved_by: slackUser, approved_via: "slack" },
+        });
+      } catch (emailErr) {
+        console.error("[slack] Failed to send student approval email:", emailErr);
+      }
+    }
+
+    console.log(`[slack] Student approved: ${actualStudentName} by ${slackUser}`);
+    return updateSlackMessage(
+      payload,
+      `✅ *Approved* by ${slackUser}\n${actualStudentName} is now live.`
+    );
+  } else {
+    // Reject: set rejected_at, rejection_reason, clear review_requested_at
+    const rejectionReason = "Your profile needs some updates before it can go live. Please review your information and try again.";
+
+    const updatedMeta = {
+      ...meta,
+      review_requested_at: null,
+      rejected_at: nowIso,
+      rejected_by: slackUser,
+      rejected_via: "slack",
+      rejection_reason: rejectionReason,
+    };
+
+    const { error: updateError } = await admin
+      .from("business_profiles")
+      .update({
+        metadata: updatedMeta,
+        updated_at: nowIso,
+      })
+      .eq("id", studentId);
+
+    if (updateError) {
+      console.error("[slack] Failed to reject student:", updateError);
+      return updateSlackMessage(payload, "❌ Failed to reject student");
+    }
+
+    // Send rejection email
+    if (actualEmail) {
+      try {
+        const portalUrl = generateStudentPortalUrl(actualEmail, "/portal/medjobs");
+
+        await sendEmail({
+          to: actualEmail,
+          subject: "Your MedJobs profile needs some updates",
+          html: medjobsProfileRejectedEmail({
+            studentName: actualStudentName,
+            reason: rejectionReason,
+            portalUrl,
+          }),
+          emailType: "medjobs_profile_rejected",
+          recipientType: "student",
+          recipientProfileId: studentId,
+          metadata: { rejected_by: slackUser, rejected_via: "slack" },
+        });
+      } catch (emailErr) {
+        console.error("[slack] Failed to send student rejection email:", emailErr);
+      }
+    }
+
+    console.log(`[slack] Student rejected: ${actualStudentName} by ${slackUser}`);
+    return updateSlackMessage(
+      payload,
+      `❌ *Rejected* by ${slackUser}\n${actualStudentName} will be asked to update their profile.`
     );
   }
 }

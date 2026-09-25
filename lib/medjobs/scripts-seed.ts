@@ -166,13 +166,20 @@ the Student Caregiver Program. One page. It is what you attach when somebody
 asks what they are agreeing to, and what you send before an onboarding call
 so they have read it by the time you talk.
 
-The current version is always here:
+To read it now:
 
-  https://olera.care/medjobs/pilot-agreement.pdf
+  /medjobs/pilot-agreement.pdf
 
-Send that link, or attach the PDF. Do not keep your own copy on your desktop
-— when the terms change, the link changes with them and a saved copy does
-not.
+The onboarding rung attaches the same document, and it is in the SOP library
+under Pilot terms. All three are built from one source, so they cannot
+disagree.
+
+To send it to a provider, give them the full address:
+
+  olera.care/medjobs/pilot-agreement.pdf
+
+Send the link rather than a file off your own desktop. When the terms change
+the link changes with them and a saved copy does not.
 
 
 WHAT IT SAYS, IN SIX LINES

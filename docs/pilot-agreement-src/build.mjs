@@ -1,10 +1,25 @@
 /**
- * Render agreement.html to public/medjobs/pilot-agreement.pdf.
+ * Render agreement.html to the two places the agreement is served from.
  *
  * Same Chromium-over-CDP approach as docs/medjobs/matrix-src/html2pdf.mjs,
  * but with zero print margins and no Chromium header/footer: this document
  * carries its own page frame, rules and footer so it matches the original
  * signed PDF measurement for measurement.
+ *
+ * Two outputs, one source, because the agreement has two audiences and they
+ * cannot be allowed to drift:
+ *
+ *   public/medjobs/pilot-agreement.pdf     the public copy a provider reads
+ *                                          and downloads from the landing
+ *                                          page and the consent modal.
+ *   docs/medjobs/MedJobs_Pilot_Terms.pdf   the SOP library copy, served to
+ *                                          signed-in admins through
+ *                                          /api/admin/medjobs/sop?doc=pilot-terms,
+ *                                          which the onboarding rung attaches.
+ *
+ * The second path is already whitelisted in that route and already traced by
+ * outputFileTracingIncludes in next.config.ts. It only ever 404'd because
+ * nobody had put a file there.
  *
  *   node docs/pilot-agreement-src/build.mjs
  */
@@ -15,7 +30,10 @@ import { join, resolve } from "node:path";
 
 const CHROME = "/opt/pw-browsers/chromium";
 const HTML = resolve("docs/pilot-agreement-src/agreement.html");
-const PDF = resolve("public/medjobs/pilot-agreement.pdf");
+const OUT = [
+  resolve("public/medjobs/pilot-agreement.pdf"),
+  resolve("docs/medjobs/MedJobs_Pilot_Terms.pdf"),
+];
 
 const userDir = mkdtempSync(join(tmpdir(), "chr-"));
 const chrome = spawn(
@@ -92,8 +110,10 @@ const { data } = await cdp.send(
   },
   sessionId,
 );
-writeFileSync(PDF, Buffer.from(data, "base64"));
-console.log("wrote", PDF, (statSync(PDF).size / 1024).toFixed(0) + "KB");
+for (const out of OUT) {
+  writeFileSync(out, Buffer.from(data, "base64"));
+  console.log("wrote", out, (statSync(out).size / 1024).toFixed(0) + "KB");
+}
 
 ws.close();
 chrome.kill();

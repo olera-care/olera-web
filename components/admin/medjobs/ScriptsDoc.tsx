@@ -732,16 +732,26 @@ function Block({
 }
 
 /**
- * Turn the URLs in a block into links.
+ * Turn the addresses in a block into links.
  *
  * A section that points somebody at a document is only useful if they can
  * reach it, and these blocks render as plain text — a pasted address was
- * something to select and copy by hand. Absolute http(s) addresses only:
- * a bare path is ambiguous in prose, and guessing wrong turns an ordinary
- * sentence into a broken link.
+ * something to select and copy by hand.
+ *
+ * Two forms, and the second one matters more than it looks. An absolute
+ * address names a host, so a link to production written into the document
+ * sends somebody on staging to production, where a file that has not shipped
+ * yet is a 404. A site-relative path stays on whichever deployment the reader
+ * is already on. Only paths ending in a file extension are matched, so an
+ * ordinary sentence containing a slash is left alone.
  */
 function linkify(text: string): React.ReactNode {
-  const parts = text.split(/(https?:\/\/[^\s<>()"']+)/g);
+  const parts = text.split(
+    // The lookbehind is load-bearing: without it "olera.care/x.pdf" matches
+    // from the slash, and the address renders as bare text followed by a
+    // link to a path on whatever host the reader happens to be on.
+    /(https?:\/\/[^\s<>()"']+|(?<![\w.])\/[\w\-./]*\.(?:pdf|png|jpg|jpeg|mp4|csv)\b)/g,
+  );
   if (parts.length === 1) return text;
   return parts.map((part, i) =>
     i % 2 === 1 ? (

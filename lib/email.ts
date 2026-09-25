@@ -213,10 +213,14 @@ export async function isSuppressedRecipient(email: string): Promise<boolean> {
   try {
     const db = getServiceDb();
     if (!db) return false;
+    // Case-insensitive: email_log.recipient is stored as-supplied, so the same
+    // mailbox can appear under different casings (Info@x.com vs info@x.com).
+    // Escape LIKE wildcards (%, _, \) before matching.
+    const pattern = email.trim().replace(/([%_\\])/g, "\\$1");
     const { data } = await db
       .from("email_log")
       .select("id")
-      .eq("recipient", email)
+      .ilike("recipient", pattern)
       .or("bounced_at.not.is.null,complained_at.not.is.null")
       .limit(1)
       .maybeSingle();
@@ -697,10 +701,12 @@ export async function sendEmail(
       const windowStart = new Date(now - NUDGE_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
       const utcDayStartMs = Date.parse(new Date(now).toISOString().slice(0, 10) + "T00:00:00.000Z");
       const pendingCutoff = now - PENDING_COUNT_WINDOW_MINUTES * 60 * 1000;
+      // Case-insensitive: email_log.recipient may have mixed casing
+      const recipientPattern = recipient.trim().replace(/([%_\\])/g, "\\$1");
       const { data: capRows, error: capErr } = await db
         .from("email_log")
         .select("id, status, created_at")
-        .eq("recipient", recipient)
+        .ilike("recipient", recipientPattern)
         .eq("recipient_type", "family")
         .in("status", ["sent", "pending"])
         .in("email_type", capCountedTypesFor(emailType))

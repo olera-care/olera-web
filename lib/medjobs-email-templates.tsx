@@ -473,6 +473,42 @@ export function medjobsProfileRejectedEmail(opts: {
   `, `Your MedJobs profile needs some updates`);
 }
 
+/** Email sent to student when their profile approval is revoked by admin */
+export function medjobsProfileRevokedEmail(opts: {
+  studentName: string;
+  reason?: string;
+  portalUrl: string;
+}): string {
+  const safeName = escapeHtml(opts.studentName);
+  const safeReason = opts.reason ? escapeHtml(opts.reason) : null;
+  const calendlyUrl = "https://calendly.com/logan-dubose-md/student-meeting";
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Profile Status Update</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeName}, your MedJobs profile has been paused and is no longer visible to healthcare providers. This may happen when profile information needs to be updated or verified.
+    </p>
+    ${safeReason ? `
+    <table cellpadding="0" cellspacing="0" style="background:#fef2f2;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#991b1b;margin:0 0 6px;">Feedback</p>
+        <p style="font-size:13px;color:#991b1b;margin:0;line-height:1.6;">${safeReason}</p>
+      </td></tr>
+    </table>
+    ` : ""}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
+      Review your profile, make any necessary updates, and request another review when you&apos;re ready. Once approved, your profile will be visible to providers again.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Update Your Profile", opts.portalUrl)}
+    </p>
+    <p style="font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Need help? <a href="${calendlyUrl}" style="color:${BRAND_COLOR};text-decoration:underline;">Book a call with Dr. DuBose</a> and we&apos;ll walk you through what&apos;s needed.
+    </p>
+    ${authorBylineBlock()}
+  `, `Your MedJobs profile needs attention`);
+}
+
 /** Email to nudge student to request review when profile is 100% complete */
 export function medjobsReviewNudgeEmail(opts: {
   studentName: string;

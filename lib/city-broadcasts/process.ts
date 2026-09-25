@@ -529,10 +529,12 @@ export async function processNewPoolMembers(
       }
 
       // Check email hygiene (bounced/complained)
+      // Case-insensitive: email_log.recipient may have mixed casing
+      const emailPattern = email.trim().replace(/([%_\\])/g, "\\$1");
       const { data: badEmail } = await db
         .from("email_log")
         .select("id")
-        .eq("recipient", email.toLowerCase())
+        .ilike("recipient", emailPattern)
         .or("bounced_at.not.is.null,complained_at.not.is.null")
         .limit(1);
 

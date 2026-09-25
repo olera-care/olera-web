@@ -445,6 +445,7 @@ export function medjobsProfileRejectedEmail(opts: {
 }): string {
   const safeName = escapeHtml(opts.studentName);
   const safeReason = opts.reason ? escapeHtml(opts.reason) : null;
+  const calendlyUrl = "https://calendly.com/logan-dubose-md/student-meeting";
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Profile Review Update</h2>
@@ -464,6 +465,9 @@ export function medjobsProfileRejectedEmail(opts: {
     </p>
     <p style="margin:0 0 16px;">
       ${button("Update Your Profile", opts.portalUrl)}
+    </p>
+    <p style="font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Need help? <a href="${calendlyUrl}" style="color:${BRAND_COLOR};text-decoration:underline;">Book a call with Dr. DuBose</a> and we&apos;ll walk you through what&apos;s needed.
     </p>
     ${authorBylineBlock()}
   `, `Your MedJobs profile needs some updates`);

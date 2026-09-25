@@ -6,11 +6,13 @@
  * organic traffic looked and got two dense paragraphs of methodology, then
  * asked for week by week and got a paragraph on why it could not.
  *
- * Runs against the live database with the real lookups, so it costs money.
+ * Reads the live database with the real lookups, so it costs money. Writes are
+ * dropped (see readOnly), so a replay never shows up in the founder's brief.
  * Defaults to Haiku; set WAR_ROOM_CONVERSATION_MODEL=claude-sonnet-5 to see
  * what production would say.
  *
  *   npx tsx scripts/replay-cortex-conversation.ts
+ *   npx tsx scripts/replay-cortex-conversation.ts "What shipped this week?"
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -21,7 +23,8 @@ const FIXTURE = [
 ];
 
 /** Words the founder should never have to decode. */
-const JARGON = /\b(famil(y|ies)|half[- ]window|lens(es)?|probes?|investigations?|conditions?|fact pack|dossier)\b/i;
+// "Families" alone is Olera's word for care seekers, so only the page-type sense is jargon.
+const JARGON = /\b((page|provider|benefits?|editorial) famil(y|ies)|smaller famil(y|ies)|half[- ]window|lens(es)?|probes?|investigations?|fact pack|dossier)\b/i;
 
 export function voiceProblems(reply: string): string[] {
   const body = reply.replace(/\n\n_Sources:[\s\S]*$/, "").trim();
@@ -34,6 +37,31 @@ export function voiceProblems(reply: string): string[] {
   if (/\?\s*$/.test(body)) problems.push("ends on a question");
   if (/\b(not seasonally adjusted|methodolog|caveat)\b/i.test(body)) problems.push("methodology");
   return problems;
+}
+
+/**
+ * The live database, with every write turned into a no-op.
+ *
+ * A replay is not the founder. When Cortex cannot answer, it records a lookup
+ * gap, and the next morning's brief lists it under "What I could not look up"
+ * as if he had asked. On 2026-09-25 two replay questions landed there before
+ * this wrapper existed.
+ */
+export function readOnly<T extends { from: (table: string) => unknown }>(client: T): T {
+  const skipped = Promise.resolve({ data: null, error: null });
+  return new Proxy(client, {
+    get(target, prop, receiver) {
+      if (prop !== "from") return Reflect.get(target, prop, receiver);
+      return (table: string) => new Proxy(target.from(table) as object, {
+        get(builder, method, inner) {
+          if (method === "insert" || method === "upsert" || method === "update" || method === "delete") {
+            return () => skipped;
+          }
+          return Reflect.get(builder, method, inner);
+        },
+      });
+    },
+  });
 }
 
 function loadEnv() {
@@ -53,15 +81,19 @@ async function main() {
   // Imported after the env is set: the model is read at module load.
   const { createClient } = await import("@supabase/supabase-js");
   const { answerFounderQuestion } = await import("../lib/war-room/conversation.server");
-  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const db = readOnly(createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!));
 
   console.log(`model: ${process.env.WAR_ROOM_CONVERSATION_MODEL}\n`);
+  // Questions on the command line replace the fixture and run independently;
+  // the fixture runs as one conversation, the way he sent it.
+  const custom = process.argv.slice(2);
+  const questions = custom.length ? custom : FIXTURE;
   let prior: { question: string; answer: string; focusInvestigationId: null; at: string } | null = null;
-  for (const question of FIXTURE) {
+  for (const question of questions) {
     const { reply } = await answerFounderQuestion(db, question, null, prior);
     const problems = voiceProblems(reply);
     console.log(`> ${question}\n${reply}\n[voice: ${problems.length ? problems.join("; ") : "ok"}]\n`);
-    prior = { question, answer: reply, focusInvestigationId: null, at: new Date().toISOString() };
+    if (!custom.length) prior = { question, answer: reply, focusInvestigationId: null, at: new Date().toISOString() };
   }
 }
 

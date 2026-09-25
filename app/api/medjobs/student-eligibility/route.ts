@@ -17,6 +17,9 @@ import { createClient } from "@supabase/supabase-js";
 import { sanitizeReferral } from "@/lib/medjobs/apply-link";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { studentSignupWelcomeEmail } from "@/lib/medjobs-email-templates";
+import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import type { IntendedProfessionalSchool, StudentProgramTrack, StudentMetadata } from "@/lib/types";
 import {
   STUDENT_ELIGIBILITY_COMPLETED_KEY,
@@ -268,6 +271,27 @@ export async function POST(request: NextRequest) {
       await sendSlackAlert(alert.text, alert.blocks);
     } catch (err) {
       console.error("[medjobs/student-eligibility] slack error:", err);
+    }
+
+    // Fire-and-forget: Welcome email with magic link
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const magicLink = generateStudentPortalUrl(email, "/portal/medjobs", siteUrl);
+
+      await sendEmail({
+        to: email,
+        subject: "Welcome to MedJobs — complete your profile to connect with providers",
+        html: studentSignupWelcomeEmail({
+          studentName: displayName,
+          university,
+          magicLink,
+        }),
+        emailType: "student_signup_welcome",
+        recipientType: "student",
+        recipientProfileId: (profile as { id: string }).id,
+      });
+    } catch (err) {
+      console.error("[medjobs/student-eligibility] welcome email error:", err);
     }
 
     return NextResponse.json({

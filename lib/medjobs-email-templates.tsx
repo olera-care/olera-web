@@ -227,6 +227,54 @@ export function jobReadyEmail({
 
 // ── Student Templates ────────────────────────────────────────────
 
+/**
+ * Welcome email sent when a student creates their account via the main
+ * StudentEligibilityModal flow (name + university + email).
+ *
+ * Purpose: welcome them, urge them to complete their profile, and highlight
+ * the importance of the intro video for verification.
+ */
+export function studentSignupWelcomeEmail({
+  studentName,
+  university,
+  magicLink,
+}: {
+  studentName: string;
+  university?: string;
+  magicLink?: string;
+}): string {
+  const safeName = escapeHtml(firstName(studentName, "there"));
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
+
+  const universityLine = university
+    ? `<p style="font-size:13px;color:#6b7280;margin:0 0 16px;">University: <strong style="color:#111827;">${escapeHtml(university)}</strong></p>`
+    : "";
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${safeName}!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Your account has been created. You&rsquo;re one step closer to connecting with healthcare providers who are actively hiring student caregivers.
+    </p>
+    ${universityLine}
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 8px;">Complete your profile to get started</p>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 12px;line-height:1.6;">
+          It takes about <strong>10 minutes</strong>. Providers prioritize complete profiles &mdash; the more thorough yours is, the more likely you are to hear from hiring providers.
+        </p>
+        <p style="font-size:13px;color:#111827;font-weight:600;font-style:italic;margin:0 0 4px;">Your intro video is key</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.6;">
+          The short video introduction is how we verify you&rsquo;re a real student and how providers get to know you. Profiles with videos get significantly more responses.
+        </p>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("Complete My Profile", completeProfileUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `Complete your MedJobs profile to connect with healthcare providers`);
+}
+
 export function studentWelcomeEmail({
   studentName,
   university,
@@ -443,8 +491,11 @@ export function medjobsReviewNudgeEmail(opts: {
     <p style="margin:0 0 16px;">
       ${button("Request Review", opts.portalUrl)}
     </p>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 12px;line-height:1.5;">
       The review process typically takes 1-2 business days.
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions or delays? Reach us at <a href="mailto:support@olera.care" style="color:#9ca3af;text-decoration:underline;">support@olera.care</a> or <a href="tel:+19792439801" style="color:#9ca3af;text-decoration:underline;">+1 (979) 243-9801</a>.
     </p>
     ${authorBylineBlock()}
   `, `Your MedJobs profile is 100% complete - request a review to go live`);

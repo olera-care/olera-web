@@ -5,6 +5,7 @@ import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.se
 import { isFounderAnswerable, pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
 import { phraseMove, pickMove, type BriefMove, type MoveCandidate } from "@/lib/war-room/brief-move.server";
 import { loadProviderMoments, type ProviderMoment } from "@/lib/war-room/provider-moments.server";
+import { loadPaidRenewal, type PaidRenewal } from "@/lib/war-room/renewals.server";
 import { closeExchange } from "@/lib/war-room/conversation.server";
 import { loadBlindSpots, loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
@@ -58,22 +59,6 @@ export function isSweepDay(now = new Date()) {
 }
 
 const RENEWAL_WINDOW_DAYS = 30;
-export type PaidRenewal = { name: string; date: string; days: number };
-
-/** The soonest paid flight to end, read live. Same source the scan's date facts use. */
-export async function loadPaidRenewal(db: SupabaseClient): Promise<PaidRenewal | null> {
-  const today = new Date().toISOString().slice(0, 10);
-  const { data } = await db.from("ad_campaign_requests")
-    .select("display_name, provider_slug, flight_end_date")
-    .in("plan_status", ["active", "past_due"])
-    .gte("flight_end_date", today)
-    .order("flight_end_date", { ascending: true })
-    .limit(1);
-  const row = (data?.[0] ?? null) as { display_name: string | null; provider_slug: string | null; flight_end_date: string } | null;
-  if (!row) return null;
-  const days = Math.ceil((Date.parse(row.flight_end_date) - Date.now()) / 86_400_000);
-  return { name: row.display_name ?? row.provider_slug ?? "The paying provider", date: row.flight_end_date, days };
-}
 
 function shortDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
@@ -169,6 +154,25 @@ export function sendableQuestion(question: FounderQuestion | null | undefined): 
   return isFounderAnswerable(question.question).ok ? question : null;
 }
 
+const plural = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
+
+export function renewalText(renewal: PaidRenewal | null | undefined): string | null {
+  if (!renewal) return null;
+  if (renewal.renewsOn && renewal.daysUntilRenewal !== null) {
+    if (renewal.daysUntilRenewal > RENEWAL_WINDOW_DAYS) return null;
+    const amount = renewal.amount ? ` ($${renewal.amount})` : "";
+    const flight = renewal.flightEndsOn && renewal.flightEndsOn !== renewal.renewsOn
+      ? ` Her ad flight ends ${shortDate(renewal.flightEndsOn)}.`
+      : "";
+    return `_${renewal.name} renews ${shortDate(renewal.renewsOn)}${amount}, in ${plural(renewal.daysUntilRenewal)}.${flight}_`;
+  }
+  // Stripe could not be read: say what the date is, not that it is a renewal.
+  if (renewal.flightEndsOn && renewal.daysUntilFlightEnd !== null && renewal.daysUntilFlightEnd <= RENEWAL_WINDOW_DAYS) {
+    return `_${renewal.name}'s ad flight ends ${shortDate(renewal.flightEndsOn)}, in ${plural(renewal.daysUntilFlightEnd)}. Billing date unread._`;
+  }
+  return null;
+}
+
 /**
  * Pure: takes already-fetched data and returns the Slack text.
  *
@@ -244,10 +248,12 @@ export function buildWarRoomBriefText(input: {
   // ran at all, and a missing message looks exactly like a broken one. So a
   // quiet day says so in one line, and the numbers stay below it.
   // The renewal is checked every day, scan or not. It is the one date where
-  // being a day late is the whole cost.
-  if (input.renewal && input.renewal.days <= RENEWAL_WINDOW_DAYS) {
+  // being a day late is the whole cost. The renewal is Stripe's next charge;
+  // the ad flight's end is a different date and is named as one.
+  const renewalLine = renewalText(input.renewal);
+  if (renewalLine) {
     if (lines.length) lines.push("");
-    lines.push(`_Paid flight for ${input.renewal.name} ends ${shortDate(input.renewal.date)}, in ${input.renewal.days} day${input.renewal.days === 1 ? "" : "s"}._`);
+    lines.push(renewalLine);
   }
 
   if (!lines.length) lines.push("Nothing needs you today.");

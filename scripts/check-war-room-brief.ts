@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildWarRoomBriefText, easternDay, isSweepDay, sendableQuestion } from "../lib/war-room/brief-delivery.server";
+import { buildWarRoomBriefText, easternDay, isSweepDay, renewalText, sendableQuestion } from "../lib/war-room/brief-delivery.server";
 import { fallbackMove, parseMoveReply, pickMove, type MoveCandidate } from "../lib/war-room/brief-move.server";
 import { scrubStaleRenewalCounts } from "../lib/war-room/discovery.server";
 
@@ -108,12 +108,18 @@ assert.equal(scrubStaleRenewalCounts("1 of 12 paid providers with 27-day renewal
 assert.equal(scrubStaleRenewalCounts("one subscriber renewing in 26 days"), "one subscriber renewing on the date in dateFacts");
 assert.equal(scrubStaleRenewalCounts("count 30-day inquiries with a failed send"), "count 30-day inquiries with a failed send");
 
-// 11. The renewal shows above the divider every day it is within 30 days.
-const renewal = { name: "Hoop Cares", date: "2026-10-20", days: 25 };
+// 11. The renewal is Stripe's next charge, not the ad flight's end, and shows
+// above the divider every day it is within 30 days.
+const renewal = { name: "Hoop Cares", renewsOn: "2026-10-15", daysUntilRenewal: 20, amount: 75, flightEndsOn: "2026-10-20", daysUntilFlightEnd: 25, source: "stripe" as const };
 const withRenewal = buildWarRoomBriefText({ ...base, renewal });
-assert.ok(withRenewal.startsWith("_Paid flight for Hoop Cares ends Oct 20, in 25 days._"));
+assert.ok(withRenewal.startsWith("_Hoop Cares renews Oct 15 ($75), in 20 days. Her ad flight ends Oct 20._"));
 assert.ok(withRenewal.indexOf("Hoop Cares") < withRenewal.indexOf(DIVIDER));
-assert.ok(!buildWarRoomBriefText({ ...base, renewal: { ...renewal, days: 45 } }).includes("Paid flight for"));
+assert.equal(renewalText({ ...renewal, daysUntilRenewal: 45 }), null);
+// Stripe unreadable: name the flight end as what it is, never as a renewal.
+assert.equal(
+  renewalText({ ...renewal, renewsOn: null, daysUntilRenewal: null, source: "flight_end" }),
+  "_Hoop Cares's ad flight ends Oct 20, in 25 days. Billing date unread._",
+);
 
 // 12. A brief-only day says so instead of pricing a scan that did not run.
 const briefOnlyText = buildWarRoomBriefText({ ...base, costUsd: null, briefOnly: true });

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import StudentCommsTimeline from "@/components/admin/StudentCommsTimeline";
 import type { StudentMetadata } from "@/lib/types";
 
 // Helper to check if a string looks like a storage path vs external URL
@@ -1069,6 +1070,14 @@ export default function AdminStudentDetailPage() {
             </div>
           </Section>
         )}
+
+        {/* Email History */}
+        <Section title="Email History">
+          <StudentCommsTimeline
+            studentId={studentId}
+            viewAllEmailsHref={student.email ? `/admin/emails?recipient=${encodeURIComponent(student.email)}` : undefined}
+          />
+        </Section>
 
         {/* Danger Zone */}
         <div className="rounded-xl border border-red-200 bg-red-50 p-6">

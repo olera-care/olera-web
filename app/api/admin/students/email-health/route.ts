@@ -25,6 +25,9 @@ const PAGE_SIZE_MAX = 100;
 /**
  * Student-relevant email types. These are the emails that matter for the
  * MedJobs student lifecycle — if they don't land, the student is stuck.
+ *
+ * IMPORTANT: These must match the actual emailType values used when sending
+ * emails with recipientType: "student". Keep in sync with comms-timeline route.
  */
 const STUDENT_EMAIL_TYPES = [
   // Account/Auth
@@ -34,7 +37,7 @@ const STUDENT_EMAIL_TYPES = [
   "student_returning",
   "student_magic_link",
   // Profile lifecycle
-  "student_profile_incomplete_nudge",
+  "profile_incomplete_nudge", // cron sends this (not "student_profile_incomplete_nudge")
   "medjobs_review_nudge",
   "medjobs_profile_approved",
   "medjobs_profile_rejected",
@@ -48,9 +51,16 @@ const STUDENT_EMAIL_TYPES = [
   "interview_reminder",
   "interview_reschedule_sent",
   "interview_cancelled_admin",
-  // Opportunities
-  "student_invitation_received",
-  "student_job_ready",
+  // Applications & Invitations
+  "invitation_received", // provider invites student (not "student_invitation_received")
+  "application_sent", // confirmation when student applies
+  "application_response", // provider responds to application
+  // Placements
+  "placement_offered",
+  "placement_accepted_confirmation",
+  "placement_cancelled",
+  // Job ready
+  "medjobs_job_ready", // student accepts terms (not "student_job_ready")
 ] as const;
 
 interface LogRow {

@@ -541,6 +541,38 @@ export function medjobsReviewNudgeEmail(opts: {
   `, `Your MedJobs profile is 100% complete - request a review to go live`);
 }
 
+/** Email sent to student when they request a profile review (confirmation) */
+export function medjobsReviewRequestedEmail(opts: {
+  studentName: string;
+  portalUrl: string;
+}): string {
+  const safeName = escapeHtml(firstName(opts.studentName, "there"));
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">We&apos;ve received your profile for review</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeName}, your MedJobs profile is now in our review queue. We typically review profiles within 1-2 business days.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 8px;">What happens next?</p>
+        <ol style="font-size:13px;color:#6b7280;margin:0;padding-left:16px;line-height:1.8;">
+          <li>Our team reviews your profile for completeness and quality</li>
+          <li>Once approved, your profile will be visible to healthcare providers in your area</li>
+          <li>We&apos;ll email you as soon as the review is complete</li>
+        </ol>
+      </td></tr>
+    </table>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      In the meantime, make sure your availability is up to date &mdash; providers prioritize students who can start soon.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("View Your Profile", opts.portalUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `Your MedJobs profile is under review`);
+}
+
 export function applicationReceivedEmail({
   providerName,
   studentName,

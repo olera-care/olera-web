@@ -245,15 +245,11 @@ export default function EditOverviewModal({
     photoUrl !== (profile.image_url || "");
 
   // For SAVING: only name is strictly required. Students can save partial progress.
-  // The .edu email requirement is enforced at "Request Review" (go-live gate), not here.
-  // This lets returning students save phone/university/etc. even if they haven't
-  // added their .edu email yet — we can then contact them to complete verification.
   const canSave = displayName.trim().length > 0;
 
   // For display warnings (not blocking save):
   const phoneDigits = phone.replace(/\D/g, "");
   const isValidPhone = phoneDigits.length >= 10;
-  const isEduEmail = email.toLowerCase().endsWith(".edu");
 
   async function handlePhotoUpload(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -541,18 +537,9 @@ export default function EditOverviewModal({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@school.edu"
-                className={`w-full bg-white border focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all ${
-                  email && !isEduEmail
-                    ? "border-red-300 focus:border-red-400"
-                    : "border-gray-200 focus:border-primary-600"
-                }`}
+                placeholder="you@email.com"
+                className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all"
               />
-              {email && !isEduEmail && (
-                <p className="mt-2 text-xs text-red-600">
-                  A .edu email is required for student verification
-                </p>
-              )}
             </div>
 
             {/* Phone */}

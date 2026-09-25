@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendSlackAlert, slackMedJobsReviewRequest } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { medjobsReviewRequestedEmail } from "@/lib/medjobs-email-templates";
+import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
 
@@ -78,18 +81,6 @@ export async function POST(_request: NextRequest) {
       // Otherwise: was rejected, allow re-request (fall through)
     }
 
-    // Require .edu email for student verification (go-live gate)
-    // Students can save partial progress with any email, but must have .edu to request review
-    const email = student.email?.trim().toLowerCase() || "";
-    if (!email.endsWith(".edu")) {
-      return NextResponse.json(
-        {
-          error: "A .edu email is required for student verification. Please update your email in Profile Overview.",
-        },
-        { status: 400 }
-      );
-    }
-
     // Calculate completeness to ensure profile is 100% complete
     const hasPhoto = !!student.image_url;
     const hasBasicInfo = {
@@ -132,11 +123,13 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit review request" }, { status: 500 });
     }
 
-    // Send Slack notification
+    // Send Slack notification with approve/reject buttons
     try {
       const alert = slackMedJobsReviewRequest({
         studentName: student.display_name || "Unknown",
         studentId: student.id,
+        studentEmail: student.email || "",
+        studentSlug: student.slug,
         university: meta.university || "Not specified",
         location: [student.city, student.state].filter(Boolean).join(", ") || "Not specified",
       });
@@ -144,6 +137,27 @@ export async function POST(_request: NextRequest) {
     } catch (err) {
       // Non-blocking - log but don't fail the request
       console.error("[medjobs/request-review] slack error:", err);
+    }
+
+    // Send confirmation email to student
+    if (student.email) {
+      try {
+        const portalUrl = generateStudentPortalUrl(student.email, "/portal/medjobs");
+        await sendEmail({
+          to: student.email,
+          subject: "We've received your profile for review",
+          html: medjobsReviewRequestedEmail({
+            studentName: student.display_name || "there",
+            portalUrl,
+          }),
+          emailType: "medjobs_review_requested",
+          recipientType: "student",
+          recipientProfileId: student.id,
+        });
+      } catch (emailErr) {
+        // Non-blocking - log but don't fail the request
+        console.error("[medjobs/request-review] email error:", emailErr);
+      }
     }
 
     return NextResponse.json({

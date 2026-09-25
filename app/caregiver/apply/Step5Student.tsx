@@ -98,8 +98,7 @@ export default function Step5Student({
     if (student.program === "Other" && !student.programOther.trim()) e.programOther = "Please enter your program";
     if (!student.gradYear) e.gradYear = "Please select graduation year";
     if (!student.verifyMethod) e.verifyMethod = "Please select a verification method";
-    if (student.verifyMethod === "edu" && !student.eduEmail.trim()) e.eduEmail = "Please enter your .edu email";
-    if (student.verifyMethod === "edu" && student.eduEmail && !student.eduEmail.endsWith(".edu")) e.eduEmail = "Must be a .edu email address";
+    if (student.verifyMethod === "edu" && !student.eduEmail.trim()) e.eduEmail = "Please enter your email";
     if (student.verifyMethod === "id" && !student.studentIdFile) e.studentIdFile = "Please upload your student ID";
     if (student.verifyMethod === "document" && !student.documentFile) e.documentFile = "Please upload your enrollment document";
     setErrors(e);
@@ -271,7 +270,7 @@ export default function Step5Student({
 
         {/* Option cards */}
         <div className="space-y-3">
-          {/* Option 1: .edu email */}
+          {/* Option 1: Email verification */}
           <div
             className={`rounded-xl border-2 p-4 cursor-pointer transition-all ${
               student.verifyMethod === "edu"
@@ -288,7 +287,7 @@ export default function Step5Student({
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-gray-900">Use your .edu email</p>
+                  <p className="text-sm font-semibold text-gray-900">Use your email</p>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary-100 text-primary-700 uppercase">Fastest</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">Takes 1-2 minutes</p>
@@ -296,13 +295,13 @@ export default function Step5Student({
             </div>
             {student.verifyMethod === "edu" && (
               <div className="mt-4 ml-8">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">.edu email address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
                 <div className="flex gap-2">
                   <input
                     type="email"
                     value={student.eduEmail}
                     onChange={(e) => setStudent((s) => ({ ...s, eduEmail: e.target.value }))}
-                    placeholder="you@university.edu"
+                    placeholder="you@email.com"
                     className={`flex-1 px-4 py-3 rounded-xl border ${
                       errors.eduEmail ? "border-error-300 ring-1 ring-error-300" : "border-gray-300"
                     } text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors`}

@@ -1150,17 +1150,30 @@ export function slackMedJobsApplication(opts: {
 export function slackMedJobsReviewRequest(opts: {
   studentName: string;
   studentId: string;
+  studentEmail: string;
+  studentSlug?: string | null;
   university: string;
   location: string;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const adminUrl = `${siteUrl}/admin/caregivers/${opts.studentId}`;
+  const profileUrl = opts.studentSlug
+    ? `${siteUrl}/medjobs/candidates/${opts.studentSlug}`
+    : adminUrl;
+
+  // Action value encodes student data as JSON for approve/reject handlers
+  const actionValue = JSON.stringify({
+    studentId: opts.studentId,
+    email: opts.studentEmail,
+    name: opts.studentName,
+  });
+
   return {
     text: `MedJobs Review Request: ${opts.studentName} (${opts.university})`,
     blocks: [
       {
         type: "header",
-        text: { type: "plain_text", text: "🔔 Profile Review Requested", emoji: true },
+        text: { type: "plain_text", text: "📝 Student Review Requested", emoji: true },
       },
       {
         type: "section",
@@ -1171,11 +1184,39 @@ export function slackMedJobsReviewRequest(opts: {
         ],
       },
       {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `<${adminUrl}|View in Admin Panel →>`,
-        },
+        type: "actions",
+        block_id: `student_review_${opts.studentId}`,
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "✓ Approve", emoji: true },
+            style: "primary",
+            action_id: "student_review_approve",
+            value: actionValue,
+          },
+          {
+            type: "button",
+            text: { type: "plain_text", text: "✗ Reject", emoji: true },
+            style: "danger",
+            action_id: "student_review_reject",
+            value: actionValue,
+          },
+          {
+            type: "button",
+            text: { type: "plain_text", text: "View Profile", emoji: true },
+            action_id: "student_review_view",
+            url: profileUrl,
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${adminUrl}|Open in Admin Panel>`,
+          },
+        ],
       },
     ],
   };

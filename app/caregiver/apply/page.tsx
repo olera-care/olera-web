@@ -364,7 +364,7 @@ function Step1CreateAccount({
               type="email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              placeholder="you@university.edu"
+              placeholder="you@email.com"
               className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             />
             {error && <p className="text-sm text-error-500">{error}</p>}

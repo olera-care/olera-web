@@ -153,8 +153,6 @@ export async function GET(request: NextRequest) {
     const incompleteOnly = searchParams.get("incomplete_only") === "true";
     const approvedOnly = searchParams.get("approved_only") === "true";
     const rejectedOnly = searchParams.get("rejected_only") === "true";
-    const eduOnly = searchParams.get("edu_only") === "true";
-    const nonEduOnly = searchParams.get("non_edu_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
     const fromDate = searchParams.get("from_date")?.trim() || "";
     const toDate = searchParams.get("to_date")?.trim() || "";
@@ -166,9 +164,8 @@ export async function GET(request: NextRequest) {
     // - Filtering by paused/not_live/pendingReview (requires checking metadata fields)
     // - Filtering by approved/rejected (requires checking metadata fields)
     // - Searching (to include university from JSONB metadata)
-    // - Filtering by .edu email domain (requires checking email suffix)
     // - Filtering by has_interviews (requires join with interviews table)
-    const needsClientSideFilter = completeOnly || incompleteOnly || pausedOnly || notLiveOnly || pendingReviewOnly || approvedOnly || rejectedOnly || hasInterviewsOnly || eduOnly || nonEduOnly || !!search;
+    const needsClientSideFilter = completeOnly || incompleteOnly || pausedOnly || notLiveOnly || pendingReviewOnly || approvedOnly || rejectedOnly || hasInterviewsOnly || !!search;
 
     // Fetch pending interview counts per student (proposed or confirmed)
     const { data: interviewCounts } = await db
@@ -311,14 +308,6 @@ export async function GET(request: NextRequest) {
         !s.review_requested_at &&
         s.profile_completeness < COMPLETENESS_THRESHOLD
       );
-    }
-
-    // Filter by email domain (.edu vs non-.edu)
-    // Non-.edu includes null/empty emails (unverified students)
-    if (eduOnly) {
-      students = students.filter((s) => s.email?.toLowerCase().endsWith(".edu"));
-    } else if (nonEduOnly) {
-      students = students.filter((s) => !s.email?.toLowerCase().endsWith(".edu"));
     }
 
     // Filter by has pending interviews

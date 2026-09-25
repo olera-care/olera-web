@@ -2,7 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendSlackAlert, sendSlackDirectMessage } from "@/lib/slack";
 import { getSiteUrl } from "@/lib/site-url";
 import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
-import { pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
+import { isFounderAnswerable, pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
+import { phraseMove, pickMove, type BriefMove, type MoveCandidate } from "@/lib/war-room/brief-move.server";
 import { closeExchange } from "@/lib/war-room/conversation.server";
 import { loadBlindSpots, loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
@@ -56,6 +57,27 @@ function readingLine(reading: WarRoomProbeReading, scanDate: string) {
 type ProposalRow = { title: string; why_now: string; decision_required: string; created_at?: string };
 type ApprovedRow = { title: string; approved_at: string | null; assigned_owner: string | null };
 
+/** Everything the move's wording needs, so it can name the person the row only describes. */
+const MOVE_COLUMNS = "title, why_now, decision_required, created_at, approved_at, assigned_owner, action_kind, proposed_solution, finding, execution_plan, evidence";
+type MoveRow = ProposalRow & ApprovedRow & Omit<MoveCandidate, "kind" | "since">;
+
+function toCandidate(row: MoveRow, kind: MoveCandidate["kind"]): MoveCandidate {
+  return {
+    kind,
+    title: row.title,
+    why_now: row.why_now,
+    decision_required: row.decision_required,
+    assigned_owner: row.assigned_owner,
+    action_kind: row.action_kind,
+    proposed_solution: row.proposed_solution,
+    finding: row.finding,
+    execution_plan: row.execution_plan,
+    evidence: row.evidence,
+    since: kind === "approved_not_done" ? row.approved_at : row.created_at ?? null,
+    written: row.created_at ?? null,
+  };
+}
+
 /**
  * Approved human work older than this, still not marked carried out, gets a
  * line in every brief until it is.
@@ -70,11 +92,29 @@ const APPROVED_NUDGE_DAYS = 3;
 type InvestigationRow = { status: string };
 
 /**
+ * The question, if it is one only the founder can answer.
+ *
+ * `pickQuestionForFounder` already filters most candidates, but the stalled-
+ * condition question and anything added later reach the brief by other routes.
+ * This is the last check before anything is sent, so a question that fails it
+ * is never asked, never recorded, and never costs him the one interruption.
+ */
+export function sendableQuestion(question: FounderQuestion | null | undefined): FounderQuestion | null {
+  if (!question) return null;
+  return isFounderAnswerable(question.question).ok ? question : null;
+}
+
+/**
  * Pure: takes already-fetched data and returns the Slack text.
  *
  * Split out from the delivery path so the exact message can be rendered offline
  * against a real run before it is ever sent to a human. A brief nobody has read
  * in its final form is a brief nobody has reviewed.
+ *
+ * Shape, top to bottom: one move, at most one question, then a divider and
+ * everything Cortex measured. The brief used to open on the measurements and
+ * never say what to do; sixty scans in, the founder had stopped reading it. The
+ * data is all still here, below the line, for when he wants it.
  */
 export function buildWarRoomBriefText(input: {
   run: Pick<WarRoomDiscoveryRun, "status" | "created_at" | "error_message" | "source_summary">;
@@ -85,18 +125,19 @@ export function buildWarRoomBriefText(input: {
   open: number;
   watching: number;
   costUsd: number | null;
+  move?: (BriefMove & { title: string; kind?: MoveCandidate["kind"] }) | null;
   question?: FounderQuestion | null;
   unanswerable?: string[];
   blindSpots?: string[];
 }): string {
   const { run, siteUrl } = input;
   const date = shortDate(run.created_at);
-  const href = link(siteUrl, "/admin/war-room", "War Room");
+  const href = link(siteUrl, "/admin/war-room", "Cortex page");
 
   if (run.status === "failed") {
     const failure = (run.source_summary?.failure ?? {}) as { stage?: string; detail?: string };
     return [
-      `:rotating_light: *War Room scan failed, ${date}*`,
+      `:rotating_light: *Cortex scan failed, ${date}*`,
       failure.stage ? `Stage: ${failure.stage}` : null,
       failure.detail || run.error_message || "No failure detail recorded.",
       "",
@@ -104,58 +145,72 @@ export function buildWarRoomBriefText(input: {
     ].filter(Boolean).join("\n");
   }
 
-  // Lead with what was measured, not with what did not clear the gate. Zero
-  // proposals is the designed outcome on most days; a brief that opens on it
-  // reads as failure every morning.
-  const lines: string[] = [`*War Room, ${date}* ${href}`];
+  const lines: string[] = [];
+  const question = sendableQuestion(input.question);
 
-  // Only what moved.
-  //
-  // This printed all six standing metrics every morning whether or not any of
-  // them had changed. The founder's words: "no vanilla reports, only
-  // intelligent suggestions". Six unchanged numbers is not a report of the
-  // company, it is proof the query ran.
-  //
-  // The numbers are all still computed and still reach the reasoning pack.
-  // What changed is that a number earns a line by having moved. On most days
-  // this section is empty, and an empty section prints nothing at all rather
-  // than announcing its own emptiness.
+  if (input.move) {
+    lines.push(`*${input.move.line}*`);
+    if (input.move.draft) {
+      lines.push("", "_Draft:_", ...input.move.draft.split("\n").map((line) => `> ${line}`));
+    }
+    // Approved work stays the move until it is marked carried out, because an
+    // approval nobody closes is never measured.
+    if (input.move.kind === "approved_not_done") {
+      lines.push("", `_Already done? Mark it carried out on the ${href}._`);
+    }
+  }
+
+  // One question, never a list, and only one he alone can answer. A brief
+  // ending in six questions gets none of them answered. Replying in the DM is
+  // what makes the answer evidence on the next scan.
+  if (question) {
+    if (lines.length) lines.push("");
+    lines.push(`*Only you can answer this.* ${question.title}: ${question.question}`);
+    lines.push("_Just reply here. Your answer becomes evidence on tomorrow's scan._");
+  }
+
+  // Silence is not an option here: the brief is also how he learns the scan
+  // ran at all, and a missing message looks exactly like a broken one. So a
+  // quiet day says so in one line, and the numbers stay below it.
+  if (!lines.length) lines.push("Nothing needs you today.");
+
+  lines.push("", "───────────", `_Below the line: what I measured, ${date}. ${href}_`);
+
+  // Only what moved. A number earns a line by having changed; six unchanged
+  // numbers is proof the query ran, not a report of the company.
   const movers = input.readings.filter((reading) => reading.movement !== "steady");
   if (movers.length) {
     lines.push("", "*What moved*");
     lines.push(...movers.slice(0, 3).map((reading) => readingLine(reading, date)));
   }
 
-  if (input.proposals.length) {
-    lines.push("", "*Decision ready*");
-    for (const proposal of input.proposals) {
-      // A proposal carried over from an earlier scan says so. Otherwise a
-      // week-old decision reads as this morning's news.
+  const moveTitle = input.move?.title;
+  const otherProposals = input.proposals.filter((proposal) => proposal.title !== moveTitle);
+  if (otherProposals.length) {
+    lines.push("", "*Also waiting on you*");
+    for (const proposal of otherProposals) {
       // Keyed on age, not run id: a re-drafted proposal takes the new run's id.
       const waiting = proposal.created_at && proposal.created_at.slice(0, 10) < run.created_at.slice(0, 10)
-        ? ` _(waiting since ${shortDate(proposal.created_at)})_`
+        ? ` _(since ${shortDate(proposal.created_at)})_`
         : "";
-      lines.push(`*${proposal.title}*${waiting}`, proposal.why_now || proposal.decision_required);
+      lines.push(`• ${proposal.title}${waiting}`);
     }
-  } else {
-    lines.push("", `No founder decision is ready. ${input.open} case${input.open === 1 ? "" : "s"} open, ${input.watching} watching.`);
+  } else if (!input.proposals.length) {
+    lines.push("", `${input.open} case${input.open === 1 ? "" : "s"} open, ${input.watching} watching.`);
   }
 
   // Approved, then silence. Named until it is marked carried out, because an
   // approval nobody closes is never measured and so teaches the system nothing.
-  if (input.approvedOpen?.length) {
+  const otherApproved = (input.approvedOpen ?? []).filter((row) => row.title !== moveTitle);
+  if (otherApproved.length) {
     lines.push("", "*Approved, not yet marked done*");
-    for (const row of input.approvedOpen.slice(0, 3)) {
+    for (const row of otherApproved.slice(0, 3)) {
       const owner = row.assigned_owner ? `, ${row.assigned_owner}` : "";
       lines.push(`• ${row.title} _(approved ${row.approved_at ? shortDate(row.approved_at) : "earlier"}${owner})_`);
     }
-    lines.push(`_Done? Mark it carried out in ${href} so its outcome gets measured._`);
+    lines.push(`_Done? Mark it carried out on the ${href} so its outcome gets measured._`);
   }
 
-  // What Cortex needed and did not have. Both halves existed before and were
-  // thrown away: the scan's "no probe fits" choice was skipped by this brief,
-  // and a question Cortex could not answer in Slack left no trace. A lookup
-  // nobody knows is missing never gets built.
   // Where my copy is behind the real thing. Shown every morning it is true,
   // because a stale reader otherwise looks exactly like a quiet company.
   if (input.blindSpots?.length) {
@@ -164,25 +219,13 @@ export function buildWarRoomBriefText(input: {
     if (input.blindSpots.length > 5) lines.push(`_…and ${input.blindSpots.length - 5} more on the Cortex page._`);
   }
 
+  // A lookup nobody knows is missing never gets built.
   if (input.unanswerable?.length) {
     lines.push("", "*What I could not look up*");
     for (const item of input.unanswerable.slice(0, 4)) lines.push(`• ${item}`);
-    lines.push("_Each is a lookup worth building._");
   }
 
-  // One question, never a list. This system's whole design is that it spends
-  // its compute removing work before the founder sees it, and a brief ending in
-  // six questions is a brief that gets none of them answered. Replying in the
-  // DM is what makes the answer evidence on the next scan.
-  if (input.question) {
-    lines.push("", "*One thing only you can answer*");
-    lines.push(input.question.question);
-    lines.push("_Just reply here. Your answer becomes evidence on tomorrow's scan._");
-  }
-
-  // "Scan 2.39." was read as a scan number, not a price, by the only person who
-  // receives this message. A bare decimal after a noun reads as a version or a
-  // sequence; it made a brand-new proposal look like the 39th time of asking.
+  // "Scan 2.39." was read as a scan number, not a price. Say it's dollars.
   lines.push("", input.costUsd != null ? `_This scan cost $${input.costUsd.toFixed(2)}._` : "_Scan cost unknown._");
   return lines.join("\n");
 }
@@ -238,6 +281,7 @@ export async function deliverWarRoomBrief(
     let open = 0;
     let watching = 0;
     let question: FounderQuestion | null = null;
+    let move: (BriefMove & { title: string; kind: MoveCandidate["kind"] }) | null = null;
     let unanswerable: string[] = [];
     let blindSpots: string[] = [];
     if (run.status !== "failed") {
@@ -246,7 +290,7 @@ export async function deliverWarRoomBrief(
       blindSpots = await loadBlindSpots(db).catch(() => []);
       // Never ask on a failed scan. There is no fresh read behind the question,
       // and the only useful message on a failure is that it failed.
-      question = await pickQuestionForFounder(db).catch(() => null);
+      question = sendableQuestion(await pickQuestionForFounder(db).catch(() => null));
       const nudgeCutoff = new Date(Date.now() - APPROVED_NUDGE_DAYS * 86_400_000).toISOString();
       const [readingResult, proposalResult, approvedResult, investigationResult] = await Promise.all([
         loadWarRoomBriefing(db),
@@ -254,12 +298,12 @@ export async function deliverWarRoomBrief(
         // outlive the scan that drafted them, and one that is waiting but
         // absent from the brief is waiting where nobody looks.
         db.from("war_room_proposals")
-          .select("title, why_now, decision_required, created_at")
+          .select(MOVE_COLUMNS)
           .eq("status", "proposed")
           .order("created_at", { ascending: false })
           .limit(3),
         db.from("war_room_proposals")
-          .select("title, approved_at, assigned_owner")
+          .select(MOVE_COLUMNS)
           .eq("status", "approved")
           .neq("action_kind", "code")
           .lt("approved_at", nudgeCutoff)
@@ -268,8 +312,15 @@ export async function deliverWarRoomBrief(
         db.from("war_room_investigations").select("status"),
       ]);
       readings = readingResult;
-      proposals = (proposalResult.data ?? []) as ProposalRow[];
-      approvedOpen = (approvedResult.data ?? []) as ApprovedRow[];
+      const waitingRows = (proposalResult.data ?? []) as MoveRow[];
+      const approvedRows = (approvedResult.data ?? []) as MoveRow[];
+      proposals = waitingRows;
+      approvedOpen = approvedRows;
+      const chosen = pickMove(
+        approvedRows.map((row) => toCandidate(row, "approved_not_done")),
+        waitingRows.map((row) => toCandidate(row, "decision_waiting")),
+      );
+      if (chosen) move = { ...(await phraseMove(chosen)), title: chosen.title, kind: chosen.kind };
       const investigations = (investigationResult.data ?? []) as InvestigationRow[];
       open = investigations.filter((row) => row.status === "investigating").length;
       watching = investigations.filter((row) => row.status === "watchlist").length;
@@ -284,6 +335,7 @@ export async function deliverWarRoomBrief(
       open,
       watching,
       costUsd: warRoomScanCost(run)?.usd ?? null,
+      move,
       question,
       unanswerable,
       blindSpots,

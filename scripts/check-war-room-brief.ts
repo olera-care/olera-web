@@ -72,6 +72,16 @@ assert.equal(pickMove([], []), null);
 
 // 7. The fallback is one plain sentence from the row, and the model's reply is bounded.
 assert.equal(fallbackMove(candidate({ title: "Approve the report" })).line, "Decide: Approve the report. Because.");
+// Real titles end in "?" and real why_now text carries em dashes.
+assert.equal(
+  fallbackMove(candidate({ title: "Are prompts opened at all?", why_now: "Calls are scarce — so check first. More." })).line,
+  "Decide: Are prompts opened at all? Calls are scarce, so check first.",
+);
+assert.equal(
+  fallbackMove(candidate({ kind: "approved_not_done", title: "Ask her why she paid", assigned_owner: "TJ (Ces helps)" })).line,
+  "Do: Ask her why she paid. Owner: TJ (Ces helps). Because.",
+);
+assert.equal(parseMoveReply('{"line":"Call *Liz* Hoop this week.","draft":null}')?.line, "Call Liz Hoop this week.");
 assert.deepEqual(parseMoveReply('{"line":"Approve the funnel report today.","draft":null}'), { line: "Approve the funnel report today.", draft: null });
 assert.equal(parseMoveReply('{"line":"Call Liz this week — renewal is close.","draft":null}')?.line, "Call Liz this week, renewal is close.");
 assert.equal(parseMoveReply("not json"), null);

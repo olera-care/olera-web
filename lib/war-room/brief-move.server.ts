@@ -70,8 +70,19 @@ function firstSentence(text: string) {
 export function fallbackMove(move: MoveCandidate): BriefMove {
   const reason = firstSentence(move.why_now || move.decision_required || "");
   const verb = move.kind === "decision_waiting" ? "Decide" : "Do";
-  const owner = move.kind === "approved_not_done" && move.assigned_owner ? ` (${move.assigned_owner})` : "";
-  return { line: `${verb}: ${move.title}${owner}. ${reason}`.trim(), draft: null };
+  // Titles are sometimes questions ("...are they being opened at all?"), and
+  // "?." reads as a typo in the one line he is meant to act on.
+  const title = /[.!?]$/.test(move.title.trim()) ? move.title.trim() : `${move.title.trim()}.`;
+  const owner = move.kind === "approved_not_done" && move.assigned_owner ? ` Owner: ${move.assigned_owner}.` : "";
+  return { line: cleanText(`${verb}: ${title}${owner} ${reason}`.trim()), draft: null };
+}
+
+/**
+ * Voice rules the model slips on, enforced in code: no em dashes, and no
+ * asterisks, which would close the Slack bold the line is wrapped in.
+ */
+export function cleanText(text: string) {
+  return text.replace(/\s*[—–]\s*/g, ", ").replace(/\*/g, "");
 }
 
 const MOVE_MODEL = process.env.WAR_ROOM_BRIEF_MODEL || "claude-sonnet-5";
@@ -117,11 +128,10 @@ export function parseMoveReply(raw: string): BriefMove | null {
   try {
     const parsed = JSON.parse(json) as { line?: unknown; draft?: unknown };
     // The voice rule bans em dashes and the model slips anyway, so enforce it here.
-    const clean = (text: string) => text.replace(/\s*[—–]\s*/g, ", ");
-    const line = typeof parsed.line === "string" ? clean(parsed.line.replace(/\s+/g, " ").trim()) : "";
+    const line = typeof parsed.line === "string" ? cleanText(parsed.line.replace(/\s+/g, " ").trim()) : "";
     if (line.length < 12 || line.length > 260) return null;
     const draft = typeof parsed.draft === "string" && parsed.draft.trim().length > 8
-      ? clean(parsed.draft.trim()).slice(0, 600)
+      ? cleanText(parsed.draft.trim()).slice(0, 600)
       : null;
     return { line, draft };
   } catch {
@@ -139,6 +149,12 @@ export async function phraseMove(move: MoveCandidate): Promise<BriefMove> {
       max_tokens: 2_000,
       system: SYSTEM,
       messages: [{ role: "user", content: recordFor(move) }],
+    }, {
+      // This runs inside the delivery step. The SDK default is ten minutes with
+      // two retries, which outlives the function, and a killed step sends no
+      // brief at all. A plain move beats a late one.
+      timeout: 45_000,
+      maxRetries: 0,
     });
     const text = reply.content.find((block): block is Anthropic.TextBlock => block.type === "text")?.text ?? "";
     return parseMoveReply(text) ?? fallbackMove(move);

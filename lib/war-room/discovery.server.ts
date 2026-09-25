@@ -104,9 +104,27 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
  * Switching remains one environment variable, and the saving is real -- about
  * sixty-seven cents a scan. It is a quality trade, and it should be made
  * deliberately rather than inherited from a default.
+ *
+ * Made deliberately on 2026-09-25, by the founder, after a side-by-side on the
+ * same day's pack (scripts/cortex-dev-sweep.ts, read-only):
+ *
+ *   Depth. The thinness above no longer reproduces. Sonnet wrote 6,076-6,760
+ *   output tokens across the ten reviews in nine runs, about 90% of Opus's
+ *   7,126. Which lenses survive retention matched except customer and
+ *   operations, both medium impact.
+ *
+ *   Dates. Sonnet said the paying provider renews in "~20 days" in two of
+ *   three runs; the flight ends in 25. The pack carried stale counts from
+ *   notes and memory titles and the model subtracted from those. With the
+ *   date and count stated as `dateFacts` and stale renewal counts scrubbed
+ *   (scrubStaleRenewalCounts), three of three runs said 25 days.
+ *
+ *   Cost. $0.26 a sweep against $0.68.
+ *
+ * WAR_ROOM_MODEL_SWEEP=claude-opus-5 puts it back.
  */
 const PASS_MODELS: Record<string, string | undefined> = {
-  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP,
+  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP || "claude-sonnet-5",
   forming_candidates: process.env.WAR_ROOM_MODEL_DOSSIER || "claude-haiku-4-5-20251001",
   challenging_candidates: process.env.WAR_ROOM_MODEL_TRIAGE || "claude-haiku-4-5-20251001",
   drafting_decision: process.env.WAR_ROOM_MODEL_DRAFT,
@@ -790,6 +808,17 @@ function buildOperatingPack(
   const evidenceCatalog = [...internalEvidence, ...capabilityEvidence, ...externalEvidence];
   const operatingPack = {
     generatedAt: factPack.generatedAt,
+    // Dates and day counts, computed here from live rows. On 2026-09-25 the
+    // sweep said the paying provider renews in "~20 days" in two of three runs
+    // while the flight ended in 25: the pack also carried a note saying "Oct 15
+    // renewal (29 days)" and memory titles saying 26 and 27 days, each counted
+    // on an earlier day. The model subtracted from whichever it read. Stating
+    // the date and the count as facts leaves it nothing to compute.
+    dateFacts: {
+      today: factPack.generatedAt.slice(0, 10),
+      ...(factPack.dates ?? {}),
+      rule: "These are computed from live data today and are the only dates and day counts to use. The paying provider's flight end is the renewal date Olera tracks. Every other day count in this pack (notes, the scratchpad, memory titles, earlier findings) was counted on an earlier day and is stale. Never do date arithmetic; if a date you need is not here, name the date without a count.",
+    },
     companyModel,
     // Stated mechanics and the runnable probe menu. Without the mechanics the
     // agent infers a business model from raw counts and gets it wrong; without
@@ -1100,9 +1129,31 @@ function councilContextFor(operatingPack: ReturnType<typeof buildOperatingPack>)
  * reads -- the company model, the mechanics, the probe menu, the contract, the
  * facts -- is untouched.
  */
+/**
+ * Remove renewal day counts that were written on an earlier day.
+ *
+ * `dateFacts` says the count; a stale one beside it is what the model copies.
+ * On 2026-09-25, with the correct count stated as a fact, one Sonnet run still
+ * titled a condition "27-day renewal risk", lifted verbatim from a memory title
+ * written two days before. Only counts tied to a renewal or flight end are
+ * touched; a "30-day window" is a definition, not a countdown.
+ */
+export function scrubStaleRenewalCounts(text: string): string {
+  return text
+    .replace(/\b\d{1,3}[- ]day (renewal|flight)/gi, "$1")
+    .replace(/\b(renew\w*|ends?|lands?|closes?)\s+in\s+~?\d{1,3}\s+days?\b/gi, "$1 on the date in dateFacts")
+    .replace(/\b\d{1,3}\s+days?\s+(until|before|to)\s+(her |the |its )?(soonest paid )?(renewal|flight)/gi, "before $2$3$4")
+    .replace(/(renew\w*[^()]{0,40})\s*\(\s*~?\d{1,3}\s+days?\s*\)/gi, "$1");
+}
+
 function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
   return {
     ...operatingPack,
+    // Computed evidence states its own count correctly; notes and memory do not.
+    evidenceCatalog: operatingPack.evidenceCatalog.map((item) =>
+      item.id.startsWith("signal:") || item.id.startsWith("metric:")
+        ? item
+        : { ...item, detail: scrubStaleRenewalCounts(item.detail) }),
     proposalMemory: operatingPack.proposalMemory.map((proposal) => ({
       fingerprint: proposal.fingerprint,
       status: proposal.status,
@@ -1119,8 +1170,8 @@ function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
       fingerprint: investigation.fingerprint,
       status: investigation.status,
       domain: investigation.domain,
-      title: investigation.title,
-      likelyCause: investigation.likelyCause,
+      title: investigation.title ? scrubStaleRenewalCounts(investigation.title) : investigation.title,
+      likelyCause: investigation.likelyCause ? scrubStaleRenewalCounts(investigation.likelyCause) : investigation.likelyCause,
       causeConfidence: investigation.causeConfidence,
       unknowns: investigation.unknowns,
       occurrenceCount: investigation.occurrenceCount,
@@ -2147,6 +2198,12 @@ async function assembleWarRoomInputs(db: SupabaseClient) {
  * with their cost. No run row, no source sync, no probes, nothing written.
  * Pass a read-only client (see scripts/cortex-dev-sweep.ts).
  */
+/** The exact JSON the sweep is sent, for measuring and inspecting it. Reads only. */
+export async function devWarRoomSweepContext(db: SupabaseClient) {
+  const { prepared } = await assembleWarRoomInputs(db);
+  return sweepContextFor(operatingPackFor({ ...prepared, sourceSummary: {} }));
+}
+
 export async function devSweepWarRoomLenses(db: SupabaseClient, model: string) {
   const { prepared } = await assembleWarRoomInputs(db);
   return runLensSweepPass(operatingPackFor({ ...prepared, sourceSummary: {} }), model);

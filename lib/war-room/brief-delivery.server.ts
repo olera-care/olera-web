@@ -4,6 +4,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
 import { isFounderAnswerable, pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
 import { phraseMove, pickMove, type BriefMove, type MoveCandidate } from "@/lib/war-room/brief-move.server";
+import { loadProviderMoments, type ProviderMoment } from "@/lib/war-room/provider-moments.server";
 import { closeExchange } from "@/lib/war-room/conversation.server";
 import { loadBlindSpots, loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
@@ -60,6 +61,27 @@ type ApprovedRow = { title: string; approved_at: string | null; assigned_owner: 
 /** Everything the move's wording needs, so it can name the person the row only describes. */
 const MOVE_COLUMNS = "title, why_now, decision_required, created_at, approved_at, assigned_owner, action_kind, proposed_solution, finding, execution_plan, evidence";
 type MoveRow = ProposalRow & ApprovedRow & Omit<MoveCandidate, "kind" | "since">;
+
+export function momentCandidate(moment: ProviderMoment): MoveCandidate {
+  const who = moment.provider ?? "A provider";
+  return {
+    kind: "provider_moment",
+    title: `${who}: ${moment.kind === "partnership" ? "wants a deeper partnership" : "waiting on a reply"}`,
+    why_now: moment.summary,
+    decision_required: moment.kind === "partnership"
+      ? "It is a partnership or expansion signal, which the founder wants surfaced the same day. The line is only about that signal; leave out anything else the summary mentions, such as a family referral."
+      : "They wrote and nobody has replied yet.",
+    assigned_owner: "TJ",
+    action_kind: "provider_reply",
+    proposed_solution: null,
+    finding: moment.subject ? `Subject: ${moment.subject}` : null,
+    execution_plan: null,
+    evidence: null,
+    since: moment.lastInboundAt,
+    written: moment.lastInboundAt,
+    founderReply: moment.reply,
+  };
+}
 
 function toCandidate(row: MoveRow, kind: MoveCandidate["kind"]): MoveCandidate {
   return {
@@ -126,6 +148,8 @@ export function buildWarRoomBriefText(input: {
   watching: number;
   costUsd: number | null;
   move?: (BriefMove & { title: string; kind?: MoveCandidate["kind"] }) | null;
+  /** Provider emails from the last 48 hours other than the one leading as the move. */
+  moments?: Array<{ title: string }>;
   question?: FounderQuestion | null;
   unanswerable?: string[];
   blindSpots?: string[];
@@ -185,6 +209,11 @@ export function buildWarRoomBriefText(input: {
   }
 
   const moveTitle = input.move?.title;
+  const otherMoments = (input.moments ?? []).filter((moment) => moment.title !== moveTitle);
+  if (otherMoments.length) {
+    lines.push("", "*Provider emails, last 48 hours*");
+    for (const moment of otherMoments.slice(0, 4)) lines.push(`• ${moment.title}`);
+  }
   const otherProposals = input.proposals.filter((proposal) => proposal.title !== moveTitle);
   if (otherProposals.length) {
     lines.push("", "*Also waiting on you*");
@@ -282,6 +311,7 @@ export async function deliverWarRoomBrief(
     let watching = 0;
     let question: FounderQuestion | null = null;
     let move: (BriefMove & { title: string; kind: MoveCandidate["kind"] }) | null = null;
+    let momentCandidates: MoveCandidate[] = [];
     let unanswerable: string[] = [];
     let blindSpots: string[] = [];
     if (run.status !== "failed") {
@@ -316,9 +346,12 @@ export async function deliverWarRoomBrief(
       const approvedRows = (approvedResult.data ?? []) as MoveRow[];
       proposals = waitingRows;
       approvedOpen = approvedRows;
+      // Read at brief time from the support inbox's own tables; nothing is stored.
+      momentCandidates = (await loadProviderMoments(db).catch(() => [] as ProviderMoment[])).map(momentCandidate);
       const chosen = pickMove(
         approvedRows.map((row) => toCandidate(row, "approved_not_done")),
         waitingRows.map((row) => toCandidate(row, "decision_waiting")),
+        momentCandidates,
       );
       if (chosen) {
         const { data: model } = await db.from("war_room_company_models")
@@ -345,6 +378,7 @@ export async function deliverWarRoomBrief(
       watching,
       costUsd: warRoomScanCost(run)?.usd ?? null,
       move,
+      moments: momentCandidates.map((candidate) => ({ title: candidate.title })),
       question,
       unanswerable,
       blindSpots,

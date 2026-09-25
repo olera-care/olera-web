@@ -140,6 +140,12 @@ export interface WarRoomSnapshot {
   windowDays: number;
   recommendation: WarRoomRecommendation;
   metrics: WarRoomMetric[];
+  dates?: {
+    payingProviderFlightEnds: string | null;
+    daysUntilPayingProviderFlightEnds: number | null;
+    northStarDue: string | null;
+    daysUntilNorthStarDue: number | null;
+  };
   comparisons: WarRoomComparison[];
   growth: {
     latest: WarRoomGrowthWeek | null;

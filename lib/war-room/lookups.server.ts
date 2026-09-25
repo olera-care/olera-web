@@ -696,6 +696,19 @@ export const LOOKUP_TOOLS = [
     },
   },
   {
+    name: "support_inbox",
+    description: "The support@olera.care inbox, read from the support inbox's own tables: each thread's subject, who it is from (matched provider or family), category, priority, whether it was handled, when, and the inbox's one-line summary. No message bodies. Use for whether anyone emailed, what a provider said, or what is waiting on a reply. It is the only inbox Cortex can read.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        days: { type: "integer", minimum: 1, maximum: 30, description: "Look-back window. Default 7." },
+        category: { type: "string", enum: ["provider", "partner", "care_seeker", "legal", "security", "other"], description: "Only this category." },
+        query: { type: "string", description: "Part of a name, business or subject." },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
     name: "scan_probe",
     description: "Run one of the daily scan's read-only investigation probes: question_to_claim_conversion (does question volume drive claims), question_inventory_health (is the question inventory usable demand), provider_contactability (can Olera reach providers holding questions), traffic_by_page_family (which page family gained or lost organic reach), revenue_by_product (where the Ad Boost revenue funnel stops), support_backlog_composition (what is in the support backlog). Slower than the others.",
     input_schema: {
@@ -771,6 +784,14 @@ export async function runLookup(db: SupabaseClient, name: string, input: Record<
           limit: clampDays(input.limit, 10, 1, 25),
           adsFitOnly: input.ads_fit_only === true,
         }));
+      case "support_inbox": {
+        const { loadSupportInbox } = await import("@/lib/war-room/provider-moments.server");
+        return inEastern(await loadSupportInbox(db, {
+          days: clampDays(input.days, 7, 1, 30),
+          category: typeof input.category === "string" ? input.category : undefined,
+          query: typeof input.query === "string" ? input.query : undefined,
+        }));
+      }
       case "scan_probe": {
         const { isWarRoomProbeId, runWarRoomProbe } = await import("@/lib/war-room/probes.server");
         if (!isWarRoomProbeId(input.probe) || input.probe === "none") return { unavailable: "No such probe." };

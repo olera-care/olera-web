@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { buildWarRoomBriefText, sendableQuestion } from "../lib/war-room/brief-delivery.server";
 import { fallbackMove, parseMoveReply, pickMove, type MoveCandidate } from "../lib/war-room/brief-move.server";
+import { scrubStaleRenewalCounts } from "../lib/war-room/discovery.server";
 
 // The brief leads with one move, asks at most one question he alone can
 // answer, and puts everything measured below a divider.
@@ -86,5 +87,25 @@ assert.deepEqual(parseMoveReply('{"line":"Approve the funnel report today.","dra
 assert.equal(parseMoveReply('{"line":"Call Liz this week — renewal is close.","draft":null}')?.line, "Call Liz this week, renewal is close.");
 assert.equal(parseMoveReply("not json"), null);
 assert.equal(parseMoveReply('{"line":"short"}'), null);
+
+// 8. A provider moment outranks approved work and waiting decisions.
+const moment = candidate({ kind: "provider_moment", title: "Assisting Hands: wants a deeper partnership", since: "2026-09-25" });
+assert.equal(pickMove([approvedOld], [waiting], [moment])?.title, "Assisting Hands: wants a deeper partnership");
+assert.equal(fallbackMove(moment).line.startsWith("Provider email: "), true);
+
+// 9. Other provider emails are listed below the divider, never repeated as the move.
+const withMoments = buildWarRoomBriefText({
+  ...base,
+  move: { title: "Assisting Hands: wants a deeper partnership", line: "Robbie in Dallas wants to partner.", draft: null, kind: "provider_moment" },
+  moments: [{ title: "Assisting Hands: wants a deeper partnership" }, { title: "Hoop Cares: waiting on a reply" }],
+});
+assert.ok(withMoments.indexOf("• Hoop Cares: waiting on a reply") > withMoments.indexOf(DIVIDER));
+assert.ok(!withMoments.includes("• Assisting Hands"), "the leading moment is not listed again");
+assert.ok(!withMoments.includes("Already done?"), "only approved work gets the mark-done nudge");
+
+// 10. Stale renewal counts from notes and memory are removed; definitions stay.
+assert.equal(scrubStaleRenewalCounts("1 of 12 paid providers with 27-day renewal risk"), "1 of 12 paid providers with renewal risk");
+assert.equal(scrubStaleRenewalCounts("one subscriber renewing in 26 days"), "one subscriber renewing on the date in dateFacts");
+assert.equal(scrubStaleRenewalCounts("count 30-day inquiries with a failed send"), "count 30-day inquiries with a failed send");
 
 console.log("war room brief checks passed");

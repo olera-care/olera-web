@@ -7,6 +7,35 @@
 
 ## Current Focus
 
+### 2026-09-25 — Managed Ads stock-take, Robbie's North Texas offer, and Ces's call sheet (`trusting-nash`, no app code)
+
+**No application code changed.** Outputs: two artifacts, three provider_touches writes, memory updates.
+
+**Artifacts.**
+- *Managed Ads Stock-Take*: https://claude.ai/artifact/PckBEw1Kgd3uWkxJon69PS. A team report for the Olera Ads and MedJobs teams, with a David excerpt at the bottom. Sections: Robbie's offer as the headline, network health (Search Console reach, families, providers, where they meet), the four pipeline risks (generate → qualify → route → last mile), the provider funnel, the key accounts, the 7-row backlog, and opportunities / blind spots / weaknesses.
+- *Ces's call sheet*: https://claude.ai/artifact/Un8A9ttZWyQQQPUcT31N6B. Private, and has to be shared with `cchavez.olera@gmail.com`. Five families in order with ready-to-send texts, four provider relationship calls, and the Hoop-style routing flow (text asking for YES → Offer to… and ping the provider → both qualify).
+
+**Findings worth keeping.**
+- **Questions follow search.** About 20 questions per 100 provider-page Google clicks, every week June to September (range 19–24). About 70 providers asked per 100 questions, and about 8 of every 100 asked providers answer. Profile edits (~15/wk) and Managed Ads pitch views (~50/wk) do NOT follow search. Memory: `project_questions_track_search`.
+- **Search has steadied.** Low was the Labor Day week (2,343 clicks). Sunday–Wednesday comparisons: 1,330 → 1,621 → 1,715. Indexed pages 52.8K. The Search Console property is URL-prefix `https://olera.care/`, not `sc-domain` (the API 403s on the domain form). Key at `~/Desktop/olera-hq/secrets/ga4-service-account.json`.
+- **Brand hubs:** 12 of 20 indexed. Not indexed yet: Visiting Angels, Home Instead, Brookdale, BrightStar, FirstLight, SYNERGY, Amada, Genesis. 1 click from ~570 impressions, 1–24 Sep.
+- **Job seekers:** 10 of 24 September city leads were job seekers (Pascagoula 6 of 7).
+- **Automatic pool offers expire.** Assisting Hands let Bessie's and Marla's offers expire, then said yes to Geraldine when Ces phoned. Cambridge has not signed in since 17 Aug, and Granny NANNIES never has.
+- **Dallas and Charlotte consent names Olera only.** The Pascagoula form's consent adds "may share my request with a local care provider". Hand-over into the shared thread only works for leads from a provider's own ad.
+- **Colorado CareAssist** requested 60 seconds after the rewritten post-edit nudge. The two-step flow worked.
+- **provider_questions non-pending count fell from ~150–250/wk to ~30/wk starting the week of 23 Aug.** Unexplained, not chased.
+
+**Relationships.** Robbie McCullough (Assisting Hands Dallas) replied to the Helen intro: *"I would love to be the preferred provider for all of North Texas for Olera."* TJ replied 25 Sep ~07:00 UTC offering a call Mon 9/28 or Tue 9/29 at 9:00/9:30 AM CT, with no exclusivity promised. Helen's call was set for Fri 25 Sep 10:00 CT and Robbie never explicitly confirmed it. TJ emailed Kaitlin at Caring Senior (from tj@, Cc support@) asking for 2–3 team photos and which phone number families should call.
+
+**DB writes (provider_touches).** Living Angels 24 Sep entry: channel email → call. Senior Services: next step added (email dianne@shsnny.com + call from a different phone, due 28 Sep, Ces). Caring Senior: TJ's email logged (`d4bee468`), Ces's 29 Sep photo callback closed.
+
+#### Next Up
+- Confirm Robbie called Helen, and hold the partnership call Mon/Tue.
+- **Decision for TJ:** add the provider-sharing line to the Dallas form and city landing-page consent, and link the Dallas campaign to Assisting Hands' `request_id` if Robbie partners.
+- Request indexing for the 8 unindexed brand hubs. Read the tagged-vs-untagged indexation comparison on 3 Oct.
+- Watch whether digest recipients start showing `ff_pitch` views. Still zero after ~95 digests since 23 Sep.
+- Update the stock-take backlog table once today's clearing push is done.
+
 ### 2026-09-24 — Campaign home in PRODUCTION: a provider's own ad hands its families to them, and Liz Hoop used it in 9 minutes (`graceful-gates`, #2147 #2150 #2154 → promote #2156 `237e97cc6`)
 
 **What shipped.**

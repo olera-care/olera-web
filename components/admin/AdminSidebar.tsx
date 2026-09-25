@@ -176,6 +176,7 @@ const SOP_HREF = "/admin/medjobs/sop";
  */
 const medjobsItems: NavItem[] = [
   { label: "Universities", href: "/admin/medjobs/in-basket", description: "Work through every university, one task at a time", keywords: "staffing in basket queue campuses tasks providers students" },
+  { label: "Email Health", href: "/admin/medjobs/email-health", description: "Student email deliverability and engagement", keywords: "bounce complaint open click rate delivery student emails" },
   { label: "Standard Operating Procedures (SOP)", href: `${SOP_HREF}/scripts`, description: "Instructions, scripts and email copy for every step", keywords: "staffing scripts email copy calls sop playbook instructions" },
   { label: "Archive", href: "/admin/medjobs/archive", description: "Records closed by hand or out of rounds", keywords: "staffing closed archived revive" },
 ];

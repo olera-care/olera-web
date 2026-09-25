@@ -86,6 +86,9 @@ export default function AdminStudentsPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Email health state - shows bounce/complaint indicators on student cards
+  const [emailHealth, setEmailHealth] = useState<Record<string, { status: "healthy" | "bounced" | "complained"; bounced: number; complained: number }>>({});
+
   // For approve/reject/revoke actions
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState<StudentRow | null>(null);
@@ -188,6 +191,31 @@ export default function AdminStudentsPage() {
   useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
+
+  // Fetch email health for displayed students
+  useEffect(() => {
+    const emails = students
+      .map((s) => s.email)
+      .filter((e): e is string => !!e);
+    if (emails.length === 0) return;
+
+    const controller = new AbortController();
+    fetch("/api/admin/students/email-health/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emails }),
+      signal: controller.signal,
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.health) {
+          setEmailHealth(data.health);
+        }
+      })
+      .catch(() => { /* ignore abort errors */ });
+
+    return () => controller.abort();
+  }, [students]);
 
   async function confirmDelete() {
     if (!pendingDelete) return;
@@ -431,8 +459,28 @@ export default function AdminStudentsPage() {
                     <p className="font-medium text-gray-900 truncate">
                       {student.display_name}
                     </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {student.email || "No email"}
+                    <p className="text-sm text-gray-500 truncate flex items-center gap-1.5">
+                      <span>{student.email || "No email"}</span>
+                      {student.email && emailHealth[student.email.toLowerCase()]?.status === "complained" && (
+                        <span
+                          title="Email marked as spam"
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-100 text-red-600 cursor-help"
+                        >
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      )}
+                      {student.email && emailHealth[student.email.toLowerCase()]?.status === "bounced" && (
+                        <span
+                          title="Email bounced"
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 cursor-help"
+                        >
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      )}
                     </p>
                     <p className="text-sm mt-0.5">
                       <span className={completeness >= 80 ? "text-emerald-600" : "text-gray-400"}>

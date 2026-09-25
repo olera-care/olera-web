@@ -73,6 +73,14 @@ test('native normalization preserves unknown care needs, consent and optional em
   assert.equal(normalized.is_test,true);
   assert.equal(normalized.care_type,undefined);
 });
+test('forms built since 24 Sep send the phone as "phone" and an is_qualified flag',()=>{
+  // Exact field keys Meta returned for the Boulder v1 test lead (copied from Hoop's v3).
+  const v3={...lead,field_data:[{name:'who_is_the_care_for?',values:['A parent']},{name:'email',values:['t@example.com']},
+    {name:'full_name',values:['Test Family']},{name:'phone',values:['+13035550142']},{name:'zip_code',values:['80302']},
+    {name:'is_qualified',values:['true']}]};
+  const n=native.normalizeMetaLead(v3,receipt,form);
+  assert.equal(n.phone,'+13035550142'); assert.equal(n.care_recipient,'parent'); assert.equal(n.job_seeker,false);
+});
 test('identity mismatch and invalid phone/email cannot enter queue',()=>{
   assert.throws(()=>native.normalizeMetaLead({...lead,id:'123'},receipt,form));
   assert.throws(()=>native.normalizeMetaLead({...lead,form_id:'123'},receipt,form));

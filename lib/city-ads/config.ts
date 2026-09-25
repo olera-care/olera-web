@@ -39,6 +39,12 @@ export interface CityConfig {
   timeZone: string;
   /** Campaign tag shared across channels for this city (= utm_campaign). */
   campaignTag: string;
+  /**
+   * What the family asked for, as the confirmation text names it ("your request
+   * for {careNoun} in {city}"). Defaults to "home care". An assisted living
+   * provider's form must not tell the family they asked for home care.
+   */
+  careNoun?: string;
 }
 
 export const CITY_CONFIGS: Record<string, CityConfig> = {
@@ -119,6 +125,56 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
     zipPrefill: "80302",
     timeZone: "America/Denver",
     campaignTag: "colorado-careassist-boulder-native-sep26",
+  },
+  // Four more provider instant forms, same pattern as boulder-co: `concierge`
+  // because the importer requires it, and each form's city_campaigns row names
+  // the provider's Ad Boost request so its leads go to that provider. These
+  // replace traffic ads to the provider page, which optimise for page views and
+  // hand nothing over (TJ, 25 Sep: provider Meta arms are always forms).
+  // Wescastle Healthcare, 20 mi around their Peachtree St office.
+  "atlanta-ga": {
+    slug: "atlanta-ga",
+    city: "Atlanta",
+    state: "GA",
+    routingMode: "concierge",
+    areaLabel: "Atlanta, Decatur, Sandy Springs and nearby",
+    zipPrefill: "30309",
+    timeZone: "America/New_York",
+    campaignTag: "wescastle-atlanta-native-sep26",
+  },
+  // Rosemonte Assisted Living, a residential home in North Phoenix (85024).
+  "phoenix-az": {
+    slug: "phoenix-az",
+    city: "Phoenix",
+    state: "AZ",
+    routingMode: "concierge",
+    areaLabel: "North Phoenix, Scottsdale, Glendale and nearby",
+    zipPrefill: "85024",
+    timeZone: "America/Phoenix",
+    campaignTag: "rosemonte-phoenix-native-sep26",
+    careNoun: "assisted living",
+  },
+  // HomeWell Care Services of East Tennessee (Anderson, Roane, Knox counties).
+  "oak-ridge-tn": {
+    slug: "oak-ridge-tn",
+    city: "Oak Ridge",
+    state: "TN",
+    routingMode: "concierge",
+    areaLabel: "Oak Ridge, Clinton, Knoxville and nearby",
+    zipPrefill: "37830",
+    timeZone: "America/New_York",
+    campaignTag: "homewell-oak-ridge-native-sep26",
+  },
+  // LumiWell Home Care, Fresno.
+  "fresno-ca": {
+    slug: "fresno-ca",
+    city: "Fresno",
+    state: "CA",
+    routingMode: "concierge",
+    areaLabel: "Fresno, Clovis and nearby",
+    zipPrefill: "93727",
+    timeZone: "America/Los_Angeles",
+    campaignTag: "lumiwell-fresno-native-sep26",
   },
 };
 

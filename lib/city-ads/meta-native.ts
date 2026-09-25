@@ -83,8 +83,11 @@ export type FormScreen =
   | { recipient: "parent" | "spouse" | "self" | "other" }
   | { careSeeker: true }
   | { jobSeeker: true };
-const CONTACT_FIELDS = new Set(["full_name", "first_name", "last_name", "phone_number", "email",
-  "zip_code", "post_code", "city", "state", "street_address"]);
+// "phone" and "is_qualified" are what forms built since 24 Sep send (Hoop's v3,
+// Colorado CareAssist's v1): the phone arrives under "phone", not "phone_number",
+// and "is_qualified" is Meta's own lead-quality flag, not an answer.
+const CONTACT_FIELDS = new Set(["full_name", "first_name", "last_name", "phone_number", "phone", "email",
+  "zip_code", "post_code", "city", "state", "street_address", "is_qualified"]);
 export function readFormScreen(fields: Map<string, string>): FormScreen | null {
   for (const [name, raw] of fields) {
     if (CONTACT_FIELDS.has(name)) continue;
@@ -111,7 +114,7 @@ export function normalizeMetaLead(lead: MetaLead, receipt: NativeReceipt, form: 
   }
   const fields = new Map(lead.field_data.map(f => [f.name, f.values?.[0]?.trim() ?? ""]));
   const fullName = fields.get("full_name") || fields.get("first_name") || "";
-  let digits = (fields.get("phone_number") || "").replace(/\D/g, "");
+  let digits = (fields.get("phone_number") || fields.get("phone") || "").replace(/\D/g, "");
   if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
   if (!fullName || !/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) {
     // Field keys and the digit count only, never the values: enough to tell a

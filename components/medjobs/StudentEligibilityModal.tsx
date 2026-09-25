@@ -9,6 +9,7 @@ import type { IntendedProfessionalSchool } from "@/lib/types";
 import type { CoverageBucket } from "@/lib/medjobs/student-eligibility";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import Select from "@/components/ui/Select";
+import OtpInput from "@/components/auth/OtpInput";
 
 /**
  * StudentEligibilityModal — the student funnel front door (mirror of the
@@ -318,59 +319,65 @@ export default function StudentEligibilityModal({
                 </svg>
               </div>
             </div>
-            <p className="text-center font-serif text-lg text-gray-900">
-              {existing ? "Welcome back!" : "Check your email"}
-            </p>
-            <p className="mt-1 text-center text-sm text-gray-500">
-              Enter the code sent to <span className="font-medium text-gray-700">{email}</span>
-            </p>
+
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {existing ? "Welcome back!" : "Check your email"}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Enter the code sent to <span className="font-medium text-gray-700">{email}</span>
+              </p>
+            </div>
+
             {error && (
-              <div className="mt-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm" role="alert">
+              <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm" role="alert">
                 {error}
               </div>
             )}
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={8}
-              value={otpCode}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, "").slice(0, 8);
-                setOtpCode(val);
-                if (error) setError(null);
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (otpCode.length === 8) handleVerifyOtp();
               }}
-              onKeyDown={(e) => e.key === "Enter" && otpCode.length === 8 && handleVerifyOtp()}
-              placeholder="00000000"
-              className={fieldClass + " mt-4 text-center text-2xl tracking-[0.5em] font-mono"}
-              autoFocus
-              autoComplete="one-time-code"
-            />
-            <button
-              type="button"
-              disabled={otpCode.length !== 8 || otpLoading}
-              onClick={handleVerifyOtp}
-              className={btnPrimary}
+              className="space-y-4"
             >
-              {otpLoading ? "Verifying..." : "Sign in"}
-            </button>
-            <div className="mt-3 text-center">
-              {resendCooldown > 0 ? (
-                <p className="text-sm text-gray-400">Resend in {resendCooldown}s</p>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Didn&apos;t get a code?{" "}
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={otpLoading}
-                    className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-50"
-                  >
-                    Resend
-                  </button>
-                </p>
-              )}
-            </div>
+              <OtpInput
+                value={otpCode}
+                onChange={(val) => {
+                  setOtpCode(val);
+                  if (error) setError(null);
+                }}
+                disabled={otpLoading}
+                length={8}
+              />
+
+              <button
+                type="submit"
+                disabled={otpCode.length !== 8 || otpLoading}
+                className={btnPrimary + " disabled:opacity-50"}
+              >
+                {otpLoading ? "Verifying..." : "Verify"}
+              </button>
+
+              <div className="text-center">
+                {resendCooldown > 0 ? (
+                  <p className="text-sm text-gray-400">Resend in {resendCooldown}s</p>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Didn&apos;t get a code?{" "}
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={otpLoading}
+                      className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-50"
+                    >
+                      Resend
+                    </button>
+                  </p>
+                )}
+              </div>
+            </form>
           </div>
         ) : step === "q1" ? (
           <div>

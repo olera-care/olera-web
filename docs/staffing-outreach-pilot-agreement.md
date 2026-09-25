@@ -8,12 +8,22 @@ PDF that gets attached lives in Supabase Storage.
 
 ## Generating + uploading the PDF
 
-For MVP, this is a manual one-time step (dynamic per-provider PDFs are
-intentionally deferred — see `docs/STAFFING_OUTREACH_DEFERRED.md`).
+The PDF is built from `docs/pilot-agreement-src/agreement.html`, which
+reproduces the signed original's measurements (612x792, 52pt margins,
+14pt leading, the three gray rules). Edit the text here **and** there, then:
 
-1. Convert this markdown to PDF using any tool you like — pandoc, the
-   browser print-to-PDF dialog, or a Mac Quick Look export. Keep
-   formatting clean; this is a legal document.
+```
+node docs/pilot-agreement-src/build.mjs
+```
+
+That writes `public/medjobs/pilot-agreement.pdf`, which is what the
+`PilotTermsModal` links to for both "Read the full partner agreement" and
+"Download as PDF". Per-provider personalisation is still deferred — see
+`docs/STAFFING_OUTREACH_DEFERRED.md`.
+
+For the copy attached to the Step 1 outreach email:
+
+1. Take the freshly built `public/medjobs/pilot-agreement.pdf`.
 2. Filename: `olera-student-caregiver-pilot-agreement.pdf`
 3. Upload to Supabase Storage:
    - Bucket: `pilot-agreements` (create if missing, public read)
@@ -25,8 +35,14 @@ intentionally deferred — see `docs/STAFFING_OUTREACH_DEFERRED.md`).
 5. PR 2's email-send code reads `PILOT_AGREEMENT_PDF_URL` to attach the
    agreement to the Step 1 email and reference it in the T&C modal.
 
-When the agreement copy changes, edit this file, regenerate the PDF, and
-re-upload (overwriting the same path so URL stays stable).
+When the agreement copy changes, edit this file and `agreement.html`,
+rebuild, and re-upload (overwriting the same path so the URL stays stable).
+
+**Scope of the pilot.** As of this revision the pilot covers the provider's
+**first hire** only; anything beyond that is by separate written agreement
+and no number appears in this document. That is deliberate — see C1 in
+`docs/medjobs/operating/07-OPEN-DECISIONS-AND-CONFLICTS.md`, where the
+per-hire price is still unresolved.
 
 ---
 
@@ -39,7 +55,9 @@ between Olera, Inc. ("Olera") and Provider User ("Provider"), effective
 on the date last signed below.
 
 **Term.** This Agreement begins on the effective date and continues until
-either party ends it with written notice. Ending it does not affect
+either party ends it with written notice. The pilot covers Provider's first
+hire through the program; continuing beyond that is by mutual written
+agreement as described under Cost. Ending this Agreement does not affect
 placements already made.
 
 **Scope.** Olera will recruit and vet pre-nursing and pre-medical
@@ -48,13 +66,15 @@ them to Provider as candidate caregivers. Provider receives a free
 account with access to the candidate board hosted on the Olera, Inc.
 website (https://olera.care/medjobs/candidates), where Provider may
 review student profiles, invite candidates to interview, and make hiring
-offers. Provider is free to browse, interview, and connect at no cost.
+offers. Provider is free to browse, interview, and connect at no cost, and to
+make its first hire through the program at no cost.
 
-**Cost.** This pilot is free for the Provider. There is no fee to browse,
-interview, connect with, or hire students during the pilot, and no payment
-information is required at any point. If both parties choose to continue
-the program beyond the pilot, any terms — including fees, if any — will be
-agreed in writing separately.
+**Cost.** This pilot is free for the Provider through Provider's first hire
+through the program. There is no fee to browse, interview, connect with, or
+make that first hire, and no payment information is required at any point. If
+both parties choose to continue the program beyond the first hire, any terms —
+including fees, if any — will be agreed in writing separately. No fees apply
+unless and until both parties have signed such an agreement.
 
 **Feedback and research participation (optional).** Olera may request
 feedback on the Provider's experience during participation, the

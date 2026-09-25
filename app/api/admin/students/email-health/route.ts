@@ -229,12 +229,15 @@ export async function GET(request: NextRequest) {
 
     // Get student profile info for the emails we found
     // We look up by email address since email_log doesn't have a profile ID column
-    const emails = [...byEmail.keys()];
+    // Use original-case emails for the query (not lowercased keys) because
+    // email_log.recipient is stored as-is and business_profiles.email may also
+    // have mixed casing. PostgreSQL .in() is case-sensitive.
+    const originalEmails = [...byEmail.values()].map((s) => s.email);
     const profileMap = new Map<string, StudentProfile>();
 
     // Fetch profiles by email address in batches
-    for (let i = 0; i < emails.length; i += 100) {
-      const slice = emails.slice(i, i + 100);
+    for (let i = 0; i < originalEmails.length; i += 100) {
+      const slice = originalEmails.slice(i, i + 100);
       const { data } = await db
         .from("business_profiles")
         .select("id, slug, display_name, email, phone, image_url, is_active, metadata")
@@ -243,6 +246,7 @@ export async function GET(request: NextRequest) {
 
       for (const p of (data ?? []) as StudentProfile[]) {
         if (p.email) {
+          // Store with lowercase key for consistent lookup
           profileMap.set(p.email.toLowerCase(), p);
         }
       }

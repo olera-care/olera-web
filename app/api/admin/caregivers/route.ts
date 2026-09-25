@@ -285,21 +285,32 @@ export async function GET(request: NextRequest) {
 
     // Filter by lifecycle status (paused vs not live vs pending review vs approved vs rejected)
     // Paused = was live, then deactivated (is_active=false AND application_completed=true)
-    // Not Live = never went live (is_active=false AND application_completed is falsy AND no pending review)
-    // Pending Review = requested review but not yet approved (review_requested_at AND !application_completed)
-    // Approved = has approved_at set (application_completed is set when approved)
-    // Rejected = has rejected_at but not subsequently approved (no approved_at)
+    // Not Live = never went live (is_active=false AND application_completed is falsy AND no pending review AND not 100% complete)
+    // Pending Review = ready for admin action (review_requested_at OR 100% complete) AND not yet approved
+    // Approved = application_completed is the source of truth
+    // Rejected = has rejected_at AND is not currently approved (application_completed=false)
     if (pausedOnly) {
       students = students.filter((s) => !s.is_active && s.application_completed);
     } else if (pendingReviewOnly) {
-      students = students.filter((s) => !!s.review_requested_at && !s.application_completed);
+      // Include both explicit review requests AND 100% complete profiles ready for review
+      students = students.filter((s) =>
+        (!!s.review_requested_at || s.profile_completeness >= COMPLETENESS_THRESHOLD) &&
+        !s.application_completed
+      );
     } else if (approvedOnly) {
       // Use application_completed as source of truth (approved_at is audit trail, may not exist for legacy data)
       students = students.filter((s) => !!s.application_completed);
     } else if (rejectedOnly) {
-      students = students.filter((s) => !!s.rejected_at && !s.approved_at);
+      // Rejected = has rejected_at AND is not currently approved
+      students = students.filter((s) => !!s.rejected_at && !s.application_completed);
     } else if (notLiveOnly) {
-      students = students.filter((s) => !s.is_active && !s.application_completed && !s.review_requested_at);
+      // Not live = incomplete, no review request, not approved
+      students = students.filter((s) =>
+        !s.is_active &&
+        !s.application_completed &&
+        !s.review_requested_at &&
+        s.profile_completeness < COMPLETENESS_THRESHOLD
+      );
     }
 
     // Filter by email domain (.edu vs non-.edu)

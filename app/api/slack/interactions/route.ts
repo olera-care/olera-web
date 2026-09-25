@@ -11,6 +11,7 @@ import {
   medjobsProfileRejectedEmail,
 } from "@/lib/medjobs-email-templates";
 import { generateStudentPortalUrl } from "@/lib/claim-tokens";
+import { logAuditAction } from "@/lib/admin";
 import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
@@ -379,7 +380,20 @@ async function handleStudentReviewAction(
   const actualStudentName = student.display_name || studentName || "Student";
   const actualEmail = student.email || studentEmail;
 
-  // Check if already processed
+  // Check if this review request was already processed
+  // Each Slack message is tied to one review request - if review_requested_at is null,
+  // this request was already handled (via admin panel or another Slack message)
+  if (!meta.review_requested_at) {
+    if (meta.application_completed) {
+      return updateSlackMessage(payload, "✓ Already approved (via admin panel)");
+    }
+    if (meta.rejected_at) {
+      return updateSlackMessage(payload, "✗ Already rejected (via admin panel)");
+    }
+    return updateSlackMessage(payload, "⚠️ This review request was already processed");
+  }
+
+  // Check if already in final state
   if (meta.application_completed && action === "approve") {
     return updateSlackMessage(payload, "✓ Already approved");
   }
@@ -410,6 +424,21 @@ async function handleStudentReviewAction(
       console.error("[slack] Failed to approve student:", updateError);
       return updateSlackMessage(payload, "❌ Failed to approve student");
     }
+
+    // Log audit action (fire-and-forget, don't block on it)
+    logAuditAction({
+      adminUserId: `slack:${slackUser}`,
+      action: "approve_student",
+      targetType: "student",
+      targetId: studentId,
+      details: {
+        studentName: actualStudentName,
+        studentEmail: actualEmail,
+        approved_via: "slack",
+      },
+    }).catch((err) => {
+      console.error("[slack] Failed to log audit action:", err);
+    });
 
     // Send approval email
     if (actualEmail) {
@@ -467,6 +496,22 @@ async function handleStudentReviewAction(
       console.error("[slack] Failed to reject student:", updateError);
       return updateSlackMessage(payload, "❌ Failed to reject student");
     }
+
+    // Log audit action (fire-and-forget, don't block on it)
+    logAuditAction({
+      adminUserId: `slack:${slackUser}`,
+      action: "reject_student",
+      targetType: "student",
+      targetId: studentId,
+      details: {
+        studentName: actualStudentName,
+        studentEmail: actualEmail,
+        rejectionReason,
+        rejected_via: "slack",
+      },
+    }).catch((err) => {
+      console.error("[slack] Failed to log audit action:", err);
+    });
 
     // Send rejection email
     if (actualEmail) {

@@ -715,7 +715,7 @@ function classifyProviderFailure(status: number | null, message: string): WarRoo
 
 export function describeProviderFailure(
   error: unknown,
-  context: { stage: string; tool: string },
+  context: { stage: string; tool: string; model?: string },
 ): WarRoomFailureDiagnostic {
   const status = typeof (error as { status?: unknown })?.status === "number"
     ? (error as { status: number }).status
@@ -728,7 +728,7 @@ export function describeProviderFailure(
     // The model that actually ran this pass, not the default. A 400 from a
     // grammar budget is model-specific, so naming the wrong one sends the next
     // reader looking in the wrong place.
-    model: modelForStage(context.stage),
+    model: context.model ?? modelForStage(context.stage),
     status,
     requestId: providerRequestId(error),
     providerErrorType: body.type,
@@ -900,12 +900,14 @@ async function callWarRoomTool<T>(input: {
   tool: Anthropic.Messages.Tool;
   maxTokens: number;
   prompt: string;
+  /** Overrides the stage's model. Only the dev sweep passes this. */
+  model?: string;
 }): Promise<{ output: T; inputTokens: number; outputTokens: number; cost: WarRoomCallCost }> {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const startedAt = Date.now();
   try {
-    const stageModel = modelForStage(input.stage);
+    const stageModel = input.model ?? modelForStage(input.stage);
     const message = await anthropic.messages.stream({
       model: stageModel,
       max_tokens: input.maxTokens,
@@ -973,7 +975,7 @@ async function callWarRoomTool<T>(input: {
     // would discard the category and detail it just built.
     if (error instanceof WarRoomProviderError) throw error;
     if (error instanceof Error && error.message.startsWith("war_room_missing_")) throw error;
-    const diagnostic = describeProviderFailure(error, { stage: input.stage, tool: input.tool.name });
+    const diagnostic = describeProviderFailure(error, { stage: input.stage, tool: input.tool.name, model: input.model });
     throw new WarRoomProviderError(
       `war_room_provider_${diagnostic.category}:${input.tool.name}:${diagnostic.detail}`,
       diagnostic,
@@ -986,7 +988,7 @@ async function callWarRoomTool<T>(input: {
  * to return its own five named lenses. `domain` is stamped from the property
  * name rather than trusted from the model.
  */
-async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingPack>) {
+async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingPack>, model?: string) {
   const results = await Promise.all(WAR_ROOM_LENS_SWEEP_GROUPS.map(async (group, index) => {
     const tool = WIRE_LENS_SWEEP_TOOLS[index];
     const call = await callWarRoomTool<LensSweepToolOutput>({
@@ -994,6 +996,7 @@ async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingP
       system: INVESTIGATOR_SYSTEM,
       tool,
       maxTokens: 14_000,
+      model,
       prompt: `This call owns the ${group.label} lenses: ${group.domains.join(", ")}. Review each of them against the operating pack and populate every required named field. Do not review any other lens in this call, and do not optimize for producing a founder task.\n${JSON.stringify(sweepContextFor(operatingPack))}`,
     });
     const reviews = group.domains.map((domain) => {
@@ -2044,6 +2047,30 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
     syncArchiveEvidence(db),
   ]);
   await updateDiscoveryStage(db, runId, "building_operating_pack", { slack, notion, archive, stage_attempt: attempt });
+  const inputs = await assembleWarRoomInputs(db);
+  const { factPack, externalEvidence, factPackHash, sourceEvidence, probeEvidence } = inputs;
+  const sourceSummary = {
+    slack,
+    notion,
+    archive,
+    external_evidence_count: sourceEvidence.length,
+    probe_evidence_count: probeEvidence.length,
+    internal_evidence_count: factPack.evidenceCatalog.length,
+    fact_pack_hash: factPackHash,
+    prompt_version: WAR_ROOM_PROMPT_VERSION,
+  };
+  await updateDiscoveryStage(db, runId, "forming_candidates", sourceSummary);
+  return { ...inputs.prepared, sourceSummary };
+}
+
+/**
+ * Everything the model passes read, built from the database alone.
+ *
+ * Split out of `prepareWarRoomDiscovery` so the dev sweep can build the same
+ * input without claiming a run row or re-syncing Slack, Notion and the archive.
+ * Reads only.
+ */
+async function assembleWarRoomInputs(db: SupabaseClient) {
   const [snapshot, sourceEvidence, probeEvidence, founderEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
     buildWarRoomSnapshot(db, 30),
     loadExternalEvidence(db),
@@ -2092,27 +2119,37 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
     occurredAt: "occurredAt" in item ? item.occurredAt ?? null : null,
     freshness: "freshness" in item ? item.freshness ?? null : null,
   })));
-  const sourceSummary = {
-    slack,
-    notion,
-    archive,
-    external_evidence_count: sourceEvidence.length,
-    probe_evidence_count: probeEvidence.length,
-    internal_evidence_count: factPack.evidenceCatalog.length,
-    fact_pack_hash: factPackHash,
-    prompt_version: WAR_ROOM_PROMPT_VERSION,
-  };
-  await updateDiscoveryStage(db, runId, "forming_candidates", sourceSummary);
   return {
     factPack,
     externalEvidence,
-    companyModel,
-    proposalMemory: [...memoryById.values()],
-    investigationMemory: (investigationMemoryResult.data ?? []) as InvestigationMemory,
-    blockedInterventionFingerprints: (blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint),
     factPackHash,
-    sourceSummary,
+    sourceEvidence,
+    probeEvidence,
+    prepared: {
+      factPack,
+      externalEvidence,
+      companyModel,
+      proposalMemory: [...memoryById.values()],
+      investigationMemory: (investigationMemoryResult.data ?? []) as InvestigationMemory,
+      blockedInterventionFingerprints: (blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint),
+      factPackHash,
+    },
   };
+}
+
+/**
+ * The lens sweep on today's data, on any model, touching nothing.
+ *
+ * The daily scan costs about $0.89, and 78% of that is two Opus sweep calls.
+ * Tinkering with the sweep used to mean paying for a full run, and comparing a
+ * cheaper model meant switching production to it and hoping. This builds the
+ * same input the scan would, runs only the sweep, and returns the lens reviews
+ * with their cost. No run row, no source sync, no probes, nothing written.
+ * Pass a read-only client (see scripts/cortex-dev-sweep.ts).
+ */
+export async function devSweepWarRoomLenses(db: SupabaseClient, model: string) {
+  const { prepared } = await assembleWarRoomInputs(db);
+  return runLensSweepPass(operatingPackFor({ ...prepared, sourceSummary: {} }), model);
 }
 
 function operatingPackFor(prepared: WarRoomPreparedDiscovery) {

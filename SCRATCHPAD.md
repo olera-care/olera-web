@@ -7,6 +7,39 @@
 
 ## Current Focus
 
+### 2026-09-25 (later) — Four provider Meta arms rebuilt as instant forms and published (`vigilant-morse`, #2177 → staging, hotfix #2179 → main `1f375003`)
+
+**What happened.** Wescastle (Atlanta), Rosemonte (North Phoenix), and HomeWell (Oak Ridge) had been built as Meta *traffic* ads by copying Wescastle's shape. TJ: provider Meta arms are ALWAYS native instant forms linked to the provider (Hoop pattern). Rebuilt all three, and added LumiWell (Fresno, stock photos). All four are published and ACTIVE, scheduled to start 27–28 Sep. Saved as memory `feedback_provider_meta_is_instant_form`.
+
+**Code.** `lib/city-ads/config.ts` adds four concierge `CITY_CONFIGS` (atlanta-ga, phoenix-az, oak-ridge-tn, fresno-ca) plus an optional `careNoun`. Phoenix is "assisted living", so the confirmation text doesn't say "home care". `meta-native.server.ts` uses `careNoun ?? "home care"`.
+
+**Live state (API-verified).**
+| Provider | Campaign | Form | $ | Start (CDT) |
+|---|---|---|---|---|
+| Wescastle | 120251691251790487 | 1110860374627873 | 25 | 27 Sep 23:00 |
+| Rosemonte | 120251691251800487 | 1357778562825865 (v3, no ZIP) | 50 | 28 Sep 02:00 |
+| HomeWell | 120251691251810487 | 3659346634242146 | 25 | 27 Sep 23:00 |
+| LumiWell | 120251691251820487 | 1071243988645418 | 50 | 28 Sep 02:00 |
+- All four forms are in `META_LEADS_FORMS_JSON` (prod redeployed). Four test leads imported first try.
+- `city_campaigns` rows cf6fd6c6 / fb34e921 / eed6763b / 7802d04f each carry `request_id` and `platform_campaign_id`, and `city_pool` is enabled.
+- Old traffic campaigns are paused with $0 spent: …685230487, …955130487, …465220487.
+- The admin requests are updated. LumiWell 1c254850 is now `scheduled`.
+
+**Gotchas learned.**
+- Build forms via the Graph API, not UI duplication. UI duplication resets Flexible delivery to ON and dropped the privacy link.
+- Housing-category (assisted living) forms cannot ask for ZIP. Meta rejects the ad at publish (#2909057).
+- Draft ads aren't visible to the API, so the form has to be picked in the UI.
+
+**Journey artifact.** https://claude.ai/artifact/YVkAShi5exPacgSa8VdbaU shows every screen from ad → form → Olera text → handover → campaign page → family link page. **Finding:** handover creates NO connection, so ad families never appear in the provider's Leads/inbox. The campaign page is the only surface, and the handover email/text are the only pointers to it.
+
+**Next Up.**
+- Mon 28 Sep: flip the scheduled rows live. Launch emails go out then.
+- Check LumiWell's contact email first. The August emails failed and comms are paused.
+- Hoop's v3 form still has Flexible delivery ON.
+- The shared negative list on HomeWell's Google campaign is unverified.
+- Optionally delete the three paused traffic campaigns.
+- Decide whether handover should also create a connection so families show in the provider inbox.
+
 ### 2026-09-25 — Managed Ads stock-take, Robbie's North Texas offer, and Ces's call sheet (`trusting-nash`, no app code)
 
 **No application code changed.** Outputs: two artifacts, three provider_touches writes, memory updates.

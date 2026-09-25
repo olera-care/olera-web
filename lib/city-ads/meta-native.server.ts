@@ -83,9 +83,10 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
       const primary = await resolvePrimaryCampaign(db, {
         id: receipt.leadgen_id, slug: normalized.slug, meta_campaign_id: normalized.meta_campaign_id });
       const question = cityQualifyingQuestion(normalized.care_recipient);
+      const care = cfg.careNoun ?? "home care";
       const confirmation = primary?.providerName
-        ? `Olera: Hi ${name}, we have your request for home care in ${cfg.city} and have passed it to ${primary.providerName}, who will be in touch. So they know how to help, ${question} Reply in a few words. Reply STOP to opt out.`
-        : `Olera: Hi ${name}, we have your request for home care in ${cfg.city}. So we can point you to the right provider, ${question} Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
+        ? `Olera: Hi ${name}, we have your request for ${care} in ${cfg.city} and have passed it to ${primary.providerName}, who will be in touch. So they know how to help, ${question} Reply in a few words. Reply STOP to opt out.`
+        : `Olera: Hi ${name}, we have your request for ${care} in ${cfg.city}. So we can point you to the right provider, ${question} Reply in a few words and we'll take it from there. Reply STOP to opt out.`;
       const { error: insertError } = await db.rpc("import_meta_city_lead", {
         receipt_id: receipt.leadgen_id, lead_data: normalized, confirmation,
       });

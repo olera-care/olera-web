@@ -79,6 +79,7 @@ export default function StudentEligibilityModal({
   const [buckets, setBuckets] = useState<CoverageBucket[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [university, setUniversity] = useState<string>(context.campusSlug ?? "");
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -184,6 +185,10 @@ export default function StudentEligibilityModal({
       setError("Please select your university.");
       return;
     }
+    if (!phone.trim()) {
+      setError("Please enter your phone number.");
+      return;
+    }
     if (!EMAIL_RE.test(email)) {
       setError("Please enter a valid email.");
       return;
@@ -198,6 +203,7 @@ export default function StudentEligibilityModal({
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),
+          phone: phone.trim(),
           careerPath: track,
           coverageBuckets: buckets,
           university: selectedUni?.name ?? context.universityName ?? undefined,
@@ -471,7 +477,20 @@ export default function StudentEligibilityModal({
                 size="lg"
               />
             </div>
-            <p className="mt-3 text-sm font-medium text-gray-800">Add your email to get started:</p>
+            <p className="mt-3 text-sm font-medium text-gray-800">Your phone number:</p>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                if (error) setError(null);
+              }}
+              placeholder="(555) 123-4567"
+              className={fieldClass + " mt-2"}
+              autoComplete="tel"
+            />
+            <p className="mt-3 text-sm font-medium text-gray-800">Your email:</p>
             <input
               type="email"
               inputMode="email"
@@ -487,7 +506,7 @@ export default function StudentEligibilityModal({
             {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
             <button
               type="button"
-              disabled={!name.trim() || !university || !email.trim() || !EMAIL_RE.test(email)}
+              disabled={!name.trim() || !university || !phone.trim() || !email.trim() || !EMAIL_RE.test(email)}
               className={btnPrimary + " disabled:opacity-50"}
               onClick={submit}
             >

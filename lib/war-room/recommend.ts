@@ -24,6 +24,8 @@ export interface WarRoomFacts {
   adBoostStalledPaused: number;
   adBoostStalledAttended: number;
   adBoostSoonestPaidRenewalDays: number | null;
+  adBoostSoonestPaidFlightEndDate?: string | null;
+  northStarDue?: string | null;
   adBoostCallRecordAvailable: boolean;
   // The target, from the editable company model rather than a constant. A
   // priority says what matters; a target says how far away it is.
@@ -178,7 +180,7 @@ export function buildWarRoomSignals(facts: WarRoomFacts): WarRoomSignal[] {
     signals.push({
       id: "paid-renewal-approaching",
       title: "The paying provider's flight is ending.",
-      detail: `${facts.adBoostSoonestPaidRenewalDays} day${facts.adBoostSoonestPaidRenewalDays === 1 ? "" : "s"} until the soonest paid flight ends. With ${number(facts.payingProviders)} paying provider${facts.payingProviders === 1 ? "" : "s"}, losing one is the largest single move away from the target.`,
+      detail: `${facts.adBoostSoonestPaidRenewalDays} day${facts.adBoostSoonestPaidRenewalDays === 1 ? "" : "s"} until the soonest paid flight ends${facts.adBoostSoonestPaidFlightEndDate ? ` (${facts.adBoostSoonestPaidFlightEndDate})` : ""}. With ${number(facts.payingProviders)} paying provider${facts.payingProviders === 1 ? "" : "s"}, losing one is the largest single move away from the target.`,
       severity: facts.payingProviders <= 1 ? "urgent" : "watch",
       href: "/admin/ad-boost",
     });

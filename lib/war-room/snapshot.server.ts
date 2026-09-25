@@ -305,6 +305,13 @@ export async function buildWarRoomSnapshot(
     .map((row) => daysUntil(row.flight_end_date))
     .filter((value): value is number => value !== null)
     .sort((a, b) => a - b);
+  // The date itself, not only the count. A model handed "25 days" next to a
+  // four-day-old note saying "29 days" does the subtraction wrong; handed the
+  // date, it has nothing to compute.
+  const soonestPaidFlightEnd = payingRows
+    .map((row) => row.flight_end_date)
+    .filter((value): value is string => typeof value === "string" && daysUntil(value) !== null)
+    .sort()[0] ?? null;
   const growthRows = growthResult.error ? [] : growthResult.data as GrowthSnapshot[];
   const latestGrowth = growthRows[0] ?? null;
   const priorGrowth = growthRows[1] ?? null;
@@ -354,6 +361,8 @@ export async function buildWarRoomSnapshot(
     adBoostStalledPaused: stalledPaused,
     adBoostStalledAttended: stalledAttended,
     adBoostSoonestPaidRenewalDays: paidRenewalDays[0] ?? null,
+    adBoostSoonestPaidFlightEndDate: soonestPaidFlightEnd ? soonestPaidFlightEnd.slice(0, 10) : null,
+    northStarDue: primaryTarget?.due ?? null,
     adBoostCallRecordAvailable: !callTouchResult.error,
     supportUnhandled: supportCountResult.count ?? 0,
     supportUrgent: supportUrgentResult.count ?? 0,
@@ -508,6 +517,13 @@ export async function buildWarRoomSnapshot(
   return {
     generatedAt,
     windowDays,
+    // Passed to the model as facts so it never does date arithmetic.
+    dates: {
+      payingProviderFlightEnds: facts.adBoostSoonestPaidFlightEndDate ?? null,
+      daysUntilPayingProviderFlightEnds: facts.adBoostSoonestPaidRenewalDays,
+      northStarDue: facts.northStarDue ?? null,
+      daysUntilNorthStarDue: facts.northStarDaysRemaining ?? null,
+    },
     recommendation: chooseWarRoomRecommendation(facts),
     metrics: buildWarRoomMetrics(facts),
     comparisons,

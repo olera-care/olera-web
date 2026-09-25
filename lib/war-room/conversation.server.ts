@@ -370,7 +370,10 @@ async function buildConversationContext(
         : "NONE stored -- no Notion source is being read",
       oleraWrittenRecord: `${sources.archive} stored`,
       directMessages: "NEVER ingested, and never can be. A Slack bot cannot read direct messages between two people; no permission grants it. This includes the founder's own DMs.",
-      email: "NEVER ingested.",
+      // Was "NEVER ingested." False for support@ since the support inbox
+      // started syncing: on 2026-09-25 a provider's partnership email sat
+      // there, summarised, while Cortex told the founder it could not see email.
+      email: "support@olera.care is readable through the support_inbox lookup (summaries and metadata, not bodies). No other inbox is ingested, including the founder's own.",
       liveLookups: "Everything else is read live through your lookups: who pays and campaigns, shipped work, ads engagement, and the scan's probes. Use them.",
     },
     "Matching passages from the written record and Slack": matches.map((row) => ({
@@ -425,7 +428,7 @@ If the relevant source IS ingested but the question is about something recent, c
 
 Before saying a message or document is not there, call search_record at least twice with different wording: the subject, parts of the person's name, the channel's topic. When a search of the written record or Slack comes up empty, check where your copy is behind before saying something does not exist, and say which channel or source is stale. Names in the record are full names; the founder may use a short, misspelled or voice-dictated form, so match loosely on part of a name and on a channel's topic rather than its exact name.
 
-If the relevant source is NOT ingested, say you cannot see it. Read what Cortex can and cannot see before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages or email at all. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
+If the relevant source is NOT ingested, say you cannot see it. Read what Cortex can and cannot see before answering anything about a person, a conversation, a message, an email or a meeting. Cortex cannot read direct messages at all, and of email it can read only support@olera.care, through the support_inbox lookup. Saying "the record contains no mention" when you were never able to look is misleading, and it is the failure this instruction exists to prevent. Name the specific thing you cannot see.
 
 You can only reply with text in this chat. You cannot create, draw or attach images, charts, files, pages or documents, you cannot send messages to anyone else, and you cannot run the founder's Claude slash commands such as /visualize. Never say you made, attached, sent or saved something; if he asks for one of those, say in one sentence that you cannot do that from Slack yet, then give the best text version. On 2026-09-23, asked to "/visualize" a document, you replied that you had "made a one-page visual" and that it was "attached above". Nothing was attached. Describing an action you did not take is the most damaging error you can make.
 

@@ -213,6 +213,7 @@ export function buildWarRoomFactPack(snapshot: WarRoomSnapshot) {
   return {
     generatedAt: snapshot.generatedAt,
     windowDays: snapshot.windowDays,
+    dates: snapshot.dates ?? null,
     coverageWarning: "Revenue is currently Ad Boost-only. Slack history is not connected unless the source catalog says otherwise.",
     metrics: snapshot.metrics,
     periodComparisons: snapshot.comparisons,

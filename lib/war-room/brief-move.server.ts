@@ -17,7 +17,7 @@ import type { WarRoomProposalEvidence } from "@/lib/war-room/types";
  */
 
 export type MoveCandidate = {
-  kind: "approved_not_done" | "decision_waiting";
+  kind: "provider_moment" | "approved_not_done" | "decision_waiting";
   title: string;
   why_now: string;
   decision_required: string | null;
@@ -30,6 +30,8 @@ export type MoveCandidate = {
   since: string | null;
   /** When the row's why_now was written; its day counts are relative to this. */
   written?: string | null;
+  /** For a provider moment: the founder's latest reply, read at brief time and not stored. */
+  founderReply?: { at: string; text: string } | null;
 };
 
 export type BriefMove = {
@@ -47,11 +49,20 @@ export type BriefMove = {
  * clock on it: the first proposal ever approved (2026-09-21) was a call to the
  * one paying provider before her renewal, and it sat untouched while the brief
  * reported probe headlines. A decision still waiting is second.
+ *
+ * A provider moment outranks both. Partnership signals are the founder's top
+ * priority and surface the same day; on 2026-09-25 one sat in the support
+ * inbox, summarised and matched, while the brief led with something else.
+ * Moments arrive already ranked, so the first one wins.
  */
-export function pickMove(approvedOpen: MoveCandidate[], waiting: MoveCandidate[]): MoveCandidate | null {
+export function pickMove(
+  approvedOpen: MoveCandidate[],
+  waiting: MoveCandidate[],
+  moments: MoveCandidate[] = [],
+): MoveCandidate | null {
   const oldest = (rows: MoveCandidate[]) =>
     [...rows].sort((a, b) => (a.since ?? "").localeCompare(b.since ?? ""))[0] ?? null;
-  return oldest(approvedOpen) ?? oldest(waiting);
+  return moments[0] ?? oldest(approvedOpen) ?? oldest(waiting);
 }
 
 /**
@@ -69,7 +80,7 @@ function firstSentence(text: string) {
 /** The move in plain words from the row alone. Used when the model is unavailable. */
 export function fallbackMove(move: MoveCandidate): BriefMove {
   const reason = firstSentence(move.why_now || move.decision_required || "");
-  const verb = move.kind === "decision_waiting" ? "Decide" : "Do";
+  const verb = move.kind === "decision_waiting" ? "Decide" : move.kind === "provider_moment" ? "Provider email" : "Do";
   // Titles are sometimes questions ("...are they being opened at all?"), and
   // "?." reads as a typo in the one line he is meant to act on.
   const title = /[.!?]$/.test(move.title.trim()) ? move.title.trim() : `${move.title.trim()}.`;
@@ -93,6 +104,7 @@ Rules:
 - "line" is one sentence, under 200 characters. Name the real person or business: if the evidence names them (for example "Call Liz Hoop"), use that name, never a description like "the paying provider".
 - If the status says approved, it is already approved. The action is getting it done: who does what, by when. Never write "approve" for it.
 - If the status says waiting on the founder's decision, the action is his decision; say in plain words what he would be approving.
+- If a provider emailed: this is the one move; leave out anything else the summary mentions. Talk to the founder as "you", never by name. Name the person and business and say what they want. If the founder already replied (founder_reply), say what he offered and what happens next, quoting his times and dates exactly as he wrote them, and set draft to null. If he has not replied, the draft is his reply to them.
 - "draft" is only for a move that means contacting someone. Write the message the named teammate or the founder would send, two or three short sentences, ready to paste. If nobody is being contacted, draft is null.
 - The whole record is record_days_old days old. Every "N days" in it (why_now, finding, evidence) was counted then. Subtract record_days_old from any count you repeat; "30 days" in a 5-day-old record is 25 days now.
 - Who does it: company_rules outrank the proposal, and assigned_owner outranks any name in the plan. If the plan names someone the rules say does not do this kind of work, use who the rules and assigned_owner name instead. Proposals drafted before a correction still carry the old name.
@@ -105,9 +117,11 @@ Reply with JSON only: {"line": "...", "draft": "..." or null}`;
 function recordFor(move: MoveCandidate, rules: string[]) {
   return JSON.stringify({
     company_rules: rules,
-    status: move.kind === "approved_not_done"
-      ? `Approved${move.since ? ` on ${move.since.slice(0, 10)}` : ""}, not yet carried out.`
-      : `Waiting on the founder's decision${move.since ? ` since ${move.since.slice(0, 10)}` : ""}.`,
+    status: move.kind === "provider_moment"
+      ? `A provider emailed support@olera.care${move.since ? ` on ${move.since.slice(0, 10)}` : ""}. ${move.decision_required ?? ""}`
+      : move.kind === "approved_not_done"
+        ? `Approved${move.since ? ` on ${move.since.slice(0, 10)}` : ""}, not yet carried out.`
+        : `Waiting on the founder's decision${move.since ? ` since ${move.since.slice(0, 10)}` : ""}.`,
     title: move.title,
     why_now: move.why_now,
     record_days_old: move.written
@@ -117,6 +131,7 @@ function recordFor(move: MoveCandidate, rules: string[]) {
     assigned_owner: move.assigned_owner,
     action_kind: move.action_kind,
     finding: move.finding,
+    founder_reply: move.founderReply ?? null,
     proposed_solution: move.proposed_solution,
     execution_plan: move.execution_plan,
     evidence: (move.evidence ?? []).slice(0, 12).map((item) => item.detail.slice(0, 600)),

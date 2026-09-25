@@ -101,39 +101,30 @@ export async function updateSession(request: NextRequest) {
             return supabaseResponse;
           }
 
-          // A destination belonging to somebody who is not a care seeker never
-          // gets the care-seeker questionnaire. This guard runs server-side and
-          // before everything, which is why the four client-side copies of this
-          // rule could all be correct and a student still land on /welcome.
-          if (skipsWelcome(pathname)) {
-            return supabaseResponse;
-          }
-
-          // Which kind of account this is. "caregiver" is in the list for
+          // Which kinds of account this is. "caregiver" is in the list for
           // history only — nothing creates that type; students are "student".
           // Leaving students out is what made this branch treat every one of
           // them as a family.
-          const { data: ownProfile } = await supabase
+          //
+          // Every matching row, not limit(1): an account can hold more than
+          // one profile, and with three types in the filter an unordered
+          // limit(1) could return the student row of somebody who also owns an
+          // organization — sending a provider to the student portal. Provider
+          // is chosen first here, explicitly, which is the precedence this
+          // block had when it only ever matched organizations.
+          const { data: ownProfiles } = await supabase
             .from("business_profiles")
             .select("id, slug, source_provider_id, claim_state, type")
             .eq("account_id", account.id)
-            .in("type", ["organization", "caregiver", "student"])
-            .limit(1)
-            .maybeSingle();
-          const providerProfile =
-            ownProfile && ownProfile.type !== "student" ? ownProfile : null;
+            .in("type", ["organization", "caregiver", "student"]);
+          const rows = ownProfiles ?? [];
+          const providerProfile = rows.find((r) => r.type !== "student") ?? null;
+          const studentProfile = rows.find((r) => r.type === "student") ?? null;
 
           const url = request.nextUrl.clone();
           const originalPath = request.nextUrl.pathname + request.nextUrl.search;
 
-          if (ownProfile?.type === "student") {
-            // A student's onboarding is their MedJobs profile, not the
-            // care-seeker questionnaire. Anywhere in /portal that is not
-            // theirs sends them to the portal that is. No loop: a request for
-            // /portal/medjobs already returned above.
-            url.pathname = "/portal/medjobs";
-            url.search = "";
-          } else if (providerProfile) {
+          if (providerProfile) {
             // Claimed providers skip onboarding — allow through to destination
             if (providerProfile.claim_state === "claimed") {
               return supabaseResponse;
@@ -142,6 +133,22 @@ export async function updateSession(request: NextRequest) {
             const providerSlug = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
             url.pathname = `/provider/${providerSlug}/onboard`;
             url.search = `?next=${encodeURIComponent(originalPath)}`;
+          } else if (studentProfile) {
+            // A student's onboarding is their MedJobs profile, not the
+            // care-seeker questionnaire — which is what this branch used to
+            // hand them, because "student" was missing from the lookup above
+            // and every one of them read as a family.
+            //
+            // Already heading somewhere that is theirs: let them through. This
+            // is the check that was missing, and it is scoped to students on
+            // purpose — a provider mid-onboarding still gets their onboard
+            // page, and a family still gets /welcome, exactly as before.
+            if (skipsWelcome(pathname)) {
+              return supabaseResponse;
+            }
+            // Anywhere else in /portal sends them to the portal that is theirs.
+            url.pathname = "/portal/medjobs";
+            url.search = "";
           } else {
             // Route families to family welcome page
             url.pathname = "/welcome";

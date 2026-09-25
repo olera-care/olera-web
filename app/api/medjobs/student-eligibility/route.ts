@@ -95,9 +95,6 @@ export async function POST(request: NextRequest) {
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
     }
-    if (!email.endsWith(".edu")) {
-      return NextResponse.json({ error: "Please use your university email (.edu). We only accept .edu emails for student applications." }, { status: 400 });
-    }
     if (!body.careerPath) {
       return NextResponse.json({ error: "Missing aspiration." }, { status: 400 });
     }

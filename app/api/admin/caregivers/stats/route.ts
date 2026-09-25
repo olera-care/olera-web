@@ -121,16 +121,7 @@ export async function GET(request: NextRequest) {
     // Cutoff for "this week" calculation
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    // Helper to check if email is .edu
-    const isEduEmail = (email: string | null) => email?.toLowerCase().endsWith(".edu");
-
-    // Separate .edu and non-.edu students
-    // Non-.edu includes null/empty emails (unverified students)
-    const eduStudents = allStudents.filter((p) => isEduEmail(p.email));
-    const nonEduStudents = allStudents.filter((p) => !isEduEmail(p.email));
-
-    // Count all states by iterating through .edu profiles only
-    // (non-.edu students are shown in their own separate tab)
+    // Count all states by iterating through all student profiles
     let activeCount = 0;
     let pausedCount = 0;        // is_active=false AND application_completed=true
     let notLiveCount = 0;       // is_active=false AND application_completed is falsy AND no pending review
@@ -140,7 +131,7 @@ export async function GET(request: NextRequest) {
     let completeCount = 0;
     let incompleteCount = 0;
 
-    for (const profile of eduStudents) {
+    for (const profile of allStudents) {
       const meta = (profile.metadata || {}) as StudentMetadata & {
         application_completed?: boolean;
         review_requested_at?: string;
@@ -166,7 +157,6 @@ export async function GET(request: NextRequest) {
         pausedCount++;
       } else if (meta.review_requested_at || completeness >= INCOMPLETE_THRESHOLD) {
         // Ready for admin review: either explicitly requested OR 100% complete
-        // This ensures non-.edu students with complete profiles appear in Pending Review
         pendingReviewCount++;
       } else {
         // Incomplete and no review request
@@ -185,14 +175,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const total = eduStudents.length;
-    const nonEduCount = nonEduStudents.length;
+    const total = allStudents.length;
 
-    // Count .edu students created this week
-    const thisWeekCount = eduStudents.filter((p) => p.created_at >= oneWeekAgo).length;
+    // Count students created this week
+    const thisWeekCount = allStudents.filter((p) => p.created_at >= oneWeekAgo).length;
 
-    // Count .edu students with pending interviews
-    const hasInterviewsCount = eduStudents.filter((p) => studentIdsWithInterviews.has(p.id)).length;
+    // Count students with pending interviews
+    const hasInterviewsCount = allStudents.filter((p) => studentIdsWithInterviews.has(p.id)).length;
 
     return NextResponse.json({
       total,
@@ -208,7 +197,6 @@ export async function GET(request: NextRequest) {
       incomplete: incompleteCount,
       thisWeek: thisWeekCount,
       students: total, // For backwards compatibility
-      nonEdu: nonEduCount,
     });
   } catch (err) {
     console.error("Admin students stats error:", err);

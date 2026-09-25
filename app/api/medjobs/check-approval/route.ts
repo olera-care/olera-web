@@ -12,7 +12,7 @@ function getAdminClient() {
 }
 
 export interface ApprovalBlock {
-  type: "no_edu" | "needs_review" | "pending_review" | "rejected";
+  type: "needs_review" | "pending_review" | "rejected";
   message: string;
   action?: { label: string; href?: string; api?: string };
   rejectionReason?: string;
@@ -98,19 +98,6 @@ export async function GET() {
       return NextResponse.json<CheckApprovalResponse>({ blocked: false });
     }
 
-    // State 2: No .edu email
-    const email = student.email?.trim().toLowerCase() || "";
-    if (!email.endsWith(".edu")) {
-      return NextResponse.json<CheckApprovalResponse>({
-        blocked: true,
-        block: {
-          type: "no_edu",
-          message: "Add your university email (.edu) to get verified.",
-          action: { label: "Update Email", href: "/portal/medjobs" },
-        },
-      });
-    }
-
     // State 5: Rejected — check if rejection happened AFTER the review request
     // (rejected_at > review_requested_at means admin reviewed and rejected)
     if (meta.rejected_at) {
@@ -141,7 +128,7 @@ export async function GET() {
       });
     }
 
-    // State 3: Hasn't requested review yet (has .edu, 100% complete, no request)
+    // State 3: Hasn't requested review yet (100% complete, no request)
     return NextResponse.json<CheckApprovalResponse>({
       blocked: true,
       block: {

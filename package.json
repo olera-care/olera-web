@@ -18,6 +18,7 @@
     "check:war-room:contract": "npx tsx scripts/check-war-room-tool-contract.ts",
     "check:war-room:brief": "npx tsx scripts/check-war-room-brief.ts",
     "replay:cortex-conversation": "npx tsx scripts/replay-cortex-conversation.ts",
+    "cortex:dev-sweep": "npx tsx scripts/cortex-dev-sweep.ts",
     "check:question-dedup": "npx tsx scripts/check-question-dedup.ts",
     "check:provider-inheritance": "npx tsx scripts/check-provider-inheritance.ts",
     "check:place-id-rebind": "npx tsx scripts/check-place-id-rebind.ts",

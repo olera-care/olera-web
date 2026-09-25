@@ -86,10 +86,16 @@ export default function AdminStudentsPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // For approve/reject actions
+  // Email health state - shows bounce/complaint indicators on student cards
+  const [emailHealth, setEmailHealth] = useState<Record<string, { status: "healthy" | "bounced" | "complained"; bounced: number; complained: number }>>({});
+
+  // For approve/reject/revoke actions
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState<StudentRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [showRevokeModal, setShowRevokeModal] = useState<StudentRow | null>(null);
+  const [revokeReason, setRevokeReason] = useState("");
+  const [showIncompleteApproveModal, setShowIncompleteApproveModal] = useState<StudentRow | null>(null);
 
   function showToast(message: string, type: "success" | "error" = "success") {
     clearTimeout(toastRef.current);
@@ -186,6 +192,31 @@ export default function AdminStudentsPage() {
     fetchStudents();
   }, [fetchStudents]);
 
+  // Fetch email health for displayed students
+  useEffect(() => {
+    const emails = students
+      .map((s) => s.email)
+      .filter((e): e is string => !!e);
+    if (emails.length === 0) return;
+
+    const controller = new AbortController();
+    fetch("/api/admin/students/email-health/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emails }),
+      signal: controller.signal,
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.health) {
+          setEmailHealth(data.health);
+        }
+      })
+      .catch(() => { /* ignore abort errors */ });
+
+    return () => controller.abort();
+  }, [students]);
+
   async function confirmDelete() {
     if (!pendingDelete) return;
 
@@ -260,6 +291,33 @@ export default function AdminStudentsPage() {
       } else {
         const data = await res.json().catch(() => ({}));
         showToast(data.error || "Failed to reject", "error");
+      }
+    } catch {
+      showToast("Network error", "error");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleRevoke(student: StudentRow, reason: string) {
+    setActionLoading(student.id);
+    try {
+      const res = await fetch(`/api/admin/caregivers/${student.id}/revoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || undefined }),
+      });
+      if (res.ok) {
+        showToast(`Revoked approval for ${student.display_name}`);
+        // Remove from list (consistent with approve/reject behavior)
+        setStudents((prev) => prev.filter((s) => s.id !== student.id));
+        setTotal((prev) => prev - 1);
+        fetchTabCounts();
+        setShowRevokeModal(null);
+        setRevokeReason("");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Failed to revoke", "error");
       }
     } catch {
       showToast("Network error", "error");
@@ -363,17 +421,13 @@ export default function AdminStudentsPage() {
       {/* List */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Header */}
-        <div className={`grid gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide ${
-          filter === "pendingReview"
-            ? "grid-cols-[2fr_1.5fr_80px_80px_100px_140px]"
-            : "grid-cols-[2fr_1.5fr_80px_80px_100px_32px]"
-        }`}>
+        <div className="grid gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide grid-cols-[2fr_1.5fr_80px_80px_100px_140px]">
           <div>Student</div>
           <div>School & Location</div>
           <div className="text-center">Status</div>
           <div className="text-center">Interviews</div>
           <div className="text-right">{filter === "pendingReview" ? "Requested" : "Joined"}</div>
-          <div className={filter === "pendingReview" ? "text-right" : ""}>{filter === "pendingReview" ? "Actions" : ""}</div>
+          <div className="text-right">Actions</div>
         </div>
 
         {loading ? (
@@ -385,16 +439,19 @@ export default function AdminStudentsPage() {
             {students.map((student) => {
               const location = [student.city, student.state].filter(Boolean).join(", ");
               const completeness = student.profile_completeness;
-              const isPendingMode = filter === "pendingReview";
+
+              // Determine what actions are available for this student
+              const isApproved = !!student.application_completed;
+              const isApprovable = !isApproved; // Can approve any unapproved student
+              const isIncomplete = completeness < 100;
+              const showApproveReject = isApprovable;
+              const showRevoke = isApproved;
+              const hasActions = showApproveReject || showRevoke;
 
               return (
                 <div
                   key={student.id}
-                  className={`group grid gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer items-center ${
-                    isPendingMode
-                      ? "grid-cols-[2fr_1.5fr_80px_80px_100px_140px]"
-                      : "grid-cols-[2fr_1.5fr_80px_80px_100px_32px]"
-                  }`}
+                  className="group grid gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer items-center grid-cols-[2fr_1.5fr_80px_80px_100px_140px]"
                   onClick={() => router.push(`/admin/caregivers/${student.id}`)}
                 >
                   {/* Student Info */}
@@ -402,8 +459,28 @@ export default function AdminStudentsPage() {
                     <p className="font-medium text-gray-900 truncate">
                       {student.display_name}
                     </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {student.email || "No email"}
+                    <p className="text-sm text-gray-500 truncate flex items-center gap-1.5">
+                      <span>{student.email || "No email"}</span>
+                      {student.email && emailHealth[student.email.toLowerCase()]?.status === "complained" && (
+                        <span
+                          title="Email marked as spam"
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-100 text-red-600 cursor-help"
+                        >
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      )}
+                      {student.email && emailHealth[student.email.toLowerCase()]?.status === "bounced" && (
+                        <span
+                          title="Email bounced"
+                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 cursor-help"
+                        >
+                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      )}
                     </p>
                     <p className="text-sm mt-0.5">
                       <span className={completeness >= 80 ? "text-emerald-600" : "text-gray-400"}>
@@ -438,7 +515,7 @@ export default function AdminStudentsPage() {
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                         Paused
                       </span>
-                    ) : student.review_requested_at ? (
+                    ) : student.review_requested_at || completeness >= 100 ? (
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
                         <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
                         Pending
@@ -462,43 +539,68 @@ export default function AdminStudentsPage() {
                     )}
                   </div>
 
-                  {/* Date - shows review_requested_at for pending, created_at otherwise */}
+                  {/* Date */}
                   <div className="text-right">
                     <p className="text-sm text-gray-400">
-                      {isPendingMode && student.review_requested_at
+                      {filter === "pendingReview" && student.review_requested_at
                         ? formatJoinedDate(student.review_requested_at)
                         : formatJoinedDate(student.created_at)}
                     </p>
                   </div>
 
-                  {/* Actions or Delete */}
-                  {isPendingMode ? (
-                    <div className="flex items-center justify-end gap-2">
+                  {/* Actions - show based on student state */}
+                  <div className="flex items-center justify-end gap-2">
+                    {showApproveReject && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isIncomplete) {
+                              // Show warning modal for incomplete profiles
+                              setShowIncompleteApproveModal(student);
+                            } else {
+                              // Direct approve for 100% complete profiles
+                              handleApprove(student);
+                            }
+                          }}
+                          disabled={actionLoading === student.id}
+                          className={`px-3 py-1.5 text-white text-xs font-medium rounded-lg disabled:opacity-50 transition-colors ${
+                            isIncomplete
+                              ? "bg-amber-500 hover:bg-amber-600"
+                              : "bg-primary-600 hover:bg-primary-700"
+                          }`}
+                          title={isIncomplete ? `Profile is ${completeness}% complete` : undefined}
+                        >
+                          {actionLoading === student.id ? "..." : "Approve"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowRejectModal(student);
+                          }}
+                          disabled={actionLoading === student.id}
+                          className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {showRevoke && (
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleApprove(student);
+                          setShowRevokeModal(student);
                         }}
                         disabled={actionLoading === student.id}
-                        className="px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                        className="px-3 py-1.5 bg-amber-500 text-white text-xs font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
                       >
-                        {actionLoading === student.id ? "..." : "Approve"}
+                        {actionLoading === student.id ? "..." : "Revoke"}
                       </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowRejectModal(student);
-                        }}
-                        disabled={actionLoading === student.id}
-                        className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
+                    )}
+                    {!hasActions && (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -514,8 +616,8 @@ export default function AdminStudentsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -661,6 +763,113 @@ export default function AdminStudentsPage() {
                 className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 px-4 py-1.5 rounded-lg disabled:opacity-50"
               >
                 {actionLoading === showRejectModal.id ? "Rejecting..." : "Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revoke confirmation modal */}
+      {showRevokeModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="revoke-student-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 id="revoke-student-title" className="text-base font-semibold text-gray-900 mb-1">
+              Revoke approval?
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {showRevokeModal.display_name}&apos;s profile will no longer be visible to providers.
+              They can request review again to get re-approved.
+            </p>
+            <div className="mb-4">
+              <label htmlFor="revoke-reason" className="block text-sm font-medium text-gray-700 mb-1">
+                Reason (optional)
+              </label>
+              <textarea
+                id="revoke-reason"
+                rows={3}
+                value={revokeReason}
+                onChange={(e) => setRevokeReason(e.target.value)}
+                placeholder="e.g., Profile information appears outdated or inaccurate."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRevokeModal(null);
+                  setRevokeReason("");
+                }}
+                disabled={actionLoading === showRevokeModal.id}
+                className="text-sm font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRevoke(showRevokeModal, revokeReason)}
+                disabled={actionLoading === showRevokeModal.id}
+                className="text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 px-4 py-1.5 rounded-lg disabled:opacity-50"
+              >
+                {actionLoading === showRevokeModal.id ? "Revoking..." : "Revoke Approval"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Incomplete profile approval warning modal */}
+      {showIncompleteApproveModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="incomplete-approve-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 id="incomplete-approve-title" className="text-base font-semibold text-gray-900 mb-1">
+              Approve incomplete profile?
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {showIncompleteApproveModal.display_name}&apos;s profile is only{" "}
+              <span className="font-semibold text-amber-600">
+                {showIncompleteApproveModal.profile_completeness}% complete
+              </span>.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-amber-800">
+                <strong>Warning:</strong> Incomplete profiles may be missing important information
+                like video introductions, availability, or documents. Providers expect complete
+                profiles when reviewing candidates.
+              </p>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Are you sure you want to approve this profile and make it visible to providers?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowIncompleteApproveModal(null)}
+                disabled={actionLoading === showIncompleteApproveModal.id}
+                className="text-sm font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleApprove(showIncompleteApproveModal);
+                  setShowIncompleteApproveModal(null);
+                }}
+                disabled={actionLoading === showIncompleteApproveModal.id}
+                className="text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 px-4 py-1.5 rounded-lg disabled:opacity-50"
+              >
+                {actionLoading === showIncompleteApproveModal.id ? "Approving..." : "Approve Anyway"}
               </button>
             </div>
           </div>

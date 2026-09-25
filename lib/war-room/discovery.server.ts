@@ -104,9 +104,27 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
  * Switching remains one environment variable, and the saving is real -- about
  * sixty-seven cents a scan. It is a quality trade, and it should be made
  * deliberately rather than inherited from a default.
+ *
+ * Made deliberately on 2026-09-25, by the founder, after a side-by-side on the
+ * same day's pack (scripts/cortex-dev-sweep.ts, read-only):
+ *
+ *   Depth. The thinness above no longer reproduces. Sonnet wrote 6,076-6,760
+ *   output tokens across the ten reviews in nine runs, about 90% of Opus's
+ *   7,126. Which lenses survive retention matched except customer and
+ *   operations, both medium impact.
+ *
+ *   Dates. Sonnet said the paying provider renews in "~20 days" in two of
+ *   three runs; the flight ends in 25. The pack carried stale counts from
+ *   notes and memory titles and the model subtracted from those. With the
+ *   date and count stated as `dateFacts` and stale renewal counts scrubbed
+ *   (scrubStaleRenewalCounts), three of three runs said 25 days.
+ *
+ *   Cost. $0.26 a sweep against $0.68.
+ *
+ * WAR_ROOM_MODEL_SWEEP=claude-opus-5 puts it back.
  */
 const PASS_MODELS: Record<string, string | undefined> = {
-  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP,
+  sweeping_lenses: process.env.WAR_ROOM_MODEL_SWEEP || "claude-sonnet-5",
   forming_candidates: process.env.WAR_ROOM_MODEL_DOSSIER || "claude-haiku-4-5-20251001",
   challenging_candidates: process.env.WAR_ROOM_MODEL_TRIAGE || "claude-haiku-4-5-20251001",
   drafting_decision: process.env.WAR_ROOM_MODEL_DRAFT,
@@ -118,7 +136,7 @@ export function modelForStage(stage: string): string {
 // Bump whenever prompt text changes. Every run row and every failure
 // diagnostic is stamped with this, so leaving it alone after editing a prompt
 // makes runs before and after the change indistinguishable in the data.
-export const WAR_ROOM_PROMPT_VERSION = "cortex-v8-commission-the-work";
+export const WAR_ROOM_PROMPT_VERSION = "cortex-v9-dates-as-facts";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;
@@ -715,7 +733,7 @@ function classifyProviderFailure(status: number | null, message: string): WarRoo
 
 export function describeProviderFailure(
   error: unknown,
-  context: { stage: string; tool: string },
+  context: { stage: string; tool: string; model?: string },
 ): WarRoomFailureDiagnostic {
   const status = typeof (error as { status?: unknown })?.status === "number"
     ? (error as { status: number }).status
@@ -728,7 +746,7 @@ export function describeProviderFailure(
     // The model that actually ran this pass, not the default. A 400 from a
     // grammar budget is model-specific, so naming the wrong one sends the next
     // reader looking in the wrong place.
-    model: modelForStage(context.stage),
+    model: context.model ?? modelForStage(context.stage),
     status,
     requestId: providerRequestId(error),
     providerErrorType: body.type,
@@ -790,6 +808,17 @@ function buildOperatingPack(
   const evidenceCatalog = [...internalEvidence, ...capabilityEvidence, ...externalEvidence];
   const operatingPack = {
     generatedAt: factPack.generatedAt,
+    // Dates and day counts, computed here from live rows. On 2026-09-25 the
+    // sweep said the paying provider renews in "~20 days" in two of three runs
+    // while the flight ended in 25: the pack also carried a note saying "Oct 15
+    // renewal (29 days)" and memory titles saying 26 and 27 days, each counted
+    // on an earlier day. The model subtracted from whichever it read. Stating
+    // the date and the count as facts leaves it nothing to compute.
+    dateFacts: {
+      today: factPack.generatedAt.slice(0, 10),
+      ...(factPack.dates ?? {}),
+      rule: "These are computed from live data today and are the only dates and day counts to use. The paying provider's renewal is her next Stripe charge (payingProviderRenews); her ad flight ending is a separate date, never call it the renewal. Every other day count in this pack (notes, the scratchpad, memory titles, earlier findings) was counted on an earlier day and is stale. Never do date arithmetic; if a date you need is not here, name the date without a count.",
+    },
     companyModel,
     // Stated mechanics and the runnable probe menu. Without the mechanics the
     // agent infers a business model from raw counts and gets it wrong; without
@@ -900,12 +929,14 @@ async function callWarRoomTool<T>(input: {
   tool: Anthropic.Messages.Tool;
   maxTokens: number;
   prompt: string;
+  /** Overrides the stage's model. Only the dev sweep passes this. */
+  model?: string;
 }): Promise<{ output: T; inputTokens: number; outputTokens: number; cost: WarRoomCallCost }> {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const startedAt = Date.now();
   try {
-    const stageModel = modelForStage(input.stage);
+    const stageModel = input.model ?? modelForStage(input.stage);
     const message = await anthropic.messages.stream({
       model: stageModel,
       max_tokens: input.maxTokens,
@@ -973,7 +1004,7 @@ async function callWarRoomTool<T>(input: {
     // would discard the category and detail it just built.
     if (error instanceof WarRoomProviderError) throw error;
     if (error instanceof Error && error.message.startsWith("war_room_missing_")) throw error;
-    const diagnostic = describeProviderFailure(error, { stage: input.stage, tool: input.tool.name });
+    const diagnostic = describeProviderFailure(error, { stage: input.stage, tool: input.tool.name, model: input.model });
     throw new WarRoomProviderError(
       `war_room_provider_${diagnostic.category}:${input.tool.name}:${diagnostic.detail}`,
       diagnostic,
@@ -986,7 +1017,7 @@ async function callWarRoomTool<T>(input: {
  * to return its own five named lenses. `domain` is stamped from the property
  * name rather than trusted from the model.
  */
-async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingPack>) {
+async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingPack>, model?: string) {
   const results = await Promise.all(WAR_ROOM_LENS_SWEEP_GROUPS.map(async (group, index) => {
     const tool = WIRE_LENS_SWEEP_TOOLS[index];
     const call = await callWarRoomTool<LensSweepToolOutput>({
@@ -994,6 +1025,7 @@ async function runLensSweepPass(operatingPack: ReturnType<typeof buildOperatingP
       system: INVESTIGATOR_SYSTEM,
       tool,
       maxTokens: 14_000,
+      model,
       prompt: `This call owns the ${group.label} lenses: ${group.domains.join(", ")}. Review each of them against the operating pack and populate every required named field. Do not review any other lens in this call, and do not optimize for producing a founder task.\n${JSON.stringify(sweepContextFor(operatingPack))}`,
     });
     const reviews = group.domains.map((domain) => {
@@ -1025,7 +1057,7 @@ async function runDossierPass(
   operatingPack: ReturnType<typeof buildOperatingPack>,
   lensReviews: StrategicLensReview[],
 ) {
-  const basePrompt = `You already completed the ten-lens sweep below. Preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Zero dossiers is a valid answer, and no more than ${DOSSIER_CEILING} may be returned; if more conditions qualify, keep the most material and leave the rest to the next scan.\n\nTEN-LENS SWEEP:\n${JSON.stringify(lensReviews)}\n\nOPERATING PACK:\n${JSON.stringify(operatingPack)}`;
+  const basePrompt = `You already completed the ten-lens sweep below. Preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Zero dossiers is a valid answer, and no more than ${DOSSIER_CEILING} may be returned; if more conditions qualify, keep the most material and leave the rest to the next scan.\n\nTEN-LENS SWEEP:\n${JSON.stringify(lensReviews)}\n\nOPERATING PACK:\n${JSON.stringify(scrubbedForPrompt(operatingPack))}`;
 
   const attempt = (maxTokens: number, extra?: string) => callWarRoomTool<DossierToolOutput>({
     stage: "forming_candidates",
@@ -1097,7 +1129,91 @@ function councilContextFor(operatingPack: ReturnType<typeof buildOperatingPack>)
  * reads -- the company model, the mechanics, the probe menu, the contract, the
  * facts -- is untouched.
  */
-function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
+/**
+ * Remove renewal day counts that were written on an earlier day.
+ *
+ * `dateFacts` says the count; a stale one beside it is what the model copies.
+ * On 2026-09-25, with the correct count stated as a fact, one Sonnet run still
+ * titled a condition "27-day renewal risk", lifted verbatim from a memory title
+ * written two days before. Only counts tied to a renewal or flight end are
+ * touched; a "30-day window" is a definition, not a countdown.
+ */
+export function scrubStaleRenewalCounts(text: string): string {
+  return text
+    .replace(/\b\d{1,3}[- ]day (renewal|flight)/gi, "$1")
+    .replace(/\b(renew\w*|ends?|lands?|closes?)\s+in\s+~?\d{1,3}\s+days?\b/gi, "$1 on the date in dateFacts")
+    .replace(/\b\d{1,3}\s+days?\s+(until|before|to)\s+(her |the |its )?(soonest paid )?(renewal|flight)/gi, "before $2$3$4")
+    .replace(/(renew\w*[^()]{0,40})\s*\(\s*~?\d{1,3}\s+days?\s*\)/gi, "$1");
+}
+
+/**
+ * The operating pack as a prompt sees it: stale renewal counts removed, and
+ * the evidence that costs tokens without informing a lens left out.
+ *
+ * Applied where each prompt is built, never to the pack itself. The pack's
+ * evidence is also what reasoning checks, what proposals store and what the
+ * condition hash covers, so rewriting it at the source would change stored
+ * evidence and move every hash. Computed evidence states its own count
+ * correctly; notes and memory do not.
+ */
+/**
+ * Evidence the prompts no longer carry, measured on 2026-09-25 against a 120k
+ * character sweep input:
+ *
+ *   Cortex's own design doc (14.9k). It describes how Cortex works, not how the
+ *   company is doing, and it was sent to every pass as company evidence.
+ *
+ *   The scratchpad beyond its newest three chunks (about 10k). It is an
+ *   engineering session log; its older entries are also where the stale "Oct 15
+ *   renewal (29 days)" came from.
+ */
+const PROMPT_EXCLUDED_SOURCES = ["archive:docs/war-room-operating-agent.md"];
+const PROMPT_SCRATCHPAD_CHUNKS = 3;
+const PROMPT_TOP_PAGES = 5;
+
+function trimEvidenceForPrompt(items: WarRoomProposalEvidence[]): WarRoomProposalEvidence[] {
+  const kept = items.filter((item) => !PROMPT_EXCLUDED_SOURCES.some((source) => item.source.startsWith(source)));
+  const scratchpad = kept
+    .filter((item) => item.source.startsWith("archive:SCRATCHPAD.md"))
+    .sort((a, b) => (b.occurredAt ?? "").localeCompare(a.occurredAt ?? ""))
+    .slice(PROMPT_SCRATCHPAD_CHUNKS);
+  const dropped = new Set(scratchpad.map((item) => item.id));
+  return kept.filter((item) => !dropped.has(item.id));
+}
+
+/** Top pages only. Two weeks of full page lists were 5.8k of the 6.6k weekly growth block. */
+function trimWeeklyGrowthForPrompt<T>(companyFacts: T): T {
+  const facts = companyFacts as unknown as { weeklyGrowth?: Record<string, Record<string, unknown> | null> };
+  if (!facts.weeklyGrowth) return companyFacts;
+  const weeks = Object.fromEntries(Object.entries(facts.weeklyGrowth).map(([key, week]) => {
+    if (!week || typeof week !== "object") return [key, week];
+    const trimmed: Record<string, unknown> = { ...week };
+    for (const field of ["organicLandingPages", "searchTopPages"]) {
+      if (Array.isArray(trimmed[field])) trimmed[field] = (trimmed[field] as unknown[]).slice(0, PROMPT_TOP_PAGES);
+    }
+    return [key, trimmed];
+  }));
+  return { ...(companyFacts as object), weeklyGrowth: weeks } as T;
+}
+
+function scrubbedForPrompt(operatingPack: ReturnType<typeof buildOperatingPack>): ReturnType<typeof buildOperatingPack> {
+  return {
+    ...operatingPack,
+    companyFacts: trimWeeklyGrowthForPrompt(operatingPack.companyFacts),
+    evidenceCatalog: trimEvidenceForPrompt(operatingPack.evidenceCatalog).map((item) =>
+      item.id.startsWith("signal:") || item.id.startsWith("metric:")
+        ? item
+        : { ...item, detail: scrubStaleRenewalCounts(item.detail) }),
+    investigationMemory: operatingPack.investigationMemory.map((investigation) => ({
+      ...investigation,
+      title: investigation.title ? scrubStaleRenewalCounts(investigation.title) : investigation.title,
+      likelyCause: investigation.likelyCause ? scrubStaleRenewalCounts(investigation.likelyCause) : investigation.likelyCause,
+    })),
+  };
+}
+
+function sweepContextFor(unscrubbed: ReturnType<typeof buildOperatingPack>) {
+  const operatingPack = scrubbedForPrompt(unscrubbed);
   return {
     ...operatingPack,
     proposalMemory: operatingPack.proposalMemory.map((proposal) => ({
@@ -1190,7 +1306,7 @@ async function runTriagePass(
     system: COUNCIL_SYSTEM,
     tool: WIRE_TRIAGE_TOOL,
     maxTokens: 14_000,
-    prompt: `Classify every dossier as agenda, watchlist, investigate, or drop. At most one may be agenda, and zero is the normal answer. If exactly one clears the founder-interruption standard, mark it agenda; you will be asked to write it up in a separate call.\n\nCOUNCIL CONTEXT:\n${JSON.stringify(councilContextFor(operatingPack))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(investigator.provisionalInvestigations)}`,
+    prompt: `Classify every dossier as agenda, watchlist, investigate, or drop. At most one may be agenda, and zero is the normal answer. If exactly one clears the founder-interruption standard, mark it agenda; you will be asked to write it up in a separate call.\n\nCOUNCIL CONTEXT:\n${JSON.stringify(councilContextFor(scrubbedForPrompt(operatingPack)))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(investigator.provisionalInvestigations)}`,
   });
   return {
     rawTriageOutput: call.output,
@@ -1296,7 +1412,7 @@ Rules:
 CONDITION:\n${JSON.stringify(commissioned)}
 
 COUNCIL CONTEXT:
-${JSON.stringify(draftingContextFor(operatingPack, commissioned.fingerprint))}
+${JSON.stringify(draftingContextFor(scrubbedForPrompt(operatingPack), commissioned.fingerprint))}
 
 CHIEF-OF-STAFF READ:
 ${investigator.rawInvestigatorOutput.portfolioRead}`,
@@ -1333,7 +1449,7 @@ async function runProposalPass(
     system: COUNCIL_SYSTEM,
     tool: WIRE_PROPOSAL_TOOL,
     maxTokens: 12_000,
-    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(draftingContextFor(operatingPack, nominated.fingerprint))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
+    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(draftingContextFor(scrubbedForPrompt(operatingPack), nominated.fingerprint))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
   });
   const brief = call.output?.brief ?? {};
   const execution = call.output?.execution ?? {};
@@ -2044,6 +2160,30 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
     syncArchiveEvidence(db),
   ]);
   await updateDiscoveryStage(db, runId, "building_operating_pack", { slack, notion, archive, stage_attempt: attempt });
+  const inputs = await assembleWarRoomInputs(db);
+  const { factPack, externalEvidence, factPackHash, sourceEvidence, probeEvidence } = inputs;
+  const sourceSummary = {
+    slack,
+    notion,
+    archive,
+    external_evidence_count: sourceEvidence.length,
+    probe_evidence_count: probeEvidence.length,
+    internal_evidence_count: factPack.evidenceCatalog.length,
+    fact_pack_hash: factPackHash,
+    prompt_version: WAR_ROOM_PROMPT_VERSION,
+  };
+  await updateDiscoveryStage(db, runId, "forming_candidates", sourceSummary);
+  return { ...inputs.prepared, sourceSummary };
+}
+
+/**
+ * Everything the model passes read, built from the database alone.
+ *
+ * Split out of `prepareWarRoomDiscovery` so the dev sweep can build the same
+ * input without claiming a run row or re-syncing Slack, Notion and the archive.
+ * Reads only.
+ */
+async function assembleWarRoomInputs(db: SupabaseClient) {
   const [snapshot, sourceEvidence, probeEvidence, founderEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
     buildWarRoomSnapshot(db, 30),
     loadExternalEvidence(db),
@@ -2092,27 +2232,43 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
     occurredAt: "occurredAt" in item ? item.occurredAt ?? null : null,
     freshness: "freshness" in item ? item.freshness ?? null : null,
   })));
-  const sourceSummary = {
-    slack,
-    notion,
-    archive,
-    external_evidence_count: sourceEvidence.length,
-    probe_evidence_count: probeEvidence.length,
-    internal_evidence_count: factPack.evidenceCatalog.length,
-    fact_pack_hash: factPackHash,
-    prompt_version: WAR_ROOM_PROMPT_VERSION,
-  };
-  await updateDiscoveryStage(db, runId, "forming_candidates", sourceSummary);
   return {
     factPack,
     externalEvidence,
-    companyModel,
-    proposalMemory: [...memoryById.values()],
-    investigationMemory: (investigationMemoryResult.data ?? []) as InvestigationMemory,
-    blockedInterventionFingerprints: (blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint),
     factPackHash,
-    sourceSummary,
+    sourceEvidence,
+    probeEvidence,
+    prepared: {
+      factPack,
+      externalEvidence,
+      companyModel,
+      proposalMemory: [...memoryById.values()],
+      investigationMemory: (investigationMemoryResult.data ?? []) as InvestigationMemory,
+      blockedInterventionFingerprints: (blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint),
+      factPackHash,
+    },
   };
+}
+
+/**
+ * The lens sweep on today's data, on any model, touching nothing.
+ *
+ * The daily scan costs about $0.89, and 78% of that is two Opus sweep calls.
+ * Tinkering with the sweep used to mean paying for a full run, and comparing a
+ * cheaper model meant switching production to it and hoping. This builds the
+ * same input the scan would, runs only the sweep, and returns the lens reviews
+ * with their cost. No run row, no source sync, no probes, nothing written.
+ * Pass a read-only client (see scripts/cortex-dev-sweep.ts).
+ */
+/** The exact JSON the sweep is sent, for measuring and inspecting it. Reads only. */
+export async function devWarRoomSweepContext(db: SupabaseClient) {
+  const { prepared } = await assembleWarRoomInputs(db);
+  return sweepContextFor(operatingPackFor({ ...prepared, sourceSummary: {} }));
+}
+
+export async function devSweepWarRoomLenses(db: SupabaseClient, model: string) {
+  const { prepared } = await assembleWarRoomInputs(db);
+  return runLensSweepPass(operatingPackFor({ ...prepared, sourceSummary: {} }), model);
 }
 
 function operatingPackFor(prepared: WarRoomPreparedDiscovery) {

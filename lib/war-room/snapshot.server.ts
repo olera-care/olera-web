@@ -16,6 +16,7 @@ import type {
   WarRoomSource,
 } from "@/lib/war-room/types";
 import type { GrowthSnapshot } from "@/lib/growth/types";
+import { loadPaidRenewal } from "@/lib/war-room/renewals.server";
 
 type CountResult = { count: number | null; error: { message: string } | null };
 
@@ -305,6 +306,13 @@ export async function buildWarRoomSnapshot(
     .map((row) => daysUntil(row.flight_end_date))
     .filter((value): value is number => value !== null)
     .sort((a, b) => a - b);
+  // The date itself, not only the count. A model handed "25 days" next to a
+  // four-day-old note saying "29 days" does the subtraction wrong; handed the
+  // date, it has nothing to compute.
+  const soonestPaidFlightEnd = payingRows
+    .map((row) => row.flight_end_date)
+    .filter((value): value is string => typeof value === "string" && daysUntil(value) !== null)
+    .sort()[0] ?? null;
   const growthRows = growthResult.error ? [] : growthResult.data as GrowthSnapshot[];
   const latestGrowth = growthRows[0] ?? null;
   const priorGrowth = growthRows[1] ?? null;
@@ -354,6 +362,8 @@ export async function buildWarRoomSnapshot(
     adBoostStalledPaused: stalledPaused,
     adBoostStalledAttended: stalledAttended,
     adBoostSoonestPaidRenewalDays: paidRenewalDays[0] ?? null,
+    adBoostSoonestPaidFlightEndDate: soonestPaidFlightEnd ? soonestPaidFlightEnd.slice(0, 10) : null,
+    northStarDue: primaryTarget?.due ?? null,
     adBoostCallRecordAvailable: !callTouchResult.error,
     supportUnhandled: supportCountResult.count ?? 0,
     supportUrgent: supportUrgentResult.count ?? 0,
@@ -505,9 +515,24 @@ export async function buildWarRoomSnapshot(
     }))),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8);
 
+  // Read live from Stripe; a failure leaves the renewal unknown, never the flight end relabelled.
+  const paidRenewal = await loadPaidRenewal(db).catch(() => null);
+
   return {
     generatedAt,
     windowDays,
+    // Passed to the model as facts so it never does date arithmetic.
+    dates: {
+      // The next charge, from Stripe. Not the flight end: for Hoop Cares the
+      // flight ends Oct 20 and she is billed Oct 15.
+      payingProviderRenews: paidRenewal?.renewsOn ?? null,
+      daysUntilPayingProviderRenews: paidRenewal?.daysUntilRenewal ?? null,
+      renewalSource: paidRenewal?.source ?? null,
+      payingProviderFlightEnds: facts.adBoostSoonestPaidFlightEndDate ?? null,
+      daysUntilPayingProviderFlightEnds: facts.adBoostSoonestPaidRenewalDays,
+      northStarDue: facts.northStarDue ?? null,
+      daysUntilNorthStarDue: facts.northStarDaysRemaining ?? null,
+    },
     recommendation: chooseWarRoomRecommendation(facts),
     metrics: buildWarRoomMetrics(facts),
     comparisons,

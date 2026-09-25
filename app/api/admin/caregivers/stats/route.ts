@@ -164,11 +164,12 @@ export async function GET(request: NextRequest) {
       } else if (meta.application_completed && !profile.is_active) {
         // Approved but paused by student
         pausedCount++;
-      } else if (meta.review_requested_at) {
-        // Requested review, awaiting approval (regardless of is_active)
+      } else if (meta.review_requested_at || completeness >= INCOMPLETE_THRESHOLD) {
+        // Ready for admin review: either explicitly requested OR 100% complete
+        // This ensures non-.edu students with complete profiles appear in Pending Review
         pendingReviewCount++;
       } else {
-        // Never requested review or rejected
+        // Incomplete and no review request
         notLiveCount++;
       }
 
@@ -177,8 +178,9 @@ export async function GET(request: NextRequest) {
       if (meta.application_completed) {
         approvedCount++;
       }
-      // Rejected = has rejected_at but was not subsequently approved
-      if (meta.rejected_at && !meta.approved_at) {
+      // Rejected = has rejected_at AND is not currently approved
+      // Using application_completed (not approved_at) so that revoked-then-rejected students appear here
+      if (meta.rejected_at && !meta.application_completed) {
         rejectedCount++;
       }
     }

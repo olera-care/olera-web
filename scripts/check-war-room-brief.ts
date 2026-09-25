@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildWarRoomBriefText, sendableQuestion } from "../lib/war-room/brief-delivery.server";
+import { buildWarRoomBriefText, easternDay, isSweepDay, renewalText, sendableQuestion } from "../lib/war-room/brief-delivery.server";
 import { fallbackMove, parseMoveReply, pickMove, type MoveCandidate } from "../lib/war-room/brief-move.server";
 import { scrubStaleRenewalCounts } from "../lib/war-room/discovery.server";
 
@@ -107,5 +107,29 @@ assert.ok(!withMoments.includes("Already done?"), "only approved work gets the m
 assert.equal(scrubStaleRenewalCounts("1 of 12 paid providers with 27-day renewal risk"), "1 of 12 paid providers with renewal risk");
 assert.equal(scrubStaleRenewalCounts("one subscriber renewing in 26 days"), "one subscriber renewing on the date in dateFacts");
 assert.equal(scrubStaleRenewalCounts("count 30-day inquiries with a failed send"), "count 30-day inquiries with a failed send");
+
+// 11. The renewal is Stripe's next charge, not the ad flight's end, and shows
+// above the divider every day it is within 30 days.
+const renewal = { name: "Hoop Cares", renewsOn: "2026-10-15", daysUntilRenewal: 20, amount: 75, flightEndsOn: "2026-10-20", daysUntilFlightEnd: 25, source: "stripe" as const };
+const withRenewal = buildWarRoomBriefText({ ...base, renewal });
+assert.ok(withRenewal.startsWith("_Hoop Cares renews Oct 15 ($75), in 20 days. Her ad flight ends Oct 20._"));
+assert.ok(withRenewal.indexOf("Hoop Cares") < withRenewal.indexOf(DIVIDER));
+assert.equal(renewalText({ ...renewal, daysUntilRenewal: 45 }), null);
+// Stripe unreadable: name the flight end as what it is, never as a renewal.
+assert.equal(
+  renewalText({ ...renewal, renewsOn: null, daysUntilRenewal: null, source: "flight_end" }),
+  "_Hoop Cares's ad flight ends Oct 20, in 25 days. Billing date unread._",
+);
+
+// 12. A brief-only day says so instead of pricing a scan that did not run.
+const briefOnlyText = buildWarRoomBriefText({ ...base, costUsd: null, briefOnly: true });
+assert.ok(briefOnlyText.includes("_No full scan today; it runs Mon, Wed, Fri."));
+assert.ok(!briefOnlyText.includes("Scan cost unknown"));
+
+// 13. Sweep days are US Eastern weekdays: 01:00 UTC Tuesday is still Monday in New York.
+assert.equal(easternDay(new Date("2026-09-29T01:00:00Z")).date, "2026-09-28");
+assert.equal(isSweepDay(new Date("2026-09-29T01:00:00Z")), true);   // Monday ET
+assert.equal(isSweepDay(new Date("2026-09-29T14:30:00Z")), false);  // Tuesday ET
+assert.equal(isSweepDay(new Date("2026-09-25T14:30:00Z")), true);   // Friday ET
 
 console.log("war room brief checks passed");

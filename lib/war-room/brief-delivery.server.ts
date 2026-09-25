@@ -5,6 +5,7 @@ import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.se
 import { isFounderAnswerable, pickQuestionForFounder, recordFounderAsk, type FounderQuestion } from "@/lib/war-room/founder-loop.server";
 import { phraseMove, pickMove, type BriefMove, type MoveCandidate } from "@/lib/war-room/brief-move.server";
 import { loadProviderMoments, type ProviderMoment } from "@/lib/war-room/provider-moments.server";
+import { loadPaidRenewal, type PaidRenewal } from "@/lib/war-room/renewals.server";
 import { closeExchange } from "@/lib/war-room/conversation.server";
 import { loadBlindSpots, loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
@@ -31,6 +32,33 @@ import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/ty
  */
 
 const DELIVERY_STATE_KEY = "brief_delivery";
+
+/**
+ * Days the full scan runs, as US Eastern weekdays (0 Sunday .. 6 Saturday).
+ *
+ * The founder's condition for running it three days a week was that renewals
+ * and provider moments are still checked every day. They are: on the other
+ * days the cron sends a brief built from live data alone (provider emails,
+ * approvals, the renewal) and skips only the model passes.
+ */
+export const SWEEP_DAYS = (process.env.WAR_ROOM_SWEEP_DAYS ?? "1,3,5")
+  .split(",").map((day) => Number(day.trim())).filter((day) => day >= 0 && day <= 6);
+const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const SWEEP_DAY_LABEL = SWEEP_DAYS.map((day) => WEEKDAY_NAMES[day]).join(", ");
+
+export function easternDay(now = new Date()): { date: string; weekday: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", weekday: "short",
+  }).formatToParts(now);
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return { date: `${get("year")}-${get("month")}-${get("day")}`, weekday: WEEKDAY_NAMES.indexOf(get("weekday")) };
+}
+
+export function isSweepDay(now = new Date()) {
+  return SWEEP_DAYS.includes(easternDay(now).weekday);
+}
+
+const RENEWAL_WINDOW_DAYS = 30;
 
 function shortDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
@@ -126,6 +154,25 @@ export function sendableQuestion(question: FounderQuestion | null | undefined): 
   return isFounderAnswerable(question.question).ok ? question : null;
 }
 
+const plural = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
+
+export function renewalText(renewal: PaidRenewal | null | undefined): string | null {
+  if (!renewal) return null;
+  if (renewal.renewsOn && renewal.daysUntilRenewal !== null) {
+    if (renewal.daysUntilRenewal > RENEWAL_WINDOW_DAYS) return null;
+    const amount = renewal.amount ? ` ($${renewal.amount})` : "";
+    const flight = renewal.flightEndsOn && renewal.flightEndsOn !== renewal.renewsOn
+      ? ` Her ad flight ends ${shortDate(renewal.flightEndsOn)}.`
+      : "";
+    return `_${renewal.name} renews ${shortDate(renewal.renewsOn)}${amount}, in ${plural(renewal.daysUntilRenewal)}.${flight}_`;
+  }
+  // Stripe could not be read: say what the date is, not that it is a renewal.
+  if (renewal.flightEndsOn && renewal.daysUntilFlightEnd !== null && renewal.daysUntilFlightEnd <= RENEWAL_WINDOW_DAYS) {
+    return `_${renewal.name}'s ad flight ends ${shortDate(renewal.flightEndsOn)}, in ${plural(renewal.daysUntilFlightEnd)}. Billing date unread._`;
+  }
+  return null;
+}
+
 /**
  * Pure: takes already-fetched data and returns the Slack text.
  *
@@ -150,6 +197,10 @@ export function buildWarRoomBriefText(input: {
   move?: (BriefMove & { title: string; kind?: MoveCandidate["kind"] }) | null;
   /** Provider emails from the last 48 hours other than the one leading as the move. */
   moments?: Array<{ title: string }>;
+  /** The paying provider's flight end, shown every day it is within RENEWAL_WINDOW_DAYS. */
+  renewal?: PaidRenewal | null;
+  /** A day without a full scan: the brief is built from live data only. */
+  briefOnly?: boolean;
   question?: FounderQuestion | null;
   unanswerable?: string[];
   blindSpots?: string[];
@@ -196,6 +247,15 @@ export function buildWarRoomBriefText(input: {
   // Silence is not an option here: the brief is also how he learns the scan
   // ran at all, and a missing message looks exactly like a broken one. So a
   // quiet day says so in one line, and the numbers stay below it.
+  // The renewal is checked every day, scan or not. It is the one date where
+  // being a day late is the whole cost. The renewal is Stripe's next charge;
+  // the ad flight's end is a different date and is named as one.
+  const renewalLine = renewalText(input.renewal);
+  if (renewalLine) {
+    if (lines.length) lines.push("");
+    lines.push(renewalLine);
+  }
+
   if (!lines.length) lines.push("Nothing needs you today.");
 
   lines.push("", "───────────", `_Below the line: what I measured, ${date}. ${href}_`);
@@ -255,7 +315,9 @@ export function buildWarRoomBriefText(input: {
   }
 
   // "Scan 2.39." was read as a scan number, not a price. Say it's dollars.
-  lines.push("", input.costUsd != null ? `_This scan cost $${input.costUsd.toFixed(2)}._` : "_Scan cost unknown._");
+  lines.push("", input.briefOnly
+    ? `_No full scan today; it runs ${SWEEP_DAY_LABEL}. Provider emails, the renewal and approvals were checked._`
+    : input.costUsd != null ? `_This scan cost $${input.costUsd.toFixed(2)}._` : "_Scan cost unknown._");
   return lines.join("\n");
 }
 
@@ -282,10 +344,17 @@ async function loadUnanswerable(db: SupabaseClient, lastBriefAt: string | null):
   return [...conversation, ...scan];
 }
 
+/**
+ * Send the brief for a finished scan (pass its run id), or, on a day without a
+ * full scan, the brief built from live data alone (pass `{ briefOnly: true }`).
+ */
 export async function deliverWarRoomBrief(
   db: SupabaseClient,
-  runId: string,
+  target: string | { briefOnly: true },
 ): Promise<{ delivered: boolean; reason?: string; channel?: "dm" | "webhook"; dmError?: string | null }> {
+  const briefOnly = typeof target !== "string";
+  const runId = typeof target === "string" ? target : null;
+  const day = easternDay().date;
   try {
     // Durable steps retry. Without this guard a retried step sends the founder
     // the same brief twice, which is exactly the kind of noise that trains
@@ -294,16 +363,26 @@ export async function deliverWarRoomBrief(
       .select("metadata, last_success_at")
       .eq("source_key", DELIVERY_STATE_KEY)
       .maybeSingle();
-    if ((state?.metadata as { run_id?: string } | null)?.run_id === runId) {
+    const delivered = (state?.metadata ?? null) as { run_id?: string; day?: string; brief_only?: boolean } | null;
+    if (runId && delivered?.run_id === runId) {
       return { delivered: false, reason: "already delivered for this run" };
     }
+    // A brief-only day sends once, and never after that day's scan brief.
+    if (briefOnly && delivered?.day === day) {
+      return { delivered: false, reason: "already delivered today" };
+    }
 
-    const { data: runRow } = await db.from("war_room_discovery_runs")
-      .select("*")
-      .eq("id", runId)
-      .maybeSingle();
-    if (!runRow) return { delivered: false, reason: "run not found" };
-    const run = runRow as WarRoomDiscoveryRun;
+    let run: WarRoomDiscoveryRun;
+    if (runId) {
+      const { data: runRow } = await db.from("war_room_discovery_runs")
+        .select("*")
+        .eq("id", runId)
+        .maybeSingle();
+      if (!runRow) return { delivered: false, reason: "run not found" };
+      run = runRow as WarRoomDiscoveryRun;
+    } else {
+      run = { status: "completed", created_at: new Date().toISOString(), error_message: null, source_summary: {} } as unknown as WarRoomDiscoveryRun;
+    }
     let readings: WarRoomProbeReading[] = [];
     let proposals: ProposalRow[] = [];
     let approvedOpen: ApprovedRow[] = [];
@@ -314,13 +393,17 @@ export async function deliverWarRoomBrief(
     let momentCandidates: MoveCandidate[] = [];
     let unanswerable: string[] = [];
     let blindSpots: string[] = [];
+    let renewal: PaidRenewal | null = null;
     if (run.status !== "failed") {
+      renewal = await loadPaidRenewal(db).catch(() => null);
       unanswerable = await loadUnanswerable(db, (state as { last_success_at?: string | null } | null)?.last_success_at ?? null)
         .catch(() => []);
       blindSpots = await loadBlindSpots(db).catch(() => []);
       // Never ask on a failed scan. There is no fresh read behind the question,
       // and the only useful message on a failure is that it failed.
-      question = sendableQuestion(await pickQuestionForFounder(db).catch(() => null));
+      // Only on scan days. A question is only worth his time with a fresh read
+      // behind it, and the answer is evidence for a scan that must then run.
+      question = briefOnly ? null : sendableQuestion(await pickQuestionForFounder(db).catch(() => null));
       const nudgeCutoff = new Date(Date.now() - APPROVED_NUDGE_DAYS * 86_400_000).toISOString();
       const [readingResult, proposalResult, approvedResult, investigationResult] = await Promise.all([
         loadWarRoomBriefing(db),
@@ -376,7 +459,9 @@ export async function deliverWarRoomBrief(
       approvedOpen,
       open,
       watching,
-      costUsd: warRoomScanCost(run)?.usd ?? null,
+      costUsd: briefOnly ? null : warRoomScanCost(run)?.usd ?? null,
+      renewal,
+      briefOnly,
       move,
       moments: momentCandidates.map((candidate) => ({ title: candidate.title })),
       question,
@@ -417,7 +502,7 @@ export async function deliverWarRoomBrief(
     // this message's thread resolves to this exact condition; without it every
     // answer falls back to "whatever was asked most recently", which is wrong
     // as soon as a newer brief lands in between.
-    if (question) await recordFounderAsk(db, question, runId, result.ts ?? null).catch(() => false);
+    if (question && runId) await recordFounderAsk(db, question, runId, result.ts ?? null).catch(() => false);
 
     // A brief changes the subject, whether or not it carried a question. Any
     // conversation still counted as "in progress" ends here, or the next thing
@@ -432,7 +517,7 @@ export async function deliverWarRoomBrief(
       last_error: null,
       // Which path actually carried it. Without this a missing chat:write
       // scope looks identical to a successful DM from the outside.
-      metadata: { run_id: runId, status: run.status, channel, dm_error: dmError },
+      metadata: { run_id: runId, day, brief_only: briefOnly, status: run.status, channel, dm_error: dmError },
       updated_at: new Date().toISOString(),
     }, { onConflict: "source_key" }).then(() => undefined, () => undefined);
 

@@ -141,6 +141,9 @@ export interface WarRoomSnapshot {
   recommendation: WarRoomRecommendation;
   metrics: WarRoomMetric[];
   dates?: {
+    payingProviderRenews: string | null;
+    daysUntilPayingProviderRenews: number | null;
+    renewalSource: "stripe" | "flight_end" | null;
     payingProviderFlightEnds: string | null;
     daysUntilPayingProviderFlightEnds: number | null;
     northStarDue: string | null;

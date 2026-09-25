@@ -16,6 +16,7 @@ import type {
   WarRoomSource,
 } from "@/lib/war-room/types";
 import type { GrowthSnapshot } from "@/lib/growth/types";
+import { loadPaidRenewal } from "@/lib/war-room/renewals.server";
 
 type CountResult = { count: number | null; error: { message: string } | null };
 
@@ -514,11 +515,19 @@ export async function buildWarRoomSnapshot(
     }))),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8);
 
+  // Read live from Stripe; a failure leaves the renewal unknown, never the flight end relabelled.
+  const paidRenewal = await loadPaidRenewal(db).catch(() => null);
+
   return {
     generatedAt,
     windowDays,
     // Passed to the model as facts so it never does date arithmetic.
     dates: {
+      // The next charge, from Stripe. Not the flight end: for Hoop Cares the
+      // flight ends Oct 20 and she is billed Oct 15.
+      payingProviderRenews: paidRenewal?.renewsOn ?? null,
+      daysUntilPayingProviderRenews: paidRenewal?.daysUntilRenewal ?? null,
+      renewalSource: paidRenewal?.source ?? null,
       payingProviderFlightEnds: facts.adBoostSoonestPaidFlightEndDate ?? null,
       daysUntilPayingProviderFlightEnds: facts.adBoostSoonestPaidRenewalDays,
       northStarDue: facts.northStarDue ?? null,

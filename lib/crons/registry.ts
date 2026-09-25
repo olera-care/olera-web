@@ -804,7 +804,7 @@ export const CRON_REGISTRY: CronJob[] = [
     audience: "Data & maintenance",
     fn: "refresh",
     schedule: "30 10 * * *",
-    humanSchedule: "Daily, 10:30 UTC (~5:30–6:30 AM ET)",
+    humanSchedule: "Daily, 10:30 UTC (~5:30–6:30 AM ET). Full scan Mon/Wed/Fri (WAR_ROOM_SWEEP_DAYS); other days send the founder brief from live data only.",
     path: "/api/cron/war-room-discovery",
     emailTypes: [],
     successSignal: "At most one evidence-cited, decision-ready proposal reaches the founder; empty days are expected and allowed.",

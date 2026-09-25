@@ -817,7 +817,7 @@ function buildOperatingPack(
     dateFacts: {
       today: factPack.generatedAt.slice(0, 10),
       ...(factPack.dates ?? {}),
-      rule: "These are computed from live data today and are the only dates and day counts to use. The paying provider's flight end is the renewal date Olera tracks. Every other day count in this pack (notes, the scratchpad, memory titles, earlier findings) was counted on an earlier day and is stale. Never do date arithmetic; if a date you need is not here, name the date without a count.",
+      rule: "These are computed from live data today and are the only dates and day counts to use. The paying provider's renewal is her next Stripe charge (payingProviderRenews); her ad flight ending is a separate date, never call it the renewal. Every other day count in this pack (notes, the scratchpad, memory titles, earlier findings) was counted on an earlier day and is stale. Never do date arithmetic; if a date you need is not here, name the date without a count.",
     },
     companyModel,
     // Stated mechanics and the runnable probe menu. Without the mechanics the

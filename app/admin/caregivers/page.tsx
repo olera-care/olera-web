@@ -470,6 +470,9 @@ export default function AdminStudentsPage() {
                         </span>
                       )}
                     </p>
+                    {student.phone && (
+                      <p className="text-sm text-gray-500 truncate">{student.phone}</p>
+                    )}
                     <p className="text-sm mt-0.5">
                       <span className={completeness >= 80 ? "text-emerald-600" : "text-gray-400"}>
                         {completeness}% complete

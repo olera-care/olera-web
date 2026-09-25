@@ -113,7 +113,12 @@ export function normalizeMetaLead(lead: MetaLead, receipt: NativeReceipt, form: 
   const fullName = fields.get("full_name") || fields.get("first_name") || "";
   let digits = (fields.get("phone_number") || "").replace(/\D/g, "");
   if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
-  if (!fullName || !/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) throw new Error("Lead needs a valid name and US phone");
+  if (!fullName || !/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) {
+    // Field keys and the digit count only, never the values: enough to tell a
+    // renamed question from a foreign number without writing contact data.
+    throw new Error(`Lead needs a valid name and US phone (name ${fullName ? "present" : "missing"}, ` +
+      `phone digits ${digits.length}, fields: ${[...fields.keys()].join(", ")})`);
+  }
   const email = fields.get("email")?.toLowerCase() || null;
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Lead email is invalid");
   const zip = fields.get("zip_code") || fields.get("post_code") || "";

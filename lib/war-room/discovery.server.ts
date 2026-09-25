@@ -1147,7 +1147,8 @@ export function scrubStaleRenewalCounts(text: string): string {
 }
 
 /**
- * The operating pack as a prompt sees it: stale renewal counts removed.
+ * The operating pack as a prompt sees it: stale renewal counts removed, and
+ * the evidence that costs tokens without informing a lens left out.
  *
  * Applied where each prompt is built, never to the pack itself. The pack's
  * evidence is also what reasoning checks, what proposals store and what the
@@ -1155,10 +1156,51 @@ export function scrubStaleRenewalCounts(text: string): string {
  * evidence and move every hash. Computed evidence states its own count
  * correctly; notes and memory do not.
  */
+/**
+ * Evidence the prompts no longer carry, measured on 2026-09-25 against a 120k
+ * character sweep input:
+ *
+ *   Cortex's own design doc (14.9k). It describes how Cortex works, not how the
+ *   company is doing, and it was sent to every pass as company evidence.
+ *
+ *   The scratchpad beyond its newest three chunks (about 10k). It is an
+ *   engineering session log; its older entries are also where the stale "Oct 15
+ *   renewal (29 days)" came from.
+ */
+const PROMPT_EXCLUDED_SOURCES = ["archive:docs/war-room-operating-agent.md"];
+const PROMPT_SCRATCHPAD_CHUNKS = 3;
+const PROMPT_TOP_PAGES = 5;
+
+function trimEvidenceForPrompt(items: WarRoomProposalEvidence[]): WarRoomProposalEvidence[] {
+  const kept = items.filter((item) => !PROMPT_EXCLUDED_SOURCES.some((source) => item.source.startsWith(source)));
+  const scratchpad = kept
+    .filter((item) => item.source.startsWith("archive:SCRATCHPAD.md"))
+    .sort((a, b) => (b.occurredAt ?? "").localeCompare(a.occurredAt ?? ""))
+    .slice(PROMPT_SCRATCHPAD_CHUNKS);
+  const dropped = new Set(scratchpad.map((item) => item.id));
+  return kept.filter((item) => !dropped.has(item.id));
+}
+
+/** Top pages only. Two weeks of full page lists were 5.8k of the 6.6k weekly growth block. */
+function trimWeeklyGrowthForPrompt<T>(companyFacts: T): T {
+  const facts = companyFacts as unknown as { weeklyGrowth?: Record<string, Record<string, unknown> | null> };
+  if (!facts.weeklyGrowth) return companyFacts;
+  const weeks = Object.fromEntries(Object.entries(facts.weeklyGrowth).map(([key, week]) => {
+    if (!week || typeof week !== "object") return [key, week];
+    const trimmed: Record<string, unknown> = { ...week };
+    for (const field of ["organicLandingPages", "searchTopPages"]) {
+      if (Array.isArray(trimmed[field])) trimmed[field] = (trimmed[field] as unknown[]).slice(0, PROMPT_TOP_PAGES);
+    }
+    return [key, trimmed];
+  }));
+  return { ...(companyFacts as object), weeklyGrowth: weeks } as T;
+}
+
 function scrubbedForPrompt(operatingPack: ReturnType<typeof buildOperatingPack>): ReturnType<typeof buildOperatingPack> {
   return {
     ...operatingPack,
-    evidenceCatalog: operatingPack.evidenceCatalog.map((item) =>
+    companyFacts: trimWeeklyGrowthForPrompt(operatingPack.companyFacts),
+    evidenceCatalog: trimEvidenceForPrompt(operatingPack.evidenceCatalog).map((item) =>
       item.id.startsWith("signal:") || item.id.startsWith("metric:")
         ? item
         : { ...item, detail: scrubStaleRenewalCounts(item.detail) }),

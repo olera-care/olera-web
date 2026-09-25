@@ -115,7 +115,7 @@ function authorBylineBlock(opts: { topBorder?: boolean } = {}): string {
       </table>
     </div>
     <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us</a>
+      Questions? Reach us at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a> or <a href="tel:+19792439801" style="color:${BRAND_COLOR};text-decoration:none;">+1 (979) 243-9801</a>.
     </p>`;
 }
 
@@ -221,6 +221,9 @@ export function jobReadyEmail({
     </p>
     <p style="margin:0;">${button("See the opportunity", viewUrl)}</p>
     ${graizeSignature()}
+    <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
+      Questions? Reach us at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a> or <a href="tel:+19792439801" style="color:${BRAND_COLOR};text-decoration:none;">+1 (979) 243-9801</a>.
+    </p>
     ${studentUnsubscribeFooter(unsubscribeId)}
   `, `A caregiver job ${where} just opened`);
 }
@@ -491,11 +494,8 @@ export function medjobsReviewNudgeEmail(opts: {
     <p style="margin:0 0 16px;">
       ${button("Request Review", opts.portalUrl)}
     </p>
-    <p style="font-size:13px;color:#9ca3af;margin:0 0 12px;line-height:1.5;">
-      The review process typically takes 1-2 business days.
-    </p>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions or delays? Reach us at <a href="mailto:support@olera.care" style="color:#9ca3af;text-decoration:underline;">support@olera.care</a> or <a href="tel:+19792439801" style="color:#9ca3af;text-decoration:underline;">+1 (979) 243-9801</a>.
+      The review process typically takes 1-2 business days.
     </p>
     ${authorBylineBlock()}
   `, `Your MedJobs profile is 100% complete - request a review to go live`);

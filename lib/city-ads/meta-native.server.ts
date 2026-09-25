@@ -50,7 +50,12 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
       const url = new URL(`https://graph.facebook.com/${version}/${receipt.leadgen_id}`);
       url.searchParams.set("fields", "id,created_time,form_id,campaign_id,adset_id,ad_id,field_data");
       const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(8000) });
-      if (!response.ok) throw new Error("Meta retrieval failed");
+      if (!response.ok) {
+        // Meta's own error text names the cause (expired token, missing lead
+        // access, unknown lead). It never echoes the token.
+        const body = await response.json().catch(() => null) as { error?: { message?: string; code?: number } } | null;
+        throw new Error(`Meta retrieval failed (${response.status}${body?.error?.code ? `, code ${body.error.code}` : ""}): ${body?.error?.message ?? "no error body"}`);
+      }
       const lead = await response.json() as MetaLead;
       const normalized = normalizeMetaLead(lead, receipt as NativeReceipt, form);
       const name = normalized.first_name.split(/\s+/)[0];
@@ -84,12 +89,17 @@ export async function runMetaNativeIntake(db: SupabaseClient) {
       const { error: insertError } = await db.rpc("import_meta_city_lead", {
         receipt_id: receipt.leadgen_id, lead_data: normalized, confirmation,
       });
-      if (insertError) throw new Error("Could not save Meta lead");
+      if (insertError) throw new Error(`Could not save Meta lead: ${insertError.message}`);
       processed++;
-    } catch {
+    } catch (err) {
       failed++;
+      // Record the real cause. The generic message this replaced hid which of
+      // four steps failed, and on 25 Sep a test lead sat failed with nothing to
+      // say whether it was config, Meta access, the lead's shape or the insert.
+      // Every thrown message here is ours or Meta's; none carries contact data.
+      const reason = err instanceof Error ? err.message : String(err);
       const { error: updateError } = await db.from("meta_lead_receipts").update({ status: "failed",
-        last_error: "Import failed. Check form configuration, Meta access and database; retry from the admin panel." })
+        last_error: `Import failed: ${reason}`.slice(0, 500) })
         .eq("leadgen_id", receipt.leadgen_id).eq("status", "processing");
       if (updateError) throw new Error("Could not record Meta import failure");
     }

@@ -65,7 +65,6 @@ interface LogRow {
   first_clicked_at: string | null;
   bounced_at: string | null;
   complained_at: string | null;
-  recipient_profile_id: string | null;
 }
 
 /**
@@ -143,7 +142,7 @@ export async function GET(request: NextRequest) {
       db
         .from("email_log")
         .select(
-          "id, recipient, email_type, status, error_message, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, recipient_profile_id"
+          "id, recipient, email_type, status, error_message, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
         )
         .eq("channel", "email") // Only email, not SMS/push
         .eq("recipient_type", "student")
@@ -156,7 +155,6 @@ export async function GET(request: NextRequest) {
     // Aggregate by email address (lowercased for deduplication)
     interface StudentStats {
       email: string;
-      profileId: string | null;
       sent: number;
       delivered: number;
       opened: number;
@@ -174,7 +172,6 @@ export async function GET(request: NextRequest) {
       const key = row.recipient.toLowerCase();
       const stats = byEmail.get(key) ?? {
         email: row.recipient,
-        profileId: row.recipient_profile_id,
         sent: 0,
         delivered: 0,
         opened: 0,
@@ -185,11 +182,6 @@ export async function GET(request: NextRequest) {
         lastBouncedAt: null,
         lastComplainedAt: null,
       };
-
-      // Preserve profile ID if we find one
-      if (row.recipient_profile_id && !stats.profileId) {
-        stats.profileId = row.recipient_profile_id;
-      }
 
       stats.sent += 1;
 
@@ -236,49 +228,22 @@ export async function GET(request: NextRequest) {
     }
 
     // Get student profile info for the emails we found
+    // We look up by email address since email_log doesn't have a profile ID column
     const emails = [...byEmail.keys()];
-    const profileIds = [...byEmail.values()]
-      .map((s) => s.profileId)
-      .filter((id): id is string => id !== null);
-
     const profileMap = new Map<string, StudentProfile>();
 
-    // Fetch by profile ID first (more accurate)
-    if (profileIds.length > 0) {
-      for (let i = 0; i < profileIds.length; i += 100) {
-        const slice = profileIds.slice(i, i + 100);
-        const { data } = await db
-          .from("business_profiles")
-          .select("id, slug, display_name, email, phone, image_url, is_active, metadata")
-          .eq("type", "student")
-          .in("id", slice);
+    // Fetch profiles by email address in batches
+    for (let i = 0; i < emails.length; i += 100) {
+      const slice = emails.slice(i, i + 100);
+      const { data } = await db
+        .from("business_profiles")
+        .select("id, slug, display_name, email, phone, image_url, is_active, metadata")
+        .eq("type", "student")
+        .in("email", slice);
 
-        for (const p of (data ?? []) as StudentProfile[]) {
-          profileMap.set(p.id, p);
-          if (p.email) {
-            profileMap.set(p.email.toLowerCase(), p);
-          }
-        }
-      }
-    }
-
-    // Fetch remaining by email address (case-insensitive via ilike would be ideal,
-    // but Supabase .in() doesn't support that, so we lowercase on our side)
-    const missingEmails = emails.filter((e) => !profileMap.has(e));
-    if (missingEmails.length > 0) {
-      for (let i = 0; i < missingEmails.length; i += 100) {
-        const slice = missingEmails.slice(i, i + 100);
-        const { data } = await db
-          .from("business_profiles")
-          .select("id, slug, display_name, email, phone, image_url, is_active, metadata")
-          .eq("type", "student")
-          .in("email", slice);
-
-        for (const p of (data ?? []) as StudentProfile[]) {
-          profileMap.set(p.id, p);
-          if (p.email) {
-            profileMap.set(p.email.toLowerCase(), p);
-          }
+      for (const p of (data ?? []) as StudentProfile[]) {
+        if (p.email) {
+          profileMap.set(p.email.toLowerCase(), p);
         }
       }
     }
@@ -309,7 +274,7 @@ export async function GET(request: NextRequest) {
     }
 
     let students: StudentEmailHealth[] = [...byEmail.values()].map((stats) => {
-      const profile = profileMap.get(stats.profileId ?? "") ?? profileMap.get(stats.email.toLowerCase());
+      const profile = profileMap.get(stats.email.toLowerCase());
       const meta = profile?.metadata ?? {};
 
       // Determine health status (complaints are worse than bounces)
@@ -326,7 +291,7 @@ export async function GET(request: NextRequest) {
 
       return {
         email: stats.email,
-        profileId: profile?.id ?? stats.profileId,
+        profileId: profile?.id ?? null,
         name: profile?.display_name ?? "(unknown)",
         slug: profile?.slug ?? null,
         university: meta.university ?? null,

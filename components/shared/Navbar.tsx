@@ -598,7 +598,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isProviderDetailPage ? "hidden md:block" : ""} ${isInboxPage && mobileNavVariant === "bottom_tabs" ? "hidden lg:block" : ""} ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`fixed top-0 left-0 right-0 z-50 bg-white ${isProviderDetailPage ? "hidden md:block" : ""} ${isInboxPage && mobileNavVariant === "bottom_tabs" ? "hidden lg:block" : ""} ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"

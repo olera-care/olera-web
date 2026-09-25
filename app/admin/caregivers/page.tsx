@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { StudentMetadata } from "@/lib/types";
 import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
-type FilterTab = "all" | "pendingReview" | "hasInterviews" | "complete" | "incomplete" | "nonEdu";
+type FilterTab = "all" | "pendingReview" | "approved" | "rejected" | "hasInterviews" | "complete" | "incomplete" | "nonEdu";
 
 interface StudentRow {
   id: string;
@@ -38,6 +38,8 @@ interface TabCounts {
   paused: number;
   notLive: number;
   pendingReview: number;
+  approved: number;
+  rejected: number;
   hasInterviews: number;
   complete: number;
   incomplete: number;
@@ -115,6 +117,8 @@ export default function AdminStudentsPage() {
       params.set("per_page", String(PAGE_SIZE));
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filter === "pendingReview") params.set("pending_review_only", "true");
+      if (filter === "approved") params.set("approved_only", "true");
+      if (filter === "rejected") params.set("rejected_only", "true");
       if (filter === "hasInterviews") params.set("has_interviews_only", "true");
       if (filter === "complete") params.set("complete_only", "true");
       if (filter === "incomplete") params.set("incomplete_only", "true");
@@ -161,6 +165,8 @@ export default function AdminStudentsPage() {
           paused: statsData.paused ?? 0,
           notLive: statsData.notLive ?? 0,
           pendingReview: statsData.pendingReview ?? 0,
+          approved: statsData.approved ?? 0,
+          rejected: statsData.rejected ?? 0,
           hasInterviews: statsData.hasInterviews ?? 0,
           complete: statsData.complete ?? 0,
           incomplete: statsData.incomplete ?? 0,
@@ -265,6 +271,8 @@ export default function AdminStudentsPage() {
   const tabs: { label: string; value: FilterTab; count: number | null }[] = [
     { label: "All", value: "all", count: tabCounts?.total ?? null },
     { label: "Pending Review", value: "pendingReview", count: tabCounts?.pendingReview ?? null },
+    { label: "Approved", value: "approved", count: tabCounts?.approved ?? null },
+    { label: "Rejected", value: "rejected", count: tabCounts?.rejected ?? null },
     { label: "Has Interviews", value: "hasInterviews", count: tabCounts?.hasInterviews ?? null },
     { label: "Complete", value: "complete", count: tabCounts?.complete ?? null },
     { label: "Incomplete", value: "incomplete", count: tabCounts?.incomplete ?? null },

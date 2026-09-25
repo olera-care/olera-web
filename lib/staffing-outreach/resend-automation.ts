@@ -229,7 +229,7 @@ function escapeHtml(s: string): string {
  */
 function loganSignature(): string {
   const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
-  const calendarUrl = "https://calendly.com/caregivers979/home-care-agency-manager-interview";
+  const calendarUrl = "https://calendly.com/logan-dubose-md/provider-meeting";
 
   return `
     <table cellpadding="0" cellspacing="0" style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:20px;">

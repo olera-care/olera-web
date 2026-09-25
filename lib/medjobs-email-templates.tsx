@@ -115,7 +115,7 @@ function authorBylineBlock(opts: { topBorder?: boolean } = {}): string {
       </table>
     </div>
     <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us</a>
+      Questions? Reach us at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a> or <a href="tel:+19792439801" style="color:${BRAND_COLOR};text-decoration:none;">+1 (979) 243-9801</a>.
     </p>`;
 }
 
@@ -221,11 +221,62 @@ export function jobReadyEmail({
     </p>
     <p style="margin:0;">${button("See the opportunity", viewUrl)}</p>
     ${graizeSignature()}
+    <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
+      Questions? Reach us at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a> or <a href="tel:+19792439801" style="color:${BRAND_COLOR};text-decoration:none;">+1 (979) 243-9801</a>.
+    </p>
     ${studentUnsubscribeFooter(unsubscribeId)}
   `, `A caregiver job ${where} just opened`);
 }
 
 // ── Student Templates ────────────────────────────────────────────
+
+/**
+ * Welcome email sent when a student creates their account via the main
+ * StudentEligibilityModal flow (name + university + email).
+ *
+ * Purpose: welcome them, urge them to complete their profile, and highlight
+ * the importance of the intro video for verification.
+ */
+export function studentSignupWelcomeEmail({
+  studentName,
+  university,
+  magicLink,
+}: {
+  studentName: string;
+  university?: string;
+  magicLink?: string;
+}): string {
+  const safeName = escapeHtml(firstName(studentName, "there"));
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
+
+  const universityLine = university
+    ? `<p style="font-size:13px;color:#6b7280;margin:0 0 16px;">University: <strong style="color:#111827;">${escapeHtml(university)}</strong></p>`
+    : "";
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${safeName}!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Your account has been created. You&rsquo;re one step closer to connecting with healthcare providers who are actively hiring student caregivers.
+    </p>
+    ${universityLine}
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 8px;">Complete your profile to get started</p>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 12px;line-height:1.6;">
+          It takes about <strong>10 minutes</strong>. Providers prioritize complete profiles &mdash; the more thorough yours is, the more likely you are to hear from hiring providers.
+        </p>
+        <p style="font-size:13px;color:#111827;font-weight:600;font-style:italic;margin:0 0 4px;">Your intro video is key</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.6;">
+          The short video introduction is how we verify you&rsquo;re a real student and how providers get to know you. Profiles with videos get significantly more responses.
+        </p>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("Complete My Profile", completeProfileUrl)}
+    </p>
+    ${authorBylineBlock()}
+  `, `Complete your MedJobs profile to connect with healthcare providers`);
+}
 
 export function studentWelcomeEmail({
   studentName,
@@ -394,6 +445,7 @@ export function medjobsProfileRejectedEmail(opts: {
 }): string {
   const safeName = escapeHtml(opts.studentName);
   const safeReason = opts.reason ? escapeHtml(opts.reason) : null;
+  const calendlyUrl = "https://calendly.com/logan-dubose-md/student-meeting";
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Profile Review Update</h2>
@@ -413,6 +465,9 @@ export function medjobsProfileRejectedEmail(opts: {
     </p>
     <p style="margin:0 0 16px;">
       ${button("Update Your Profile", opts.portalUrl)}
+    </p>
+    <p style="font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Need help? <a href="${calendlyUrl}" style="color:${BRAND_COLOR};text-decoration:underline;">Book a call with Dr. DuBose</a> and we&apos;ll walk you through what&apos;s needed.
     </p>
     ${authorBylineBlock()}
   `, `Your MedJobs profile needs some updates`);

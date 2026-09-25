@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useNavbar } from "@/components/shared/NavbarContext";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
 import type { Interview } from "@/lib/types";
 import type { Placement } from "@/lib/medjobs/placements";
@@ -23,12 +24,18 @@ export default function InterviewsPage() {
 
 function InterviewsPageInner() {
   const { isLoading: authLoading } = useAuth();
+  const { disableAutoHide } = useNavbar();
   const searchParams = useSearchParams();
   const newInterviewId = searchParams.get("newInterview") || undefined;
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [placements, setPlacements] = useState<Placement[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Ensure navbar stays visible (sticky) on this page
+  useEffect(() => {
+    disableAutoHide();
+  }, [disableAutoHide]);
 
   const fetchInterviews = useCallback(async () => {
     try {
@@ -80,7 +87,7 @@ function InterviewsPageInner() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8]">
+    <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Interviews</h1>
@@ -98,6 +105,6 @@ function InterviewsPageInner() {
           initialSelectedId={newInterviewId}
         />
       </div>
-    </main>
+    </div>
   );
 }

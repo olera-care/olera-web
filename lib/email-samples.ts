@@ -94,6 +94,7 @@ import {
 import { renderEmail as renderProviderOutreachEmail } from "@/lib/provider-outreach/email-utils";
 import {
   // student emails
+  studentSignupWelcomeEmail,
   studentWelcomeEmail,
   studentAccountCreatedEmail,
   studentReturningEmail,
@@ -1293,6 +1294,22 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
 
   // ─────────────── Student · MedJobs onboarding ───────────────
+  {
+    id: "student_signup_welcome",
+    audience: "student",
+    group: "Student · Onboarding",
+    label: "Signup welcome (main flow)",
+    subject: "Welcome to MedJobs — complete your profile to connect with providers",
+    emailType: "student_signup_welcome",
+    timing: "Immediately after account creation via StudentEligibilityModal",
+    who: "Student who just signed up with name, university, and email.",
+    why: "Welcome them, urge them to complete their profile, highlight video importance.",
+    render: () => studentSignupWelcomeEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      university: SAMPLE_STUDENT.university,
+      magicLink: SAMPLE_STUDENT.magicLink,
+    }),
+  },
   {
     id: "student_account_created",
     audience: "student",

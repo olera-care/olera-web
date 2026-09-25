@@ -177,7 +177,8 @@ export async function pickQuestionForFounder(db: SupabaseClient): Promise<Founde
     return {
       investigationId: stalled.id,
       title: stalled.title,
-      question: `This has been observed ${stalled.occurrence_count} times since ${since} and has never moved: no resolved unknown, no proposal, no closure. Is it worth a real plan, or should it stop being raised? Either answer is useful. "Close it" is a decision, not a failure.`,
+      // The brief prints the title in front of this, so it can say "it".
+      question: `Seen ${stalled.occurrence_count} times since ${since} and it hasn't moved. Make a real plan for it, or stop raising it? "Close it" counts as an answer.`,
     };
   }
   const rows = (data as InvestigationRow[]).filter((row) => !recentlyAsked.has(row.id));

@@ -136,7 +136,7 @@ export function modelForStage(stage: string): string {
 // Bump whenever prompt text changes. Every run row and every failure
 // diagnostic is stamped with this, so leaving it alone after editing a prompt
 // makes runs before and after the change indistinguishable in the data.
-export const WAR_ROOM_PROMPT_VERSION = "cortex-v8-commission-the-work";
+export const WAR_ROOM_PROMPT_VERSION = "cortex-v9-dates-as-facts";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;
@@ -1057,7 +1057,7 @@ async function runDossierPass(
   operatingPack: ReturnType<typeof buildOperatingPack>,
   lensReviews: StrategicLensReview[],
 ) {
-  const basePrompt = `You already completed the ten-lens sweep below. Preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Zero dossiers is a valid answer, and no more than ${DOSSIER_CEILING} may be returned; if more conditions qualify, keep the most material and leave the rest to the next scan.\n\nTEN-LENS SWEEP:\n${JSON.stringify(lensReviews)}\n\nOPERATING PACK:\n${JSON.stringify(operatingPack)}`;
+  const basePrompt = `You already completed the ten-lens sweep below. Preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Zero dossiers is a valid answer, and no more than ${DOSSIER_CEILING} may be returned; if more conditions qualify, keep the most material and leave the rest to the next scan.\n\nTEN-LENS SWEEP:\n${JSON.stringify(lensReviews)}\n\nOPERATING PACK:\n${JSON.stringify(scrubbedForPrompt(operatingPack))}`;
 
   const attempt = (maxTokens: number, extra?: string) => callWarRoomTool<DossierToolOutput>({
     stage: "forming_candidates",
@@ -1146,14 +1146,34 @@ export function scrubStaleRenewalCounts(text: string): string {
     .replace(/(renew\w*[^()]{0,40})\s*\(\s*~?\d{1,3}\s+days?\s*\)/gi, "$1");
 }
 
-function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
+/**
+ * The operating pack as a prompt sees it: stale renewal counts removed.
+ *
+ * Applied where each prompt is built, never to the pack itself. The pack's
+ * evidence is also what reasoning checks, what proposals store and what the
+ * condition hash covers, so rewriting it at the source would change stored
+ * evidence and move every hash. Computed evidence states its own count
+ * correctly; notes and memory do not.
+ */
+function scrubbedForPrompt(operatingPack: ReturnType<typeof buildOperatingPack>): ReturnType<typeof buildOperatingPack> {
   return {
     ...operatingPack,
-    // Computed evidence states its own count correctly; notes and memory do not.
     evidenceCatalog: operatingPack.evidenceCatalog.map((item) =>
       item.id.startsWith("signal:") || item.id.startsWith("metric:")
         ? item
         : { ...item, detail: scrubStaleRenewalCounts(item.detail) }),
+    investigationMemory: operatingPack.investigationMemory.map((investigation) => ({
+      ...investigation,
+      title: investigation.title ? scrubStaleRenewalCounts(investigation.title) : investigation.title,
+      likelyCause: investigation.likelyCause ? scrubStaleRenewalCounts(investigation.likelyCause) : investigation.likelyCause,
+    })),
+  };
+}
+
+function sweepContextFor(unscrubbed: ReturnType<typeof buildOperatingPack>) {
+  const operatingPack = scrubbedForPrompt(unscrubbed);
+  return {
+    ...operatingPack,
     proposalMemory: operatingPack.proposalMemory.map((proposal) => ({
       fingerprint: proposal.fingerprint,
       status: proposal.status,
@@ -1170,8 +1190,8 @@ function sweepContextFor(operatingPack: ReturnType<typeof buildOperatingPack>) {
       fingerprint: investigation.fingerprint,
       status: investigation.status,
       domain: investigation.domain,
-      title: investigation.title ? scrubStaleRenewalCounts(investigation.title) : investigation.title,
-      likelyCause: investigation.likelyCause ? scrubStaleRenewalCounts(investigation.likelyCause) : investigation.likelyCause,
+      title: investigation.title,
+      likelyCause: investigation.likelyCause,
       causeConfidence: investigation.causeConfidence,
       unknowns: investigation.unknowns,
       occurrenceCount: investigation.occurrenceCount,
@@ -1244,7 +1264,7 @@ async function runTriagePass(
     system: COUNCIL_SYSTEM,
     tool: WIRE_TRIAGE_TOOL,
     maxTokens: 14_000,
-    prompt: `Classify every dossier as agenda, watchlist, investigate, or drop. At most one may be agenda, and zero is the normal answer. If exactly one clears the founder-interruption standard, mark it agenda; you will be asked to write it up in a separate call.\n\nCOUNCIL CONTEXT:\n${JSON.stringify(councilContextFor(operatingPack))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(investigator.provisionalInvestigations)}`,
+    prompt: `Classify every dossier as agenda, watchlist, investigate, or drop. At most one may be agenda, and zero is the normal answer. If exactly one clears the founder-interruption standard, mark it agenda; you will be asked to write it up in a separate call.\n\nCOUNCIL CONTEXT:\n${JSON.stringify(councilContextFor(scrubbedForPrompt(operatingPack)))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(investigator.provisionalInvestigations)}`,
   });
   return {
     rawTriageOutput: call.output,
@@ -1350,7 +1370,7 @@ Rules:
 CONDITION:\n${JSON.stringify(commissioned)}
 
 COUNCIL CONTEXT:
-${JSON.stringify(draftingContextFor(operatingPack, commissioned.fingerprint))}
+${JSON.stringify(draftingContextFor(scrubbedForPrompt(operatingPack), commissioned.fingerprint))}
 
 CHIEF-OF-STAFF READ:
 ${investigator.rawInvestigatorOutput.portfolioRead}`,
@@ -1387,7 +1407,7 @@ async function runProposalPass(
     system: COUNCIL_SYSTEM,
     tool: WIRE_PROPOSAL_TOOL,
     maxTokens: 12_000,
-    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(draftingContextFor(operatingPack, nominated.fingerprint))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
+    prompt: `Triage nominated exactly one condition for the founder agenda. Write it up as a one-minute CEO decision brief. If, while writing it, you conclude it does not clear the founder-interruption standard after all, return a brief whose decisionRequired says so plainly rather than inventing a case.\n\nNOMINATED CONDITION:\n${JSON.stringify(nominated)}\n\nCOUNCIL CONTEXT:\n${JSON.stringify(draftingContextFor(scrubbedForPrompt(operatingPack), nominated.fingerprint))}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}`,
   });
   const brief = call.output?.brief ?? {};
   const execution = call.output?.execution ?? {};

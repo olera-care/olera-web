@@ -83,7 +83,7 @@ function replyText(message: MessageRow) {
  * If the call fails, the keyword test stands in, so a model outage cannot hide
  * the one kind of email the founder asked never to miss.
  */
-async function partnershipFlags(summaries: string[]): Promise<boolean[]> {
+export async function partnershipFlags(summaries: string[]): Promise<boolean[]> {
   const byKeyword = summaries.map((summary) => PARTNERSHIP_WORDS.test(summary));
   if (!summaries.length || !process.env.ANTHROPIC_API_KEY) return byKeyword;
   try {
@@ -91,14 +91,19 @@ async function partnershipFlags(summaries: string[]): Promise<boolean[]> {
     const reply = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 200,
-      system: "Each numbered line summarises an email a senior-care provider sent to Olera, a senior-care marketplace. Answer YES for a line where the provider wants a deeper business relationship: partnering, becoming a preferred or exclusive provider, covering a new area, a referral agreement, or growing what they do with Olera. Answer NO for routine replies: acknowledging a lead, profile edits, billing questions, complaints, unsubscribes. Reply with one line per input, in order, formatted as the number, a colon, and YES or NO.",
+      system: "Each numbered line summarises an email sent to Olera, a senior-care marketplace that lists care providers and sends them families. Answer YES only where a care provider that works with Olera, or wants to be listed, asks for a deeper relationship with Olera itself: becoming a preferred or exclusive provider, covering more locations or a new area through Olera, or growing what they do on Olera. Answer NO for everything else, including: vendors, agencies, medical groups, programs or salespeople pitching their own services or 'referral partnerships' to Olera; routine replies to a lead; profile, listing or login help; billing; complaints; removals; thank-yous; invitations. Reply with one line per input, in order, formatted as the number, a colon, and YES or NO.",
       messages: [{ role: "user", content: summaries.map((summary, i) => `${i + 1}. ${summary.slice(0, 400)}`).join("\n") }],
     }, { timeout: 20_000, maxRetries: 0 });
     const text = reply.content.find((block): block is Anthropic.TextBlock => block.type === "text")?.text ?? "";
     return summaries.map((_, i) => {
-      const line = text.match(new RegExp(`^\\s*${i + 1}\\s*:\\s*(YES|NO)`, "im"));
-      // A line the model skipped keeps the keyword answer rather than a silent no.
-      return line ? line[1].toUpperCase() === "YES" || byKeyword[i] : byKeyword[i];
+      // "1: YES" on a short list, "1. YES" on a long one: Haiku switched format
+      // at 27 lines and every answer fell through to the keyword test.
+      const line = text.match(new RegExp(`^\\W*${i + 1}\\s*[:.)\\-]\\s*\\**\\s*(YES|NO)`, "im"));
+      // The model's answer stands. The keyword test only fills a line it
+      // skipped: "partnership" also appears in every vendor's cold pitch, and
+      // letting it override a NO put those at the top of the brief in a
+      // 30-day backtest.
+      return line ? line[1].toUpperCase() === "YES" : byKeyword[i];
     });
   } catch {
     return byKeyword;

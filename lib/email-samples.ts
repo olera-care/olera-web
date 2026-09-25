@@ -106,6 +106,7 @@ import {
   medjobsProfileApprovedEmail,
   medjobsProfileRejectedEmail,
   medjobsReviewNudgeEmail,
+  medjobsReviewRequestedEmail,
   // placement emails
   placementOfferedEmail,
   placementAcceptedEmail,
@@ -1390,6 +1391,21 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     who: "Student who completed their profile but hasn't requested review.",
     why: "Nudge them to request admin review so they can go live.",
     render: () => medjobsReviewNudgeEmail({
+      studentName: SAMPLE_STUDENT.studentName,
+      portalUrl: SAMPLE_STUDENT.magicLink,
+    }),
+  },
+  {
+    id: "student_review_requested",
+    audience: "student",
+    group: "Student · Profile Review",
+    label: "Review request received",
+    subject: "We've received your profile for review",
+    emailType: "medjobs_review_requested",
+    timing: "Immediately after student clicks 'Request Review'",
+    who: "Student who just submitted their profile for admin review.",
+    why: "Confirm receipt and set expectations for the 1-2 business day review timeline.",
+    render: () => medjobsReviewRequestedEmail({
       studentName: SAMPLE_STUDENT.studentName,
       portalUrl: SAMPLE_STUDENT.magicLink,
     }),

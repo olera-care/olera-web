@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendSlackAlert, slackMedJobsReviewRequest } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { medjobsReviewRequestedEmail } from "@/lib/medjobs-email-templates";
+import { generateStudentPortalUrl } from "@/lib/claim-tokens";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
 
@@ -132,6 +135,27 @@ export async function POST(_request: NextRequest) {
     } catch (err) {
       // Non-blocking - log but don't fail the request
       console.error("[medjobs/request-review] slack error:", err);
+    }
+
+    // Send confirmation email to student
+    if (student.email) {
+      try {
+        const portalUrl = generateStudentPortalUrl(student.email, "/portal/medjobs");
+        await sendEmail({
+          to: student.email,
+          subject: "We've received your profile for review",
+          html: medjobsReviewRequestedEmail({
+            studentName: student.display_name || "there",
+            portalUrl,
+          }),
+          emailType: "medjobs_review_requested",
+          recipientType: "student",
+          recipientProfileId: student.id,
+        });
+      } catch (emailErr) {
+        // Non-blocking - log but don't fail the request
+        console.error("[medjobs/request-review] email error:", emailErr);
+      }
     }
 
     return NextResponse.json({

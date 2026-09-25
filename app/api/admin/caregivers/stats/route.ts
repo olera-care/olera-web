@@ -135,6 +135,8 @@ export async function GET(request: NextRequest) {
     let pausedCount = 0;        // is_active=false AND application_completed=true
     let notLiveCount = 0;       // is_active=false AND application_completed is falsy AND no pending review
     let pendingReviewCount = 0; // review_requested_at AND !application_completed
+    let approvedCount = 0;      // has approved_at set
+    let rejectedCount = 0;      // has rejected_at but no approved_at
     let completeCount = 0;
     let incompleteCount = 0;
 
@@ -142,6 +144,8 @@ export async function GET(request: NextRequest) {
       const meta = (profile.metadata || {}) as StudentMetadata & {
         application_completed?: boolean;
         review_requested_at?: string;
+        approved_at?: string;
+        rejected_at?: string;
       };
       const completeness = computeProfileCompleteness(profile);
 
@@ -167,6 +171,16 @@ export async function GET(request: NextRequest) {
         // Never requested review or rejected
         notLiveCount++;
       }
+
+      // Approved/Rejected counts (these are independent of the above)
+      // Approved = application_completed is the source of truth (approved_at is audit trail, may not exist for legacy data)
+      if (meta.application_completed) {
+        approvedCount++;
+      }
+      // Rejected = has rejected_at but was not subsequently approved
+      if (meta.rejected_at && !meta.approved_at) {
+        rejectedCount++;
+      }
     }
 
     const total = eduStudents.length;
@@ -185,6 +199,8 @@ export async function GET(request: NextRequest) {
       paused: pausedCount,
       notLive: notLiveCount,
       pendingReview: pendingReviewCount,
+      approved: approvedCount,
+      rejected: rejectedCount,
       hasInterviews: hasInterviewsCount,
       complete: completeCount,
       incomplete: incompleteCount,

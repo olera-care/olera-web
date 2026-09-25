@@ -102,6 +102,24 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
     // Whose leads these are is data, not config: the form's city_campaigns row
     // names Hoop's campaign in request_id (migration 256, primary.server.ts).
   },
+  // Not an Olera city arm. Colorado CareAssist's Ad Boost run as an instant
+  // form beside its Google campaign, $50 each, 28 Sep to 11 Oct. Built the
+  // Pascagoula way: `concierge` because the native importer requires it, and
+  // the form's city_campaigns row names their request in request_id so each
+  // lead is handed to their campaign page rather than pooled.
+  //
+  // Area is the Boulder office's market (1911 11th St), not the Denver,
+  // Springs and Fort Collins locations they also list: $50 cannot cover them.
+  "boulder-co": {
+    slug: "boulder-co",
+    city: "Boulder",
+    state: "CO",
+    routingMode: "concierge",
+    areaLabel: "Boulder, Longmont, Louisville and nearby",
+    zipPrefill: "80302",
+    timeZone: "America/Denver",
+    campaignTag: "colorado-careassist-boulder-native-sep26",
+  },
 };
 
 export function getCityConfig(slug: string): CityConfig | null {

@@ -1208,6 +1208,33 @@ export function taskTitle(task: BoardTask): string {
 }
 
 /**
+ * "They replied" — the outcome every rung has and no rung declares.
+ *
+ * A reply can arrive against any rung, so it is not in any rung's actions
+ * list. It used to be built inline on the screen, which meant the server had
+ * no way to name it: the screen sent actionIndex -1, the server looked it up
+ * in rung.actions, found nothing, and refused the write. The note the
+ * operator had just typed lived in the browser until the next reload.
+ *
+ * One definition, both readers, so they cannot disagree about what -1 means.
+ */
+export const REPLIED_INDEX = -1;
+
+export const REPLIED_ACTION: LadderAction = {
+  label: "They replied",
+  outcome: "replied",
+  delay: 0,
+};
+
+/** The action an index names, including the reply every rung accepts. */
+export function actionAt(
+  rung: { actions: LadderAction[] },
+  index: number,
+): LadderAction | undefined {
+  return index === REPLIED_INDEX ? REPLIED_ACTION : rung.actions[index];
+}
+
+/**
  * The rung on a ladder whose outcome writes a given activation tick.
  *
  * Looked up rather than written down as a number. "Send the program info" is

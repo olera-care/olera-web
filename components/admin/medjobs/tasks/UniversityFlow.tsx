@@ -5,6 +5,7 @@ import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { LADDERS, SECTION_ORDER, rungAt, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import { sectionsFor, type Person } from "@/lib/medjobs/assignments";
 import {
+  actionAt,
   canReopen,
   complete,
   SWEEP_PREFIX,
@@ -380,14 +381,14 @@ export default function UniversityFlow({
     if (!record || !task) return;
     const rung = rungAt(task.section, task.step, task.round);
     if (!rung) return;
-    const action =
-      index === -1
-        ? { label: "They replied", outcome: "replied" as const, delay: 0 }
-        : rung.actions[index];
+    const action = actionAt(rung, index);
     if (!action) return;
 
+    // No `index >= 0` here. "They replied" is index -1, and that guard meant
+    // the one outcome carrying a typed note was the one outcome that never
+    // reached the database: it applied on screen and vanished on reload.
     const persist = PERSISTED[record.section];
-    if (persist && index >= 0) {
+    if (persist) {
       void send(
         {
           op: persist.complete,

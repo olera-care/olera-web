@@ -19,6 +19,9 @@ import { LADDERS, SECTION_ORDER } from "../lib/medjobs/ladders";
 import { scriptSlug, SWEEPS } from "../lib/medjobs/task-board";
 import { seedSections, NON_RUNG_SECTIONS, READS_FIRST_ANCHORS } from "../lib/medjobs/scripts-seed";
 
+/** The two sections written by their own handler rather than the record one. */
+const REPLY_UNSAFE = new Set<string>(["students", "jobboard"]);
+
 const problems: string[] = [];
 const note = (s: string) => problems.push(s);
 
@@ -85,6 +88,19 @@ for (const section of SECTION_ORDER) {
   const block = ladder.openTogether ?? 0;
   if (block > ladder.steps.length) {
     note(`${section} opens ${block} rungs together but only has ${ladder.steps.length}`);
+  }
+
+  // "They replied" is the outcome no rung declares: the screen sends index
+  // -1 for it, and only the record handler knows to read that as a reply.
+  // The student and job-board handlers look the index up in rung.actions
+  // directly, where -1 is nothing — so a reply rung on either of those two
+  // would take a note, close the rung on screen, and be refused by the
+  // server without the operator seeing anything. That is the bug this check
+  // exists to stop coming back on a different ladder.
+  if (REPLY_UNSAFE.has(section) && ladder.steps.some((r) => r.reply)) {
+    note(
+      `${section} has a rung with "They replied", but its handler resolves an action index directly and -1 names nothing there`,
+    );
   }
 }
 

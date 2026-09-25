@@ -470,6 +470,15 @@ export default function AdminStudentsPage() {
                         </span>
                       )}
                     </p>
+                    {student.phone && (
+                      <a
+                        href={`tel:${student.phone.replace(/[^+\d]/g, "")}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="block text-sm text-blue-600 hover:text-blue-800 hover:underline truncate"
+                      >
+                        {student.phone}
+                      </a>
+                    )}
                     <p className="text-sm mt-0.5">
                       <span className={completeness >= 80 ? "text-emerald-600" : "text-gray-400"}>
                         {completeness}% complete

@@ -71,6 +71,7 @@ function nameFromEmail(email: string): string {
 interface Body {
   email?: string;
   name?: string;
+  phone?: string;
   careerPath?: IntendedProfessionalSchool;
   coverageBuckets?: CoverageBucket[];
   university?: string;
@@ -131,6 +132,7 @@ export async function POST(request: NextRequest) {
 
     const cityValue = body.city?.trim() || null;
     const stateValue = body.state?.trim() || null;
+    const phoneValue = body.phone?.trim() || null;
 
     const metadata: Record<string, unknown> = {
       university,
@@ -154,7 +156,7 @@ export async function POST(request: NextRequest) {
       {
         display_name: displayName,
         email,
-        phone: null, // no phone at signup
+        phone: phoneValue,
         city: cityValue,
         state: stateValue,
       }
@@ -168,6 +170,7 @@ export async function POST(request: NextRequest) {
         type: "student",
         display_name: displayName,
         email,
+        phone: phoneValue,
         city: cityValue,
         state: stateValue,
         metadata,

@@ -152,6 +152,70 @@ SMS on the work numbers is waiting on carrier registration. Until it clears,
 signatures say "Call:". When it clears it becomes "Call/Text:", coordinators
 can text contacts from the same number in Zoom, and this note comes out.`,
   },
+  {
+    slug: "general-pilot-terms",
+    title: "Pilot Terms",
+    position: 1,
+    callScript: null,
+    emailSubject: null,
+    emailBody: null,
+    instructions: `WHAT THIS IS
+
+The Provider Pilot Agreement is the one document a provider signs to join
+the Student Caregiver Program. One page. It is what you attach when somebody
+asks what they are agreeing to, and what you send before an onboarding call
+so they have read it by the time you talk.
+
+The current version is always here:
+
+  https://olera.care/medjobs/pilot-agreement.pdf
+
+Send that link, or attach the PDF. Do not keep your own copy on your desktop
+— when the terms change, the link changes with them and a saved copy does
+not.
+
+
+WHAT IT SAYS, IN SIX LINES
+
+- Free through their first hire. No fee to browse, interview, connect, or
+  make that first hire, and no payment information at any point.
+- Anything after the first hire is agreed in writing separately. No fee
+  applies unless and until both sides have signed something.
+- They are the employer. Olera recruits, vets and matches; the provider
+  interviews, hires and pays. Olera is not a staffing agency.
+- Feedback is optional. We may ask for it; they may say no.
+- Either side can end it with written notice, and ending it does not undo
+  placements already made.
+- Texas law. No auto-renewal, no exclusivity, no minimum.
+
+
+WHEN TO SEND IT
+
+- With the programme pack at the onboarding rung. Attach it for review, not
+  for signing — that rung's whole job is to let them read it unpressured.
+- Any time a provider asks about cost or commitment before a meeting. It
+  answers both faster than you can on a call.
+- Before an onboarding call, so the call is about their caregivers rather
+  than about the document.
+
+
+IF THEY ASK A QUESTION IT DOES NOT ANSWER
+
+Say you will find out and come back. Do not improvise a term on a call — a
+sentence said out loud to a provider becomes what they believe they signed.
+Bring it to Logan and the answer goes into the document, where the next
+coordinator gets it too.`,
+    notes: `NOT SETTLED — WHAT HAPPENS AFTER THE FIRST HIRE
+
+The agreement names no price on purpose. What a provider pays after their
+first hire has not been decided, and a number in a document that goes to
+every interested provider would settle it by accident.
+
+The public candidates page currently answers "What does it cost?" with a
+figure. Until that and the agreement are reconciled, do not quote a price
+from memory. Say the first hire is free and that anything beyond it is
+agreed in writing, then bring the question back.`,
+  },
 ];
 
 /**

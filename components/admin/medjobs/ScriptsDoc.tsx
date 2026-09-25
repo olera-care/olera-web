@@ -716,7 +716,7 @@ function Block({
     <div>
       <Label>{label}</Label>
       <p className="whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
-        {text}
+        {linkify(text)}
       </p>
       {onCopy && (
         <button
@@ -728,6 +728,35 @@ function Block({
         </button>
       )}
     </div>
+  );
+}
+
+/**
+ * Turn the URLs in a block into links.
+ *
+ * A section that points somebody at a document is only useful if they can
+ * reach it, and these blocks render as plain text — a pasted address was
+ * something to select and copy by hand. Absolute http(s) addresses only:
+ * a bare path is ambiguous in prose, and guessing wrong turns an ordinary
+ * sentence into a broken link.
+ */
+function linkify(text: string): React.ReactNode {
+  const parts = text.split(/(https?:\/\/[^\s<>()"']+)/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noreferrer"
+        className="text-primary-700 underline hover:no-underline"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    ),
   );
 }
 

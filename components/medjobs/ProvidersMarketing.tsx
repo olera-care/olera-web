@@ -257,6 +257,21 @@ export default function ProvidersMarketing() {
               </details>
             ))}
           </div>
+          {/* The agreement itself, under the questions it answers. A provider
+              who reads this far is deciding, and the one-pager settles the
+              two things the FAQ cannot: what they are signing, and that it
+              is one page. */}
+          <p className="mt-8 text-center text-[15px] text-gray-500">
+            The one-page agreement you sign is here:{" "}
+            <a
+              href="/medjobs/pilot-agreement.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-primary-700 underline hover:no-underline"
+            >
+              Provider Pilot Agreement (PDF)
+            </a>
+          </p>
         </div>
       </section>
 
@@ -272,6 +287,16 @@ export default function ProvidersMarketing() {
               Get started →
             </Link>
           </div>
+          <p className="mt-5 text-sm text-gray-500">
+            <a
+              href="/medjobs/pilot-agreement.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:no-underline"
+            >
+              Read the pilot terms first
+            </a>
+          </p>
         </div>
       </section>
     </>

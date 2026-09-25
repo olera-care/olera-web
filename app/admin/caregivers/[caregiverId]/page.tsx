@@ -57,6 +57,15 @@ interface InterviewRow {
   } | null;
 }
 
+const REJECTION_REASONS = [
+  { id: "incomplete_profile", label: "Incomplete profile", description: "Missing required fields or information" },
+  { id: "video_required", label: "Video verification needed", description: "Intro video is missing or unclear" },
+  { id: "documents_missing", label: "Documents missing or expired", description: "Driver's license or car insurance issues" },
+  { id: "profile_quality", label: "Profile quality needs improvement", description: "Bio, experience, or responses need more detail" },
+  { id: "availability_incomplete", label: "Availability information incomplete", description: "Schedule or commitment details missing" },
+  { id: "verification_failed", label: "Could not verify identity", description: "Information doesn't match records" },
+];
+
 function getStatusVariant(status: string): "pending" | "verified" | "rejected" | "default" {
   switch (status) {
     case "pending": return "pending";
@@ -84,7 +93,10 @@ export default function AdminStudentDetailPage() {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
+  const [customRejectReason, setCustomRejectReason] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [student, setStudent] = useState<any>(null);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
@@ -301,16 +313,19 @@ export default function AdminStudentDetailPage() {
     }
   }
 
-  async function handleApprove() {
+  function openApproveModal() {
     if (isDirty) {
       if (!confirm("You have unsaved changes. Approving will discard them. Continue?")) return;
     }
-    const name = (formData.display_name as string) || student?.display_name || "this student";
-    if (!confirm(`Approve "${name}"? Their profile will become visible to providers.`)) return;
+    setShowApproveModal(true);
+  }
+
+  async function handleApprove() {
     setApproving(true);
     try {
       const res = await fetch(`/api/admin/caregivers/${studentId}/approve`, { method: "POST" });
       if (res.ok) {
+        setShowApproveModal(false);
         await fetchStudent(); // Refresh data
       } else {
         const data = await res.json().catch(() => ({}));
@@ -331,15 +346,27 @@ export default function AdminStudentDetailPage() {
   }
 
   async function handleReject() {
+    // Build reason from selected reasons + custom text
+    const selectedLabels = selectedRejectReasons
+      .map(id => REJECTION_REASONS.find(r => r.id === id)?.label)
+      .filter(Boolean);
+    const parts = [...selectedLabels];
+    if (customRejectReason.trim()) {
+      parts.push(customRejectReason.trim());
+    }
+    const reason = parts.join(". ") || undefined;
+
     setRejecting(true);
     try {
       const res = await fetch(`/api/admin/caregivers/${studentId}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: rejectReason || undefined }),
+        body: JSON.stringify({ reason }),
       });
       if (res.ok) {
         setShowRejectModal(false);
+        setSelectedRejectReasons([]);
+        setCustomRejectReason("");
         setRejectReason("");
         await fetchStudent(); // Refresh data
       } else {
@@ -527,11 +554,11 @@ export default function AdminStudentDetailPage() {
                 Reject
               </button>
               <button
-                onClick={handleApprove}
+                onClick={openApproveModal}
                 disabled={approving}
                 className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
               >
-                {approving ? "Approving..." : "Approve"}
+                Approve
               </button>
             </div>
           </div>
@@ -1077,30 +1104,131 @@ export default function AdminStudentDetailPage() {
         </div>
       )}
 
+      {/* Approve Modal */}
+      {showApproveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Approve Profile</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Are you sure you want to approve <strong>{student?.display_name}</strong>?
+                </p>
+              </div>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-green-800">
+                <strong>What happens next:</strong>
+              </p>
+              <ul className="text-sm text-green-700 mt-2 space-y-1">
+                <li>• Profile becomes visible to providers</li>
+                <li>• Student can receive interview requests</li>
+                <li>• Approval email is sent to the student</li>
+              </ul>
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowApproveModal(false)}
+                disabled={approving}
+                className="px-4 py-2 text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApprove}
+                disabled={approving}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {approving ? "Approving..." : "Yes, Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Reject Profile Review</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              This will clear their review request. The student can make improvements and request review again.
-            </p>
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Reject Profile Review</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Select the reason(s) for rejecting <strong>{student?.display_name}</strong>&apos;s profile.
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select reason(s)
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {REJECTION_REASONS.map((reason) => (
+                  <label
+                    key={reason.id}
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedRejectReasons.includes(reason.id)
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRejectReasons.includes(reason.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedRejectReasons([...selectedRejectReasons, reason.id]);
+                        } else {
+                          setSelectedRejectReasons(selectedRejectReasons.filter(r => r !== reason.id));
+                        }
+                      }}
+                      className="mt-0.5 w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{reason.label}</p>
+                      <p className="text-xs text-gray-500">{reason.description}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reason (optional)
+                Additional notes (optional)
               </label>
               <textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="e.g., Missing certifications, incomplete availability..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
-                rows={3}
+                value={customRejectReason}
+                onChange={(e) => setCustomRejectReason(e.target.value)}
+                placeholder="Add specific feedback for the student..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                rows={2}
               />
             </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+              <p className="text-xs text-amber-800">
+                The student will receive an email with your feedback and a link to book a call with Dr. DuBose if they need help.
+              </p>
+            </div>
+
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   setShowRejectModal(false);
+                  setSelectedRejectReasons([]);
+                  setCustomRejectReason("");
                   setRejectReason("");
                 }}
                 disabled={rejecting}
@@ -1110,10 +1238,10 @@ export default function AdminStudentDetailPage() {
               </button>
               <button
                 onClick={handleReject}
-                disabled={rejecting}
-                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                disabled={rejecting || (selectedRejectReasons.length === 0 && !customRejectReason.trim())}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {rejecting ? "Rejecting..." : "Reject"}
+                {rejecting ? "Rejecting..." : "Reject Profile"}
               </button>
             </div>
           </div>

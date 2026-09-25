@@ -151,6 +151,8 @@ export async function GET(request: NextRequest) {
     const hasInterviewsOnly = searchParams.get("has_interviews_only") === "true";
     const completeOnly = searchParams.get("complete_only") === "true";
     const incompleteOnly = searchParams.get("incomplete_only") === "true";
+    const approvedOnly = searchParams.get("approved_only") === "true";
+    const rejectedOnly = searchParams.get("rejected_only") === "true";
     const eduOnly = searchParams.get("edu_only") === "true";
     const nonEduOnly = searchParams.get("non_edu_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
@@ -162,10 +164,11 @@ export async function GET(request: NextRequest) {
     // Client-side filtering needed when:
     // - Filtering by completeness (requires calculation from metadata)
     // - Filtering by paused/not_live/pendingReview (requires checking metadata fields)
+    // - Filtering by approved/rejected (requires checking metadata fields)
     // - Searching (to include university from JSONB metadata)
     // - Filtering by .edu email domain (requires checking email suffix)
     // - Filtering by has_interviews (requires join with interviews table)
-    const needsClientSideFilter = completeOnly || incompleteOnly || pausedOnly || notLiveOnly || pendingReviewOnly || hasInterviewsOnly || eduOnly || nonEduOnly || !!search;
+    const needsClientSideFilter = completeOnly || incompleteOnly || pausedOnly || notLiveOnly || pendingReviewOnly || approvedOnly || rejectedOnly || hasInterviewsOnly || eduOnly || nonEduOnly || !!search;
 
     // Fetch pending interview counts per student (proposed or confirmed)
     const { data: interviewCounts } = await db
@@ -246,11 +249,15 @@ export async function GET(request: NextRequest) {
       const meta = (row.metadata || {}) as StudentMetadata & {
         application_completed?: boolean;
         review_requested_at?: string;
+        approved_at?: string;
+        rejected_at?: string;
       };
       const university = meta.university ?? null;
       const completeness = computeProfileCompleteness(row);
       const applicationCompleted = !!meta.application_completed;
       const reviewRequestedAt = meta.review_requested_at ?? null;
+      const approvedAt = meta.approved_at ?? null;
+      const rejectedAt = meta.rejected_at ?? null;
       const pendingInterviewCount = interviewCountMap.get(row.id) || 0;
 
       return {
@@ -259,6 +266,8 @@ export async function GET(request: NextRequest) {
         university,
         application_completed: applicationCompleted,
         review_requested_at: reviewRequestedAt,
+        approved_at: approvedAt,
+        rejected_at: rejectedAt,
         pending_interview_count: pendingInterviewCount,
       };
     });
@@ -274,14 +283,21 @@ export async function GET(request: NextRequest) {
       students = students.filter((s) => s.profile_completeness < COMPLETENESS_THRESHOLD);
     }
 
-    // Filter by lifecycle status (paused vs not live vs pending review)
+    // Filter by lifecycle status (paused vs not live vs pending review vs approved vs rejected)
     // Paused = was live, then deactivated (is_active=false AND application_completed=true)
     // Not Live = never went live (is_active=false AND application_completed is falsy AND no pending review)
     // Pending Review = requested review but not yet approved (review_requested_at AND !application_completed)
+    // Approved = has approved_at set (application_completed is set when approved)
+    // Rejected = has rejected_at but not subsequently approved (no approved_at)
     if (pausedOnly) {
       students = students.filter((s) => !s.is_active && s.application_completed);
     } else if (pendingReviewOnly) {
       students = students.filter((s) => !!s.review_requested_at && !s.application_completed);
+    } else if (approvedOnly) {
+      // Use application_completed as source of truth (approved_at is audit trail, may not exist for legacy data)
+      students = students.filter((s) => !!s.application_completed);
+    } else if (rejectedOnly) {
+      students = students.filter((s) => !!s.rejected_at && !s.approved_at);
     } else if (notLiveOnly) {
       students = students.filter((s) => !s.is_active && !s.application_completed && !s.review_requested_at);
     }

@@ -314,13 +314,15 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
     const half = weeks.length / 2;
     return {
       headline: worst
-        ? `Organic sessions ${direction} in the ${worst.page_family} family at ${worst.change}, comparing ${half} weeks against the ${half} before them.`
-        : "Page-family organic sessions are recorded but no family shows a comparable change.",
-      detail: `Comparing ${half} weeks against the ${half} before them, split at ${midpoint}, across ${rows.length} page families.`,
+        // Plain words: this headline is quoted to the founder in Slack, and
+        // "the provider family" and "half-window" are not words he uses.
+        ? `Organic sessions ${direction} on ${worst.page_family} pages at ${worst.change}, comparing the last ${half} weeks against the ${half} before them.`
+        : "Organic sessions by page type are recorded but none shows a comparable change.",
+      detail: `Comparing the last ${half} weeks against the ${half} before them, split at ${midpoint}, across ${rows.length} page types.`,
       rows,
       caveat: scan.truncated
-        ? "Row cap reached: this read is incomplete and the totals understate every family."
-        : "Half-window comparison, not a seasonally adjusted trend. A single unusual week can move a small family.",
+        ? "Row cap reached: this read is incomplete and the totals understate every page type."
+        : "Two equal blocks of weeks, not a seasonal trend. One unusual week can swing a small page type.",
     };
   },
 

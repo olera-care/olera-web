@@ -320,7 +320,16 @@ export async function deliverWarRoomBrief(
         approvedRows.map((row) => toCandidate(row, "approved_not_done")),
         waitingRows.map((row) => toCandidate(row, "decision_waiting")),
       );
-      if (chosen) move = { ...(await phraseMove(chosen)), title: chosen.title, kind: chosen.kind };
+      if (chosen) {
+        const { data: model } = await db.from("war_room_company_models")
+          .select("constraints")
+          .eq("key", "olera")
+          .maybeSingle();
+        const rules = Array.isArray(model?.constraints)
+          ? (model.constraints as unknown[]).filter((rule): rule is string => typeof rule === "string")
+          : [];
+        move = { ...(await phraseMove(chosen, rules)), title: chosen.title, kind: chosen.kind };
+      }
       const investigations = (investigationResult.data ?? []) as InvestigationRow[];
       open = investigations.filter((row) => row.status === "investigating").length;
       watching = investigations.filter((row) => row.status === "watchlist").length;

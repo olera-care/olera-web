@@ -95,14 +95,16 @@ Rules:
 - If the status says waiting on the founder's decision, the action is his decision; say in plain words what he would be approving.
 - "draft" is only for a move that means contacting someone. Write the message the named teammate or the founder would send, two or three short sentences, ready to paste. If nobody is being contacted, draft is null.
 - The whole record is record_days_old days old. Every "N days" in it (why_now, finding, evidence) was counted then. Subtract record_days_old from any count you repeat; "30 days" in a 5-day-old record is 25 days now.
+- Who does it: company_rules outrank the proposal, and assigned_owner outranks any name in the plan. If the plan names someone the rules say does not do this kind of work, use who the rules and assigned_owner name instead. Proposals drafted before a correction still carry the old name.
 - Only facts in the record. Never invent a date, number, name or phone number.
 
 ${BRIEF_VOICE}
 
 Reply with JSON only: {"line": "...", "draft": "..." or null}`;
 
-function recordFor(move: MoveCandidate) {
+function recordFor(move: MoveCandidate, rules: string[]) {
   return JSON.stringify({
+    company_rules: rules,
     status: move.kind === "approved_not_done"
       ? `Approved${move.since ? ` on ${move.since.slice(0, 10)}` : ""}, not yet carried out.`
       : `Waiting on the founder's decision${move.since ? ` since ${move.since.slice(0, 10)}` : ""}.`,
@@ -139,7 +141,13 @@ export function parseMoveReply(raw: string): BriefMove | null {
   }
 }
 
-export async function phraseMove(move: MoveCandidate): Promise<BriefMove> {
+/**
+ * `rules` are the company model's constraints. They carry who does what, and a
+ * proposal row can be older than the correction: on 2026-09-25 an approved
+ * plan still said "Chantel takes the call" after the model had said she no
+ * longer calls providers, and the brief repeated it.
+ */
+export async function phraseMove(move: MoveCandidate, rules: string[] = []): Promise<BriefMove> {
   if (!process.env.ANTHROPIC_API_KEY) return fallbackMove(move);
   try {
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -148,7 +156,7 @@ export async function phraseMove(move: MoveCandidate): Promise<BriefMove> {
       // Sonnet 5 thinks by default, and thinking counts against this cap.
       max_tokens: 2_000,
       system: SYSTEM,
-      messages: [{ role: "user", content: recordFor(move) }],
+      messages: [{ role: "user", content: recordFor(move, rules) }],
     }, {
       // This runs inside the delivery step. The SDK default is ten minutes with
       // two retries, which outlives the function, and a killed step sends no

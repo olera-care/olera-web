@@ -20,9 +20,12 @@ import { CARE_LABEL, getCityConfig } from "@/lib/city-ads/config";
  *     nothing, so the lead leaves that provider's count the moment it is freed.
  *
  * An accepted offer names a provider, not a campaign. It lands on the campaign
- * whose own ad produced the lead when that campaign is hers, otherwise on her
- * campaign that had launched by the time she took it (her earliest, if none
- * had).
+ * whose own ad produced the lead when that campaign is hers. A lead from
+ * someone else's ad (usually an Olera-funded city arm) counts only when the
+ * caller passes `includeOtherAds`, and then lands on her campaign that had
+ * launched by the time she took it (her earliest, if none had). Only the admin
+ * queue passes it: provider-facing and public numbers must not tell her that
+ * her ad produced a family that ours did (see the receipt in offers.server.ts).
  *
  * Screened-out leads (job seekers, spam) count for nobody, even once handed.
  */
@@ -51,6 +54,7 @@ function launchAnchor(r: RequestForRouting): string {
 export async function routedFormLeadsByCampaign(
   db: ReturnType<typeof getServiceClient>,
   tags: string[],
+  options: { includeOtherAds?: boolean } = {},
 ): Promise<Record<string, RoutedFormLead[]>> {
   const result: Record<string, RoutedFormLead[]> = {};
   const wanted = [...new Set(tags.filter((t): t is string => !!t))];
@@ -162,16 +166,21 @@ export async function routedFormLeadsByCampaign(
   for (const l of live) {
     let owner: string | null = null;
     const offer = l.accepted_offer_id ? offerById.get(l.accepted_offer_id) : undefined;
+    // Epochs, not strings: Postgres timestamps vary in fractional digits.
     const offerWins =
-      !!offer?.accepted_at && (!l.handed_at || offer.accepted_at >= l.handed_at);
+      !!offer?.accepted_at && (!l.handed_at || Date.parse(offer.accepted_at) >= Date.parse(l.handed_at));
     if (offer && offerWins) {
       const theirs = requestsByProvider.get(String(offer.provider_id)) ?? [];
       const fromOwnAd = theirs.find((r) => l.meta_campaign_id && adRequests.get(l.meta_campaign_id)?.has(r.id));
-      const launched = theirs
-        .filter((r) => launchAnchor(r) <= new Date(offer.accepted_at!).toISOString())
-        .sort((a, b) => launchAnchor(b).localeCompare(launchAnchor(a)))[0];
-      const earliest = [...theirs].sort((a, b) => launchAnchor(a).localeCompare(launchAnchor(b)))[0];
-      owner = (fromOwnAd ?? launched ?? earliest)?.id ?? null;
+      if (fromOwnAd) {
+        owner = fromOwnAd.id;
+      } else if (options.includeOtherAds) {
+        const launched = theirs
+          .filter((r) => launchAnchor(r) <= new Date(offer.accepted_at!).toISOString())
+          .sort((a, b) => launchAnchor(b).localeCompare(launchAnchor(a)))[0];
+        const earliest = [...theirs].sort((a, b) => launchAnchor(a).localeCompare(launchAnchor(b)))[0];
+        owner = (launched ?? earliest)?.id ?? null;
+      }
     } else if (l.handed_request_id) {
       owner = String(l.handed_request_id);
     }
@@ -241,6 +250,7 @@ function isInternalTraffic(metadata: { referrer_class?: string } | null): boolea
 export async function countDeliveredByCampaign(
   db: ReturnType<typeof getServiceClient>,
   tags: string[],
+  options: { includeOtherAds?: boolean } = {},
 ): Promise<Record<string, number>> {
   const result: Record<string, number> = {};
   const wanted = tags.filter((t): t is string => !!t);
@@ -264,7 +274,7 @@ export async function countDeliveredByCampaign(
       .filter("metadata->>utm_source", "eq", "olera_managed")
       .in("metadata->>utm_campaign", batch)
       .order("id").range(from, to).abortSignal(signal)),
-    routedFormLeadsByCampaign(db, wanted),
+    routedFormLeadsByCampaign(db, wanted, options),
   ]);
   for (const row of (leads ?? []) as Array<{
     metadata: { utm_campaign?: string; connection_id?: string; session_id?: string; city_lead_id?: string } | null;

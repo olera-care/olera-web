@@ -89,7 +89,7 @@ export function fallbackMove(move: MoveCandidate): BriefMove {
   // "?." reads as a typo in the one line he is meant to act on.
   const title = /[.!?]$/.test(move.title.trim()) ? move.title.trim() : `${move.title.trim()}.`;
   const owner = move.kind === "approved_not_done" && move.assigned_owner ? ` Owner: ${move.assigned_owner}.` : "";
-  return { line: cleanText(`${verb}: ${title}${owner} ${reason}`.trim()), draft: null };
+  return { line: toFounder(cleanText(`${verb}: ${title}${owner} ${reason}`.trim())), draft: null };
 }
 
 /**

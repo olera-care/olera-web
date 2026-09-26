@@ -176,6 +176,21 @@ export const CITY_CONFIGS: Record<string, CityConfig> = {
     timeZone: "America/Los_Angeles",
     campaignTag: "lumiwell-fresno-native-sep26",
   },
+  // Seniors Helping Seniors Scottsdale & Northeast Phoenix (Andy), free $50
+  // trial as $25 Google + $25 Meta. Not `phoenix-az`: that slug is Rosemonte's
+  // assisted living form. Area is his franchise territory, 85254 + 15 mi,
+  // narrower than the usual 20 mi so it stays out of neighbouring SHS
+  // territories. Rosemonte's form overlaps this area; TJ kept both on 26 Sep.
+  "scottsdale-az": {
+    slug: "scottsdale-az",
+    city: "Scottsdale",
+    state: "AZ",
+    routingMode: "concierge",
+    areaLabel: "Scottsdale, Paradise Valley, Northeast Phoenix and nearby",
+    zipPrefill: "85254",
+    timeZone: "America/Phoenix",
+    campaignTag: "shs-scottsdale-native-sep26",
+  },
 };
 
 export function getCityConfig(slug: string): CityConfig | null {

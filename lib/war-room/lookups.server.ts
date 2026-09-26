@@ -656,6 +656,44 @@ const clampDays = (value: unknown, fallback: number, min: number, max: number) =
   return Number.isFinite(n) ? Math.max(min, Math.min(max, Math.round(n))) : fallback;
 };
 
+/**
+ * Care seekers who published their needs to providers in their city.
+ *
+ * Families can opt to publish a care post (metadata.care_post on their
+ * profile). On 2026-09-26 the founder asked Cortex about using these to tell
+ * providers "families near you are looking for care", and Cortex answered that
+ * nobody had built a published-profile system: there was no lookup, so it could
+ * not see the 224 active posts. Aggregates only; no names or contact details.
+ */
+async function loadPublishedCareNeeds(db: SupabaseClient, options: { days: number; city?: string; state?: string }) {
+  let request = db.from("business_profiles")
+    .select("city, state, care_types, metadata")
+    .eq("type", "family")
+    .eq("metadata->care_post->>status", "active")
+    .limit(2_000);
+  if (options.state) request = request.ilike("state", options.state.trim());
+  if (options.city) request = request.ilike("city", options.city.trim());
+  const { data, error } = await request;
+  if (error) throw new Error(error.message);
+  const since = new Date(Date.now() - options.days * 86_400_000).toISOString();
+  const rows = (data ?? []) as Array<{ city: string | null; state: string | null; care_types: string[] | null; metadata: { care_post?: { published_at?: string } } | null }>;
+  const recent = rows.filter((row) => (row.metadata?.care_post?.published_at ?? "") >= since);
+  const tally = (list: typeof rows, key: (row: (typeof rows)[number]) => string[]) => {
+    const counts = new Map<string, number>();
+    for (const row of list) for (const value of key(row)) counts.set(value, (counts.get(value) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({ name, count }));
+  };
+  return {
+    activePosts: rows.length,
+    publishedInWindow: recent.length,
+    windowDays: options.days,
+    topCities: tally(rows, (row) => (row.city && row.state ? [`${row.city}, ${row.state}`] : [])),
+    topCitiesInWindow: tally(recent, (row) => (row.city && row.state ? [`${row.city}, ${row.state}`] : [])),
+    careTypes: tally(rows, (row) => row.care_types ?? []),
+    note: "Families who chose to publish their care needs to providers in their area. Counts only.",
+  };
+}
+
 /** Tool definitions, in the shape the Messages API takes. */
 export const LOOKUP_TOOLS = [
   {
@@ -691,6 +729,19 @@ export const LOOKUP_TOOLS = [
         window_days: { type: "integer", minimum: 30, maximum: 365, description: "Look-back window. Default 90." },
         ads_fit_only: { type: "boolean", description: "Only categories of business that have had a Managed Ads campaign. Set true for any question about who to sell or nurture Managed Ads to." },
         limit: { type: "integer", minimum: 1, maximum: 25, description: "How many to return. Default 10." },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "published_care_needs",
+    description: "Families who published their care needs to providers in their city (Olera's published care posts): how many are active, how many were published in a window, the top cities and care types. Counts only, no names. Use for questions about published profiles, care posts, or local family demand a provider could be told about.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        days: { type: "integer", minimum: 7, maximum: 365, description: "Look-back window for recently published. Default 30." },
+        city: { type: "string", description: "Only this city." },
+        state: { type: "string", description: "Only this state, two letters." },
       },
       additionalProperties: false,
     },
@@ -783,6 +834,12 @@ export async function runLookup(db: SupabaseClient, name: string, input: Record<
           windowDays: clampDays(input.window_days, 90, 30, 365),
           limit: clampDays(input.limit, 10, 1, 25),
           adsFitOnly: input.ads_fit_only === true,
+        }));
+      case "published_care_needs":
+        return inEastern(await loadPublishedCareNeeds(db, {
+          days: clampDays(input.days, 30, 7, 365),
+          city: typeof input.city === "string" ? input.city : undefined,
+          state: typeof input.state === "string" ? input.state : undefined,
         }));
       case "support_inbox": {
         const { loadSupportInbox } = await import("@/lib/war-room/provider-moments.server");

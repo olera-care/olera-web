@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { MAX_IMAGE_BYTES, cleanDmText, imageFiles, isApproval, isOwnMessage, isReadableDm, skippedImages } from "../lib/war-room/dm-intake";
+import { MAX_IMAGE_BYTES, approvalReply, cleanDmText, imageFiles, isApproval, isOwnMessage, isReadableDm, nothingWaitingReply, skippedImages } from "../lib/war-room/dm-intake";
+import { withoutStaleRenewalCounts } from "../lib/war-room/stale-counts";
 
 // Which DM messages Cortex reads. The two founder messages it dropped on
 // 2026-09-25/26 are cases 2 and 3; case 1 is the reply loop the old filter
@@ -78,5 +79,23 @@ assert.ok(Math.ceil(MAX_IMAGE_BYTES / 3) * 4 <= 5 * 1024 * 1024, "the largest ac
 assert.equal(isReadableDm(envelope({ user: FOUNDER, subtype: "file_share", text: "", files: [{ mimetype: "image/heic", url_private: "h" }] })), true);
 // Images: only inline-sized images with a download link.
 assert.equal(imageFiles([{ mimetype: "application/pdf", url_private: "x" }, { mimetype: "image/png", size: 9_000_000, url_private: "y" }]).length, 0);
+
+// 8. Approval replies name what was approved, in plain words (2026-09-26).
+const split = { title: "Read-only funnel split on question prompts", action_kind: "code" };
+assert.equal(
+  approvalReply(split, { approved: true, dispatch: { dispatched: false, detail: "Repository executor is not configured" } }),
+  "Approved: *Read-only funnel split on question prompts*. It won't start by itself yet: the build runner isn't connected in production, so this needs someone to pick it up.",
+);
+assert.ok(approvalReply(split, { approved: true, dispatch: { dispatched: true, detail: "" } }).includes("pull request"));
+// Nothing waiting: say so, name the last approval, never file it as evidence.
+assert.equal(nothingWaitingReply({ title: "Read-only funnel split on question prompts", approved_at: "2026-09-26T01:27:16Z" }),
+  "Nothing is waiting for your approval. The last thing you approved was *Read-only funnel split on question prompts*, on Sep 25.");
+assert.equal(nothingWaitingReply(null), "Nothing is waiting for your approval.");
+
+// 9. A stored title shown to him never carries a stale renewal count.
+assert.equal(
+  withoutStaleRenewalCounts("North star sits at 1 of 12 paid providers with 104 days left; the single payer renews in 27 days on zero inquiries"),
+  "North star sits at 1 of 12 paid providers with 104 days left; the single payer renews soon on zero inquiries",
+);
 
 console.log("slack DM intake checks passed");

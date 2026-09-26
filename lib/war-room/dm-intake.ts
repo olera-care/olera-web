@@ -114,3 +114,32 @@ export function isApproval(text: string): boolean {
   if (/^yes[\s.!]*$/i.test(clean)) return false;
   return APPROVAL.test(clean);
 }
+
+type ApprovedLike = { title: string; action_kind?: string | null };
+type ApprovalOutcome =
+  | { approved: true; dispatch: { dispatched: boolean; detail: string } }
+  | { approved: false; error: string };
+
+/**
+ * What approving did, in plain words. On 2026-09-26 the reply read "Approved:
+ * <title>. Repository executor is not configured", an internal error string,
+ * and when nothing was waiting the reply named an unrelated condition.
+ */
+export function approvalReply(proposal: ApprovedLike, outcome: ApprovalOutcome): string {
+  if (!outcome.approved) return `I couldn't approve *${proposal.title}*: ${outcome.error}.`;
+  if (outcome.dispatch.dispatched) {
+    return `Approved: *${proposal.title}*. I've started the build; a pull request will show up for review.`;
+  }
+  if (proposal.action_kind === "code") {
+    return /not configured/i.test(outcome.dispatch.detail)
+      ? `Approved: *${proposal.title}*. It won't start by itself yet: the build runner isn't connected in production, so this needs someone to pick it up.`
+      : `Approved: *${proposal.title}*. The build didn't start: ${outcome.dispatch.detail}`;
+  }
+  return `Approved: *${proposal.title}*. It's now with the owner named on it.`;
+}
+
+export function nothingWaitingReply(last: { title: string; approved_at: string } | null): string {
+  if (!last) return "Nothing is waiting for your approval.";
+  const when = new Date(last.approved_at).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
+  return `Nothing is waiting for your approval. The last thing you approved was *${last.title}*, on ${when}.`;
+}

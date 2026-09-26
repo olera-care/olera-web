@@ -6,6 +6,7 @@ import { isFounderAnswerable, pickQuestionForFounder, recordFounderAsk, type Fou
 import { phraseMove, pickMove, type BriefMove, type MoveCandidate } from "@/lib/war-room/brief-move.server";
 import { loadProviderMoments, type ProviderMoment } from "@/lib/war-room/provider-moments.server";
 import { loadPaidRenewal, type PaidRenewal } from "@/lib/war-room/renewals.server";
+import { withoutStaleRenewalCounts } from "@/lib/war-room/stale-counts";
 import { closeExchange } from "@/lib/war-room/conversation.server";
 import { loadBlindSpots, loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
@@ -240,7 +241,7 @@ export function buildWarRoomBriefText(input: {
   // what makes the answer evidence on the next scan.
   if (question) {
     if (lines.length) lines.push("");
-    lines.push(`*Only you can answer this.* ${question.title}: ${question.question}`);
+    lines.push(`*Only you can answer this.* ${withoutStaleRenewalCounts(question.title)}: ${question.question}`);
     lines.push("_Just reply here. Your answer becomes evidence on tomorrow's scan._");
   }
 

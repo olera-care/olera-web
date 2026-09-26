@@ -231,57 +231,10 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
 
     if (body.action === "approve") {
-      // A parked proposal is approved by "Take it up". Its approval clock and
-      // assigned-work delivery start then, not when it was first accepted.
-      if (proposal.status !== "proposed" && proposal.status !== "parked") {
-        return NextResponse.json({ error: "Only a waiting or parked proposal can be approved" }, { status: 409 });
-      }
-      const { data: approvedData, error } = await db.from("war_room_proposals").update({
-        status: "approved",
-        approved_by: auth.admin.email,
-        approved_at: now,
-        updated_at: now,
-      }).eq("id", proposal.id).eq("status", proposal.status).select("*").maybeSingle();
-      if (error) throw error;
-      if (!approvedData) return NextResponse.json({ error: "Proposal changed before approval" }, { status: 409 });
-      const { error: eventError } = await db.from("war_room_proposal_events").insert({
-        proposal_id: proposal.id,
-        event_type: "approved",
-        actor: auth.admin.email,
-        details: {
-          authorization: proposal.action_kind === "code" ? "repository_branch_and_pr_only" : "human_controlled_plan",
-          action_kind: proposal.action_kind,
-        },
-      });
-      if (eventError) throw eventError;
-      // Non-repository work used to end here: status set to "approved", event
-      // logged, and nobody told. Five of six action kinds had no destination at
-      // all, so an approved operations or content proposal reached no one.
-      // Delivery is awaited rather than fired and forgotten -- a Next route can
-      // be frozen the moment it responds -- and it never fails the approval.
-      if (proposal.action_kind !== "code") {
-        const { deliverAssignedWork } = await import("@/lib/war-room/assigned-work.server");
-        await deliverAssignedWork(db, approvedData as WarRoomProposal)
-          .catch(() => ({ delivered: false }));
-      }
-      let dispatch: { dispatched: boolean; detail: string };
-      if (proposal.action_kind === "code") {
-        try {
-          dispatch = await dispatchApprovedProposal(db, approvedData as WarRoomProposal);
-          if (!dispatch.dispatched) {
-            await db.from("war_room_proposals").update({
-              execution_error: dispatch.detail,
-              updated_at: new Date().toISOString(),
-            }).eq("id", proposal.id);
-          }
-        } catch (dispatchError) {
-          const detail = dispatchError instanceof Error ? dispatchError.message : "Executor dispatch failed";
-          await db.from("war_room_proposals").update({ execution_error: detail, updated_at: new Date().toISOString() }).eq("id", proposal.id);
-          dispatch = { dispatched: false, detail };
-        }
-      } else {
-        dispatch = { dispatched: false, detail: "Plan approved. External or operational execution remains human-controlled." };
-      }
+      const { approveWarRoomProposal } = await import("@/lib/war-room/approve.server");
+      const approval = await approveWarRoomProposal(db, proposal, auth.admin.email);
+      if (!approval.approved) return NextResponse.json({ error: approval.error }, { status: approval.status });
+      const { proposal: approvedData, dispatch } = approval;
       await logAuditAction({
         adminUserId: auth.admin.id,
         action: "war_room_proposal_approved",

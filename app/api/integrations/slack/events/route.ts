@@ -6,13 +6,19 @@ import { captureFounderAnswer, findAskByThread, findOpenAsk } from "@/lib/war-ro
 import { answerFounderQuestion, answersOpenAsk, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
 import { startVisualRoutine, visualizeSubject } from "@/lib/war-room/visualize.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
+import { cleanDmText, imageFiles, isApproval, isReadableDm, type DmFile } from "@/lib/war-room/dm-intake";
+import { downloadSlackFile } from "@/lib/war-room/attachments.server";
+import type { WarRoomProposal } from "@/lib/war-room/types";
 
 export const maxDuration = 90;
 
 type SlackEventsEnvelope = {
   type?: string;
   challenge?: string;
+  api_app_id?: string;
+  authorizations?: Array<{ user_id?: string; is_bot?: boolean }>;
   event?: {
+    files?: DmFile[];
     type?: string;
     channel?: string;
     channel_type?: string;
@@ -67,8 +73,12 @@ export async function POST(request: NextRequest) {
     // answer read again -- a loop that costs money on every turn. Three
     // independent signals mark an app-posted message; any one of them is
     // enough, and needing all three to fail at once is the point.
-    const fromThisApp = Boolean(payload.event.bot_id || payload.event.app_id || payload.event.subtype);
-    if (payload.event.channel_type === "im" && !fromThisApp && payload.event.text) {
+    //
+    // Narrowed on 2026-09-26: "any app_id or subtype" also dropped the
+    // founder's own messages sent through the Claude connector and any message
+    // with a screenshot. See lib/war-room/dm-intake.ts.
+    if (payload.event.channel_type === "im" && isReadableDm(payload)) {
+      const text = cleanDmText(payload.event.text);
       // Slack retries anything it does not see answered within three seconds,
       // up to three times. Every branch below can exceed that: starting a scan
       // plus confirming it, and answering a question, which measured 2.5 to 6.4
@@ -98,7 +108,7 @@ export async function POST(request: NextRequest) {
 
       // "scan" is a command, not an answer. Checked before capture so the word
       // is never filed as evidence against whatever was last asked.
-      const command = parseScanCommand(payload.event.text);
+      const command = parseScanCommand(text);
       if (command) {
         // A scan spends real money, so only the founder may start one. Without
         // this, anyone who can DM the bot could run up the bill, and the
@@ -142,6 +152,51 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: true, founderAnswer: { captured: false, reason: "not the founder" } });
       }
 
+      // "Approved, go ahead" approves the one decision waiting on him. It used
+      // to be read as conversation, and approval only existed on the admin
+      // page. With more than one waiting, it names them rather than guess.
+      if (isApproval(text)) {
+        const { data: waiting } = await db.from("war_room_proposals")
+          .select("*")
+          .eq("status", "proposed")
+          .order("created_at", { ascending: true })
+          .limit(5);
+        const proposals = (waiting ?? []) as WarRoomProposal[];
+        if (proposals.length === 1) {
+          const { approveWarRoomProposal } = await import("@/lib/war-room/approve.server");
+          const approval = await approveWarRoomProposal(db, proposals[0], "founder via Slack");
+          const reply = approval.approved
+            ? `Approved: *${proposals[0].title}*. ${approval.dispatch.dispatched ? "The executor is opening a pull request." : approval.dispatch.detail}`
+            : `I couldn't approve *${proposals[0].title}*: ${approval.error}.`;
+          if (dmTarget) await sendSlackDirectMessage(dmTarget, reply, { threadTs: payload.event.thread_ts }).catch(() => null);
+          return NextResponse.json({ ok: true, approval: { approved: approval.approved } });
+        }
+        if (proposals.length > 1 && dmTarget) {
+          await sendSlackDirectMessage(
+            dmTarget,
+            `${proposals.length} decisions are waiting, so I approved none of them. Approve the one you mean on the <https://olera.care/admin/war-room|Cortex page>:\n${proposals.map((proposal) => `• ${proposal.title}`).join("\n")}`,
+            { threadTs: payload.event.thread_ts },
+          ).catch(() => null);
+          return NextResponse.json({ ok: true, approval: { approved: false, reason: "more than one waiting" } });
+        }
+        // Nothing waiting: fall through and treat it as conversation.
+      }
+
+      // Screenshots are read, not ignored. Downloaded with the bot token, which
+      // already reads files shared in channels; a failure is said out loud.
+      const images: Array<{ mediaType: string; data: string }> = [];
+      let imageNote = "";
+      const token = process.env.SLACK_BOT_TOKEN;
+      for (const file of imageFiles(payload.event.files).slice(0, 3)) {
+        try {
+          if (!token) throw new Error("no Slack bot token");
+          const bytes = await downloadSlackFile(token, file);
+          images.push({ mediaType: file.mimetype ?? "image/png", data: Buffer.from(bytes).toString("base64") });
+        } catch (error) {
+          imageNote = `\n\n_I couldn't open the image you sent (${error instanceof Error ? error.message : "download failed"}), so this answers the text only._`;
+        }
+      }
+
       // A reply typed in the thread of the brief that asked names its own
       // subject. Outside a thread there is nothing to resolve, so the older
       // latest-ask rule still applies -- stated here rather than hidden, since
@@ -165,7 +220,7 @@ export async function POST(request: NextRequest) {
 
       // "visualize ..." hands a brief to a Claude Code routine that publishes a
       // real artifact; see lib/war-room/visualize.server.ts. Never evidence.
-      const visualSubject = visualizeSubject(payload.event.text);
+      const visualSubject = visualizeSubject(text);
       if (visualSubject !== null && dmTarget) {
         const subject = visualSubject || "the subject of our last exchange";
         const brief = await answerFounderQuestion(
@@ -176,7 +231,7 @@ export async function POST(request: NextRequest) {
           { mode: "brief" },
         );
         const start = brief.answered
-          ? await startVisualRoutine(`TJ asked Cortex in Slack: "${payload.event.text.trim()}"\n\nSource brief gathered by Cortex from Olera's record:\n\n${brief.reply}`)
+          ? await startVisualRoutine(`TJ asked Cortex in Slack: "${text}"\n\nSource brief gathered by Cortex from Olera's record:\n\n${brief.reply}`)
           : { started: false as const, reason: "I could not gather the material for it" };
         const reply = start.started
           ? `Building the visual in a Claude Code session. <${start.sessionUrl}|Open it here>, and tap Allow when it asks to publish. It takes a few minutes.`
@@ -184,7 +239,7 @@ export async function POST(request: NextRequest) {
         await sendSlackDirectMessage(dmTarget, reply, { threadTs }).catch(() => null);
         if (brief.answered) {
           await recordExchange(db, {
-            question: payload.event.text.slice(0, 500),
+            question: text.slice(0, 500),
             answer: reply.slice(0, 1_500),
             focusInvestigationId: addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
           });
@@ -197,14 +252,16 @@ export async function POST(request: NextRequest) {
       // is worse than doing nothing.
       // Filed as evidence only when it is plainly an answer: typed in the
       // brief's thread, or judged to answer the brief's actual question.
-      const looksLikeAnswer = classifyMessage(payload.event.text) === "answer"
-        && (Boolean(addressed) || await answersOpenAsk(db, payload.event.text));
+      const looksLikeAnswer = classifyMessage(text) === "answer"
+        && (Boolean(addressed) || await answersOpenAsk(db, text));
       if (!looksLikeAnswer || openExchange) {
         const answer = await answerFounderQuestion(
+          // A message that is only a screenshot still asks something.
           db,
-          payload.event.text,
+          text || "What is this, and what should I do about it?",
           addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
           openExchange,
+          { images },
         );
 
         // A statement arriving mid-conversation is ambiguous in a way no
@@ -225,13 +282,13 @@ export async function POST(request: NextRequest) {
         }
 
         if (dmTarget) {
-          await sendSlackDirectMessage(dmTarget, answer.reply + note, { threadTs }).catch(() => null);
+          await sendSlackDirectMessage(dmTarget, answer.reply + note + imageNote, { threadTs }).catch(() => null);
         }
         // Only a real answer continues the exchange. A failure to answer should
         // not hold the conversation open and swallow the next thing he says.
         if (answer.answered) {
           await recordExchange(db, {
-            question: payload.event.text.slice(0, 500),
+            question: text.slice(0, 500),
             answer: answer.reply.slice(0, 1_500),
             focusInvestigationId: addressed?.investigationId ?? openExchange?.focusInvestigationId ?? null,
           });
@@ -239,7 +296,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: true, question: { answered: answer.answered, continued: Boolean(openExchange) } });
       }
 
-      const captured = await captureFounderAnswer(db, payload.event.text, addressed);
+      const captured = await captureFounderAnswer(db, text, addressed);
       // Acknowledged, and naming what it was filed against. Silence is what
       // made a reply landing on the wrong condition indistinguishable from a
       // reply landing nowhere at all.

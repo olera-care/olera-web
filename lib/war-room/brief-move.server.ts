@@ -100,7 +100,16 @@ export function cleanText(text: string) {
   return text.replace(/\s*[—–]\s*/g, ", ").replace(/\*/g, "");
 }
 
-const MOVE_MODEL = process.env.WAR_ROOM_BRIEF_MODEL || "claude-sonnet-5";
+/**
+ * The line is read by the founder, so it says "you", never "TJ". The prompt
+ * says so, and 1 of 2 live renders on 2026-09-27 still wrote "TJ offered
+ * Robbie ...". Only the line: the draft is his own message and may sign off.
+ */
+export function toFounder(line: string) {
+  return line.replace(/^TJ's\b/, "Your").replace(/^TJ\b/, "You").replace(/\bTJ's\b/g, "your").replace(/\bTJ\b/g, "you");
+}
+
+const MOVE_MODEL =process.env.WAR_ROOM_BRIEF_MODEL || "claude-sonnet-5";
 
 const SYSTEM = `You write the first line of a founder's daily brief. The line is one move: an action, the named person or account involved, and why it has to happen now. The move has already been chosen; you only word it. Do not change what it is.
 
@@ -152,7 +161,7 @@ export function parseMoveReply(raw: string): BriefMove | null {
   try {
     const parsed = JSON.parse(json) as { line?: unknown; draft?: unknown };
     // The voice rule bans em dashes and the model slips anyway, so enforce it here.
-    const line = typeof parsed.line === "string" ? cleanText(parsed.line.replace(/\s+/g, " ").trim()) : "";
+    const line = typeof parsed.line === "string" ? toFounder(cleanText(parsed.line.replace(/\s+/g, " ").trim())) : "";
     if (line.length < 12 || line.length > 260) return null;
     const draft = typeof parsed.draft === "string" && parsed.draft.trim().length > 8
       ? cleanText(parsed.draft.trim()).slice(0, 600)

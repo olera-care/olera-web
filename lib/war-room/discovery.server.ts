@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { scrubStaleRenewalCounts } from "@/lib/war-room/stale-counts";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
@@ -1129,22 +1130,7 @@ function councilContextFor(operatingPack: ReturnType<typeof buildOperatingPack>)
  * reads -- the company model, the mechanics, the probe menu, the contract, the
  * facts -- is untouched.
  */
-/**
- * Remove renewal day counts that were written on an earlier day.
- *
- * `dateFacts` says the count; a stale one beside it is what the model copies.
- * On 2026-09-25, with the correct count stated as a fact, one Sonnet run still
- * titled a condition "27-day renewal risk", lifted verbatim from a memory title
- * written two days before. Only counts tied to a renewal or flight end are
- * touched; a "30-day window" is a definition, not a countdown.
- */
-export function scrubStaleRenewalCounts(text: string): string {
-  return text
-    .replace(/\b\d{1,3}[- ]day (renewal|flight)/gi, "$1")
-    .replace(/\b(renew\w*|ends?|lands?|closes?)\s+in\s+~?\d{1,3}\s+days?\b/gi, "$1 on the date in dateFacts")
-    .replace(/\b\d{1,3}\s+days?\s+(until|before|to)\s+(her |the |its )?(soonest paid )?(renewal|flight)/gi, "before $2$3$4")
-    .replace(/(renew\w*[^()]{0,40})\s*\(\s*~?\d{1,3}\s+days?\s*\)/gi, "$1");
-}
+export { scrubStaleRenewalCounts };
 
 /**
  * The operating pack as a prompt sees it: stale renewal counts removed, and

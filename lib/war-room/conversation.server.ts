@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { BANGKOK, inEastern, loadBlindSpots, LOOKUP_TOOLS, runLookup, searchStoredRecord } from "@/lib/war-room/lookups.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { loadPaidRenewal } from "@/lib/war-room/renewals.server";
+import { scrubStaleRenewalCounts } from "@/lib/war-room/stale-counts";
 
 /**
  * Talking to Cortex, rather than only answering it.
@@ -35,7 +37,10 @@ const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-so
 // Sonnet 5 thinks adaptively by default, and at 700 the first question after
 // the switch (2026-09-23, "do you know the recent work on the ads nudge")
 // spent all 700 tokens thinking and returned no text at all.
-const MAX_ANSWER_TOKENS = 4_000;
+// Thinking counts against this. At 4,000 a long question could spend it all
+// on the last round's thinking and return no text (2026-09-26, "I could not
+// put an answer together" on a normal product question).
+const MAX_ANSWER_TOKENS = 8_000;
 // A lookup answer takes several model calls. The Slack route allows 90s; the
 // budget leaves room for the final answer after the last lookup returns.
 const MAX_LOOKUP_ROUNDS = 4;
@@ -319,7 +324,7 @@ async function buildConversationContext(
   focusInvestigationId?: string | null,
   question?: string,
 ): Promise<string> {
-  const [investigations, proposals, model, matches, sources, refreshed, blindSpots] = await Promise.all([
+  const [investigations, proposals, model, matches, sources, refreshed, blindSpots, renewal] = await Promise.all([
     db.from("war_room_investigations")
       .select("id, title, status, domain, impact, likely_cause, unknowns, occurrence_count")
       .in("status", ["investigating", "watchlist", "decision_ready"])
@@ -334,6 +339,7 @@ async function buildConversationContext(
     ingestedCounts(db),
     lastIngested(db),
     loadBlindSpots(db).catch(() => [] as string[]),
+    loadPaidRenewal(db).catch(() => null),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
@@ -383,23 +389,41 @@ async function buildConversationContext(
       excerpt: typeof row.content === "string" ? row.content.slice(0, 600) : null,
       url: row.source_url,
     })),
+    // Read live from Stripe. On 2026-09-26 Cortex said the payer "renews in
+    // about 25 days" (the ad flight end) and quoted a stored title saying 27;
+    // Stripe bills her on Oct 15.
+    "Paying provider renewal (live)": renewal
+      ? {
+        provider: renewal.name,
+        renews: renewal.renewsOn,
+        daysUntilRenewal: renewal.daysUntilRenewal,
+        adFlightEnds: renewal.flightEndsOn,
+        source: renewal.source === "stripe" ? "Stripe next invoice" : "Stripe unreadable; only the ad flight end is known",
+        rule: "Use only these for the renewal date or days until it. Any other day count in this record was written on an earlier day. The ad flight ending is not the renewal.",
+      }
+      : null,
     northStar: model.data?.north_star ?? null,
     targets: model.data?.targets ?? null,
     constraints: model.data?.constraints ?? null,
     // The thread he replied in, given in full and named as the subject, so a
     // follow-up like "why does that matter" has something to be about.
     focus: focus
-      ? { ...focus, note: "This is the condition the founder is replying about." }
+      ? { ...focus, title: scrubStaleRenewalCounts(focus.title), note: "This is the condition the founder is replying about." }
       : null,
     openConditions: rows.map((row) => ({
-      title: row.title,
+      title: scrubStaleRenewalCounts(row.title),
       status: row.status,
       domain: row.domain,
       impact: row.impact,
       likelyCause: row.likely_cause,
       timesObserved: row.occurrence_count,
     })),
-    proposals: (proposals.data ?? []) as ProposalRow[],
+    proposals: ((proposals.data ?? []) as ProposalRow[]).map((proposal) => ({
+      ...proposal,
+      title: scrubStaleRenewalCounts(proposal.title),
+      why_now: proposal.why_now ? scrubStaleRenewalCounts(proposal.why_now) : proposal.why_now,
+      finding: proposal.finding ? scrubStaleRenewalCounts(proposal.finding) : proposal.finding,
+    })),
   }));
 }
 
@@ -547,6 +571,39 @@ export async function answerFounderQuestion(
         content: JSON.stringify(await runLookup(db, call.name, (call.input ?? {}) as Record<string, unknown>)).slice(0, LOOKUP_RESULT_CHARS),
       })));
       messages.push({ role: "user", content: results });
+    }
+
+    // No text back. Seen on 2026-09-26: the reply was empty and he got "I
+    // could not put an answer together" on a normal product question. The
+    // last round can end without text when its thinking uses the budget or a
+    // web search pauses the turn with no rounds left. One more call, with no
+    // tools, answers from what the lookups already returned.
+    if (message && !message.content.some((block) => block.type === "text" && block.text.trim())) {
+      console.error("[cortex] empty answer; recovering", JSON.stringify({ stop: message.stop_reason, usage: message.usage }));
+      // The empty turn itself is not re-sent: cut off by the token cap it can
+      // end in a half-written tool call with no result, which the API rejects
+      // (found by forcing this path). The history already ends with his
+      // question, the last tool results, or a paused search turn, and the
+      // nudge follows that.
+      messages.push({
+        role: "user",
+        content: "Answer now in plain words from what you already have. No more lookups.",
+      });
+      try {
+        message = await anthropic.messages.create({
+          model: CONVERSATION_MODEL,
+          max_tokens: brief ? 12_000 : MAX_ANSWER_TOKENS,
+          // Same thinking settings as the rounds before: the history carries
+          // their thinking blocks, and the API expects them to match.
+          ...(SUPPORTS_ADAPTIVE ? { thinking: { type: "adaptive" as const }, output_config: { effort: "low" as const } } : {}),
+          system: brief ? `${CONVERSATION_SYSTEM}\n\n${BRIEF_MODE}` : CONVERSATION_SYSTEM,
+          tools,
+          tool_choice: { type: "none" },
+          messages,
+        });
+      } catch (retryError) {
+        console.error("[cortex] recovery call failed:", retryError instanceof Error ? retryError.message : String(retryError));
+      }
     }
     // Web search answers arrive as several text blocks split at each citation.
     // Joined with newlines, sentences broke mid-line in Slack; they are one

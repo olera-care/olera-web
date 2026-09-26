@@ -13,14 +13,24 @@
  *
  *   npx tsx scripts/replay-cortex-conversation.ts
  *   npx tsx scripts/replay-cortex-conversation.ts "What shipped this week?"
+ *   npx tsx scripts/replay-cortex-conversation.ts --fixture sep26
  */
 import fs from "node:fs";
 import path from "node:path";
 
-const FIXTURE = [
-  "How’s organic traffic looking lately?",
-  "How about this week versus last week versus the week before?",
-];
+const FIXTURES: Record<string, string[]> = {
+  // 2026-09-24: two dense paragraphs of methodology, then a paragraph on why not.
+  sep24: [
+    "How’s organic traffic looking lately?",
+    "How about this week versus last week versus the week before?",
+  ],
+  // 2026-09-26: "I could not put an answer together", then an answer claiming
+  // no published-profile system existed.
+  sep26: [
+    `People are asking for questions in your area. That's smart. I was actually thinking about the process when care seekers, after making a connection, opt to make their care needs public in that city. We have a system for this: published profiles. Look into this to get a deeper sense.\n\nI think we have two ideas:\n1. Some type of email: "People are searching for care in your area. People asking questions in the area"\n2. Care seekers are looking for care professionals in your area\n\n\nSomething like that. What are your thoughts? `,
+  ],
+};
+const FIXTURE = FIXTURES.sep24;
 
 /** Words the founder should never have to decode. */
 // "Families" alone is Olera's word for care seekers, so only the page-type sense is jargon.
@@ -86,8 +96,12 @@ async function main() {
   console.log(`model: ${process.env.WAR_ROOM_CONVERSATION_MODEL}\n`);
   // Questions on the command line replace the fixture and run independently;
   // the fixture runs as one conversation, the way he sent it.
-  const custom = process.argv.slice(2);
-  const questions = custom.length ? custom : FIXTURE;
+  // --fixture sep26 picks a saved exchange; other arguments are questions.
+  const args = process.argv.slice(2);
+  const fixtureAt = args.indexOf("--fixture");
+  const named = fixtureAt >= 0 ? FIXTURES[args[fixtureAt + 1] ?? ""] : null;
+  const custom = fixtureAt >= 0 ? [] : args;
+  const questions = named ?? (custom.length ? custom : FIXTURE);
   let prior: { question: string; answer: string; focusInvestigationId: null; at: string } | null = null;
   for (const question of questions) {
     const { reply } = await answerFounderQuestion(db, question, null, prior);

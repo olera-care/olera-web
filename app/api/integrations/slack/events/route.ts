@@ -9,6 +9,8 @@ import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.se
 import { cleanDmText, imageFiles, isApproval, isReadableDm, skippedImages, type DmFile } from "@/lib/war-room/dm-intake";
 import { downloadSlackFile } from "@/lib/war-room/attachments.server";
 import type { WarRoomProposal } from "@/lib/war-room/types";
+import { approvalReply, nothingWaitingReply } from "@/lib/war-room/dm-intake";
+import { withoutStaleRenewalCounts } from "@/lib/war-room/stale-counts";
 
 export const maxDuration = 90;
 
@@ -170,9 +172,7 @@ export async function POST(request: NextRequest) {
         if (proposals.length === 1) {
           const { approveWarRoomProposal } = await import("@/lib/war-room/approve.server");
           const approval = await approveWarRoomProposal(db, proposals[0], "founder via Slack");
-          const reply = approval.approved
-            ? `Approved: *${proposals[0].title}*. ${approval.dispatch.dispatched ? "The executor is opening a pull request." : approval.dispatch.detail}`
-            : `I couldn't approve *${proposals[0].title}*: ${approval.error}.`;
+          const reply = approvalReply(proposals[0], approval);
           if (dmTarget) await sendSlackDirectMessage(dmTarget, reply, { threadTs: payload.event.thread_ts }).catch(() => null);
           return NextResponse.json({ ok: true, approval: { approved: approval.approved } });
         }
@@ -184,7 +184,20 @@ export async function POST(request: NextRequest) {
           ).catch(() => null);
           return NextResponse.json({ ok: true, approval: { approved: false, reason: "more than one waiting" } });
         }
-        // Nothing waiting: fall through and treat it as conversation.
+        // Nothing waiting. On 2026-09-26 this fell through to conversation and
+        // "Approved, go ahead" was filed as the founder's answer to the
+        // north-star question. An approval is never evidence: say what the
+        // last approval was and stop.
+        const { data: last } = await db.from("war_room_proposals")
+          .select("title, approved_at, status, execution_error")
+          .not("approved_at", "is", null)
+          .order("approved_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (dmTarget) {
+          await sendSlackDirectMessage(dmTarget, nothingWaitingReply(last as never), { threadTs: payload.event.thread_ts }).catch(() => null);
+        }
+        return NextResponse.json({ ok: true, approval: { approved: false, reason: "nothing waiting" } });
       }
 
       // Screenshots are read, not ignored. Downloaded with the bot token, which
@@ -290,7 +303,7 @@ export async function POST(request: NextRequest) {
         if (looksLikeAnswer) {
           const stillOpen = await findOpenAsk(db);
           note = stillOpen
-            ? `\n\n_Taken as conversation, not recorded. If that was your answer about *${stillOpen.title ?? "the open question"}*, reply in that brief's thread and I will file it._`
+            ? `\n\n_Taken as conversation, not recorded. If that was your answer about *${withoutStaleRenewalCounts(stillOpen.title ?? "the open question")}*, reply in that brief's thread and I will file it._`
             : "\n\n_Taken as conversation, not recorded as evidence._";
         }
 
@@ -315,7 +328,7 @@ export async function POST(request: NextRequest) {
       // reply landing nowhere at all.
       if (dmTarget) {
         const ack = captured.captured
-          ? `Recorded against *${captured.title ?? "the open question"}*.`
+          ? `Recorded against *${withoutStaleRenewalCounts(captured.title ?? "the open question")}*.`
           : `I did not record that: ${captured.reason ?? "unknown reason"}.`;
         await sendSlackDirectMessage(dmTarget, ack, { threadTs }).catch(() => null);
       }

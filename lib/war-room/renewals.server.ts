@@ -58,7 +58,13 @@ export async function loadPaidRenewal(db: SupabaseClient, now = Date.now()): Pro
     };
     if (row.stripe_subscription_id && isStripeConfigured()) {
       try {
-        const subscription = await getStripe().subscriptions.retrieve(row.stripe_subscription_id);
+        // Bounded: this runs inside the Slack route's 90 seconds and the brief
+        // step. The SDK default is an 80-second timeout with retries.
+        const subscription = await getStripe().subscriptions.retrieve(
+          row.stripe_subscription_id,
+          {},
+          { timeout: 5_000, maxNetworkRetries: 0 },
+        );
         // The current API puts the period on the item; older ones on the subscription.
         const periodEnd = subscription.items.data[0]?.current_period_end
           ?? (subscription as unknown as { current_period_end?: number }).current_period_end;

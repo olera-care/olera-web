@@ -7,6 +7,7 @@ import { phraseMove, pickMove, type BriefMove, type MoveCandidate } from "@/lib/
 import { loadProviderMoments, type ProviderMoment } from "@/lib/war-room/provider-moments.server";
 import { loadPaidRenewal, type PaidRenewal } from "@/lib/war-room/renewals.server";
 import { withoutStaleRenewalCounts } from "@/lib/war-room/stale-counts";
+import { correctionLines, loadCorrections } from "@/lib/war-room/corrections.server";
 import { closeExchange } from "@/lib/war-room/conversation.server";
 import { loadBlindSpots, loadLookupGaps } from "@/lib/war-room/lookups.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
@@ -442,9 +443,16 @@ export async function deliverWarRoomBrief(
           .select("constraints")
           .eq("key", "olera")
           .maybeSingle();
-        const rules = Array.isArray(model?.constraints)
-          ? (model.constraints as unknown[]).filter((rule): rule is string => typeof rule === "string")
-          : [];
+        // The founder's standing corrections go in with the constraints, so
+        // a move he has already rejected is not the brief's first line.
+        const corrections = correctionLines(await loadCorrections(db).catch(() => []))
+          .map((line) => `Founder correction, ${line}`);
+        const rules = [
+          ...(Array.isArray(model?.constraints)
+            ? (model.constraints as unknown[]).filter((rule): rule is string => typeof rule === "string")
+            : []),
+          ...corrections,
+        ];
         move = { ...(await phraseMove(chosen, rules)), title: chosen.title, kind: chosen.kind };
       }
       const investigations = (investigationResult.data ?? []) as InvestigationRow[];

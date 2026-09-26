@@ -175,7 +175,7 @@ async function getQueueResponse(request: NextRequest, timings: Record<string, nu
     );
     const tag = row.campaign_tag || row.id;
     const [delivered, adLandings, receipt, communicationResult, profileResult] = await Promise.all([
-      countDeliveredByCampaign(db, campaignTags),
+      countDeliveredByCampaign(db, campaignTags, { includeOtherAds: true }),
       countAdLandingsByCampaign(db, campaignTags),
       getCampaignReceipt(db, row),
       db
@@ -468,7 +468,7 @@ async function getQueueResponse(request: NextRequest, timings: Record<string, nu
   };
 
   const [delivered, adLandings] = await Promise.all([
-    timed("delivered", countDeliveredByCampaign(db, tags)),
+    timed("delivered", countDeliveredByCampaign(db, tags, { includeOtherAds: true })),
     timed("landings", countAdLandingsByCampaign(db, tags)),
     timed("communications", loadCommunications()),
     timed("questions", loadQuestions()),

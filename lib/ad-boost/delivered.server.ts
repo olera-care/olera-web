@@ -1,5 +1,190 @@
 import { readCampaignRows } from "@/lib/ad-boost/read-campaign-rows";
 import { getServiceClient } from "@/lib/admin";
+import { BLOCKING_CATEGORIES } from "@/lib/city-ads/classify.server";
+import { CARE_LABEL, getCityConfig } from "@/lib/city-ads/config";
+
+/**
+ * A form lead (city_leads) is counted on the campaign that holds it NOW, read
+ * from the lead's own routing state, never from the `lead_received` receipt
+ * written when it moved. Receipts are append-only: a lead handed to one
+ * provider and then offered to another kept counting on the first, and a lead
+ * screened out after the handover kept counting at all. So every counter here
+ * drops receipts that carry `city_lead_id` and asks this function instead.
+ *
+ * Who holds a lead:
+ *   - an accepted offer (city_leads.accepted_offer_id) names the provider, and
+ *     wins over a handover that came before it: an admin "Offer to…" on a
+ *     handed lead is a deliberate re-route;
+ *   - otherwise the handover (city_leads.handed_request_id) names the campaign;
+ *   - a released offer (the re-offer rung clears accepted_offer_id) holds
+ *     nothing, so the lead leaves that provider's count the moment it is freed.
+ *
+ * An accepted offer names a provider, not a campaign. It lands on the campaign
+ * whose own ad produced the lead when that campaign is hers, otherwise on her
+ * campaign that had launched by the time she took it (her earliest, if none
+ * had).
+ *
+ * Screened-out leads (job seekers, spam) count for nobody, even once handed.
+ */
+interface RoutedFormLead {
+  id: string;
+  created_at: string;
+  care_type: string | null;
+  slug: string;
+}
+
+interface RequestForRouting {
+  id: string;
+  provider_id: string | null;
+  campaign_tag: string | null;
+  flight_start_date: string | null;
+  requested_setup_week: string | null;
+  created_at: string;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function launchAnchor(r: RequestForRouting): string {
+  return new Date(r.flight_start_date || r.requested_setup_week || r.created_at).toISOString();
+}
+
+export async function routedFormLeadsByCampaign(
+  db: ReturnType<typeof getServiceClient>,
+  tags: string[],
+): Promise<Record<string, RoutedFormLead[]>> {
+  const result: Record<string, RoutedFormLead[]> = {};
+  const wanted = [...new Set(tags.filter((t): t is string => !!t))];
+  for (const t of wanted) result[t] = [];
+  if (wanted.length === 0) return result;
+
+  const REQUEST_COLS = "id, provider_id, campaign_tag, flight_start_date, requested_setup_week, created_at";
+  const uuids = wanted.filter((t) => UUID_RE.test(t));
+  const [byTag, byId] = await Promise.all([
+    db.from("ad_campaign_requests").select(REQUEST_COLS).is("deleted_at", null).in("campaign_tag", wanted),
+    uuids.length
+      ? db.from("ad_campaign_requests").select(REQUEST_COLS).is("deleted_at", null).in("id", uuids)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (byTag.error || byId.error) throw new Error(`Campaign read failed: ${(byTag.error ?? byId.error)!.message}`);
+
+  // Effective tag is `campaign_tag || id`, the same key the ad links carry.
+  const tagOf = new Map<string, string>();
+  for (const r of [...(byTag.data ?? []), ...(byId.data ?? [])] as RequestForRouting[]) {
+    const tag = r.campaign_tag || r.id;
+    if (result[tag]) tagOf.set(r.id, tag);
+  }
+  if (tagOf.size === 0) return result;
+  const requestIds = [...tagOf.keys()];
+
+  // Every campaign these providers run, so an accepted offer can be placed on
+  // the right one even when the caller asked about only some of them.
+  const providerIds = [
+    ...new Set(
+      [...(byTag.data ?? []), ...(byId.data ?? [])]
+        .map((r) => (r as RequestForRouting).provider_id)
+        .filter((p): p is string => !!p),
+    ),
+  ];
+  const { data: allRequests, error: reqErr } = providerIds.length
+    ? await db.from("ad_campaign_requests").select(REQUEST_COLS).is("deleted_at", null).in("provider_id", providerIds)
+    : { data: [], error: null };
+  if (reqErr) throw new Error(`Campaign read failed: ${reqErr.message}`);
+  const requestsByProvider = new Map<string, RequestForRouting[]>();
+  for (const r of (allRequests ?? []) as RequestForRouting[]) {
+    if (!r.provider_id) continue;
+    const list = requestsByProvider.get(String(r.provider_id)) ?? [];
+    list.push(r);
+    requestsByProvider.set(String(r.provider_id), list);
+  }
+
+  // Candidate leads: handed to one of these campaigns, or accepted by one of
+  // these providers. Owner is resolved below; a candidate may belong to nobody.
+  const { data: accepted, error: offErr } = providerIds.length
+    ? await db.from("city_lead_offers").select("id").in("provider_id", providerIds).not("accepted_at", "is", null)
+    : { data: [], error: null };
+  if (offErr) throw new Error(`Offer read failed: ${offErr.message}`);
+  const acceptedIds = (accepted ?? []).map((o) => o.id as string);
+
+  const LEAD_COLS =
+    "id, created_at, care_type, slug, is_test, archive_reason, qualification_verdict, handed_at, handed_request_id, accepted_offer_id, meta_campaign_id";
+  const [handedRes, acceptedRes] = await Promise.all([
+    db.from("city_leads").select(LEAD_COLS).in("handed_request_id", requestIds),
+    acceptedIds.length
+      ? db.from("city_leads").select(LEAD_COLS).in("accepted_offer_id", acceptedIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (handedRes.error || acceptedRes.error) {
+    throw new Error(`Lead read failed: ${(handedRes.error ?? acceptedRes.error)!.message}`);
+  }
+  type LeadRow = RoutedFormLead & {
+    is_test: boolean | null;
+    archive_reason: string | null;
+    qualification_verdict: string | null;
+    handed_at: string | null;
+    handed_request_id: string | null;
+    accepted_offer_id: string | null;
+    meta_campaign_id: string | null;
+  };
+  const leads = new Map<string, LeadRow>();
+  for (const l of [...(handedRes.data ?? []), ...(acceptedRes.data ?? [])] as LeadRow[]) leads.set(l.id, l);
+
+  const blocking = new Set<string>(BLOCKING_CATEGORIES as unknown as string[]);
+  const live = [...leads.values()].filter(
+    (l) =>
+      !l.is_test &&
+      l.qualification_verdict !== "not_care_seeker" &&
+      !(l.archive_reason && blocking.has(l.archive_reason)),
+  );
+
+  // The accepted offer behind each lead, and which campaign each lead's own ad
+  // belongs to.
+  const offerIds = [...new Set(live.map((l) => l.accepted_offer_id).filter((v): v is string => !!v))];
+  const adIds = [...new Set(live.map((l) => l.meta_campaign_id).filter((v): v is string => !!v))];
+  const [offersRes, adsRes] = await Promise.all([
+    offerIds.length
+      ? db.from("city_lead_offers").select("id, provider_id, accepted_at").in("id", offerIds)
+      : Promise.resolve({ data: [], error: null }),
+    adIds.length
+      ? db.from("city_campaigns").select("platform_campaign_id, request_id").in("platform_campaign_id", adIds).not("request_id", "is", null)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (offersRes.error || adsRes.error) throw new Error(`Routing read failed: ${(offersRes.error ?? adsRes.error)!.message}`);
+  const offerById = new Map(
+    ((offersRes.data ?? []) as Array<{ id: string; provider_id: string; accepted_at: string | null }>).map((o) => [o.id, o]),
+  );
+  const adRequests = new Map<string, Set<string>>();
+  for (const a of (adsRes.data ?? []) as Array<{ platform_campaign_id: string; request_id: string }>) {
+    const set = adRequests.get(a.platform_campaign_id) ?? new Set<string>();
+    set.add(String(a.request_id));
+    adRequests.set(a.platform_campaign_id, set);
+  }
+
+  for (const l of live) {
+    let owner: string | null = null;
+    const offer = l.accepted_offer_id ? offerById.get(l.accepted_offer_id) : undefined;
+    const offerWins =
+      !!offer?.accepted_at && (!l.handed_at || offer.accepted_at >= l.handed_at);
+    if (offer && offerWins) {
+      const theirs = requestsByProvider.get(String(offer.provider_id)) ?? [];
+      const fromOwnAd = theirs.find((r) => l.meta_campaign_id && adRequests.get(l.meta_campaign_id)?.has(r.id));
+      const launched = theirs
+        .filter((r) => launchAnchor(r) <= new Date(offer.accepted_at!).toISOString())
+        .sort((a, b) => launchAnchor(b).localeCompare(launchAnchor(a)))[0];
+      const earliest = [...theirs].sort((a, b) => launchAnchor(a).localeCompare(launchAnchor(b)))[0];
+      owner = (fromOwnAd ?? launched ?? earliest)?.id ?? null;
+    } else if (l.handed_request_id) {
+      owner = String(l.handed_request_id);
+    }
+    const tag = owner ? tagOf.get(owner) : undefined;
+    if (tag) result[tag].push({ id: l.id, created_at: l.created_at, care_type: l.care_type, slug: l.slug });
+  }
+  return result;
+}
+
+/** A `lead_received` receipt for a form lead. Counted from routing state instead. */
+function isFormLeadReceipt(metadata: { city_lead_id?: string } | null): boolean {
+  return !!metadata?.city_lead_id;
+}
 
 /**
  * Referrer class the analytics pipeline (`lib/analytics/referrer`) stamps on
@@ -31,7 +216,9 @@ function isInternalTraffic(metadata: { referrer_class?: string } | null): boolea
  * either
  *   • inquired with the provider     → a `lead_received` provider_activity event, or
  *   • finished the benefits intake    → a `benefits_completed` seeker_activity event,
- * with the campaign's `utm_campaign` on the event metadata. Both are
+ * with the campaign's `utm_campaign` on the event metadata, or
+ *   • filled in an ad's form and is routed to this campaign right now
+ *     → `routedFormLeadsByCampaign` (not its receipt, which never moves). Both are
  * server-confirmed conversions — not clicks — so this is the honest number to
  * show before we ever charge.
  *
@@ -63,8 +250,8 @@ export async function countDeliveredByCampaign(
   const idsByTag: Record<string, Set<string>> = {};
   for (const t of wanted) idsByTag[t] = new Set();
 
-  // Filter and paginate in the database; neither funnel depends on the other.
-  const [leads, bens] = await Promise.all([
+  // Filter and paginate in the database; no funnel depends on another.
+  const [leads, bens, formLeads] = await Promise.all([
     readCampaignRows(wanted, (batch, from, to, signal) => db
       .from("provider_activity").select("metadata", { count: from === 0 ? "exact" : undefined })
       .eq("event_type", "lead_received")
@@ -77,11 +264,13 @@ export async function countDeliveredByCampaign(
       .filter("metadata->>utm_source", "eq", "olera_managed")
       .in("metadata->>utm_campaign", batch)
       .order("id").range(from, to).abortSignal(signal)),
+    routedFormLeadsByCampaign(db, wanted),
   ]);
   for (const row of (leads ?? []) as Array<{
-    metadata: { utm_campaign?: string; connection_id?: string; session_id?: string } | null;
+    metadata: { utm_campaign?: string; connection_id?: string; session_id?: string; city_lead_id?: string } | null;
   }>) {
     const m = row.metadata;
+    if (isFormLeadReceipt(m)) continue;
     const tag = m?.utm_campaign;
     if (tag && wantedSet.has(tag)) {
       idsByTag[tag].add(`lead:${m?.connection_id || m?.session_id || JSON.stringify(m)}`);
@@ -96,6 +285,10 @@ export async function countDeliveredByCampaign(
     if (tag && wantedSet.has(tag)) {
       idsByTag[tag].add(`benefits:${row.profile_id || JSON.stringify(row.metadata)}`);
     }
+  }
+
+  for (const [tag, rows] of Object.entries(formLeads)) {
+    for (const l of rows) idsByTag[tag]?.add(`form:${l.id}`);
   }
 
   for (const t of wanted) result[t] = idsByTag[t].size;
@@ -370,7 +563,7 @@ export async function listLeadsByCampaign(
 ): Promise<CampaignLead[]> {
   if (!tag) return [];
 
-  const [leadRes, benefitsRes] = await Promise.all([
+  const [leadRes, benefitsRes, formRes] = await Promise.all([
     db
       .from("provider_activity")
       .select("created_at, metadata")
@@ -387,15 +580,17 @@ export async function listLeadsByCampaign(
       .filter("metadata->>utm_campaign", "eq", tag)
       .order("created_at", { ascending: false })
       .limit(500),
+    routedFormLeadsByCampaign(db, [tag]),
   ]);
 
   const out: CampaignLead[] = [];
 
   // Primary funnel — inquiries. Enrich care need + state from the connection.
-  const leadRows = (leadRes.data ?? []) as Array<{
+  // Form-lead receipts are skipped here and listed from routing state below.
+  const leadRows = ((leadRes.data ?? []) as Array<{
     created_at: string;
-    metadata: { connection_id?: string } | null;
-  }>;
+    metadata: { connection_id?: string; city_lead_id?: string } | null;
+  }>).filter((r) => !isFormLeadReceipt(r.metadata));
   const connIds = leadRows
     .map((r) => r.metadata?.connection_id)
     .filter((v): v is string => !!v);
@@ -429,6 +624,18 @@ export async function listLeadsByCampaign(
       entrySource: "Provider page inquiry",
       connectionId,
       outcome: (connectionId && outcomeByConn[connectionId]) || null,
+    });
+  }
+
+  // Form leads routed to this campaign now. No connection row, so no outcome.
+  for (const l of formRes[tag] ?? []) {
+    out.push({
+      created_at: l.created_at,
+      careNeed: (l.care_type && CARE_LABEL[l.care_type as keyof typeof CARE_LABEL]) || null,
+      state: getCityConfig(l.slug)?.state ?? null,
+      entrySource: "Ad form",
+      connectionId: null,
+      outcome: null,
     });
   }
 

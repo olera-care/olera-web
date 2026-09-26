@@ -30,6 +30,13 @@ const FIXTURES: Record<string, string[]> = {
     `People are asking for questions in your area. That's smart. I was actually thinking about the process when care seekers, after making a connection, opt to make their care needs public in that city. We have a system for this: published profiles. Look into this to get a deeper sense.\n\nI think we have two ideas:\n1. Some type of email: "People are searching for care in your area. People asking questions in the area"\n2. Care seekers are looking for care professionals in your area\n\n\nSomething like that. What are your thoughts? `,
   ],
 };
+// 2026-09-26 16:48: answered "call Hoop Cares and ask her point blank why she
+// paid". Pass: the first answer is about getting her leads before Oct 15
+// (flight end, geo, the Meta form), not a discovery call about her motive.
+FIXTURES.sep26hoop = ["So what do you think we should do?"];
+// 2026-09-26 17:04: answered "There's no Meta arm on record for her". Pass: it
+// finds the Meta instant form (pascagoula-ms) and its leads. "Loop" is his typo.
+FIXTURES.sep26meta = ["How many classes of ads do we have going for Loop Cares? I know we have some Meta ads going"];
 const FIXTURE = FIXTURES.sep24;
 
 /** Words the founder should never have to decode. */
@@ -74,6 +81,33 @@ export function readOnly<T extends { from: (table: string) => unknown }>(client:
   });
 }
 
+function loadMigrationSeed(): unknown[] {
+  const sql = fs.readFileSync(path.resolve("supabase/migrations/260_cortex_corrections.sql"), "utf8");
+  const json = sql.slice(sql.indexOf("SET corrections = '") + "SET corrections = '".length, sql.indexOf("'::jsonb,"));
+  return JSON.parse(json) as unknown[];
+}
+
+/** Test-only: the company model's corrections read returns the given list. */
+function withCorrections<T extends { from: (table: string) => unknown }>(client: T, corrections: unknown[]): T {
+  return new Proxy(client, {
+    get(target, prop, receiver) {
+      if (prop !== "from") return Reflect.get(target, prop, receiver);
+      return (table: string) => {
+        const builder = target.from(table) as { select: (columns: string) => unknown };
+        if (table !== "war_room_company_models") return builder;
+        return new Proxy(builder as object, {
+          get(inner, method, innerReceiver) {
+            if (method !== "select") return Reflect.get(inner, method, innerReceiver);
+            return (columns: string) => columns.trim() === "corrections"
+              ? { eq: () => ({ maybeSingle: async () => ({ data: { corrections }, error: null }) }) }
+              : builder.select(columns);
+          },
+        });
+      };
+    },
+  });
+}
+
 function loadEnv() {
   const candidates = [path.resolve(".env.local"), path.join(process.env.HOME ?? "", "Desktop/olera-web/.env.local")];
   const file = candidates.find((candidate) => fs.existsSync(candidate));
@@ -91,7 +125,11 @@ async function main() {
   // Imported after the env is set: the model is read at module load.
   const { createClient } = await import("@supabase/supabase-js");
   const { answerFounderQuestion } = await import("../lib/war-room/conversation.server");
-  const db = readOnly(createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!));
+  // --seed-corrections answers the corrections read with migration 260's seed,
+  // to replay the state after that migration without applying it.
+  const seedCorrections = process.argv.includes("--seed-corrections") ? loadMigrationSeed() : null;
+  const base = readOnly(createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!));
+  const db = seedCorrections ? withCorrections(base, seedCorrections) : base;
 
   console.log(`model: ${process.env.WAR_ROOM_CONVERSATION_MODEL}\n`);
   // Questions on the command line replace the fixture and run independently;
@@ -100,13 +138,13 @@ async function main() {
   const args = process.argv.slice(2);
   const fixtureAt = args.indexOf("--fixture");
   const named = fixtureAt >= 0 ? FIXTURES[args[fixtureAt + 1] ?? ""] : null;
-  const custom = fixtureAt >= 0 ? [] : args;
+  const custom = fixtureAt >= 0 ? [] : args.filter((arg) => !arg.startsWith("--"));
   const questions = named ?? (custom.length ? custom : FIXTURE);
   let prior: { question: string; answer: string; focusInvestigationId: null; at: string } | null = null;
   for (const question of questions) {
-    const { reply } = await answerFounderQuestion(db, question, null, prior);
+    const { reply, costUsd } = await answerFounderQuestion(db, question, null, prior);
     const problems = voiceProblems(reply);
-    console.log(`> ${question}\n${reply}\n[voice: ${problems.length ? problems.join("; ") : "ok"}]\n`);
+    console.log(`> ${question}\n${reply}\n[voice: ${problems.length ? problems.join("; ") : "ok"}${costUsd != null ? ` | cost $${costUsd.toFixed(3)}` : ""}]\n`);
     if (!custom.length) prior = { question, answer: reply, focusInvestigationId: null, at: new Date().toISOString() };
   }
 }

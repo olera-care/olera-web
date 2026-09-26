@@ -1,4 +1,4 @@
-# Ad Boost Campaign Setup — Provider + City, Google + Nextdoor
+# Ad Boost Campaign Setup — Provider + City, Google + Meta instant form (Nextdoor retired)
 
 Input: $ARGUMENTS — provider name(s) OR Olera city name(s)/quiz URL(s), optionally followed by channel, budget allocation, and flight dates; OR a screenshot of the relevant admin queue. Infer the campaign type and subjects from explicit text or a clear screenshot, then verify against the correct records below.
 
@@ -24,7 +24,11 @@ Added based on the September 16, 2026 Nextdoor setup post-mortem.
 
 ## Purpose
 
-Take one or more Ad Boost providers from "Requested" to published, policy-audited campaigns on **Google, Nextdoor, or both**. Drive the selected ad manager directly through the visible browser, with TJ approving every final Publish/Create action. The Google track encodes the flow proven on Miracle-Lightstar + Impact (2026-07-05); the Nextdoor track encodes the Graceful Homecare pilot (2026-08-14).
+Take one or more Ad Boost providers from "Requested" to published, policy-audited campaigns on **Google, Meta, or both** (`channel` = `google`, `meta`, or `google_meta`; the values in `BOOST_CHANNELS`, `lib/ad-boost/boost-state.ts`). Drive the selected ad manager directly through the visible browser, with TJ approving every final Publish/Create action. The Google track encodes the flow proven on Miracle-Lightstar + Impact (2026-07-05). The Meta track (Phase 2M) encodes the Hoop Cares / Colorado CareAssist instant-form pattern (2026-09-20 to 09-25).
+
+**The provider Meta arm is ALWAYS a native instant form linked to the provider's request. Never a Traffic / landing-page-view ad to the provider page.** (TJ, 25 Sep 2026, after Wescastle, Rosemonte and HomeWell were built as traffic ads by copying the last campaign's shape and all three had to be rebuilt.) Measured: an instant form completes at 68.7% against 5.3% on the page, and it is the only arm whose platform can see its own conversion. A traffic ad optimises for page views and hands the provider nothing. If you are about to duplicate a Traffic campaign for a provider, stop.
+
+**Nextdoor is retired for providers.** It went 0 leads from 168 clicks (Fisher p=0.036 against Google) and was killed and reallocated on 2026-09-14. Phases 2N and 3N stay below as history and for reading old flights. Do not propose Nextdoor unless TJ asks for it by name.
 
 Canonical references (read if uncertain, don't re-derive):
 
@@ -35,29 +39,30 @@ Canonical references (read if uncertain, don't re-derive):
 
 If `$ARGUMENTS` does not already answer these, ask TJ once, compactly, **for each provider**:
 
-1. **Channel:** Google, Nextdoor, or both?
+1. **Channel:** Google, Meta instant form, or both (`google_meta`)?
 2. **Budget:** total authorized dollars for this flight.
-3. **Allocation:** when both, exact Google dollars + exact Nextdoor dollars. They must sum to the total.
+3. **Allocation:** when both, exact Google dollars + exact Meta dollars. They must sum to the total. Precedents: $25 + $25 (Wescastle, HomeWell) and $50 + $50 = $100 (Colorado CareAssist, which TJ authorized explicitly). Never assume the $100 form.
 4. **Flight:** start and end dates. A comparison should use the same dates on both platforms.
 5. **Learning goal:** cheapest qualified traffic, direct leads, or an apples-to-apples channel comparison?
 
 Then present the proposed packet and wait for confirmation:
 
-| Provider | Channel(s) | Total | Google | Nextdoor | Flight | Shared campaign tag | Goal |
+| Provider | Channel(s) | Total | Google | Meta | Flight | Campaign tag(s) | Goal |
 |---|---|---:|---:|---:|---|---|---|
 
 **Budget safety:** the historical free intro is **$50 total per provider**, not $50 per platform. Never silently turn “both” into a $100 commitment. For one channel, propose the usual $50. For both, ask for the split; an even split may be offered as a neutral starting point, but never selected without TJ confirming it.
 
-**Decision framing:** Google is the higher-intent, higher-CPC search channel. Nextdoor is the lower-CPC local-discovery channel. “Both” is the cleanest traffic-efficiency comparison, but the current Ad Boost row stores one campaign tag and one aggregate performance triplet. Therefore use one shared campaign tag across both platforms, use platform-specific `utm_medium`, keep the dollar/campaign-ID breakdown in `admin_note`, and say plainly that Olera’s downstream questions/leads are combined while each ad manager keeps its own spend/click totals. Do not pretend Olera can assign a downstream conversion to one platform when both share a flight.
+**Decision framing:** Google is the higher-intent, higher-CPC search channel (live CPC about $4.50). Meta's instant form is interruption rather than intent, but it is the only arm whose platform sees its own conversion, and it hands each lead to the provider's campaign page. With both, the Ad Boost row keeps the Google tag and `platform_campaign_id`, the form has its own native tag, `city_campaigns` holds the Meta campaign ID, and `admin_note` holds the per-platform dollars and IDs. Leads are attributable per platform: Google leads arrive through the tagged page, Meta leads through the form.
 
 Do not touch either ad account or change the request status until this gate is resolved.
 
 ## Locked invariants
 
-### Shared across Google + Nextdoor
+### Shared across channels
 
 - Canonical final URL: `https://olera.care/provider/{slug}?utm_source=olera_managed&utm_medium={medium}&utm_campaign={tag}` where `medium=paid_search` for Google and `medium=paid_social` for Nextdoor. Tag = `{stub}-{city}-{mon}{yy}` and must match `ad_campaign_requests.campaign_tag` **character-for-character before launch**. Never let the ad URL use a friendly tag while Olera stores the request UUID again.
-- One selected channel → `channel='google'` or `channel='nextdoor'`; both → `channel='both'`.
+- One selected channel → `channel='google'` or `channel='meta'`; both → `channel='google_meta'`. `both` is a legacy value (migration 250). Never write it.
+- **The Meta instant form's leads carry no UTM.** A lead is attributed by the form ID in `META_LEADS_FORMS_JSON`, its Meta campaign ID, and the `city_campaigns.request_id` link. The form's follow-up and thank-you buttons still link to the provider page tagged `utm_medium=paid_social`, as Boulder's do. The UTM rule below governs Google (and historical Nextdoor). The form's own tag is `{stub}-{city}-native-{mon}{yy}`, set in `CITY_CONFIGS` and `city_campaigns`. The Ad Boost row keeps the Google tag (e.g. Colorado CareAssist: `colorado-careassist-boulder-sep26` on the request, `colorado-careassist-boulder-native-sep26` on the form).
 - Budget fields must describe a real control, not a wish: one lifetime-capped platform (or two lifetime caps whose sum is the whole-flight envelope) → store the total with `ad_budget_type='lifetime'`; Single-platform daily budgeting (Google or explicitly authorized Nextdoor) → store the actual daily amount with `ad_budget_type='daily'` and put the planned total/end-date envelope in `admin_note`; Multiple platforms with any daily control → leave the aggregate budget pair blank rather than imply one platform control, and record each exact daily/lifetime control, end date, and total authorization in `admin_note`.
 - Store the real platform start/end dates in `flight_start_date` and `flight_end_date`. Re-read them from each ad manager before launch and again during handoff; the Olera end date must not drift beyond the paid flight.
 - Use the same provider page, core value proposition, geography, and dates when the goal is an apples-to-apples channel comparison. Adapt only the format constraints native to each platform.
@@ -68,7 +73,7 @@ Do not touch either ad account or change the request status until this gate is r
 
 > ⚠️ **The 2-week / $50 defaults below are under active revision.** On 2026-08-19/20 TJ authorized **90-day flights on a daily budget with no end date** (copying Rosemonte's structure) at **$150 per channel** for the Graceful / Miracle-Lightstar / Edmonds Villa / Pacesetter batch, because short flights taught us nothing across eleven providers. Campaign-total budgets weld a campaign to a window that **cannot be extended** — seven attempts across four routes on 2026-08-19 all failed server-side, and the account has never extended one. **Confirm flight length and budget with TJ per batch rather than assuming either default.** These invariants are left as written pending his decision on whether 90 days becomes the standing default.
 
-- Google Search only at the **confirmed Google allocation**, normally a **2-week flight** starting next Monday-ish (Mon → Sun, 14 days, match the setup-week convention in the request row). TJ set the 2-week default on 2026-08-02 so we learn faster and providers don't lose interest waiting a month. Campaigns launched before that date keep their original 4-week flights — do not shorten live campaigns.
+- Google Search only at the **confirmed Google allocation**, normally a **2-week flight starting the day it is built** (14 days). **Never hold a campaign for a Monday start** (TJ, 25 Sep 2026: "Normally, we launch them as soon as possible"; five campaigns scheduled for Mon 28 Sep sat idle over a weekend and all had to be pulled forward). This applies to Meta too: set the ad set `start_time` to now. The code PR + hotfix + `META_LEADS_FORMS_JSON` redeploy takes hours, not days, and a weekend is not a reason to wait. TJ set the 2-week default on 2026-08-02 so we learn faster and providers don't lose interest waiting a month. Campaigns launched before that date keep their original 4-week flights — do not shorten live campaigns.
 - **Maximize clicks with $2.50 max CPC cap** — never Maximize conversions.
 - Search-only: Search Partners OFF, Display Network OFF.
 - Geo: provider's city + **20 mi radius**, **Presence only** (not presence-or-interest). If the provider's address is far from the city center (check lat/lng), center on their **ZIP + 20mi** instead.
@@ -129,7 +134,8 @@ For each provider (from screenshot or $ARGUMENTS, matched against `ad_campaign_r
 2. **ZeroBounce** the contact email (key in analysis scripts). Do NOT write results to `email_validity` (CHECK constraint only allows delivery outcomes).
 3. **Flip the request row to `scheduled`** with the confirmed `channel`, exact shared campaign tag, actual flight dates, authorized total budget/control, and `admin_note` containing the per-platform allocation and planned campaign names. Do this through `/admin/ad-boost` so validation runs. If the row’s tag does not exactly match the ad URL, stop and correct it before any publish.
 4. **Google selected:** build the Google packet: **14-20 phrase-match keywords, every one naming a town** (`senior home care {town}`, `in home care {town}`, `senior care {town}`, `elderly care {town}`, `home caregiver {town}`, `respite care {town}` across the provider's 3-5 real service towns). **Never bare category + town** (`home care oak ridge` ran 0% on 34 impressions while `senior home care oak ridge` ran 13.0%), **never `near me`** (0% everywhere), **never the big metro** (Oak Ridge yes, Knoxville no), and **never `home health aide {city}`** (see Known blockers). Expect 2-4 to report `Low search volume` — that is correct and harmless; a dead keyword costs nothing, a low-CTR live one costs the whole campaign. Then 13 headlines (provider name first; all ≤30 chars), 4 descriptions (≤90 chars). Only claim ratings if substantiated (e.g. "5-Star Rated" needs a real 5.0★ profile).
-5. **Nextdoor selected:** build the Nextdoor packet: provider logo/image, short local headline, plain-language body, CTA to the same tagged provider page, exact service-area target, allocation, and flight. Keep the proposition aligned with the Google packet when comparing channels.
+5. **Meta selected:** build the Meta packet: `CITY_CONFIGS` slug (check for collisions), area label, office ZIP, timezone, native tag, form copy naming the provider, the inspected hero photo, geo, lifetime cap, and flight. **Check for overlapping Olera Meta audiences**: another provider's live form in the same metro (e.g. Rosemonte's `phoenix-az` form covers North Phoenix and Scottsdale) means two Olera ads bidding into one audience. Name the overlap to TJ rather than silently building beside it.
+6. **Nextdoor (retired):** the Nextdoor packet: provider logo/image, short local headline, plain-language body, CTA to the same tagged provider page, exact service-area target, allocation, and flight. Keep the proposition aligned with the Google packet when comparing channels.
 
 ## Phase 2G — Build in Google Ads (Google selected only; chrome-devtools MCP)
 
@@ -246,7 +252,72 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 
 **STOP at the Review screen and present the full config summary + audit result. TJ says "publish" → click Publish campaign.** Never publish without his explicit go. Record the campaign ID from the post-publish URL.
 
-## Phase 2N — Build in Nextdoor Ads (Nextdoor selected only)
+## Phase 2M — Meta instant form linked to the provider (Meta selected)
+
+Worked examples: Hoop Cares `pascagoula-ms` (first, 2026-09-20) and Colorado CareAssist `boulder-co` (the cleanest copy, 2026-09-25). Wescastle, Rosemonte, HomeWell and LumiWell followed the same recipe the same day (`atlanta-ga`, `phoenix-az`, `oak-ridge-tn`, `fresno-ca`). Architecture and env reference: `docs/city-ads/META-NATIVE-INTAKE.md`.
+
+How a lead flows: a family fills the form inside Meta → signed webhook `/api/webhooks/meta-leads` → `meta_lead_receipts` → importer (`lib/city-ads/meta-native.server.ts`) → `city_leads` → handed to the provider's campaign page by `lib/city-ads/primary.server.ts` once the family replies or after an hour, because the form's `city_campaigns` row carries `request_id`. There is no `connections` row, so the family appears on the provider's campaign page, not in their inbox.
+
+Every provider needs all four pieces. A missing piece fails silently: the ad serves and the lead goes nowhere.
+
+### Step 1 — `CITY_CONFIGS` entry (code PR)
+
+Add a `concierge` entry in `lib/city-ads/config.ts`. The importer throws "Form needs concierge configuration" for anything else. Fields: `slug` (`{city}-{st}`), `city`, `state`, `areaLabel` (the provider's real service area, read to the family), `zipPrefill` (office ZIP), `timeZone`, `campaignTag` (`{stub}-{city}-native-{mon}{yy}`), plus `careNoun` when it isn't home care (Rosemonte: `"assisted living"`). Add the comment block the others carry, naming the provider and area.
+
+- **Check slug collisions first.** A slug is one form's config. If the city is taken (e.g. `phoenix-az` = Rosemonte), use the provider's own city (`scottsdale-az`) or a neighbourhood slug. Never reuse another provider's slug.
+- PR → staging → hotfix to main. There is no `lib/city-ads` drift between branches as of 25 Sep, so the hotfix cherry-picks cleanly. Check that again rather than assume it. The form can't be allowlisted until main is deployed.
+
+### Step 2 — build the form through the Graph API, not the UI
+
+Olera Page `112405630552923`, ad account `739297033485646`. Get the page token from `/me/accounts`, using the Ads Manager tab's own adsmanager-graph token. Then `POST /112405630552923/leadgen_forms`, **copying Colorado CareAssist's form (`1555807859192198`) field for field.** Read its spec with a GET first.
+
+- **Never duplicate a form in the UI.** On 25 Sep, UI duplication reset Flexible form delivery to ON and dropped the privacy-policy link twice.
+- Don't copy Hoop's v3 form. It still has Flexible delivery ON.
+- Questions: name, phone, ZIP, optional email, and the who-is-it-for screen question (#2163). No medical questions.
+- **Housing-category (assisted living) forms cannot ask for ZIP.** Meta rejects the ad at publish (#2909057). Drop the question; the importer treats ZIP as optional.
+- **Pass `privacy_policy` and `custom_disclaimer` as their own top-level POST parameters.** A nested `legal_content` object is silently ignored: on 26 Sep it kept the privacy link and dropped the consent checkbox with no error. Forms can't be edited after creation, so read back `legal_content{custom_disclaimer{checkboxes}}` and, if the checkbox is missing, archive the form and create it again.
+- The consent checkbox text must match `consentText` in the env mapping exactly. `consentText` is the disclaimer **body** text, not the checkbox label. The intro and thank-you copy say the provider will be in touch, not "someone from Olera will call you". Hoop's stale copy is the example not to follow.
+
+### Step 3 — allowlist the form in `META_LEADS_FORMS_JSON` (Vercel, prod)
+
+Append `{pageId, formId, slug, campaignTag, consentVersion, consentText, testOnly: true, campaignId}` and redeploy prod. Rebuild the array from GET `/api/admin/city-ads/meta` (`forms`), then `vercel env pull` production and assert the existing entries are **identical** before writing. The value is encrypted, not sensitive, so it can be read back. Delete every pulled env file right after.
+
+- **Env writes, `gh pr merge` and prod redeploys are classifier-blocked in auto mode.** Prepare the exact command (value in a scratch file, `vercel env rm … && tr -d '\n' < file | vercel env add …`) and hand it to TJ with the `!` prefix. `vercel redeploy` needs `--scope olera` or it looks in the personal team. Link the CLI in a scratch dir (`vercel link --yes --project olera-web --scope olera`). Linking writes a `.env.local` there; delete it straight away.
+- **Test lead:** the Lead Ads Testing Tool (Page = Olera, then the form) sends dummy field values. The receipt reaches the webhook and retrieval, then fails import with "phone digits 0". **That is the expected result, not a bug.** It proves the webhook, allowlist, Page token and field keys. `POST /{form}/test_leads` with real `field_data` returns Permission Denied for this account. Check the receipt in GET `/api/admin/city-ads/meta` → `receipts`.
+- Flip to `testOnly: false`, redeploy, and confirm the admin GET shows it **before** activating the ad. A live ad on a `testOnly` form files real families as tests and nobody contacts them.
+
+### Step 4 — `city_campaigns` + `city_pool` rows
+
+- `city_campaigns`: `slug`, `city`, `state`, `ring_label` (`{City} + {n} mi`), `care_types`, `channel='meta'`, `campaign_tag` = the native tag, `utm_medium='paid_meta'`, `platform_campaign_id` = the Meta **campaign** ID (not the ad set or ad ID), `flight_start`/`flight_end`, `budget_cents`, `max_cpc_cents=null`, `status='scheduled'`, **`request_id` = the provider's `ad_campaign_requests.id`** (this is what routes leads to the provider), and `admin_note` with the form ID, ad ID, geo, exact start/end times and timezone, and the line "Paid from their Ad Boost Meta allocation, not the city-ads budget".
+- `city_pool`: `slug`, `provider_id` (business_profiles id), `position=1`, `care_types`, `enabled=true`, `is_test=false`, and a note naming the provider.
+- Inserts through the Supabase REST API with the service key worked in auto mode on 26 Sep. Check for an existing `slug` row first, then re-read both rows. If a write is blocked, write the SQL to a file for TJ.
+
+### Step 5 — campaign in Ads Manager
+
+- Objective **Leads**, conversion location **Instant forms**. Campaign name `{Provider} – {City} – {Mon YYYY} – Meta Instant Form`.
+- **Lifetime budget = the confirmed Meta allocation**, with a scheduled start and end in the provider's timezone. Match Google's dates when both arms run.
+- Geo: the provider's service area (radius from the office, or their named counties, as Hoop confirmed). Read the saved location back. Copy age and audience settings from Colorado CareAssist's ad set (`GET` it) rather than choosing new ones.
+- Special ad category: leave it unchecked for home care. Assisted living goes in the housing category (see the ZIP rule in Step 2).
+- Creative: the provider's own inspected photo (Phase 1a) and copy naming the provider and city. No URL or phone in the text. No condition claims (dementia, Alzheimer's).
+- **The whole build works over the Graph API** (26 Sep, SHS Scottsdale), created `PAUSED`: campaign (`OUTCOME_LEADS`, `lifetime_budget`), ad set (`optimization_goal=LEAD_GENERATION`, `destination_type=ON_AD`, `promoted_object.page_id`, targeting copied from Boulder with `geo_locations.custom_locations` radius), creative, then ad. Use the Ads Manager tab's `adsmanager-graph.facebook.com` endpoint with `credentials:'include'`. The plain `graph.facebook.com` rejects that token.
+- **Creative:** `object_story_spec.link_data` with `call_to_action {type:'SIGN_UP', value:{lead_gen_form_id}}` and `link:'http://fb.me/'`. **Copy Boulder's entire `degrees_of_freedom_spec.creative_features_spec`** (Advantage+ creative, text optimisations, image touch-ups, templates, enhance CTA all `OPT_OUT`; only `pac_recomposition` smart crop `OPT_IN`). Opting out of `standard_enhancements` alone leaves Meta free to rewrite the copy.
+- **Image upload:** Ads Manager blocks fetching Supabase images (CSP). Inject a `<input type=file>`, set the local file with the `upload_file` tool, read it with `FileReader`, and `POST act_…/adimages` with `bytes`.
+- In the UI path only: draft ads aren't visible to the API, so the form has to be picked in the UI by ID.
+- **Scripted field writes silently revert even though the UI says "All edits saved".** Type values, reload, and read them back before the publish gate.
+
+### Meta publish gate
+
+Present: account, campaign, ad set and ad names, objective, form ID (and that its Flexible delivery is OFF, with the privacy link present), geo as saved, ages, lifetime cap, start/end with timezone, image, copy, and the `city_campaigns` `request_id`. **TJ says "publish" → publish.** Record the campaign, ad set and ad IDs, then write `platform_campaign_id` into the row.
+
+### Phase 3M — Meta post-publish
+
+1. Re-read the campaign over the Graph API: status, lifetime budget, start/end, and the form on the ad.
+2. Confirm the form is in `META_LEADS_FORMS_JSON` with `testOnly: false` and a `campaignId` that matches.
+3. When it serves, flip `city_campaigns.status` to `live` alongside the Ad Boost row. Delivery (spend, impressions, link clicks) shows in the `/admin/city-ads` Meta delivery row. **Link clicks are an upper bound on form opens, not a count of them.**
+4. Leads: one Slack alert per real lead. On day 2, check that `primary.server.ts` handed each one to the provider's campaign page. Job seekers are the known contaminant: 10 of 24 September city leads, and 6 of 7 in Pascagoula. The who-is-it-for question screens them, but read each lead.
+
+
+## Phase 2N — Build in Nextdoor Ads (RETIRED 2026-09-14; history only)
 
 Use the same visible browser requirement as Phase 2G Step A. Open `https://ads.nextdoor.com/v2` and confirm the selected advertiser account belongs to the provider being built. **Never put another provider’s campaign inside the Graceful Homecare advertiser account.** Inspect the account switcher before creating anything. Within authorized setup, create missing provider advertiser accounts under Olera using verified business details. Verify each new account in the switcher and record its ID immediately. Inspect existing billing availability before claiming a new card is required. Hand off only an actual step requiring unavailable information or user action under the applicable tool rules; account creation is not a blanket TJ-only task. Do not invent billing details. The Authorization and scope continuity section governs later user instructions.
 
@@ -359,7 +430,7 @@ Then run Phase 3G checks (AI Max off, auto-apply 0/7 + 0/14) as normal.
 
 **Don't change keywords in the same pass as negatives.** Per the diagnosis table, negatives first → wait 48h → re-read CTR. Changing both makes the read unattributable. Dead `"near me"` keywords can stay; they draw zero impressions and cost nothing.
 
-## Phase 3N — Nextdoor post-publish + results check
+## Phase 3N — Nextdoor post-publish + results check (history only)
 
 Immediately after creation:
 
@@ -384,6 +455,7 @@ Graceful interpretation rule: $0.35 CPC and a 91% click→unique-landing rate pr
 Present as a checklist, don't execute:
 
 - Reconcile channel, shared tag, flight dates, authorized total/control, and the platform allocation/campaign IDs in `admin_note`.
+- Meta selected: flip the form's `city_campaigns` row `scheduled` → `live` in the same pass, and confirm `city_pool.enabled` is true.
 - Flip request rows → **live via the `/admin/ad-boost` UI** only once every selected platform is serving (auto-sends the once-guarded "campaign is live" email; a DB flip silently skips it).
 - For both-channel tests, state that Ad Boost’s onsite outcomes are combined and include the separate Google/Nextdoor spend-click table in the handoff.
 - Any photo/profile asks for the provider.

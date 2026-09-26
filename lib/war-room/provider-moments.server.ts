@@ -80,7 +80,8 @@ function decodeEntities(text: string) {
 /** The reply without quoted history, which is most of any email body. */
 function replyText(message: MessageRow) {
   const body = message.body_text ?? message.snippet ?? "";
-  const cut = body.search(/\n\s*On .{0,120}wrote:|\n-{2,}\s*Original Message|\n>/);
+  // Outlook quotes as "From: ... Date: ..." with no "wrote:" line.
+  const cut = body.search(/\n\s*On .{0,120}wrote:|\n-{2,}\s*Original Message|\n>|\n\s*From: .{0,200}\r?\n\s*(Sent|Date): /);
   return decodeEntities(cut > 0 ? body.slice(0, cut) : body).replace(/\s+/g, " ").trim().slice(0, 700);
 }
 

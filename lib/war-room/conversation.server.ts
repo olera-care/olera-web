@@ -41,6 +41,8 @@ const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-so
 // on the last round's thinking and return no text (2026-09-26, "I could not
 // put an answer together" on a normal product question).
 const MAX_ANSWER_TOKENS = 8_000;
+// Time after which an empty answer is not retried (route limit is 90 seconds).
+const RECOVERY_CUTOFF_MS = 55_000;
 // A lookup answer takes several model calls. The Slack route allows 90s; the
 // budget leaves room for the final answer after the last lookup returns.
 const MAX_LOOKUP_ROUNDS = 4;
@@ -528,7 +530,8 @@ export async function answerFounderQuestion(
     // The model picks lookups; the server runs them and hands back results.
     // Bounded twice: rounds, and a wall-clock budget inside the Slack route's
     // limit, after which it must answer with what it has.
-    const deadline = Date.now() + LOOKUP_BUDGET_MS;
+    const startedAt = Date.now();
+    const deadline = startedAt + LOOKUP_BUDGET_MS;
     // Web search is a server tool: Anthropic runs it and returns results in the
     // same response. On 2026-09-23 the founder asked whether Telegram really
     // has about thirty employees and a billion users, and Cortex answered that
@@ -578,8 +581,14 @@ export async function answerFounderQuestion(
     // last round can end without text when its thinking uses the budget or a
     // web search pauses the turn with no rounds left. One more call, with no
     // tools, answers from what the lookups already returned.
-    if (message && !message.content.some((block) => block.type === "text" && block.text.trim())) {
+    // Only with time left: the Slack route stops at 90 seconds, and a reply
+    // cut off there is silence, which is worse than the fallback line.
+    const recoverable = Date.now() - startedAt < RECOVERY_CUTOFF_MS;
+    if (message && recoverable && !message.content.some((block) => block.type === "text" && block.text.trim())) {
       console.error("[cortex] empty answer; recovering", JSON.stringify({ stop: message.stop_reason, usage: message.usage }));
+      // A paused search turn is the last entry; a follow-up after it is not
+      // accepted, so it goes. Its results were never returned anyway.
+      if (messages[messages.length - 1]?.role === "assistant") messages.pop();
       // The empty turn itself is not re-sent: cut off by the token cap it can
       // end in a half-written tool call with no result, which the API rejects
       // (found by forcing this path). The history already ends with his

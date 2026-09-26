@@ -71,6 +71,7 @@ function nameFromEmail(email: string): string {
 interface Body {
   email?: string;
   name?: string;
+  phone?: string;
   careerPath?: IntendedProfessionalSchool;
   coverageBuckets?: CoverageBucket[];
   university?: string;
@@ -94,9 +95,6 @@ export async function POST(request: NextRequest) {
     const email = body.email?.trim().toLowerCase();
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
-    }
-    if (!email.endsWith(".edu")) {
-      return NextResponse.json({ error: "Please use your university email (.edu). We only accept .edu emails for student applications." }, { status: 400 });
     }
     if (!body.careerPath) {
       return NextResponse.json({ error: "Missing aspiration." }, { status: 400 });
@@ -134,6 +132,7 @@ export async function POST(request: NextRequest) {
 
     const cityValue = body.city?.trim() || null;
     const stateValue = body.state?.trim() || null;
+    const phoneValue = body.phone?.trim() || null;
 
     const metadata: Record<string, unknown> = {
       university,
@@ -157,7 +156,7 @@ export async function POST(request: NextRequest) {
       {
         display_name: displayName,
         email,
-        phone: null, // no phone at signup
+        phone: phoneValue,
         city: cityValue,
         state: stateValue,
       }
@@ -171,6 +170,7 @@ export async function POST(request: NextRequest) {
         type: "student",
         display_name: displayName,
         email,
+        phone: phoneValue,
         city: cityValue,
         state: stateValue,
         metadata,

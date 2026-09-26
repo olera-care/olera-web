@@ -468,7 +468,11 @@ export async function answerFounderQuestion(
   question: string,
   focusInvestigationId?: string | null,
   priorTurn?: ConversationTurn | null,
-  options: { mode?: "reply" | "brief" } = {},
+  options: {
+    mode?: "reply" | "brief";
+    /** Images he attached, base64. Sent with the question so a screenshot is read, not ignored. */
+    images?: Array<{ mediaType: string; data: string }>;
+  } = {},
 ): Promise<{ answered: boolean; reply: string; costUsd?: number }> {
   const brief = options.mode === "brief";
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -477,14 +481,24 @@ export async function answerFounderQuestion(
   try {
     const context = await buildConversationContext(db, focusInvestigationId, question);
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const messages: Anthropic.MessageParam[] = [{
-      role: "user",
-      content: priorTurn
+    const prompt = priorTurn
         // The previous turn is supplied verbatim so a correction reads as a
         // correction. "Aging in America" after a question about "Asian in
         // America" is a fix to the question, not a new topic.
         ? `RECORD:\n${context}\n\nEARLIER IN THIS CONVERSATION\nHe asked: ${priorTurn.question}\nYou answered: ${priorTurn.answer}\n\nHE NOW SAYS:\n${question}\n\nIf this corrects or narrows what he just asked, treat it as the corrected question and answer that. Do not ask him to repeat himself.`
-        : `RECORD:\n${context}\n\nFOUNDER ASKS:\n${question}`,
+        : `RECORD:\n${context}\n\nFOUNDER ASKS:\n${question}`;
+    const images = (options.images ?? []).filter((image) => /^image\/(png|jpeg|gif|webp)$/.test(image.mediaType));
+    const messages: Anthropic.MessageParam[] = [{
+      role: "user",
+      content: images.length
+        ? [
+          ...images.map((image) => ({
+            type: "image" as const,
+            source: { type: "base64" as const, media_type: image.mediaType as "image/png" | "image/jpeg" | "image/gif" | "image/webp", data: image.data },
+          })),
+          { type: "text" as const, text: `${prompt}\n\nHe attached ${images.length === 1 ? "the image above" : "the images above"}; read ${images.length === 1 ? "it" : "them"} as part of the question.` },
+        ]
+        : prompt,
     }];
 
     // The model picks lookups; the server runs them and hands back results.

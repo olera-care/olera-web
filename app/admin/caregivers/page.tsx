@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { StudentMetadata } from "@/lib/types";
 import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
-type FilterTab = "all" | "pendingReview" | "approved" | "rejected" | "hasInterviews" | "complete" | "incomplete" | "nonEdu";
+type FilterTab = "all" | "pendingReview" | "approved" | "rejected" | "hasInterviews" | "complete" | "incomplete";
 
 interface StudentRow {
   id: string;
@@ -45,7 +45,6 @@ interface TabCounts {
   incomplete: number;
   thisWeek: number;
   students: number;
-  nonEdu: number;
 }
 
 // Format date as "Feb 02, 2026"
@@ -129,13 +128,6 @@ export default function AdminStudentsPage() {
       if (filter === "complete") params.set("complete_only", "true");
       if (filter === "incomplete") params.set("incomplete_only", "true");
 
-      // Email filtering: nonEdu tab shows non-.edu emails, all others show only .edu
-      if (filter === "nonEdu") {
-        params.set("non_edu_only", "true");
-      } else {
-        params.set("edu_only", "true");
-      }
-
       // Date range filter
       const resolved = resolveRange(dateRange);
       if (resolved.from) params.set("from_date", resolved.from);
@@ -178,7 +170,6 @@ export default function AdminStudentsPage() {
           incomplete: statsData.incomplete ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
           students: statsData.students ?? 0,
-          nonEdu: statsData.nonEdu ?? 0,
         });
       }
     } catch { /* ignore */ }
@@ -334,7 +325,6 @@ export default function AdminStudentsPage() {
     { label: "Has Interviews", value: "hasInterviews", count: tabCounts?.hasInterviews ?? null },
     { label: "Complete", value: "complete", count: tabCounts?.complete ?? null },
     { label: "Incomplete", value: "incomplete", count: tabCounts?.incomplete ?? null },
-    { label: "Non-.edu", value: "nonEdu", count: tabCounts?.nonEdu ?? null },
   ];
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -355,9 +345,7 @@ export default function AdminStudentsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Students</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {filter === "nonEdu"
-              ? "Students who signed up with non-.edu emails"
-              : "Verified MedJobs student applicants (.edu emails)"}
+            MedJobs student applicants
           </p>
         </div>
         <DateRangePopover value={dateRange} onChange={setDateRange} />
@@ -482,6 +470,15 @@ export default function AdminStudentsPage() {
                         </span>
                       )}
                     </p>
+                    {student.phone && (
+                      <a
+                        href={`tel:${student.phone.replace(/[^+\d]/g, "")}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="block text-sm text-blue-600 hover:text-blue-800 hover:underline truncate"
+                      >
+                        {student.phone}
+                      </a>
+                    )}
                     <p className="text-sm mt-0.5">
                       <span className={completeness >= 80 ? "text-emerald-600" : "text-gray-400"}>
                         {completeness}% complete

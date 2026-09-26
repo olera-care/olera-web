@@ -39,6 +39,7 @@ const STUDENT_EMAIL_TYPES = [
   // Profile lifecycle
   "profile_incomplete_nudge", // cron sends this (not "student_profile_incomplete_nudge")
   "medjobs_review_nudge",
+  "medjobs_review_requested", // confirmation when student requests review
   "medjobs_profile_approved",
   "medjobs_profile_rejected",
   "medjobs_profile_revoked",

@@ -18,7 +18,7 @@ const EXPERIENCE_LABELS: Record<string, string> = {
 };
 
 const VERIFY_METHOD_LABELS: Record<string, string> = {
-  edu: ".edu email verification",
+  edu: "Email verification",
   id: "Student ID upload",
   document: "Enrollment document upload",
 };

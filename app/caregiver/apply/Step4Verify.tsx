@@ -136,7 +136,7 @@ export default function Step4Verify({
                   <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                   </svg>
-                  <span className="text-sm text-primary-700 font-medium">Student: Check your .edu inbox</span>
+                  <span className="text-sm text-primary-700 font-medium">Student: Check your inbox</span>
                 </>
               ) : (
                 <>
@@ -339,7 +339,7 @@ export default function Step4Verify({
         </div>
 
         <div className="space-y-3">
-          {/* .edu email */}
+          {/* Email verification */}
           <div
             className={`rounded-xl border-2 p-4 cursor-pointer transition-all ${
               student.verifyMethod === "edu" ? "border-primary-500 bg-primary-50/50 ring-1 ring-primary-500" : "border-gray-200 hover:border-gray-300"
@@ -352,7 +352,7 @@ export default function Step4Verify({
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-gray-900">Use your .edu email</p>
+                  <p className="text-sm font-semibold text-gray-900">Use your email</p>
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary-100 text-primary-700 uppercase">Fastest</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">Takes 1-2 minutes</p>
@@ -360,12 +360,12 @@ export default function Step4Verify({
             </div>
             {student.verifyMethod === "edu" && (
               <div className="mt-4 ml-8">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">.edu email address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
                 <input
                   type="email"
                   value={student.eduEmail}
                   onChange={(e) => setStudent((s) => ({ ...s, eduEmail: e.target.value }))}
-                  placeholder="you@university.edu"
+                  placeholder="you@email.com"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 />
               </div>

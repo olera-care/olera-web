@@ -7,6 +7,23 @@
 
 ## Current Focus
 
+### 2026-09-26 — STUCK case (718) 404-1055: a fall, not a benefits question (`silly-meitner`, no app code)
+
+**The case.** FL family (writing about herself), 76 (intake said 80), income under $2,500, Medicaid. She replied STUCK to the 24 Sep SMMC LTC text, then: "Slipped and fell on blue very high gloss sidewalk, went to Morgan and Morgan, they said no." We don't know who owns the sidewalk, her city or ZIP, or when she fell. `benefits_case.help_owner = TJ`, due 28 Sep.
+
+**Why it had no draft.** The engine triaged the fall message as `unrelated` and wrote nothing (`family_answer_jobs` bdab787e, status `skipped`). "Tks" was auto-handled as `thanks`.
+
+**Decision.** Olera stays out of legal advice. First draft led with the lawyer referral, a deadline hint and "one firm saying no is not the final word". TJ: why are we doing legal? Too much rope. The final message leads with care, gives the Florida Bar Lawyer Referral Service only as a pointer (1-800-342-8011), and asks whether she now needs help at home. TJ scheduled it himself.
+
+**Facts verified 26 Sep (web + Perplexity).**
+- The FL Senior Legal Helpline (888-895-7873) EXCLUDES personal injury.
+- AHCA allows an SMMC LTC rescreen after a significant health change, including an accident. It does not guarantee a higher priority.
+- 768.28 notice rules differ for city/county vs state. Never state a deadline in a text.
+
+**Next Up.**
+- If she says she needs help at home: rescreen via the Elder Helpline 1-800-963-5337, and get her county.
+- Product gap: `unrelated` triage inside an open STUCK case goes silent. It should route to a person with a draft.
+
 ### 2026-09-25 (later) — Four provider Meta arms rebuilt as instant forms and published (`vigilant-morse`, #2177 → staging, hotfix #2179 → main `1f375003`)
 
 **What happened.** Wescastle (Atlanta), Rosemonte (North Phoenix), and HomeWell (Oak Ridge) had been built as Meta *traffic* ads by copying Wescastle's shape. TJ: provider Meta arms are ALWAYS native instant forms linked to the provider (Hoop pattern). Rebuilt all three, and added LumiWell (Fresno, stock photos). All four are published and ACTIVE, scheduled to start 27–28 Sep. Saved as memory `feedback_provider_meta_is_instant_form`.

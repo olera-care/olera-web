@@ -58,7 +58,7 @@ export async function extractCorrection(
     }, { timeout: 15_000, maxRetries: 0 });
     const raw = reply.content.find((block): block is Anthropic.TextBlock => block.type === "text")?.text.trim() ?? "";
     // Keep only the lesson if the model wrapped it anyway ("**Lesson:** ...").
-    const text = raw.replace(/^[\s\S]*?\blesson\b\s*:\s*/i, "").replace(/[*_`"]/g, "").replace(/\s+/g, " ").trim();
+    const text = raw.replace(/^[\s\S]*?\blesson\b\s*:\s*/i, "").replace(/[*`"]/g, "").replace(/\s+/g, " ").trim();
     if (!text || /^NONE\b/i.test(text) || text.length > 300) return null;
     return text;
   } catch {

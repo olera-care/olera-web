@@ -694,6 +694,75 @@ async function loadPublishedCareNeeds(db: SupabaseClient, options: { days: numbe
   };
 }
 
+/**
+ * Everything running for one provider, and the leads it produced.
+ *
+ * On 2026-09-26 Cortex told the founder Hoop Cares had "no Meta arm on record"
+ * and "zero inquiries". Both were wrong: her Meta instant form lives in
+ * city_campaigns (linked to her Ad Boost campaign by request_id) and its seven
+ * leads live in city_leads. Cortex read only the Ad Boost row's team note and
+ * the site's inquiry table. Counts only; no family names or contact details.
+ */
+async function loadProviderCampaigns(db: SupabaseClient, name: string) {
+  const term = name.replace(/[%,()]/g, " ").trim();
+  if (!term) return { unavailable: "Name a provider." };
+  const { data: requests, error } = await db.from("ad_campaign_requests")
+    .select("id, provider_id, display_name, status, channel, campaign_tag, plan_status, plan_value, subscribed_at, flight_start_date, flight_end_date, ad_spend_cents, ad_clicks, ad_impressions, metrics_updated_at, provider_reported_outcome, ended_at, ended_reason, admin_note")
+    .ilike("display_name", `%${term}%`)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (error) throw new Error(error.message);
+  const rows = (requests ?? []) as Array<Record<string, unknown> & { id: string; provider_id: string | null }>;
+  if (!rows.length) return { found: false, note: `No Ad Boost campaign matches "${term}".` };
+
+  const requestIds = rows.map((row) => row.id);
+  const providerIds = [...new Set(rows.map((row) => row.provider_id).filter((id): id is string => Boolean(id)))];
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const [cityResult, inquiryResult] = await Promise.all([
+    db.from("city_campaigns")
+      .select("slug, city, state, ring_label, channel, campaign_tag, status, flight_start, flight_end, ad_spend_cents, ad_clicks, ad_impressions, admin_note, request_id")
+      .in("request_id", requestIds),
+    providerIds.length
+      ? db.from("connections").select("to_profile_id", { count: "exact", head: true }).eq("type", "inquiry").in("to_profile_id", providerIds).gte("created_at", since)
+      : Promise.resolve({ count: 0, error: null }),
+  ]);
+  const cityCampaigns = (cityResult.data ?? []) as Array<Record<string, unknown> & { slug: string }>;
+  const slugs = cityCampaigns.map((campaign) => campaign.slug);
+  const { data: leadRows } = slugs.length
+    ? await db.from("city_leads")
+      // Archived leads count: a lead qualified out as a job-seeker is archived,
+      // and dropping those turned Hoop Cares' 7 leads into 1.
+      .select("slug, status, qualification_verdict_category, handed_at, created_at, archived_at")
+      .in("slug", slugs)
+      .or("is_test.is.null,is_test.eq.false")
+    : { data: [] };
+  const leadsBySlug = new Map<string, { total: number; archived: number; handedToProvider: number; byStatus: Record<string, number>; byQualification: Record<string, number>; latest: string | null }>();
+  for (const lead of (leadRows ?? []) as Array<{ slug: string; status: string | null; qualification_verdict_category: string | null; handed_at: string | null; created_at: string; archived_at: string | null }>) {
+    const entry = leadsBySlug.get(lead.slug) ?? { total: 0, archived: 0, handedToProvider: 0, byStatus: {}, byQualification: {}, latest: null };
+    entry.total += 1;
+    if (lead.archived_at) entry.archived += 1;
+    if (lead.handed_at) entry.handedToProvider += 1;
+    const status = lead.status ?? "unknown";
+    entry.byStatus[status] = (entry.byStatus[status] ?? 0) + 1;
+    const verdict = lead.qualification_verdict_category ?? "not yet qualified";
+    entry.byQualification[verdict] = (entry.byQualification[verdict] ?? 0) + 1;
+    if (!entry.latest || lead.created_at > entry.latest) entry.latest = lead.created_at;
+    leadsBySlug.set(lead.slug, entry);
+  }
+
+  return {
+    note: "Live campaign and lead tables. These outrank team notes, which go out of date. 'Site inquiries' are families contacting the provider on Olera; ad leads come from the campaigns below and are counted separately.",
+    campaigns: rows.map((row) => ({
+      ...row,
+      linkedAdCampaigns: cityCampaigns
+        .filter((campaign) => campaign.request_id === row.id)
+        .map(({ request_id: _unused, ...campaign }) => ({ ...campaign, leads: leadsBySlug.get(campaign.slug) ?? { total: 0 } })),
+    })),
+    siteInquiriesLast30Days: inquiryResult.error ? null : inquiryResult.count ?? 0,
+  };
+}
+
 /** Tool definitions, in the shape the Messages API takes. */
 export const LOOKUP_TOOLS = [
   {
@@ -730,6 +799,16 @@ export const LOOKUP_TOOLS = [
         ads_fit_only: { type: "boolean", description: "Only categories of business that have had a Managed Ads campaign. Set true for any question about who to sell or nurture Managed Ads to." },
         limit: { type: "integer", minimum: 1, maximum: 25, description: "How many to return. Default 10." },
       },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "provider_campaigns",
+    description: "Everything running for one provider and what it produced, read live: their Ad Boost campaign (plan, flight dates, spend, clicks), every linked ad campaign including Meta instant forms and city campaigns, the leads each one produced (qualified or not, handed to the provider), and site inquiries in the last 30 days. Use for what ads a provider has, which channels, when a flight ends, and how many leads they got. Outranks team notes.",
+    input_schema: {
+      type: "object" as const,
+      properties: { name: { type: "string", description: "Part of the provider's name, e.g. Hoop Cares." } },
+      required: ["name"],
       additionalProperties: false,
     },
   },
@@ -835,6 +914,8 @@ export async function runLookup(db: SupabaseClient, name: string, input: Record<
           limit: clampDays(input.limit, 10, 1, 25),
           adsFitOnly: input.ads_fit_only === true,
         }));
+      case "provider_campaigns":
+        return inEastern(await loadProviderCampaigns(db, String(input.name ?? "")));
       case "published_care_needs":
         return inEastern(await loadPublishedCareNeeds(db, {
           days: clampDays(input.days, 30, 7, 365),

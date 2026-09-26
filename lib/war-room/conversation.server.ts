@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { BANGKOK, inEastern, loadBlindSpots, LOOKUP_TOOLS, runLookup, searchStoredRecord } from "@/lib/war-room/lookups.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadPaidRenewal } from "@/lib/war-room/renewals.server";
+import { correctionLines, extractCorrection, loadCorrections, saveCorrection } from "@/lib/war-room/corrections.server";
 import { scrubStaleRenewalCounts } from "@/lib/war-room/stale-counts";
 
 /**
@@ -32,7 +33,19 @@ import { scrubStaleRenewalCounts } from "@/lib/war-room/stale-counts";
 // week when her date sat outside the window. Sonnet corrected the premise and
 // listed all eight. A question costs cents; a confident wrong answer to the
 // founder costs the channel.
-const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-sonnet-5";
+// Opus for DM replies only (2026-09-26). On Sonnet at medium effort Cortex
+// answered from its own ledger ("call her and ask why she paid") where the
+// obvious read was "she pays for leads, get her leads"; the founder called it
+// mid-curve. A handful of DMs a day; the scans keep their cheaper tiering.
+const CONVERSATION_MODEL = process.env.WAR_ROOM_CONVERSATION_MODEL || "claude-opus-5";
+const CONVERSATION_EFFORT = (process.env.WAR_ROOM_CONVERSATION_EFFORT || "high") as "low" | "medium" | "high" | "max";
+// Per million tokens: input, output. Cache reads bill at a tenth of input,
+// cache writes at 1.25x.
+const CONVERSATION_PRICE: Record<string, [number, number]> = {
+  "claude-opus-5": [5, 25],
+  "claude-sonnet-5": [2, 10],
+  "claude-haiku-4-5": [1, 5],
+};
 // Headroom for thinking, not a longer answer; length is set by the prompt.
 // Sonnet 5 thinks adaptively by default, and at 700 the first question after
 // the switch (2026-09-23, "do you know the recent work on the ads nudge")
@@ -326,7 +339,7 @@ async function buildConversationContext(
   focusInvestigationId?: string | null,
   question?: string,
 ): Promise<string> {
-  const [investigations, proposals, model, matches, sources, refreshed, blindSpots, renewal] = await Promise.all([
+  const [investigations, proposals, model, matches, sources, refreshed, blindSpots, renewal, corrections] = await Promise.all([
     db.from("war_room_investigations")
       .select("id, title, status, domain, impact, likely_cause, unknowns, occurrence_count")
       .in("status", ["investigating", "watchlist", "decision_ready"])
@@ -342,6 +355,7 @@ async function buildConversationContext(
     lastIngested(db),
     loadBlindSpots(db).catch(() => [] as string[]),
     loadPaidRenewal(db).catch(() => null),
+    loadCorrections(db).catch(() => []),
   ]);
 
   const rows = (investigations.data ?? []) as InvestigationRow[];
@@ -351,6 +365,8 @@ async function buildConversationContext(
   // the model still wrote "managedAds gives me subscription status only" to
   // the founder. A key it repeats should read as English when it does.
   return JSON.stringify(inEastern({
+    // Rules he has already given. Read before anything else in this record.
+    "Your standing corrections (newest last)": correctionLines(corrections),
     "Current time": {
       eastern: new Date().toISOString(),
       founderLocalBangkok: BANGKOK.format(new Date()),
@@ -444,6 +460,13 @@ About Olera -- its providers, families, revenue, campaigns, team, product, or an
 
 About the world -- other companies, markets, technology, people in the news, how something works, whether a claim is true -- think freely, the way a sharp chief of staff would. Answer from what you know, and use web search for anything current, numeric, or checkable, since what you know can be out of date. Name your sources briefly and say how confident you are. Never refuse a question because it is not about Olera. Mention Olera only when there is a real, specific connection; never force one.
 
+How to think, before anything about what to do:
+First decide what he is actually after. Start from the company's goals in the record (the north star and its targets) and his standing corrections, and name to yourself the outcome this question serves. Then look in the record and your lookups for the move that serves that outcome. The record tells you what is true; it does not tell you what matters.
+Then run the mid-curve test on your draft: would a sharp operator find this obvious or beside the point? Signs it is: asking a customer something whose answer is obvious (providers pay for leads), recommending discovery or more research when the next move is plain, or repeating what a stale proposal or team note says because it is in the record. If it fails, go one level deeper: the concrete thing to do this week that moves the goal.
+His standing corrections are rules. If your answer would contradict one, the answer is wrong.
+
+Questions about what is running for a provider (campaigns, channels, Meta or Google, flights, what leads came in and whether they qualified) are answered with the provider_campaigns lookup. It reads the campaign and lead tables live and outranks team notes and the written record, which go out of date.
+
 You have lookups: named, read-only readers over Olera's systems of record. Call the ones the question needs before answering; they are live and outrank the written record. Call several at once when the question spans them. Never say you cannot see something until you have checked whether a lookup covers it; if none does and the question is about Olera, call nothing_fits with what would have answered it, then tell the founder plainly what you could not see and that it has been noted.
 
 When the record does not contain the answer, distinguish two very different cases and never blur them:
@@ -505,6 +528,12 @@ export async function answerFounderQuestion(
     return { answered: false, reply: "I cannot answer questions right now: no model key is configured." };
   }
   try {
+    // A correction mid-conversation is saved before answering, so it shapes
+    // this answer and every later one. Only when there is an answer to correct.
+    if (priorTurn && !brief) {
+      const lesson = await extractCorrection(priorTurn.answer, question);
+      if (lesson) await saveCorrection(db, lesson, question).catch(() => false);
+    }
     const context = await buildConversationContext(db, focusInvestigationId, question);
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const prompt = priorTurn
@@ -531,6 +560,16 @@ export async function answerFounderQuestion(
     // Bounded twice: rounds, and a wall-clock budget inside the Slack route's
     // limit, after which it must answer with what it has.
     const startedAt = Date.now();
+    // What this answer cost, across every round, so the price of a DM is known.
+    let costUsd = 0;
+    const track = (reply: Anthropic.Message) => {
+      const [input, output] = CONVERSATION_PRICE[CONVERSATION_MODEL] ?? [0, 0];
+      const usage = reply.usage as Anthropic.Usage;
+      costUsd += ((usage.input_tokens ?? 0) * input
+        + (usage.cache_read_input_tokens ?? 0) * input * 0.1
+        + (usage.cache_creation_input_tokens ?? 0) * input * 1.25
+        + (usage.output_tokens ?? 0) * output) / 1_000_000;
+    };
     const deadline = startedAt + LOOKUP_BUDGET_MS;
     // Web search is a server tool: Anthropic runs it and returns results in the
     // same response. On 2026-09-23 the founder asked whether Telegram really
@@ -551,14 +590,19 @@ export async function answerFounderQuestion(
         model: CONVERSATION_MODEL,
         max_tokens: brief ? 12_000 : MAX_ANSWER_TOKENS,
         // Adaptive thinking stays on: it is what made Sonnet correct a wrong
-        // premise instead of agreeing with it. Medium, not low: at low it said "five PRs" and listed seven.
-        ...(SUPPORTS_ADAPTIVE ? { thinking: { type: "adaptive" as const }, output_config: { effort: "medium" as const } } : {}),
+        // premise instead of agreeing with it. Never low: at low it said "five
+        // PRs" and listed seven. High by default since the move to Opus.
+        ...(SUPPORTS_ADAPTIVE ? { thinking: { type: "adaptive" as const }, output_config: { effort: CONVERSATION_EFFORT } } : {}),
+        // The record and the question are the same on every lookup round, so
+        // rounds after the first read them from cache at a tenth of the price.
+        cache_control: { type: "ephemeral" as const },
         system: brief ? `${CONVERSATION_SYSTEM}\n\n${BRIEF_MODE}` : CONVERSATION_SYSTEM,
         tools,
         // Out of rounds or time: no more lookups, answer from what is in hand.
         tool_choice: outOfBudget ? { type: "none" } : { type: "auto" },
         messages,
       });
+      track(message);
       // A long server-side search can pause the turn; hand it back to continue.
       if (message.stop_reason === "pause_turn") {
         messages.push({ role: "assistant", content: message.content });
@@ -610,6 +654,7 @@ export async function answerFounderQuestion(
           tool_choice: { type: "none" },
           messages,
         });
+        track(message);
       } catch (retryError) {
         console.error("[cortex] recovery call failed:", retryError instanceof Error ? retryError.message : String(retryError));
       }
@@ -638,7 +683,7 @@ export async function answerFounderQuestion(
     // so this string -- the FAILURE path, the one most likely to recur -- would
     // have been self-sustaining loop fuel if the app-message filter ever missed.
     if (!reply) return { answered: false, reply: "I could not put an answer together. Send it again and I will retry." };
-    return { answered: true, reply };
+    return { answered: true, reply, costUsd };
   } catch (error) {
     // Never silent. A question that vanishes is the defect this replaces.
     const detail = error instanceof Error ? error.message : String(error);

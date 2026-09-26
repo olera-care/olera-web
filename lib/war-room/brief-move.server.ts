@@ -107,6 +107,7 @@ Rules:
 - If a provider emailed: this is the one move; leave out anything else the summary mentions. Talk to the founder as "you", never by name. Name the person and business and say what they want. If the founder already replied (founder_reply), say what he offered and what happens next, quoting his times and dates exactly as he wrote them, and set draft to null. If he has not replied, the draft is his reply to them.
 - "draft" is only for a move that means contacting someone. Write the message the named teammate or the founder would send, two or three short sentences, ready to paste. If nobody is being contacted, draft is null.
 - The whole record is record_days_old days old. Every "N days" in it (why_now, finding, evidence) was counted then. Subtract record_days_old from any count you repeat; "30 days" in a 5-day-old record is 25 days now.
+- company_rules include the founder's own corrections ("Founder correction, ..."). If the move is something a correction rules out, still word it but say plainly in the line that it conflicts with his correction.
 - Who does it: company_rules outrank the proposal, and assigned_owner outranks any name in the plan. If the plan names someone the rules say does not do this kind of work, use who the rules and assigned_owner name instead. Proposals drafted before a correction still carry the old name.
 - Only facts in the record. Never invent a date, number, name or phone number.
 

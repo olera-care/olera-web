@@ -6,7 +6,7 @@ import { captureFounderAnswer, findAskByThread, findOpenAsk } from "@/lib/war-ro
 import { answerFounderQuestion, answersOpenAsk, classifyMessage, loadOpenExchange, recordExchange } from "@/lib/war-room/conversation.server";
 import { startVisualRoutine, visualizeSubject } from "@/lib/war-room/visualize.server";
 import { parseScanCommand, runScanCommand } from "@/lib/war-room/scan-command.server";
-import { cleanDmText, imageFiles, isApproval, isReadableDm, type DmFile } from "@/lib/war-room/dm-intake";
+import { cleanDmText, imageFiles, isApproval, isReadableDm, skippedImages, type DmFile } from "@/lib/war-room/dm-intake";
 import { downloadSlackFile } from "@/lib/war-room/attachments.server";
 import type { WarRoomProposal } from "@/lib/war-room/types";
 
@@ -155,7 +155,12 @@ export async function POST(request: NextRequest) {
       // "Approved, go ahead" approves the one decision waiting on him. It used
       // to be read as conversation, and approval only existed on the admin
       // page. With more than one waiting, it names them rather than guess.
-      if (isApproval(text)) {
+      // "Go ahead" or "do it" right after Cortex answered something is a reply
+      // to that exchange, not a verdict on the proposal. Only a message that
+      // says "approve" approves mid-conversation.
+      const approving = isApproval(text)
+        && (/approv/i.test(text) || !(await loadOpenExchange(db)));
+      if (approving) {
         const { data: waiting } = await db.from("war_room_proposals")
           .select("*")
           .eq("status", "proposed")
@@ -187,15 +192,20 @@ export async function POST(request: NextRequest) {
       const images: Array<{ mediaType: string; data: string }> = [];
       let imageNote = "";
       const token = process.env.SLACK_BOT_TOKEN;
-      for (const file of imageFiles(payload.event.files).slice(0, 3)) {
-        try {
-          if (!token) throw new Error("no Slack bot token");
-          const bytes = await downloadSlackFile(token, file);
-          images.push({ mediaType: file.mimetype ?? "image/png", data: Buffer.from(bytes).toString("base64") });
-        } catch (error) {
-          imageNote = `\n\n_I couldn't open the image you sent (${error instanceof Error ? error.message : "download failed"}), so this answers the text only._`;
-        }
+      // In parallel: the route has 90 seconds and the answer needs most of them.
+      const downloads = await Promise.allSettled(imageFiles(payload.event.files).slice(0, 3).map(async (file) => {
+        if (!token) throw new Error("no Slack bot token");
+        const bytes = await downloadSlackFile(token, file);
+        return { mediaType: (file.mimetype ?? "image/png").toLowerCase(), data: Buffer.from(bytes).toString("base64") };
+      }));
+      for (const download of downloads) {
+        if (download.status === "fulfilled") images.push(download.value);
+        else imageNote = `\n\n_I couldn't open the image you sent (${download.reason instanceof Error ? download.reason.message : "download failed"}), so this answers the text only._`;
       }
+      if (skippedImages(payload.event.files).length && !imageNote) {
+        imageNote = "\n\n_I couldn't read one of the images you sent (too large, or a format I can't open, such as HEIC). A PNG or JPEG screenshot works._";
+      }
+      const imageOnly = !text && (images.length > 0 || Boolean(imageNote));
 
       // A reply typed in the thread of the brief that asked names its own
       // subject. Outside a thread there is nothing to resolve, so the older
@@ -252,7 +262,10 @@ export async function POST(request: NextRequest) {
       // is worse than doing nothing.
       // Filed as evidence only when it is plainly an answer: typed in the
       // brief's thread, or judged to answer the brief's actual question.
-      const looksLikeAnswer = classifyMessage(text) === "answer"
+      // A screenshot with no words is a question about the screenshot, never an
+      // answer to file: empty text classifies as an answer and was filed as
+      // "empty reply" when sent in a brief's thread.
+      const looksLikeAnswer = !imageOnly && classifyMessage(text) === "answer"
         && (Boolean(addressed) || await answersOpenAsk(db, text));
       if (!looksLikeAnswer || openExchange) {
         const answer = await answerFounderQuestion(

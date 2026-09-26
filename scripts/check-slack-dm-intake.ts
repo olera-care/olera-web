@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cleanDmText, imageFiles, isApproval, isOwnMessage, isReadableDm } from "../lib/war-room/dm-intake";
+import { MAX_IMAGE_BYTES, cleanDmText, imageFiles, isApproval, isOwnMessage, isReadableDm, skippedImages } from "../lib/war-room/dm-intake";
 
 // Which DM messages Cortex reads. The two founder messages it dropped on
 // 2026-09-25/26 are cases 2 and 3; case 1 is the reply loop the old filter
@@ -58,9 +58,24 @@ assert.equal(isOwnMessage({ event: { user: FOUNDER, app_id: "A_CLAUDE_CONNECTOR"
 for (const yes of ["Approved, go ahead", "approve", "Approved.", "yes, approve it", "Go ahead", "ship it"]) {
   assert.equal(isApproval(yes), true, yes);
 }
+for (const yes of ["Approved, go ahead.", "Yes, approve it", "approve please", "Go ahead!", "approved - ship it"]) {
+  assert.equal(isApproval(yes), true, yes);
+}
+// Pre-test: a request that merely starts with "go ahead" must not approve and
+// dispatch the executor. "yes" alone answers whatever was last said.
+for (const no of ["go ahead and pull the data", "Go ahead and draft it for Ces", "do it tomorrow", "yes", "Yes."]) {
+  assert.equal(isApproval(no), false, no);
+}
 for (const no of ["Approved?", "What did you approve yesterday", "Is the funnel split approved by Logan already, or does it still need me?", "the approval flow is broken"]) {
   assert.equal(isApproval(no), false, no);
 }
+// Images: formats the model reads, small enough to survive base64 (API cap 5 MB encoded).
+assert.equal(imageFiles([{ mimetype: "image/heic", size: 100_000, url_private: "h" }]).length, 0);
+assert.equal(skippedImages([{ mimetype: "image/heic", size: 100_000, url_private: "h" }]).length, 1);
+assert.equal(imageFiles([{ mimetype: "image/png", size: MAX_IMAGE_BYTES + 1, url_private: "b" }]).length, 0);
+assert.ok(Math.ceil(MAX_IMAGE_BYTES / 3) * 4 <= 5 * 1024 * 1024, "the largest accepted image still fits once base64 encoded");
+// A HEIC-only message is still read, so the reply can say the image was unreadable.
+assert.equal(isReadableDm(envelope({ user: FOUNDER, subtype: "file_share", text: "", files: [{ mimetype: "image/heic", url_private: "h" }] })), true);
 // Images: only inline-sized images with a download link.
 assert.equal(imageFiles([{ mimetype: "application/pdf", url_private: "x" }, { mimetype: "image/png", size: 9_000_000, url_private: "y" }]).length, 0);
 

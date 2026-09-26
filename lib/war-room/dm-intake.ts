@@ -66,7 +66,7 @@ export function isReadableDm(envelope: DmEnvelope): boolean {
   const event = envelope.event ?? {};
   if (isOwnMessage(envelope)) return false;
   if (!READABLE_SUBTYPES.has(event.subtype)) return false;
-  return Boolean(cleanDmText(event.text) || imageFiles(event.files).length);
+  return Boolean(cleanDmText(event.text) || (event.files ?? []).some((file) => (file.mimetype ?? "").startsWith("image/")));
 }
 
 /** The message as he wrote it, without the "Sent using Claude" line the connector appends. */
@@ -76,20 +76,41 @@ export function cleanDmText(text: string | undefined): string {
     .trim();
 }
 
-/** Images worth showing the model: small enough to send inline. */
+/**
+ * Formats the model reads, and a size that survives base64. The API caps an
+ * image at 5 MB after encoding, and base64 adds a third, so a 4.9 MB screenshot
+ * that passed a 5 MB check would fail the whole answer, not just the image.
+ */
+const MODEL_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
+export const MAX_IMAGE_BYTES = Math.floor((5 * 1024 * 1024 * 3) / 4) - 1024;
+
+/** Images worth showing the model. */
 export function imageFiles(files: DmFile[] | undefined): DmFile[] {
-  return (files ?? []).filter((file) => (file.mimetype ?? "").startsWith("image/")
-    && (file.size ?? 0) <= 5 * 1024 * 1024
+  return (files ?? []).filter((file) => MODEL_IMAGE_TYPES.has((file.mimetype ?? "").toLowerCase())
+    && (file.size ?? 0) <= MAX_IMAGE_BYTES
     && Boolean(file.url_private_download || file.url_private));
 }
 
+/** Image files he sent that the model will not see, so the reply can say so. */
+export function skippedImages(files: DmFile[] | undefined): DmFile[] {
+  const shown = new Set(imageFiles(files));
+  return (files ?? []).filter((file) => (file.mimetype ?? "").startsWith("image/") && !shown.has(file));
+}
+
 /**
- * An approval, and only an approval. Short, and leading with the verdict:
- * "Approved, go ahead", "approve", "yes, approve it", "go ahead", "ship it".
- * Anything longer, or a question, is conversation.
+ * An approval, and only an approval: the whole message is the verdict.
+ * "Approved, go ahead", "approve", "yes, approve it", "Go ahead.", "ship it".
+ *
+ * Whole-message, not leading-word. Approving code work dispatches the
+ * executor, and "go ahead and pull the numbers" starts with "go ahead" while
+ * asking for something else entirely.
  */
+const VERDICT = "(?:approved?|approve it|go ahead|ship it|do it|yes)";
+const APPROVAL = new RegExp(`^${VERDICT}(?:[\\s,.!-]+(?:${VERDICT}|please|thanks|thank you))*[\\s.!]*$`, "i");
 export function isApproval(text: string): boolean {
   const clean = text.trim();
-  if (!clean || clean.length > 60 || clean.includes("?")) return false;
-  return /^(yes[,.!]?\s+)?(approved?|approve it|go ahead|ship it|do it)\b/i.test(clean);
+  if (!clean || clean.length > 60) return false;
+  // "yes" alone answers whatever was last said; it approves only with a verdict word.
+  if (/^yes[\s.!]*$/i.test(clean)) return false;
+  return APPROVAL.test(clean);
 }

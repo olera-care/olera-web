@@ -46,6 +46,14 @@ assert.equal(artifactSubject("can you make a one-pager for Hoop Cares"), "Hoop C
 assert.equal(artifactSubject("turn that into a visual"), "");
 assert.equal(artifactSubject("What visual did Hoop's ad use?"), null);
 assert.equal(artifactSubject("How do I make an artifact?"), null, "a question about artifacts is not a request");
+assert.equal(artifactSubject("Do you have a visual for Hoop?"), null);
+assert.equal(artifactSubject("Put the visual in Slack for the team"), null);
+assert.equal(artifactSubject("Make sure the visual is right"), null);
+assert.equal(artifactSubject("I'll make a visual later"), null);
+assert.equal(artifactSubject("Did you make a one-pager?"), null);
+assert.equal(artifactSubject("Could you make a visual of the funnel?"), "the funnel");
+assert.equal(artifactSubject("Turn the brief into an artifact"), "the brief");
+assert.equal(artifactSubject("please make me an artifact"), "");
 console.log("artifact trigger checks passed");
 
 // --- The handler, with fakes.

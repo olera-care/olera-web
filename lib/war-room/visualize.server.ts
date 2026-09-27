@@ -37,17 +37,30 @@ export function visualizeSubject(text: string): string | null {
 
 /**
  * Telegram carries no slash-command problem, and he asks in plain words ("make
- * an artifact of the orientation"), so this catches those too. Returns the
- * whole request as the subject; "" means the last exchange.
+ * an artifact of the orientation"), so those count too. Strict on purpose: a
+ * false match starts a real Claude Code session, and the first loose version
+ * fired on "Do you have a visual for Hoop?" and "Make sure the visual is right".
+ * Two shapes only: "(please / can you / could you) make, build, create or draw
+ * a(n) artifact, one-pager or visual (of X)", and "turn X into an artifact".
+ * Returns the subject, "" for the last exchange, or null when it is not a request.
  */
-const ARTIFACT_ASK = /^\s*(?:please\s+)?(?:can you\s+)?(?:make|build|create|turn|put|draw|do)\b[^?\n]{0,80}\b(?:an?\s+)?(?:artifact|one[- ]pager|visual)s?\b/i;
+const POLITE = /^\s*(?:(?:please|pls|can you|could you|would you)\s+)+/i;
+const MAKE_ONE = /^(?:make|build|create|draw)\s+(?:me\s+)?an?\s+(?:artifact|one[- ]pager|visual)\b\s*(?:(?:of|for|about|on|from)\b\s*)?([\s\S]*)$/i;
+const TURN_INTO = /^turn\s+([\s\S]+?)\s+into\s+(?:an?\s+)?(?:artifact|one[- ]pager|visual)\b/i;
 
 export function artifactSubject(text: string): string | null {
   const visual = visualizeSubject(text);
   if (visual !== null) return visual;
-  if (!ARTIFACT_ASK.test(text)) return null;
-  const rest = text.replace(ARTIFACT_ASK, "").replace(/^\s*(?:of|for|about|on|from)\b/i, "").trim().replace(/[.?!]+$/, "");
-  return rest || "";
+  const polite = POLITE.test(text);
+  const ask = text.replace(POLITE, "").trim();
+  // A question is only a request when it is phrased as one ("could you make...?").
+  if (/\?\s*$/.test(ask) && !polite) return null;
+  const clean = (subject: string) => subject.trim().replace(/[.?!]+$/, "").replace(/^(?:that|this|it|the last one)$/i, "").trim();
+  const made = ask.match(MAKE_ONE);
+  if (made) return clean(made[1] ?? "");
+  const turned = ask.match(TURN_INTO);
+  if (turned) return clean(turned[1]);
+  return null;
 }
 
 export type RoutineStart =

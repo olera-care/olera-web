@@ -96,6 +96,13 @@ export async function recordFounderReply(
   return {};
 }
 
+/**
+ * a is later than b, as times. Postgres writes a varying number of fractional
+ * digits ("09.58+00:00", "09.123456+00:00"), so comparing the strings can put
+ * two moments in the same second the wrong way round.
+ */
+const after = (a: string | null | undefined, b: string) => Boolean(a) && Date.parse(a as string) > Date.parse(b);
+
 /** Did the data show it done after the move was sent? */
 async function wasActedOn(db: SupabaseClient, move: MoveRecord): Promise<string | null> {
   const [kind, id] = move.subject_key.split(":", 2);
@@ -104,10 +111,10 @@ async function wasActedOn(db: SupabaseClient, move: MoveRecord): Promise<string 
     const { data } = await db.from("war_room_proposals").select("status, approved_at, updated_at").eq("id", id).maybeSingle();
     const row = data as { status?: string; approved_at?: string | null; updated_at?: string | null } | null;
     if (!row) return null;
-    if (row.approved_at && row.approved_at > move.sent_at) return "approved";
+    if (after(row.approved_at, move.sent_at)) return "approved";
     // A status he moved it to after the move was sent: dispatched, finished,
     // rejected or parked are all an answer. "failed" and "superseded" are not his.
-    if (["dispatching", "executing", "review_ready", "completed", "rejected", "parked"].includes(row.status ?? "") && (row.updated_at ?? "") > move.sent_at) return row.status ?? null;
+    if (["dispatching", "executing", "review_ready", "completed", "rejected", "parked"].includes(row.status ?? "") && after(row.updated_at, move.sent_at)) return row.status ?? null;
     return null;
   }
   if (kind === "moment") {
@@ -123,8 +130,8 @@ async function wasActedOn(db: SupabaseClient, move: MoveRecord): Promise<string 
     const { data } = await db.from("city_leads").select("status, handed_at, archived_at, updated_at").eq("id", id).maybeSingle();
     const row = data as { status?: string; handed_at?: string | null; archived_at?: string | null } | null;
     if (!row) return null;
-    if (row.handed_at && row.handed_at > move.sent_at) return "handed to the provider";
-    if (row.archived_at && row.archived_at > move.sent_at) return "archived";
+    if (after(row.handed_at, move.sent_at)) return "handed to the provider";
+    if (after(row.archived_at, move.sent_at)) return "archived";
     return null;
   }
   return null;
@@ -183,7 +190,7 @@ export async function loadReactionSummary(db: SupabaseClient, now = Date.now(), 
               : "no reaction yet";
       return `${move.sent_at.slice(0, 10)} ${move.kind}: "${move.text.slice(0, 140)}" -> ${what}`;
     }),
-    pingsToday: dayStart ? moves.filter((move) => move.kind === "ping" && move.sent_at >= dayStart).length : 0,
+    pingsToday: dayStart ? moves.filter((move) => move.kind === "ping" && Date.parse(move.sent_at) >= Date.parse(dayStart)).length : 0,
     lastRateMe: (rate?.[0] as { sent_at?: string } | undefined)?.sent_at ?? null,
   };
 }

@@ -1,15 +1,12 @@
 import { lookup } from "dns/promises";
 import { isIP } from "net";
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminUser, getAuthUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { decryptGmailToken } from "@/lib/support-email/crypto.server";
 import {
-  buildReplyRaw,
-  createGmailDraft,
   gmailAccessToken,
   modifyGmailThread,
   sendGmailDraft,
-  updateGmailDraft,
 } from "@/lib/support-email/gmail.server";
 import { importGmailMessage, type SupportMailboxRow } from "@/lib/support-email/sync.server";
 import { recordSupportAction, writeSupportDraft } from "@/lib/support-email/thread-actions.server";

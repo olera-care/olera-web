@@ -36,6 +36,8 @@ export type StoredItem = ProposedItem & { id: string; pass_id: string; number: n
 
 const EMAIL_DRAFTS_PER_PASS = 3;
 const SMS_DRAFTS_PER_PASS = 4;
+/** Outbound SMS a person wrote: the inbox reply box, and a manual city-lead text. */
+const HUMAN_SMS_TYPES = ["admin_reply", "city_lead_family_manual"];
 const OUTCOME_OK = new Set(["CALLED", "APPLIED", "WAITING", "NOANSWER", "NEEDDOCS", "NOTELIGIBLE"]);
 
 /** Who approved it, for the audit log: the founder's own admin record. */
@@ -77,7 +79,11 @@ async function smsProposals(db: SupabaseClient): Promise<{ items: ProposedItem[]
   // What we already sent, and what is already scheduled: a thread we answered
   // after their last text is not waiting on anyone.
   const [{ data: outbound }, { data: queued }, { data: jobs }] = await Promise.all([
-    db.from("email_log").select("recipient, created_at").eq("channel", "sms").in("recipient", phones.map((p) => `+1${p}`)).order("created_at", { ascending: false }).limit(500),
+    // A PERSON's reply only. Most outbound texts are automated (benefits
+    // results, check-ins, acknowledgements: 250 of 437 in the 30 days to
+    // 27 Sep), and counting those would mark a family's unanswered question
+    // "already answered" because a check-in went out after it.
+    db.from("email_log").select("recipient, created_at").eq("channel", "sms").in("email_type", HUMAN_SMS_TYPES).in("recipient", phones.map((p) => `+1${p}`)).order("created_at", { ascending: false }).limit(500),
     db.from("sms_queue").select("phone_last10").eq("origin", "admin_reply").eq("status", "pending").in("phone_last10", phones),
     db.from("family_answer_jobs").select("phone_last10, status, packet, created_at").in("phone_last10", phones).order("created_at", { ascending: false }).limit(200),
   ]);
@@ -369,6 +375,15 @@ export async function openItems(db: SupabaseClient): Promise<StoredItem[]> {
 export async function executeInboxItem(db: SupabaseClient, item: StoredItem, edit: string | null): Promise<string> {
   const approver = await approverAdmin(db);
   if (!approver) return `${item.number}: not done, no admin record for the approver.`;
+  // Claim it before acting. "send 3" typed twice, or two messages racing,
+  // must not text a family twice: only one caller gets the row.
+  const { data: claimed } = await db.from("cortex_inbox_items")
+    .update({ decided_at: new Date().toISOString() })
+    .eq("id", item.id)
+    .eq("status", "proposed")
+    .is("decided_at", null)
+    .select("id");
+  if (!claimed?.length) return `${item.number}: already being handled.`;
   const finish = async (status: "done" | "failed" | "skipped", result: string) => {
     await db.from("cortex_inbox_items").update({ status, result, decided_at: new Date().toISOString(), edited: Boolean(edit), ...(edit ? { body: edit } : {}) }).eq("id", item.id).eq("status", "proposed");
     return `${item.number}: ${result}`;
@@ -410,7 +425,7 @@ export async function executeInboxItem(db: SupabaseClient, item: StoredItem, edi
 
 /** Run a command against the open items. Returns the reply for him. */
 export async function handleInboxCommand(db: SupabaseClient, command: InboxCommand): Promise<string> {
-  const open = await openItems(db);
+  const open = (await openItems(db)).filter((item) => !(item as StoredItem & { decided_at?: string | null }).decided_at);
   if (!open.length) return "Nothing from the inbox is waiting on you right now.";
   const chosen = command.numbers.length ? open.filter((item) => command.numbers.includes(item.number)) : open.filter((item) => item.kind !== "question");
   const missing = command.numbers.filter((n) => !open.some((item) => item.number === n));

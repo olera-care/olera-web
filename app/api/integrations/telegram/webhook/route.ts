@@ -4,7 +4,7 @@ import { getServiceClient } from "@/lib/admin";
 import { downloadTelegramFile, founderChatId, sendTelegramMessage, sendTelegramRecording, sendTelegramTyping, sendTelegramVoice, transcribeVoiceNote } from "@/lib/telegram.server";
 import { sendVoiceNote } from "@/lib/war-room/voice.server";
 import { recordFounderReply } from "@/lib/war-room/moves.server";
-import { handleInboxCommand, openItems, parseInboxCommand } from "@/lib/war-room/inbox-operator.server";
+import { handleInboxCommand, parseInboxCommand } from "@/lib/war-room/inbox-operator.server";
 import { supabaseChatStore } from "@/lib/war-room/chat-memory.server";
 import { handleTelegramUpdate, type TelegramUpdate } from "@/lib/war-room/telegram-chat.server";
 
@@ -54,9 +54,10 @@ export async function POST(request: NextRequest) {
         reactions: { reply: (text, options) => recordFounderReply(db, text, options) },
         inbox: {
           command: async (text) => {
+            // A command with nothing open still gets a plain answer, not a
+            // model reply to "send 3".
             const command = parseInboxCommand(text);
-            if (!command || !(await openItems(db)).length) return null;
-            return handleInboxCommand(db, command);
+            return command ? handleInboxCommand(db, command) : null;
           },
         },
       });

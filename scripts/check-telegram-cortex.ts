@@ -16,6 +16,7 @@ import { chunkForTelegram, slackToTelegramHtml } from "../lib/telegram.server";
 import { memoryChatStore, memoryPromptText } from "../lib/war-room/chat-memory.server";
 import { handleTelegramUpdate, pickPhoto, sniffImageType, type TelegramDeps, type TelegramUpdate } from "../lib/war-room/telegram-chat.server";
 import { conversationSystem } from "../lib/war-room/conversation.server";
+import { artifactSubject } from "../lib/war-room/visualize.server";
 
 // --- Formatting: Cortex writes Slack markup; Telegram reads HTML.
 assert.equal(slackToTelegramHtml("*Hoop Cares* renews Oct 15."), "<b>Hoop Cares</b> renews Oct 15.");
@@ -36,6 +37,16 @@ assert.ok(conversationSystem("slack").includes("Never end your reply with a ques
 assert.ok(!conversationSystem("slack").includes("{{QUESTION_RULE}}"));
 assert.ok(conversationSystem("telegram").startsWith("You are Cortex, Olera's thinking partner"));
 console.log("prompt checks passed");
+
+// --- Artifact requests reach the /visualize bridge; ordinary questions do not.
+assert.equal(artifactSubject("visualize the managed ads orientation"), "the managed ads orientation");
+assert.equal(artifactSubject("/visualize"), "");
+assert.equal(artifactSubject("Make an artifact of the managed ads orientation"), "the managed ads orientation");
+assert.equal(artifactSubject("can you make a one-pager for Hoop Cares"), "Hoop Cares");
+assert.equal(artifactSubject("turn that into a visual"), "");
+assert.equal(artifactSubject("What visual did Hoop's ad use?"), null);
+assert.equal(artifactSubject("How do I make an artifact?"), null, "a question about artifacts is not a request");
+console.log("artifact trigger checks passed");
 
 // --- The handler, with fakes.
 assert.equal(sniffImageType(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0]), "image/jpeg"), "image/png");
@@ -123,6 +134,19 @@ const update = (id: number, text: string, chat = FOUNDER, extra: Partial<NonNull
     const { deps, sent } = fakes();
     await handleTelegramUpdate(update(23, "", FOUNDER, { text: undefined, document: { file_id: "h", mime_type: "image/heic", file_size: 100 } }), deps);
     assert.match(sent[0].text, /HEIC/);
+  }
+  // An artifact request gathers a brief and starts the routine, then sends the link.
+  {
+    const briefs: string[] = [];
+    const started: string[] = [];
+    const { deps, sent } = fakes({
+      answer: async (_db, question, _f, _p, options = {}) => { briefs.push(`${options.mode}:${question}`); return { answered: true, reply: "BRIEF" }; },
+      visual: { start: async (text) => { started.push(text); return { started: true, sessionUrl: "https://claude.ai/code/s1" }; } },
+    });
+    await handleTelegramUpdate(update(30, "make an artifact of the managed ads orientation"), deps);
+    assert.deepEqual(briefs, ["brief:Write the source brief for a visual of: the managed ads orientation"]);
+    assert.match(started[0], /BRIEF/);
+    assert.match(sent[0].text, /claude\.ai\/code\/s1/);
   }
   console.log("handler checks passed");
 

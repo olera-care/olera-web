@@ -35,6 +35,21 @@ export function visualizeSubject(text: string): string | null {
   return plain.replace(VISUALIZE, "").trim();
 }
 
+/**
+ * Telegram carries no slash-command problem, and he asks in plain words ("make
+ * an artifact of the orientation"), so this catches those too. Returns the
+ * whole request as the subject; "" means the last exchange.
+ */
+const ARTIFACT_ASK = /^\s*(?:please\s+)?(?:can you\s+)?(?:make|build|create|turn|put|draw|do)\b[^?\n]{0,80}\b(?:an?\s+)?(?:artifact|one[- ]pager|visual)s?\b/i;
+
+export function artifactSubject(text: string): string | null {
+  const visual = visualizeSubject(text);
+  if (visual !== null) return visual;
+  if (!ARTIFACT_ASK.test(text)) return null;
+  const rest = text.replace(ARTIFACT_ASK, "").replace(/^\s*(?:of|for|about|on|from)\b/i, "").trim().replace(/[.?!]+$/, "");
+  return rest || "";
+}
+
 export type RoutineStart =
   | { started: true; sessionUrl: string }
   | { started: false; reason: string };

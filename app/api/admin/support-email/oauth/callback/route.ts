@@ -3,6 +3,7 @@ import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { encryptGmailToken } from "@/lib/support-email/crypto.server";
 import { exchangeGmailCode, getGmailProfile, gmailOAuthRedirectUri, watchGmail } from "@/lib/support-email/gmail.server";
 import { verifyGmailOAuthState } from "@/lib/support-email/oauth-state.server";
+import { CALENDAR_STATE_PREFIX, saveCalendarConnection } from "@/lib/war-room/calendar.server";
 
 function back(request: NextRequest, params: Record<string, string>) {
   const url = new URL("/admin/support-email", request.nextUrl.origin);
@@ -18,6 +19,28 @@ export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const state = request.nextUrl.searchParams.get("state");
   const oauthError = request.nextUrl.searchParams.get("error");
+  // Cortex's calendar connection shares this registered callback; its state
+  // carries a "cal." prefix (lib/war-room/calendar.server.ts).
+  if (state?.startsWith(CALENDAR_STATE_PREFIX)) {
+    const done = (params: Record<string, string>) => {
+      const url = new URL("/admin/war-room", request.nextUrl.origin);
+      for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+      return NextResponse.redirect(url);
+    };
+    if (oauthError) return done({ calendar_error: `Google declined: ${oauthError}` });
+    if (!code || !verifyGmailOAuthState(state.slice(CALENDAR_STATE_PREFIX.length), user.id)) {
+      return done({ calendar_error: "The calendar connection expired or could not be verified. Try again." });
+    }
+    try {
+      const token = await exchangeGmailCode(code, gmailOAuthRedirectUri(request.nextUrl.origin));
+      const { email } = await saveCalendarConnection(getServiceClient(), token, admin.email);
+      return done({ calendar_connected: email });
+    } catch (err) {
+      console.error("[war-room] calendar connection failed:", err);
+      return done({ calendar_error: err instanceof Error ? err.message : "Calendar connection failed." });
+    }
+  }
+
   if (oauthError) return back(request, { error: `Google declined the connection: ${oauthError}` });
   if (!code || !state || !verifyGmailOAuthState(state, user.id)) {
     return back(request, { error: "The Gmail connection expired or could not be verified." });

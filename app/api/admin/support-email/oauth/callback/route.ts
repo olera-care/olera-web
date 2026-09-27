@@ -22,10 +22,16 @@ export async function GET(request: NextRequest) {
   // Cortex's calendar connection shares this registered callback; its state
   // carries a "cal." prefix (lib/war-room/calendar.server.ts).
   if (state?.startsWith(CALENDAR_STATE_PREFIX)) {
-    const done = (params: Record<string, string>) => {
-      const url = new URL("/admin/war-room", request.nextUrl.origin);
-      for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
-      return NextResponse.redirect(url);
+    // A plain page that says what happened. The War Room page does not read
+    // query params, so a redirect there would hide both success and failure.
+    const done = (params: { calendar_connected?: string; calendar_error?: string }) => {
+      const escape = (text: string) => text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
+      const ok = Boolean(params.calendar_connected);
+      const message = ok
+        ? `Cortex can now read ${escape(params.calendar_connected ?? "")}'s calendar (read-only). Ask it "what's on my plate this week?"`
+        : `The calendar did not connect: ${escape(params.calendar_error ?? "unknown error")}`;
+      const html = `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cortex calendar</title><body style="font:16px/1.5 system-ui,sans-serif;max-width:560px;margin:48px auto;padding:0 16px"><h1 style="font-size:20px">${ok ? "Calendar connected" : "Calendar not connected"}</h1><p>${message}</p>${ok ? "" : '<p><a href="/api/admin/war-room/calendar/connect">Try again</a></p>'}</body>`;
+      return new NextResponse(html, { status: ok ? 200 : 400, headers: { "Content-Type": "text/html; charset=utf-8" } });
     };
     if (oauthError) return done({ calendar_error: `Google declined: ${oauthError}` });
     if (!code || !verifyGmailOAuthState(state.slice(CALENDAR_STATE_PREFIX.length), user.id)) {

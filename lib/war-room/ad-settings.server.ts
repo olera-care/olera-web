@@ -19,6 +19,8 @@
 
 const DEFAULT_GRAPH_VERSION = "v21.0";
 const CHANGE_WINDOW_DAYS = 14;
+/** Settings carry ad copy and form questions; more than a few crowd out the rest of the answer. */
+export const MAX_CAMPAIGNS = 3;
 
 function graphVersion(): string {
   const v = process.env.META_LEADS_GRAPH_VERSION ?? "";
@@ -123,7 +125,45 @@ function adCopy(creative: CreativeNode | undefined) {
 
 export type MetaCampaignSettings = Awaited<ReturnType<typeof readOneCampaign>>;
 
-async function readOneCampaign(get: GraphGet, campaignId: string, now: number) {
+type ActivityLoader = (accountId: string) => Promise<ActivityNode[]>;
+
+/**
+ * The change log belongs to the whole ad account, so it is read once per
+ * account and shared by every campaign in the answer, inside a time budget.
+ * Per campaign it was up to five pages each, and a broad provider name could
+ * spend most of the conversation's minute re-reading the same log.
+ */
+function activityLoader(get: GraphGet, since: number, deadline: number): ActivityLoader {
+  const byAccount = new Map<string, Promise<ActivityNode[]>>();
+  return (accountId) => {
+    let pending = byAccount.get(accountId);
+    if (!pending) {
+      pending = (async () => {
+        // The log is newest first and shared by every campaign in the
+        // account. On 2026-09-27 two weeks were 205 entries over three pages,
+        // and the first page alone held only 3 of Hoop Cares' 22.
+        const all: ActivityNode[] = [];
+        let after: string | null = null;
+        for (let page = 0; page < 5 && Date.now() < deadline; page += 1) {
+          const batch = await get(`act_${accountId}/activities`, {
+            fields: "event_time,translated_event_type,object_id,object_name,actor_name,extra_data",
+            since: String(Math.floor(since / 1000)),
+            limit: "100",
+            ...(after ? { after } : {}),
+          }) as { data?: ActivityNode[]; paging?: { next?: string; cursors?: { after?: string } } };
+          all.push(...(batch.data ?? []));
+          after = batch.paging?.next ? batch.paging.cursors?.after ?? null : null;
+          if (!after) break;
+        }
+        return all;
+      })();
+      byAccount.set(accountId, pending);
+    }
+    return pending;
+  };
+}
+
+async function readOneCampaign(get: GraphGet, campaignId: string, activities: ActivityLoader) {
   const [campaign, adSets, ads] = await Promise.all([
     get(campaignId, { fields: "name,effective_status,daily_budget,lifetime_budget,start_time,stop_time,account_id" }) as Promise<CampaignNode>,
     get(`${campaignId}/adsets`, { fields: "name,effective_status,daily_budget,end_time,targeting{geo_locations}", limit: "20" }) as Promise<{ data?: AdSetNode[] }>,
@@ -158,24 +198,7 @@ async function readOneCampaign(get: GraphGet, campaignId: string, now: number) {
   let recentChanges: Array<{ at: string | null; change: string; on: string | null; by: string | null }> | { unreadable: string } = [];
   if (campaign.account_id) {
     try {
-      const since = Math.floor((now - CHANGE_WINDOW_DAYS * 86_400_000) / 1000);
-      // The log is the whole ad account's, newest first: every campaign's
-      // changes share it. On 2026-09-27 two weeks were 205 entries over three
-      // pages, and the first page alone held only 3 of Hoop Cares' 22.
-      const all: ActivityNode[] = [];
-      let after: string | null = null;
-      for (let page = 0; page < 5; page += 1) {
-        const batch = await get(`act_${campaign.account_id}/activities`, {
-          fields: "event_time,translated_event_type,object_id,object_name,actor_name,extra_data",
-          since: String(since),
-          limit: "100",
-          ...(after ? { after } : {}),
-        }) as { data?: ActivityNode[]; paging?: { next?: string; cursors?: { after?: string } } };
-        all.push(...(batch.data ?? []));
-        after = batch.paging?.next ? batch.paging.cursors?.after ?? null : null;
-        if (!after) break;
-      }
-      recentChanges = all
+      recentChanges = (await activities(campaign.account_id))
         .filter((activity) => activity.object_id && ids.has(activity.object_id))
         // "Pending process" is Meta's in-between state around every edit: an
         // entry INTO it is noise, the one OUT of it ("→ Inactive", "→ Active")
@@ -218,15 +241,18 @@ export async function loadMetaCampaignSettings(
   campaignIds: string[],
   options: { get?: GraphGet; now?: number } = {},
 ): Promise<{ campaigns: Array<MetaCampaignSettings | { campaignId: string; unreadable: string }> } | { unavailable: string }> {
-  const ids = [...new Set(campaignIds.filter((id) => /^\d{6,40}$/.test(id)))].slice(0, 6);
+  const ids = [...new Set(campaignIds.filter((id) => /^\d{6,40}$/.test(id)))].slice(0, MAX_CAMPAIGNS);
   if (!ids.length) return { campaigns: [] };
   const token = process.env.META_ADS_ACCESS_TOKEN?.trim();
   const get = options.get ?? (token ? graphGet(token) : null);
   if (!get) return { unavailable: "Meta's live settings can't be read: META_ADS_ACCESS_TOKEN is not set." };
   const now = options.now ?? Date.now();
+  // One budget for every Meta read in this answer, well inside the
+  // conversation's own lookup budget.
+  const activities = activityLoader(get, now - CHANGE_WINDOW_DAYS * 86_400_000, Date.now() + 12_000);
   const campaigns = await Promise.all(ids.map(async (id) => {
     try {
-      return await readOneCampaign(get, id, now);
+      return await readOneCampaign(get, id, activities);
     } catch (error) {
       return { campaignId: id, unreadable: error instanceof Error ? error.message : "Meta refused the read" };
     }

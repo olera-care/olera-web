@@ -758,13 +758,27 @@ async function loadProviderCampaigns(db: SupabaseClient, name: string) {
   const metaIds = cityCampaigns
     .filter((campaign) => campaign.channel === "meta" && typeof campaign.platform_campaign_id === "string")
     .map((campaign) => campaign.platform_campaign_id as string);
-  const { loadMetaCampaignSettings } = await import("@/lib/war-room/ad-settings.server");
+  // Live settings for the first few only (newest provider requests first): a
+  // broad name matches many providers, and ten campaigns' copy and forms
+  // pushed the result past what the conversation reads (64k of a 60k cap).
+  const { loadMetaCampaignSettings, MAX_CAMPAIGNS } = await import("@/lib/war-room/ad-settings.server");
   const meta = metaIds.length ? await loadMetaCampaignSettings(metaIds) : { campaigns: [] };
+  const skipped = new Set(metaIds.slice(MAX_CAMPAIGNS));
   const metaById = new Map("campaigns" in meta ? meta.campaigns.map((campaign) => [campaign.campaignId, campaign]) : []);
+  // A broad name ("a") matched ten campaigns whose team notes alone were 51k
+  // characters, past the 60k the conversation reads, so the tail was cut off
+  // mid-JSON. Notes are not in date order, so they are shortened rather than
+  // trimmed from one end, and only when several providers matched.
+  const shortNote = (note: unknown) => {
+    if (typeof note !== "string" || rows.length <= 3 || note.length <= 800) return note;
+    return `${note.slice(0, 800)}... (shortened because several providers matched; ask about this provider by name for the full note)`;
+  };
   const liveSettings = (campaign: Record<string, unknown>) => {
     if (campaign.channel === "meta") {
       if ("unavailable" in meta) return { unreadable: meta.unavailable };
-      return metaById.get(String(campaign.platform_campaign_id ?? "")) ?? { unreadable: "No Meta campaign id is recorded for this arm." };
+      const id = String(campaign.platform_campaign_id ?? "");
+      if (skipped.has(id)) return { unreadable: "Not read in this answer: too many campaigns matched. Ask about this provider by name to see its live settings." };
+      return metaById.get(id) ?? { unreadable: "No Meta campaign id is recorded for this arm." };
     }
     if (campaign.channel === "google") return { unreadable: "Google's settings (budget, status, ads) can't be read: Olera's Google Ads account has no API access. Only the spend and clicks a script posts hourly are known." };
     return { unreadable: `Settings for ${String(campaign.channel)} can't be read from here.` };
@@ -774,10 +788,12 @@ async function loadProviderCampaigns(db: SupabaseClient, name: string) {
     note: "Live campaign and lead tables. These outrank team notes, which go out of date. 'Site inquiries' are families contacting the provider on Olera; ad leads come from the campaigns below and are counted separately. In each campaign's leads, 'archived' leads were already removed from the provider's queue by the team or the classifier: never recommend pulling them out again. 'liveSettings' is read from the ad platform itself: its budget, dates, which ads are on, their copy, the form's questions and its recentChanges (with who made them) are what is actually running. Before recommending a change to an ad, check liveSettings: if the change is already there or in recentChanges, say it was done and when, and do not recommend it again.",
     campaigns: rows.map((row) => ({
       ...row,
+      admin_note: shortNote(row.admin_note),
       linkedAdCampaigns: cityCampaigns
         .filter((campaign) => campaign.request_id === row.id)
         .map(({ request_id: _unused, platform_campaign_id: _id, ...campaign }) => ({
           ...campaign,
+          admin_note: shortNote(campaign.admin_note),
           leads: leadsBySlug.get(campaign.slug) ?? { total: 0 },
           liveSettings: liveSettings({ ...campaign, platform_campaign_id: _id }),
         })),

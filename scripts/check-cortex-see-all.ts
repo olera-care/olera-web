@@ -65,6 +65,19 @@ const fixtureGet: GraphGet = async (graphPath) => {
   assert.ok(!changes.some((change) => change.endsWith("→ Pending process")), "transitional noise is dropped");
   assert.equal(hoop.recentChanges.find((change) => change.change.startsWith("Campaign budget"))?.by, "Tokunbo Falohun");
 
+  // The account's change log is read once per answer, not once per campaign.
+  let logReads = 0;
+  const counting: GraphGet = async (graphPath, params) => {
+    if (graphPath.startsWith("act_")) logReads += 1;
+    if (graphPath === "999999999") return { ...fixture.campaign, id: "999999999" };
+    if (graphPath.startsWith("999999999/")) return { data: [] };
+    return fixtureGet(graphPath, params);
+  };
+  const two = await loadMetaCampaignSettings([CAMPAIGN, "999999999"], { get: counting, now: Date.parse("2026-09-27T01:00:00Z") });
+  assert.ok("campaigns" in two && two.campaigns.length === 2);
+  assert.equal(logReads, 1, "two campaigns in one account share one read of its change log");
+  assert.ok("campaigns" in await loadMetaCampaignSettings(["1", "2"]), "ids that are not Meta ids are ignored");
+
   // A refused read is named, never an empty campaign.
   const refused = await loadMetaCampaignSettings([CAMPAIGN], { get: async () => { throw new Error("(#200) Permissions error"); } });
   assert.ok("campaigns" in refused && "unreadable" in refused.campaigns[0]);

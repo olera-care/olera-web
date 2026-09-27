@@ -162,13 +162,25 @@ export async function archiveSupportThreads(
   }
 
   const now = new Date().toISOString();
+  // Grouped by the label set left after the archive, as the noise sweep does:
+  // one update per group instead of one per thread. 411 single-row updates
+  // inside a Telegram approval would eat most of its time limit.
+  const byLabels = new Map<string, { labels: string[]; ids: string[] }>();
   for (const thread of threads) {
     const labels = (thread.gmail_label_ids ?? []).filter((label) => label !== "INBOX" && label !== "UNREAD");
-    const { error } = await db.from("support_email_threads").update({
-      state: "handled", unread: false, gmail_label_ids: labels,
-      handled_at: now, handled_by: args.actor, snoozed_until: null, updated_at: now,
-    }).eq("id", thread.id);
-    if (error) throw error;
+    const key = JSON.stringify(labels);
+    const group = byLabels.get(key);
+    if (group) group.ids.push(thread.id);
+    else byLabels.set(key, { labels, ids: [thread.id] });
+  }
+  for (const { labels, ids: groupIds } of byLabels.values()) {
+    for (const ids of chunk(groupIds, 200)) {
+      const { error } = await db.from("support_email_threads").update({
+        state: "handled", unread: false, gmail_label_ids: labels,
+        handled_at: now, handled_by: args.actor, snoozed_until: null, updated_at: now,
+      }).in("id", ids);
+      if (error) throw error;
+    }
   }
   for (const ids of chunk(threads.map((t) => t.id), 500)) {
     const { error } = await db.from("support_email_actions").insert(

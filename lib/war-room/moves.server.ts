@@ -74,11 +74,22 @@ export function parseScore(text: string): { score: number; words: string } | nul
 export function findScores(text: string): Array<{ score: number; context: string }> {
   const found: Array<{ score: number; context: string }> = [];
   for (const line of text.split(/\n+/)) {
+    const context = line.replace(/^\s*\d+[.)]\s*/, "").replace(/\[sent a screenshot\]/g, "").replace(/\s+/g, " ").trim().slice(0, 220);
+    const taken: Array<[number, number]> = [];
     for (const match of line.matchAll(/(\d{1,2}(?:\.\d)?)\s*(?:out of|\/)\s*10\b/gi)) {
       const score = Number(match[1]);
       if (score < 0 || score > 10) continue;
-      const context = line.replace(/^\s*\d+[.)]\s*/, "").replace(/\[sent a screenshot\]/g, "").replace(/\s+/g, " ").trim().slice(0, 220);
+      taken.push([match.index ?? 0, (match.index ?? 0) + match[0].length]);
       found.push({ score, context });
+    }
+    // Split ratings by name: "facts 6, thinking 9" (TJ, 2026-09-28: a right
+    // argument on wrong facts deserves two numbers, not one).
+    for (const match of line.matchAll(/\b(facts?|thinking|logic|reasoning|resonance|overall)\s*[:=-]?\s*(\d{1,2}(?:\.\d)?)\b(?!\s*(?:%|\/|out of|days?|leads?|hours?))/gi)) {
+      const at = match.index ?? 0;
+      if (taken.some(([a, b]) => at < b && at + match[0].length > a)) continue;
+      const score = Number(match[2]);
+      if (score < 0 || score > 10) continue;
+      found.push({ score, context: `${match[1].toLowerCase()}: ${context}` });
     }
   }
   return found;

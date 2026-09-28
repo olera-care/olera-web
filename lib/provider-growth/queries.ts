@@ -2913,7 +2913,11 @@ export async function getCallbacksDue(): Promise<CallbacksDueResult> {
 
     const details = tp.details as Record<string, unknown>;
     const callbackDate = details.callback_date as string;
-    const profile = tracking.business_profiles as { display_name: string | null };
+    // Handle both array and object shapes from Supabase join
+    const profileData = tracking.business_profiles as
+      | { display_name: string | null }
+      | { display_name: string | null }[];
+    const profile = Array.isArray(profileData) ? profileData[0] : profileData;
 
     const entry: CallbackDueEntry = {
       tracking_id: tp.tracking_id,
@@ -2921,7 +2925,7 @@ export async function getCallbacksDue(): Promise<CallbacksDueResult> {
       callback_date: callbackDate,
       notes: (details.notes as string) || null,
       touchpoint_created_at: tp.created_at,
-      display_name: profile.display_name,
+      display_name: profile?.display_name ?? null,
       pipeline_stage: tracking.pipeline_stage as PipelineStage,
       assigned_to: tracking.assigned_to,
     };

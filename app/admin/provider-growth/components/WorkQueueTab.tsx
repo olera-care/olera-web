@@ -15,7 +15,7 @@ import Link from "next/link";
 import type { WorkQueueEntry, WorkQueueResult } from "@/lib/provider-growth/queries";
 
 interface WorkQueueTabProps {
-  onProviderClick: (trackingId: string, businessProfileId: string) => void;
+  onProviderClick: (trackingId: string) => void;
   refreshKey?: number;
 }
 
@@ -182,7 +182,7 @@ export function WorkQueueTab({ onProviderClick, refreshKey = 0 }: WorkQueueTabPr
                     <WorkQueueRow
                       key={entry.tracking_id}
                       entry={entry}
-                      onClick={() => onProviderClick(entry.tracking_id, entry.business_profile_id)}
+                      onClick={() => onProviderClick(entry.tracking_id)}
                     />
                   ))}
                 </ul>
@@ -235,19 +235,21 @@ function WorkQueueRow({ entry, onClick }: WorkQueueRowProps) {
           )}
 
           {/* Line 3: Contact info */}
-          <p className="mt-0.5 text-xs text-gray-500">
-            {entry.phone && (
-              <a
-                href={`tel:${entry.phone}`}
-                onClick={(e) => e.stopPropagation()}
-                className="text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                {entry.phone}
-              </a>
-            )}
-            {entry.phone && entry.email && <span className="text-gray-400"> · </span>}
-            {entry.email && <span>{entry.email}</span>}
-          </p>
+          {(entry.phone || entry.email) && (
+            <p className="mt-0.5 text-xs text-gray-500">
+              {entry.phone && (
+                <a
+                  href={`tel:${entry.phone}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {entry.phone}
+                </a>
+              )}
+              {entry.phone && entry.email && <span className="text-gray-400"> · </span>}
+              {entry.email && <span>{entry.email}</span>}
+            </p>
+          )}
         </div>
 
         {/* Right: Queue reason info */}

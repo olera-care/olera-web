@@ -3134,6 +3134,7 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
 
   // Fetch all tracking records with profile info for providers with activity
   // Include providers in active stages (new_claim, pitched, no_show) that are NOT paying
+  // Exclude paying providers (ads_status = subscribed AND/OR medjobs_status = subscribed)
   const { data: trackingRecords, error: trackingError } = await db
     .from("provider_growth_tracking")
     .select(`
@@ -3154,7 +3155,9 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
       )
     `)
     .in("id", trackingIdsWithActivity)
-    .in("pipeline_stage", ["new_claim", "pitched", "no_show"]);
+    .in("pipeline_stage", ["new_claim", "pitched", "no_show"])
+    .neq("ads_status", "subscribed")
+    .neq("medjobs_status", "subscribed");
 
   if (trackingError) {
     console.error("[work-queue] Error fetching tracking:", trackingError);

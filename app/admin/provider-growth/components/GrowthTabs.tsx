@@ -20,11 +20,12 @@ export type ConvertedSubTab = "not_contacted" | "in_progress" | "live" | "ended"
 export type MeetingSubTab = "ads" | "medjobs" | "both";
 export type FollowUpSubTab = "active" | "no_show" | "not_interested";
 export type PayingSubTab = "ads_only" | "medjobs_only" | "both" | "churned";
+export type WorkQueueSubTab = "returned_calls" | "overdue" | "due_today" | "needs_retry" | "stale";
 export type ActiveTab =
   | { type: "pipeline"; stage: PipelineStage; subTab?: ClaimedSubTab | MeetingSubTab | FollowUpSubTab }
   | { type: "conversion"; tab: "converted"; subTab: ConvertedSubTab }
   | { type: "conversion"; tab: "paying"; subTab: PayingSubTab }
-  | { type: "work_queue" };
+  | { type: "work_queue"; subTab: WorkQueueSubTab };
 
 interface GrowthTabsProps {
   activeTab: ActiveTab;
@@ -34,6 +35,7 @@ interface GrowthTabsProps {
   convertedSubtabCounts?: { notContacted: number; inProgress: number; live: number; ended: number };
   followUpSubtabCounts?: { active: number; noShow: number; notInterested: number };
   workQueueCount?: number;
+  workQueueSubtabCounts?: { returnedCalls: number; overdue: number; dueToday: number; needsRetry: number; stale: number };
 }
 
 const CLAIMED_SUB_TABS: Array<{ id: ClaimedSubTab; label: string }> = [
@@ -72,8 +74,31 @@ const PAYING_SUB_TABS: Array<{ id: PayingSubTab; label: string }> = [
   { id: "churned", label: "Churned" },
 ];
 
-export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts, convertedSubtabCounts, followUpSubtabCounts, workQueueCount }: GrowthTabsProps) {
+const WORK_QUEUE_SUB_TABS: Array<{ id: WorkQueueSubTab; label: string }> = [
+  { id: "returned_calls", label: "Returned Calls" },
+  { id: "overdue", label: "Overdue" },
+  { id: "due_today", label: "Due Today" },
+  { id: "needs_retry", label: "Needs Retry" },
+  { id: "stale", label: "Stale" },
+];
+
+export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts, convertedSubtabCounts, followUpSubtabCounts, workQueueCount, workQueueSubtabCounts }: GrowthTabsProps) {
   const isWorkQueueActive = activeTab.type === "work_queue";
+
+  const getWorkQueueSubTabCount = (id: WorkQueueSubTab): number => {
+    if (!workQueueSubtabCounts) return 0;
+    switch (id) {
+      case "returned_calls": return workQueueSubtabCounts.returnedCalls;
+      case "overdue": return workQueueSubtabCounts.overdue;
+      case "due_today": return workQueueSubtabCounts.dueToday;
+      case "needs_retry": return workQueueSubtabCounts.needsRetry;
+      case "stale": return workQueueSubtabCounts.stale;
+      default: return 0;
+    }
+  };
+
+  const isWorkQueueSubTabActive = (id: WorkQueueSubTab) =>
+    activeTab.type === "work_queue" && activeTab.subTab === id;
   const getCount = (tab: PipelineStage | "converted" | "paying" | PayingSubTab): number => {
     if (!stats) return 0;
 
@@ -210,7 +235,7 @@ export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts,
 
         {/* Work Queue tab - shows providers needing follow-up */}
         <button
-          onClick={() => onTabChange({ type: "work_queue" })}
+          onClick={() => onTabChange({ type: "work_queue", subTab: "returned_calls" })}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             isWorkQueueActive
               ? "border-orange-500 text-orange-600"
@@ -345,6 +370,33 @@ export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts,
               {subTab.label}
               <span className="ml-1 text-[10px] opacity-70">
                 ({getClaimedSubTabCount(subTab.id)})
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Work Queue sub-tabs */}
+      {activeTab.type === "work_queue" && (
+        <div className="flex gap-1 mt-2 pl-4">
+          {WORK_QUEUE_SUB_TABS.map((subTab) => (
+            <button
+              key={subTab.id}
+              onClick={() =>
+                onTabChange({
+                  type: "work_queue",
+                  subTab: subTab.id,
+                })
+              }
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                isWorkQueueSubTabActive(subTab.id)
+                  ? "bg-orange-100 text-orange-700"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {subTab.label}
+              <span className="ml-1 text-[10px] opacity-70">
+                ({getWorkQueueSubTabCount(subTab.id)})
               </span>
             </button>
           ))}

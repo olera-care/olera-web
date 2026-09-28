@@ -12,7 +12,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import type { ProviderGrowthWithProfile, GrowthStats, AdminCounts } from "@/lib/provider-growth/queries";
+import type { ProviderGrowthWithProfile, GrowthStats, AdminCounts, WorkQueueResult } from "@/lib/provider-growth/queries";
 import type { PipelineStage } from "@/lib/provider-growth/stages";
 import DateRangePopover, {
   resolveRange,
@@ -59,9 +59,11 @@ export default function ProviderGrowthPage() {
     const tab = searchParams.get("tab");
     const sub = searchParams.get("sub") as "ads_only" | "medjobs_only" | "both" | "churned" | "not_contacted" | "in_progress" | "live" | "ended" | "active" | "no_show" | "not_interested" | "converted" | null;
 
-    // Work Queue tab
+    // Work Queue tab with subtabs
     if (tab === "work_queue") {
-      return { type: "work_queue" };
+      const validSubTabs = ["returned_calls", "overdue", "due_today", "needs_retry", "stale"];
+      const subTab = sub && validSubTabs.includes(sub) ? (sub as "returned_calls" | "overdue" | "due_today" | "needs_retry" | "stale") : "returned_calls";
+      return { type: "work_queue", subTab };
     }
 
     // Check for new_claim with subtab (Claimed tab)
@@ -122,6 +124,16 @@ export default function ProviderGrowthPage() {
     ended: number;
   } | null>(null);
   const [workQueueCount, setWorkQueueCount] = useState<number>(0);
+  const [workQueueData, setWorkQueueData] = useState<WorkQueueResult | null>(null);
+  const [workQueueLoading, setWorkQueueLoading] = useState(false);
+  const [workQueueError, setWorkQueueError] = useState<string | null>(null);
+  const [workQueueSubtabCounts, setWorkQueueSubtabCounts] = useState<{
+    returnedCalls: number;
+    overdue: number;
+    dueToday: number;
+    needsRetry: number;
+    stale: number;
+  } | null>(null);
   const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -241,8 +253,16 @@ export default function ProviderGrowthPage() {
       }
 
       if (workQueueRes.ok) {
-        const data = await workQueueRes.json();
+        const data = await workQueueRes.json() as WorkQueueResult;
+        setWorkQueueData(data);
         setWorkQueueCount(data.totalCount || 0);
+        setWorkQueueSubtabCounts({
+          returnedCalls: data.returnedCalls?.length || 0,
+          overdue: data.overdueCallbacks?.length || 0,
+          dueToday: data.dueToday?.length || 0,
+          needsRetry: data.needsRetry?.length || 0,
+          stale: data.stale?.length || 0,
+        });
       }
     } catch (e) {
       console.error("Failed to fetch stats:", e);
@@ -399,7 +419,7 @@ export default function ProviderGrowthPage() {
 
     // Update URL
     if (tab.type === "work_queue") {
-      router.push(`/admin/provider-growth?tab=work_queue`, { scroll: false });
+      router.push(`/admin/provider-growth?tab=work_queue&sub=${tab.subTab}`, { scroll: false });
     } else if (tab.type === "pipeline") {
       // Include subtab for tabs that have them (new_claim and pitched have subtabs)
       // meeting_scheduled has no subtabs
@@ -601,15 +621,19 @@ export default function ProviderGrowthPage() {
         convertedSubtabCounts={convertedSubtabCounts ?? undefined}
         followUpSubtabCounts={stats ? { active: stats.pitched, noShow: stats.no_show ?? 0, notInterested: stats.not_interested } : undefined}
         workQueueCount={workQueueCount}
+        workQueueSubtabCounts={workQueueSubtabCounts ?? undefined}
       />
 
       {/* Work Queue Tab - separate view */}
       {activeTab.type === "work_queue" ? (
         <WorkQueueTab
+          data={workQueueData}
+          loading={workQueueLoading}
+          error={workQueueError}
+          subTab={activeTab.subTab}
           onProviderClick={(trackingId) => {
             fetchAndSelectProvider(trackingId);
           }}
-          refreshKey={callbackRefreshKey}
         />
       ) : (
         <>

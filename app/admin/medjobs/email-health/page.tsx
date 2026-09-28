@@ -4,24 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
-import DateRangePopover, { type DateRangeValue } from "@/components/admin/DateRangePopover";
-
-/** Convert DateRangeValue preset to API days param (0 = all time) */
-function presetToDays(preset: DateRangeValue["preset"]): number {
-  switch (preset) {
-    case "all": return 0;
-    case "today": return 1;
-    case "yesterday": return 2;
-    case "7d": return 7;
-    case "14d": return 14;
-    case "30d": return 30;
-    case "90d": return 90;
-    case "12w": return 84;
-    case "6m": return 180;
-    case "1y": return 365;
-    default: return 0;
-  }
-}
+import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 
 /**
  * /admin/medjobs/email-health — Student email deliverability dashboard.
@@ -77,6 +60,7 @@ interface Summary {
 
 interface Payload {
   windowDays: number;
+  dateRange: { from: string; to: string | null } | null;
   generatedAt: string;
   summary: Summary;
   students: Student[];
@@ -150,12 +134,16 @@ export default function StudentEmailHealthPage() {
     customTo: "",
   });
 
-  const load = useCallback(async (p: number = 1, f: Filter = filter, days?: number) => {
+  const load = useCallback(async (p: number = 1, f: Filter = filter, range?: DateRangeValue) => {
     setLoading(true);
     setErr(null);
     try {
-      const daysValue = days ?? presetToDays(dateRange.preset);
-      const params = new URLSearchParams({ page: String(p), filter: f, days: String(daysValue) });
+      const effectiveRange = range ?? dateRange;
+      const { from, to } = resolveRange(effectiveRange);
+      const params = new URLSearchParams({ page: String(p), filter: f });
+      if (from) params.set("from", from);
+      if (to) params.set("to", to);
+
       const res = await fetch(`/api/admin/students/email-health?${params}`, { cache: "no-store" });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
       const payload = await res.json();
@@ -167,10 +155,10 @@ export default function StudentEmailHealthPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, dateRange.preset]);
+  }, [filter, dateRange]);
 
   useEffect(() => {
-    void load(1, "all", 0); // Default to all time
+    void load(1, "all"); // Default to all time (dateRange.preset = "all")
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -188,7 +176,7 @@ export default function StudentEmailHealthPage() {
   const handleDateRangeChange = (newRange: DateRangeValue) => {
     setDateRange(newRange);
     setExpanded(null);
-    void load(1, filter, presetToDays(newRange.preset));
+    void load(1, filter, newRange);
   };
 
   const chips: Array<[Filter, string, number | undefined]> = useMemo(() => {

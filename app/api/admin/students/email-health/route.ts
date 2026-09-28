@@ -141,9 +141,13 @@ export async function GET(request: NextRequest) {
   const db = getServiceClient();
   const { searchParams } = new URL(request.url);
 
-  // days=0 means "all time", otherwise clamp to 1-365
+  // Date filtering: prefer from/to params, fall back to days param
+  // days=0 or no params means "all time"
+  const fromParam = searchParams.get("from"); // ISO date string
+  const toParam = searchParams.get("to"); // ISO date string
   const daysParam = parseInt(searchParams.get("days") || "", 10);
   const days = isNaN(daysParam) ? DEFAULT_WINDOW_DAYS : (daysParam === 0 ? 0 : Math.min(Math.max(daysParam, 1), 365));
+
   const filter = searchParams.get("filter") || "all";
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const perPage = Math.min(PAGE_SIZE_MAX, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
@@ -160,10 +164,15 @@ export async function GET(request: NextRequest) {
         .eq("recipient_type", "student")
         .in("email_type", STUDENT_EMAIL_TYPES as unknown as string[]);
 
-      // Only apply date filter if days > 0 (not "all time")
-      if (days > 0) {
+      // Apply date filter: from/to params take precedence over days
+      if (fromParam) {
+        query = query.gte("created_at", fromParam);
+      } else if (days > 0) {
         const since = new Date(Date.now() - days * 86_400_000).toISOString();
         query = query.gte("created_at", since);
+      }
+      if (toParam) {
+        query = query.lt("created_at", toParam);
       }
 
       return query.order("id", { ascending: true }).range(from, to);
@@ -376,7 +385,8 @@ export async function GET(request: NextRequest) {
     const paginatedStudents = students.slice(from, from + perPage);
 
     return NextResponse.json({
-      windowDays: days,
+      windowDays: fromParam ? 0 : days, // 0 when using custom date range
+      dateRange: fromParam ? { from: fromParam, to: toParam } : null,
       generatedAt: new Date().toISOString(),
       summary: {
         totalStudents: allActiveStudents.length,

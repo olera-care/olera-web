@@ -16,7 +16,7 @@
 import type { GrowthStats } from "@/lib/provider-growth/queries";
 import type { PipelineStage } from "@/lib/provider-growth/stages";
 export type ClaimedSubTab = "not_contacted" | "in_progress";
-export type ConvertedSubTab = "not_contacted" | "in_progress";
+export type ConvertedSubTab = "not_contacted" | "in_progress" | "live" | "ended";
 export type MeetingSubTab = "ads" | "medjobs" | "both";
 export type FollowUpSubTab = "active" | "no_show" | "not_interested";
 export type PayingSubTab = "ads_only" | "medjobs_only" | "both" | "churned";
@@ -30,7 +30,7 @@ interface GrowthTabsProps {
   onTabChange: (tab: ActiveTab) => void;
   stats: GrowthStats | null;
   claimedSubtabCounts?: { notContacted: number; inProgress: number };
-  convertedSubtabCounts?: { notContacted: number; inProgress: number };
+  convertedSubtabCounts?: { notContacted: number; inProgress: number; live: number; ended: number };
   followUpSubtabCounts?: { active: number; noShow: number; notInterested: number };
 }
 
@@ -42,6 +42,8 @@ const CLAIMED_SUB_TABS: Array<{ id: ClaimedSubTab; label: string }> = [
 const CONVERTED_SUB_TABS: Array<{ id: ConvertedSubTab; label: string }> = [
   { id: "not_contacted", label: "Not Contacted" },
   { id: "in_progress", label: "In Progress" },
+  { id: "live", label: "Live" },
+  { id: "ended", label: "Ended" },
 ];
 
 // Meeting Scheduled subtabs removed - meeting focus is shown as badge on each row
@@ -90,9 +92,9 @@ export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts,
       case "upgrade_meeting":
         return stats.upgrade_meeting;
       case "converted":
-        // Converted tab shows notContacted + inProgress (converted only)
+        // Converted tab shows all subtabs combined
         if (convertedSubtabCounts) {
-          return convertedSubtabCounts.notContacted + convertedSubtabCounts.inProgress;
+          return convertedSubtabCounts.notContacted + convertedSubtabCounts.inProgress + convertedSubtabCounts.live + convertedSubtabCounts.ended;
         }
         return stats.ads_free_intro + stats.medjobs_in_pilot + stats.medjobs_pilot_expired;
       case "paying":
@@ -163,8 +165,13 @@ export function GrowthTabs({ activeTab, onTabChange, stats, claimedSubtabCounts,
 
   const getConvertedSubTabCount = (id: ConvertedSubTab): number => {
     if (!convertedSubtabCounts) return 0;
-    if (id === "not_contacted") return convertedSubtabCounts.notContacted;
-    return convertedSubtabCounts.inProgress;
+    switch (id) {
+      case "not_contacted": return convertedSubtabCounts.notContacted;
+      case "in_progress": return convertedSubtabCounts.inProgress;
+      case "live": return convertedSubtabCounts.live;
+      case "ended": return convertedSubtabCounts.ended;
+      default: return 0;
+    }
   };
 
   const isConvertedTabActive = () =>

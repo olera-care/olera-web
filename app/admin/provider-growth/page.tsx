@@ -53,7 +53,7 @@ export default function ProviderGrowthPage() {
   // Tab state
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
     const tab = searchParams.get("tab");
-    const sub = searchParams.get("sub") as "ads_only" | "medjobs_only" | "both" | "churned" | "not_contacted" | "in_progress" | "active" | "no_show" | "not_interested" | "converted" | null;
+    const sub = searchParams.get("sub") as "ads_only" | "medjobs_only" | "both" | "churned" | "not_contacted" | "in_progress" | "live" | "ended" | "active" | "no_show" | "not_interested" | "converted" | null;
 
     // Check for new_claim with subtab (Claimed tab)
     if (tab === "new_claim") {
@@ -73,8 +73,8 @@ export default function ProviderGrowthPage() {
 
     // Converted tab (conversion type with subtabs)
     if (tab === "converted") {
-      const validSubTabs = ["not_contacted", "in_progress"];
-      const subTab = sub && validSubTabs.includes(sub) ? (sub as "not_contacted" | "in_progress") : "not_contacted";
+      const validSubTabs = ["not_contacted", "in_progress", "live", "ended"];
+      const subTab = sub && validSubTabs.includes(sub) ? (sub as "not_contacted" | "in_progress" | "live" | "ended") : "not_contacted";
       return { type: "conversion", tab: "converted", subTab };
     }
 
@@ -109,6 +109,8 @@ export default function ProviderGrowthPage() {
   const [convertedSubtabCounts, setConvertedSubtabCounts] = useState<{
     notContacted: number;
     inProgress: number;
+    live: number;
+    ended: number;
   } | null>(null);
   const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
@@ -218,10 +220,12 @@ export default function ProviderGrowthPage() {
           notContacted: data.claimed.notContacted,
           inProgress: data.claimed.inProgress,
         });
-        // Set converted subtab counts (not_contacted, in_progress) - providers on free trial
+        // Set converted subtab counts - providers on free trial, organized by campaign status
         setConvertedSubtabCounts({
           notContacted: data.converted.notContacted,
           inProgress: data.converted.inProgress,
+          live: data.converted.live,
+          ended: data.converted.ended,
         });
       }
     } catch (e) {
@@ -277,9 +281,19 @@ export default function ProviderGrowthPage() {
           params.set("pipelineStage", "new_claim");
           params.set("converted", "true");
           if (activeTab.subTab === "not_contacted") {
+            // No calls yet, campaign not live/ended
             params.set("hasCallAttempts", "false");
+            params.set("campaignStatusNot", "live,ended");
           } else if (activeTab.subTab === "in_progress") {
+            // Has calls, campaign not live/ended
             params.set("hasCallAttempts", "true");
+            params.set("campaignStatusNot", "live,ended");
+          } else if (activeTab.subTab === "live") {
+            // Campaign is currently live
+            params.set("campaignStatus", "live");
+          } else if (activeTab.subTab === "ended") {
+            // Campaign has ended
+            params.set("campaignStatus", "ended");
           }
         } else if (activeTab.tab === "paying") {
           if (activeTab.subTab === "ads_only") {

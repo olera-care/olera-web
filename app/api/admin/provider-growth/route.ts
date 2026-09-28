@@ -124,6 +124,16 @@ export async function GET(request: NextRequest) {
       options.notConverted = true;
     }
 
+    // Campaign status filters (for Converted subtabs)
+    const campaignStatus = searchParams.get("campaignStatus");
+    if (campaignStatus) {
+      options.campaignStatus = campaignStatus as "pending_profile" | "requested" | "scheduled" | "live" | "ended";
+    }
+    const campaignStatusNot = searchParams.get("campaignStatusNot");
+    if (campaignStatusNot) {
+      options.campaignStatusNot = campaignStatusNot.split(",") as Array<"pending_profile" | "requested" | "scheduled" | "live" | "ended">;
+    }
+
     // Meeting focus filter (for Meeting Scheduled subtabs)
     const meetingFocus = searchParams.get("meetingFocus");
     if (meetingFocus && MEETING_FOCUS_OPTIONS.includes(meetingFocus as MeetingFocus)) {

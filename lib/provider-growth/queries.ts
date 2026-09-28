@@ -1797,10 +1797,16 @@ async function getAdCampaignStatusForProviders(
  * - notContacted: no calls AND not converted
  * - converted: has free trial AND no calls (self-converted, not yet contacted)
  * - inProgress: has calls (regardless of conversion status - we're actively working on them)
+ *
+ * Converted subtabs are now campaign-status aware:
+ * - notContacted: no calls yet, campaign not live/ended
+ * - inProgress: has calls, campaign not live/ended
+ * - live: campaign is currently live (success state)
+ * - ended: campaign has ended (follow up needed)
  */
 export interface SubtabCounts {
   claimed: { notContacted: number; inProgress: number };
-  converted: { notContacted: number; inProgress: number };
+  converted: { notContacted: number; inProgress: number; live: number; ended: number };
 }
 
 export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts> {
@@ -1809,21 +1815,21 @@ export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts
   // Get all new_claim tracking records with conversion status
   const { data: newClaims, error: claimsError } = await db
     .from("provider_growth_tracking")
-    .select("id, ads_status, medjobs_status")
+    .select("id, business_profile_id, ads_status, medjobs_status")
     .eq("pipeline_stage", "new_claim");
 
   if (claimsError || !newClaims) {
     console.error("[provider-growth] New claims query error:", claimsError);
     return {
       claimed: { notContacted: 0, inProgress: 0 },
-      converted: { notContacted: 0, inProgress: 0 },
+      converted: { notContacted: 0, inProgress: 0, live: 0, ended: 0 },
     };
   }
 
   if (newClaims.length === 0) {
     return {
       claimed: { notContacted: 0, inProgress: 0 },
-      converted: { notContacted: 0, inProgress: 0 },
+      converted: { notContacted: 0, inProgress: 0, live: 0, ended: 0 },
     };
   }
 
@@ -1831,10 +1837,18 @@ export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts
   const allIds = newClaims.map((c) => c.id);
   const callStats = await getCallStatsForTrackingIds(allIds);
 
-  // Categorize each provider into the 4 subtabs
+  // Get campaign status for converted providers (those with ads_status = free_intro)
+  const convertedProviderIds = newClaims
+    .filter((c) => c.ads_status === "free_intro")
+    .map((c) => c.business_profile_id);
+  const campaignData = convertedProviderIds.length > 0
+    ? await getAdCampaignStatusForProviders(convertedProviderIds)
+    : new Map<string, CampaignInfo>();
+
+  // Categorize each provider
   const counts = {
     claimed: { notContacted: 0, inProgress: 0 },
-    converted: { notContacted: 0, inProgress: 0 },
+    converted: { notContacted: 0, inProgress: 0, live: 0, ended: 0 },
   };
 
   for (const claim of newClaims) {
@@ -1859,10 +1873,21 @@ export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts
     }
 
     if (isConverted) {
-      // Converted providers (on free trial)
-      if (hasCalls) {
+      // Converted providers - categorize by campaign status
+      const campaign = campaignData.get(claim.business_profile_id);
+      const campaignStatus = campaign?.status;
+
+      if (campaignStatus === "live") {
+        // Campaign is live - success state
+        counts.converted.live++;
+      } else if (campaignStatus === "ended") {
+        // Campaign ended - follow up needed
+        counts.converted.ended++;
+      } else if (hasCalls) {
+        // Has calls but campaign not live/ended yet
         counts.converted.inProgress++;
       } else {
+        // No calls yet
         counts.converted.notContacted++;
       }
     } else if (isNotConverted) {
@@ -2080,6 +2105,9 @@ export interface ListProvidersOptions {
   completenessMax?: number;  // e.g., 49 for "Cold" leads
   // Care type filter (maps to care_types array values)
   careTypes?: string[];  // e.g., ["home_care", "assisted_living"]
+  // Campaign status filters (for Converted subtabs)
+  campaignStatus?: "pending_profile" | "requested" | "scheduled" | "live" | "ended";
+  campaignStatusNot?: Array<"pending_profile" | "requested" | "scheduled" | "live" | "ended">;
 }
 
 export async function listProviders(options: ListProvidersOptions = {}): Promise<{
@@ -2112,6 +2140,8 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     completenessMin,
     completenessMax,
     careTypes,
+    campaignStatus,
+    campaignStatusNot,
   } = options;
 
   // Build the query
@@ -2236,7 +2266,9 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     hasCallAttempts !== undefined ||
     completenessMin !== undefined ||
     completenessMax !== undefined ||
-    (careTypes && careTypes.length > 0);
+    (careTypes && careTypes.length > 0) ||
+    campaignStatus !== undefined ||
+    (campaignStatusNot && campaignStatusNot.length > 0);
 
   if (!needsInMemoryFiltering) {
     query = query.range(offset, offset + limit - 1);
@@ -2327,6 +2359,19 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
         };
       }
       return p;
+    });
+  }
+
+  // Filter by campaign status if specified (for Converted subtabs)
+  if (campaignStatus) {
+    providers = providers.filter((p) => p.ads_campaign_status === campaignStatus);
+  }
+  if (campaignStatusNot && campaignStatusNot.length > 0) {
+    providers = providers.filter((p) => {
+      // If no campaign status, include them (MedJobs-only providers)
+      if (!p.ads_campaign_status) return true;
+      // Exclude if campaign status is in the exclusion list
+      return !campaignStatusNot.includes(p.ads_campaign_status as "pending_profile" | "requested" | "scheduled" | "live" | "ended");
     });
   }
 

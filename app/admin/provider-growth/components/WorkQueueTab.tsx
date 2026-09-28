@@ -450,19 +450,21 @@ function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
           </div>
 
           {/* Line 2: Location + phone */}
-          <p className="mt-0.5 text-xs text-gray-500">
-            {location && <span>{location}</span>}
-            {location && entry.phone && <span className="text-gray-400"> · </span>}
-            {entry.phone && (
-              <a
-                href={`tel:${entry.phone}`}
-                onClick={(e) => e.stopPropagation()}
-                className="text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                {entry.phone}
-              </a>
-            )}
-          </p>
+          {(location || entry.phone) && (
+            <p className="mt-0.5 text-xs text-gray-500">
+              {location && <span>{location}</span>}
+              {location && entry.phone && <span className="text-gray-400"> · </span>}
+              {entry.phone && (
+                <a
+                  href={`tel:${entry.phone}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {entry.phone}
+                </a>
+              )}
+            </p>
+          )}
 
           {/* Line 3: Voicemail summary */}
           {entry.voicemail_summary && (

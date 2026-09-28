@@ -3458,6 +3458,7 @@ async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]
   }
 
   // Build a map of thread_id -> message info
+  // Prioritize messages with audio attachments over those without
   const messagesByThread = new Map<string, {
     transcript: string;
     audioMessageId: string | null;
@@ -3476,12 +3477,16 @@ async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]
       (a) => a.mimeType?.startsWith("audio/") || /\.(?:mp3|m4a|wav|ogg)$/i.test(a.filename || "")
     );
 
-    messagesByThread.set(msg.thread_id, {
-      transcript,
-      audioMessageId: audio ? msg.id : null,
-      audioAttachmentId: audio?.attachmentId || null,
-      audioFilename: audio?.filename || null,
-    });
+    const existing = messagesByThread.get(msg.thread_id);
+    // Keep the message with audio, or use latest if neither has audio
+    if (!existing || audio || !existing.audioMessageId) {
+      messagesByThread.set(msg.thread_id, {
+        transcript: transcript || existing?.transcript || "",
+        audioMessageId: audio ? msg.id : existing?.audioMessageId || null,
+        audioAttachmentId: audio?.attachmentId || existing?.audioAttachmentId || null,
+        audioFilename: audio?.filename || existing?.audioFilename || null,
+      });
+    }
   }
 
   // Step 3: Extract callback numbers from voicemails

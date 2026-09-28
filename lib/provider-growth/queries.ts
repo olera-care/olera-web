@@ -1798,11 +1798,12 @@ async function getAdCampaignStatusForProviders(
  * - converted: has free trial AND no calls (self-converted, not yet contacted)
  * - inProgress: has calls (regardless of conversion status - we're actively working on them)
  */
-export async function getNewClaimSubtabCounts(): Promise<{
-  notContacted: number;
-  converted: number;
-  inProgress: number;
-}> {
+export interface SubtabCounts {
+  claimed: { notContacted: number; inProgress: number };
+  converted: { notContacted: number; inProgress: number };
+}
+
+export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts> {
   const db = getServiceClient();
 
   // Get all new_claim tracking records with conversion status
@@ -1813,21 +1814,28 @@ export async function getNewClaimSubtabCounts(): Promise<{
 
   if (claimsError || !newClaims) {
     console.error("[provider-growth] New claims query error:", claimsError);
-    return { notContacted: 0, converted: 0, inProgress: 0 };
+    return {
+      claimed: { notContacted: 0, inProgress: 0 },
+      converted: { notContacted: 0, inProgress: 0 },
+    };
   }
 
   if (newClaims.length === 0) {
-    return { notContacted: 0, converted: 0, inProgress: 0 };
+    return {
+      claimed: { notContacted: 0, inProgress: 0 },
+      converted: { notContacted: 0, inProgress: 0 },
+    };
   }
 
   // Get call stats for ALL new_claim providers
   const allIds = newClaims.map((c) => c.id);
   const callStats = await getCallStatsForTrackingIds(allIds);
 
-  // Categorize each provider
-  let notContacted = 0;
-  let converted = 0;
-  let inProgress = 0;
+  // Categorize each provider into the 4 subtabs
+  const counts = {
+    claimed: { notContacted: 0, inProgress: 0 },
+    converted: { notContacted: 0, inProgress: 0 },
+  };
 
   for (const claim of newClaims) {
     const hasCalls = (callStats.get(claim.id)?.count || 0) > 0;
@@ -1837,27 +1845,52 @@ export async function getNewClaimSubtabCounts(): Promise<{
       claim.medjobs_status === "in_pilot" ||
       claim.medjobs_status === "pilot_expired";
     // "Not converted" = no free trial started (ads_status=none, medjobs not in trial)
-    // This matches the notConverted filter in listProviders
     const isNotConverted =
       claim.ads_status === "none" &&
       claim.medjobs_status !== "in_pilot" &&
       claim.medjobs_status !== "pilot_expired";
+    // Skip providers already paying (ads_status="subscribed" or medjobs_status="subscribed")
+    const isPaying =
+      claim.ads_status === "subscribed" || claim.medjobs_status === "subscribed";
 
-    if (hasCalls) {
-      // Any provider with call attempts goes to In Progress
-      inProgress++;
-    } else if (isConverted) {
-      // Converted but no calls yet - self-converted, waiting for outreach
-      converted++;
-    } else if (isNotConverted) {
-      // Not converted and no calls - fresh claim
-      notContacted++;
+    if (isPaying) {
+      // Paying providers belong in the Paying tab, not here
+      continue;
     }
-    // Note: Providers with ads_status="subscribed" or medjobs_status="subscribed"
-    // but no calls are not counted in any subtab (they should be in Paying tab)
+
+    if (isConverted) {
+      // Converted providers (on free trial)
+      if (hasCalls) {
+        counts.converted.inProgress++;
+      } else {
+        counts.converted.notContacted++;
+      }
+    } else if (isNotConverted) {
+      // Non-converted providers (no free trial)
+      if (hasCalls) {
+        counts.claimed.inProgress++;
+      } else {
+        counts.claimed.notContacted++;
+      }
+    }
   }
 
-  return { notContacted, converted, inProgress };
+  return counts;
+}
+
+// Legacy function for backwards compatibility
+export async function getNewClaimSubtabCounts(): Promise<{
+  notContacted: number;
+  converted: number;
+  inProgress: number;
+}> {
+  const counts = await getClaimedAndConvertedSubtabCounts();
+  // Map to legacy structure for any old code still using this
+  return {
+    notContacted: counts.claimed.notContacted,
+    converted: counts.converted.notContacted + counts.converted.inProgress,
+    inProgress: counts.claimed.inProgress,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1919,16 +1952,19 @@ export async function getAdminCountsForTab(options: GetAdminCountsOptions): Prom
     }
   }
 
-  // Apply converted filter
+  // Apply converted filter (excludes paying providers)
   if (options.converted) {
     query = query.or("ads_status.eq.free_intro,medjobs_status.in.(in_pilot,pilot_expired)");
+    query = query.neq("ads_status", "subscribed");
+    query = query.neq("medjobs_status", "subscribed");
   }
 
-  // Apply not converted filter
+  // Apply not converted filter (excludes paying providers)
   if (options.notConverted) {
     query = query.eq("ads_status", "none");
     query = query.neq("medjobs_status", "in_pilot");
     query = query.neq("medjobs_status", "pilot_expired");
+    query = query.neq("medjobs_status", "subscribed");
   }
 
   // Apply mutually exclusive Paying subtab filters
@@ -2133,16 +2169,21 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     query = query.eq("medjobs_eligible", medjobsEligible);
   }
   // Converted filter: ads free_intro OR medjobs in_pilot/pilot_expired
+  // EXCLUDES paying providers (ads_status=subscribed OR medjobs_status=subscribed)
   if (converted) {
     query = query.or("ads_status.eq.free_intro,medjobs_status.in.(in_pilot,pilot_expired)");
+    // Exclude paying providers - they belong in the Paying tab
+    query = query.neq("ads_status", "subscribed");
+    query = query.neq("medjobs_status", "subscribed");
   }
   // Not converted filter: no free trial active
-  // Must have ads_status = none AND medjobs_status not in (in_pilot, pilot_expired)
+  // Must have ads_status = none AND medjobs_status not in (in_pilot, pilot_expired, subscribed)
   if (notConverted) {
     query = query.eq("ads_status", "none");
-    // Exclude providers with active MedJobs trial (in_pilot or pilot_expired)
+    // Exclude providers with active MedJobs trial or subscription
     query = query.neq("medjobs_status", "in_pilot");
     query = query.neq("medjobs_status", "pilot_expired");
+    query = query.neq("medjobs_status", "subscribed");
   }
   // Meeting focus filter (for Meeting Scheduled subtabs)
   // Include null meeting_focus for legacy providers who were scheduled before this field existed

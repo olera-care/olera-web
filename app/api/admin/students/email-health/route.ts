@@ -19,7 +19,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  */
 export const maxDuration = 60;
 
-const DEFAULT_WINDOW_DAYS = 90;
+// days=0 means "all time" (no date filter)
+const DEFAULT_WINDOW_DAYS = 0;
 const PAGE_SIZE_MAX = 100;
 
 /**
@@ -140,28 +141,33 @@ export async function GET(request: NextRequest) {
   const db = getServiceClient();
   const { searchParams } = new URL(request.url);
 
-  const days = Math.min(Math.max(parseInt(searchParams.get("days") || "", 10) || DEFAULT_WINDOW_DAYS, 1), 365);
+  // days=0 means "all time", otherwise clamp to 1-365
+  const daysParam = parseInt(searchParams.get("days") || "", 10);
+  const days = isNaN(daysParam) ? DEFAULT_WINDOW_DAYS : (daysParam === 0 ? 0 : Math.min(Math.max(daysParam, 1), 365));
   const filter = searchParams.get("filter") || "all";
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const perPage = Math.min(PAGE_SIZE_MAX, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
 
-  const since = new Date(Date.now() - days * 86_400_000).toISOString();
-
   try {
-    // Fetch all student emails in the window
-    const rows = await readAll<LogRow>((from, to) =>
-      db
+    // Fetch all student emails (optionally filtered by date window)
+    const rows = await readAll<LogRow>((from, to) => {
+      let query = db
         .from("email_log")
         .select(
           "id, recipient, email_type, status, error_message, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
         )
-        .eq("channel", "email") // Only email, not SMS/push
+        .eq("channel", "email")
         .eq("recipient_type", "student")
-        .in("email_type", STUDENT_EMAIL_TYPES as unknown as string[])
-        .gte("created_at", since)
-        .order("id", { ascending: true })
-        .range(from, to),
-    );
+        .in("email_type", STUDENT_EMAIL_TYPES as unknown as string[]);
+
+      // Only apply date filter if days > 0 (not "all time")
+      if (days > 0) {
+        const since = new Date(Date.now() - days * 86_400_000).toISOString();
+        query = query.gte("created_at", since);
+      }
+
+      return query.order("id", { ascending: true }).range(from, to);
+    });
 
     // Aggregate by email address (lowercased for deduplication)
     interface StudentStats {

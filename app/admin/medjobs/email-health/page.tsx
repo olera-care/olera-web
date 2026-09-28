@@ -4,6 +4,24 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import DateRangePopover, { type DateRangeValue } from "@/components/admin/DateRangePopover";
+
+/** Convert DateRangeValue preset to API days param (0 = all time) */
+function presetToDays(preset: DateRangeValue["preset"]): number {
+  switch (preset) {
+    case "all": return 0;
+    case "today": return 1;
+    case "yesterday": return 2;
+    case "7d": return 7;
+    case "14d": return 14;
+    case "30d": return 30;
+    case "90d": return 90;
+    case "12w": return 84;
+    case "6m": return 180;
+    case "1y": return 365;
+    default: return 0;
+  }
+}
 
 /**
  * /admin/medjobs/email-health — Student email deliverability dashboard.
@@ -126,12 +144,18 @@ export default function StudentEmailHealthPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: "all",
+    customFrom: "",
+    customTo: "",
+  });
 
-  const load = useCallback(async (p: number = 1, f: Filter = filter) => {
+  const load = useCallback(async (p: number = 1, f: Filter = filter, days?: number) => {
     setLoading(true);
     setErr(null);
     try {
-      const params = new URLSearchParams({ page: String(p), filter: f });
+      const daysValue = days ?? presetToDays(dateRange.preset);
+      const params = new URLSearchParams({ page: String(p), filter: f, days: String(daysValue) });
       const res = await fetch(`/api/admin/students/email-health?${params}`, { cache: "no-store" });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
       const payload = await res.json();
@@ -143,10 +167,10 @@ export default function StudentEmailHealthPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, dateRange.preset]);
 
   useEffect(() => {
-    void load(1, "all");
+    void load(1, "all", 0); // Default to all time
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -159,6 +183,12 @@ export default function StudentEmailHealthPage() {
   const handlePageChange = (newPage: number) => {
     setExpanded(null);
     void load(newPage, filter);
+  };
+
+  const handleDateRangeChange = (newRange: DateRangeValue) => {
+    setDateRange(newRange);
+    setExpanded(null);
+    void load(1, filter, presetToDays(newRange.preset));
   };
 
   const chips: Array<[Filter, string, number | undefined]> = useMemo(() => {
@@ -174,13 +204,16 @@ export default function StudentEmailHealthPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <AdminPageHeader
-        title="Student Email Health"
-        description="Email deliverability and engagement metrics for MedJobs students."
-        breadcrumbs={[
-          { label: "MedJobs", href: "/admin/caregivers" },
-        ]}
-      />
+      <div className="flex items-start justify-between gap-4">
+        <AdminPageHeader
+          title="Student Email Health"
+          description="Email deliverability and engagement metrics for MedJobs students."
+          breadcrumbs={[
+            { label: "MedJobs", href: "/admin/caregivers" },
+          ]}
+        />
+        <DateRangePopover value={dateRange} onChange={handleDateRangeChange} />
+      </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link
@@ -197,7 +230,6 @@ export default function StudentEmailHealthPage() {
         >
           {loading && data ? "Refreshing…" : "Refresh"}
         </button>
-        {data && <span className="text-[11px] text-gray-400">Last {data.windowDays} days</span>}
       </div>
 
       {loading && !data && <div className="mt-6 h-24 animate-pulse rounded-xl bg-gray-100" />}
@@ -426,7 +458,7 @@ export default function StudentEmailHealthPage() {
           )}
 
           <p className="mt-3 text-[11px] leading-relaxed text-gray-400">
-            Showing email metrics for students with at least one email in the last {data.windowDays} days.
+            Showing email metrics for students with at least one email{data.windowDays > 0 ? ` in the last ${data.windowDays} days` : ""}.
             Complaint rate is critical — even one complaint can affect deliverability. For bounced addresses,
             ask the student to verify or update their email in the portal.
           </p>

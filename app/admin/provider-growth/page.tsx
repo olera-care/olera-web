@@ -125,7 +125,6 @@ export default function ProviderGrowthPage() {
   } | null>(null);
   const [workQueueCount, setWorkQueueCount] = useState<number>(0);
   const [workQueueData, setWorkQueueData] = useState<WorkQueueResult | null>(null);
-  const [workQueueLoading, setWorkQueueLoading] = useState(false);
   const [workQueueError, setWorkQueueError] = useState<string | null>(null);
   const [workQueueSubtabCounts, setWorkQueueSubtabCounts] = useState<{
     returnedCalls: number;
@@ -255,6 +254,7 @@ export default function ProviderGrowthPage() {
       if (workQueueRes.ok) {
         const data = await workQueueRes.json() as WorkQueueResult;
         setWorkQueueData(data);
+        setWorkQueueError(null);
         setWorkQueueCount(data.totalCount || 0);
         setWorkQueueSubtabCounts({
           returnedCalls: data.returnedCalls?.length || 0,
@@ -263,9 +263,12 @@ export default function ProviderGrowthPage() {
           needsRetry: data.needsRetry?.length || 0,
           stale: data.stale?.length || 0,
         });
+      } else {
+        setWorkQueueError("Failed to load work queue");
       }
     } catch (e) {
       console.error("Failed to fetch stats:", e);
+      setWorkQueueError("Failed to load work queue");
     } finally {
       setLoadingStats(false);
     }
@@ -628,7 +631,7 @@ export default function ProviderGrowthPage() {
       {activeTab.type === "work_queue" ? (
         <WorkQueueTab
           data={workQueueData}
-          loading={workQueueLoading}
+          loading={loadingStats}
           error={workQueueError}
           subTab={activeTab.subTab}
           onProviderClick={(trackingId) => {

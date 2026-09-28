@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
 
     // ── Auth user + account + link + silent sign-in token ──
     let insertPathSignInToken: string | undefined;
+    let existingAuthUser = false; // Track if auth user already existed (needs OTP verification)
     try {
       let authUserId: string;
       let isNewAuthUser = false;
@@ -211,6 +212,7 @@ export async function POST(request: NextRequest) {
           });
           if (!linkData?.user?.id) throw new Error("User exists but could not be resolved");
           authUserId = linkData.user.id;
+          existingAuthUser = true; // Auth user exists, will need OTP verification
         } else {
           throw createUserError;
         }
@@ -244,6 +246,7 @@ export async function POST(request: NextRequest) {
         .eq("id", (profile as { id: string }).id);
 
       // Only a NEW auth user gets a silent sign-in token (anti-takeover).
+      // Existing auth users need OTP verification — handled by returning existingAuthUser flag.
       if (isNewAuthUser) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
         const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
@@ -292,6 +295,17 @@ export async function POST(request: NextRequest) {
       });
     } catch (err) {
       console.error("[medjobs/student-eligibility] welcome email error:", err);
+    }
+
+    // If auth user already existed (e.g., from a family account), require OTP verification.
+    // This prevents account takeover while still letting them complete signup.
+    if (existingAuthUser && !insertPathSignInToken) {
+      return NextResponse.json({
+        profileId: (profile as { id: string }).id,
+        slug: (profile as { slug: string }).slug,
+        existing: true, // Triggers OTP flow in the frontend
+        existingAuthUser: true, // New student profile, but existing auth user
+      });
     }
 
     return NextResponse.json({

@@ -104,24 +104,37 @@ export async function POST(request: NextRequest) {
     const referral = sanitizeReferral(body.referral);
     const supabaseAdmin = getSupabaseAdmin();
 
-    // ── Returning student? Email a sign-in link; never silently sign in. ──
+    // ── Check if email is already in use ──
+    // One email = one account type. Block signup if email is already used.
     const { data: existingProfile } = await supabaseAdmin
       .from("business_profiles")
-      .select("id, slug, display_name")
+      .select("id, slug, display_name, type")
       .eq("email", email)
-      .eq("type", "student")
       .maybeSingle();
 
     if (existingProfile) {
-      // Returning student — let the client handle OTP sign-in.
-      // The client will call signInWithOtp() which sends an email with a code,
-      // then show an input field for the user to enter the code.
-      // This keeps the user on the same page (better UX than magic link redirect).
+      const profileType = (existingProfile as { type: string }).type;
+
+      // "caregiver" is the legacy type name for student profiles — treat them the same
+      if (profileType === "student" || profileType === "caregiver") {
+        // Returning student — let the client handle OTP sign-in.
+        return NextResponse.json({
+          slug: (existingProfile as { slug: string }).slug,
+          existing: true,
+          existingUser: true,
+        });
+      }
+
+      // Email is connected to a different account type — block signup
+      const typeLabels: Record<string, string> = {
+        family: "family",
+        organization: "provider",
+      };
+      const label = typeLabels[profileType] || profileType;
       return NextResponse.json({
-        slug: (existingProfile as { slug: string }).slug,
-        existing: true,
-        existingUser: true,
-      });
+        error: `This email is already connected to a ${label} account. Please use a different email for your student account.`,
+        existingAccountType: profileType,
+      }, { status: 400 });
     }
 
     const nowIso = new Date().toISOString();
@@ -297,8 +310,8 @@ export async function POST(request: NextRequest) {
       console.error("[medjobs/student-eligibility] welcome email error:", err);
     }
 
-    // If auth user already existed (e.g., from a family account), require OTP verification.
-    // This prevents account takeover while still letting them complete signup.
+    // If auth user already existed (e.g., from incomplete signup or deleted profile),
+    // require OTP verification. This prevents account takeover.
     if (existingAuthUser && !insertPathSignInToken) {
       return NextResponse.json({
         profileId: (profile as { id: string }).id,

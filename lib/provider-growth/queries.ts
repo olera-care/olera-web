@@ -3076,11 +3076,60 @@ export interface WorkQueueEntry {
 }
 
 export interface WorkQueueResult {
+  returnedCalls: ReturnedCallEntry[];
   overdueCallbacks: WorkQueueEntry[];
   dueToday: WorkQueueEntry[];
   needsRetry: WorkQueueEntry[];
   stale: WorkQueueEntry[];
   totalCount: number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Returned Calls (Voicemails from Growth Providers)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ReturnedCallEntry {
+  // Voicemail info
+  thread_id: string;
+  voicemail_subject: string;
+  voicemail_summary: string | null;
+  voicemail_transcript: string | null;
+  callback_number: string | null;
+  voicemail_at: string;
+  // Audio attachment info for playback
+  audio_message_id: string | null;
+  audio_attachment_id: string | null;
+  audio_filename: string | null;
+  // Matched provider info
+  tracking_id: string;
+  business_profile_id: string;
+  display_name: string | null;
+  slug: string | null;
+  city: string | null;
+  state: string | null;
+  phone: string | null;
+  pipeline_stage: PipelineStage;
+  is_converted: boolean;
+  ads_status: AdsStatus;
+  medjobs_status: MedjobsStatus;
+}
+
+/**
+ * Normalize a phone number to last 10 digits for matching.
+ */
+function normalizePhoneForMatch(phone: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  // Return last 10 digits (handles +1 prefix)
+  return digits.length >= 10 ? digits.slice(-10) : null;
+}
+
+/**
+ * Extract callback number from voicemail text using regex.
+ */
+function extractCallbackNumber(text: string): string | null {
+  const match = text.match(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/);
+  return match?.[0]?.trim() ?? null;
 }
 
 /**
@@ -3129,7 +3178,9 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
   const trackingIdsWithActivity = [...touchpointsByTracking.keys()];
 
   if (trackingIdsWithActivity.length === 0) {
-    return { overdueCallbacks: [], dueToday: [], needsRetry: [], stale: [], totalCount: 0 };
+    // Still fetch returned calls - they're independent of touchpoints
+    const returnedCalls = await getReturnedCallsForGrowthProviders();
+    return { returnedCalls, overdueCallbacks: [], dueToday: [], needsRetry: [], stale: [], totalCount: returnedCalls.length };
   }
 
   // Fetch all tracking records with profile info for providers with activity
@@ -3345,11 +3396,235 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
   needsRetry.sort((a, b) => (a.last_activity_at || "").localeCompare(b.last_activity_at || ""));
   stale.sort((a, b) => (a.last_activity_at || "").localeCompare(b.last_activity_at || ""));
 
+  // Get returned calls (voicemails from growth providers)
+  const returnedCalls = await getReturnedCallsForGrowthProviders();
+
   return {
+    returnedCalls,
     overdueCallbacks,
     dueToday: dueTodayCallbacks,
     needsRetry,
     stale,
-    totalCount: overdueCallbacks.length + dueTodayCallbacks.length + needsRetry.length + stale.length,
+    totalCount: returnedCalls.length + overdueCallbacks.length + dueTodayCallbacks.length + needsRetry.length + stale.length,
   };
+}
+
+/**
+ * Get voicemails from providers in the growth pipeline.
+ * Matches voicemail callback numbers against provider phone numbers.
+ */
+async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]> {
+  const db = getServiceClient();
+
+  // Step 1: Get all voicemails that need attention (needs_reply or escalated)
+  const { data: voicemails, error: voicemailError } = await db
+    .from("support_email_threads")
+    .select(`
+      id,
+      subject,
+      agent_summary,
+      last_message_at
+    `)
+    .eq("category", "voicemail")
+    .in("state", ["needs_reply", "escalated"])
+    .order("last_message_at", { ascending: false })
+    .limit(100);
+
+  if (voicemailError) {
+    console.error("[work-queue] Error fetching voicemails:", voicemailError);
+    return [];
+  }
+
+  if (!voicemails || voicemails.length === 0) {
+    return [];
+  }
+
+  // Step 2: Get message details (transcript + audio) for each voicemail
+  const { data: messages, error: messagesError } = await db
+    .from("support_email_messages")
+    .select(`
+      id,
+      thread_id,
+      body_text,
+      snippet,
+      attachments,
+      direction
+    `)
+    .in("thread_id", voicemails.map((v) => v.id))
+    .eq("direction", "in");
+
+  if (messagesError) {
+    console.error("[work-queue] Error fetching voicemail messages:", messagesError);
+  }
+
+  // Build a map of thread_id -> message info
+  const messagesByThread = new Map<string, {
+    transcript: string;
+    audioMessageId: string | null;
+    audioAttachmentId: string | null;
+    audioFilename: string | null;
+  }>();
+
+  for (const msg of messages || []) {
+    const transcript = msg.body_text || msg.snippet || "";
+    const attachments = (msg.attachments || []) as Array<{
+      attachmentId: string | null;
+      filename: string;
+      mimeType: string;
+    }>;
+    const audio = attachments.find(
+      (a) => a.mimeType?.startsWith("audio/") || /\.(?:mp3|m4a|wav|ogg)$/i.test(a.filename || "")
+    );
+
+    messagesByThread.set(msg.thread_id, {
+      transcript,
+      audioMessageId: audio ? msg.id : null,
+      audioAttachmentId: audio?.attachmentId || null,
+      audioFilename: audio?.filename || null,
+    });
+  }
+
+  // Step 3: Extract callback numbers from voicemails
+  const voicemailsWithNumbers: Array<{
+    threadId: string;
+    subject: string;
+    summary: string | null;
+    transcript: string | null;
+    callbackNumber: string | null;
+    normalizedNumber: string | null;
+    voicemailAt: string;
+    audioMessageId: string | null;
+    audioAttachmentId: string | null;
+    audioFilename: string | null;
+  }> = [];
+
+  for (const vm of voicemails) {
+    const msgInfo = messagesByThread.get(vm.id);
+    const text = [vm.subject, vm.agent_summary || "", msgInfo?.transcript || ""].join("\n");
+    const callbackNumber = extractCallbackNumber(text);
+    const normalizedNumber = normalizePhoneForMatch(callbackNumber);
+
+    if (normalizedNumber) {
+      voicemailsWithNumbers.push({
+        threadId: vm.id,
+        subject: vm.subject,
+        summary: vm.agent_summary,
+        transcript: msgInfo?.transcript || null,
+        callbackNumber,
+        normalizedNumber,
+        voicemailAt: vm.last_message_at,
+        audioMessageId: msgInfo?.audioMessageId || null,
+        audioAttachmentId: msgInfo?.audioAttachmentId || null,
+        audioFilename: msgInfo?.audioFilename || null,
+      });
+    }
+  }
+
+  if (voicemailsWithNumbers.length === 0) {
+    return [];
+  }
+
+  // Step 4: Get all growth providers with phone numbers
+  const { data: providers, error: providersError } = await db
+    .from("provider_growth_tracking")
+    .select(`
+      id,
+      business_profile_id,
+      pipeline_stage,
+      ads_status,
+      medjobs_status,
+      business_profiles!inner (
+        display_name,
+        slug,
+        city,
+        state,
+        phone
+      )
+    `)
+    .in("pipeline_stage", ["new_claim", "meeting_scheduled", "pitched", "no_show", "upgrade_meeting"])
+    .not("business_profiles.phone", "is", null);
+
+  if (providersError) {
+    console.error("[work-queue] Error fetching providers for phone match:", providersError);
+    return [];
+  }
+
+  // Build a map of normalized phone -> provider info
+  const providersByPhone = new Map<string, {
+    trackingId: string;
+    businessProfileId: string;
+    displayName: string | null;
+    slug: string | null;
+    city: string | null;
+    state: string | null;
+    phone: string | null;
+    pipelineStage: PipelineStage;
+    adsStatus: AdsStatus;
+    medjobsStatus: MedjobsStatus;
+  }>();
+
+  for (const p of providers || []) {
+    const profile = Array.isArray(p.business_profiles)
+      ? p.business_profiles[0]
+      : p.business_profiles;
+
+    if (!profile?.phone) continue;
+
+    const normalizedPhone = normalizePhoneForMatch(profile.phone);
+    if (!normalizedPhone) continue;
+
+    providersByPhone.set(normalizedPhone, {
+      trackingId: p.id,
+      businessProfileId: p.business_profile_id,
+      displayName: profile.display_name,
+      slug: profile.slug,
+      city: profile.city,
+      state: profile.state,
+      phone: profile.phone,
+      pipelineStage: p.pipeline_stage as PipelineStage,
+      adsStatus: p.ads_status as AdsStatus,
+      medjobsStatus: p.medjobs_status as MedjobsStatus,
+    });
+  }
+
+  // Step 5: Match voicemails to providers
+  const returnedCalls: ReturnedCallEntry[] = [];
+
+  for (const vm of voicemailsWithNumbers) {
+    const provider = providersByPhone.get(vm.normalizedNumber!);
+    if (!provider) continue;
+
+    const isConverted =
+      provider.adsStatus === "free_intro" ||
+      provider.medjobsStatus === "in_pilot" ||
+      provider.medjobsStatus === "pilot_expired";
+
+    returnedCalls.push({
+      thread_id: vm.threadId,
+      voicemail_subject: vm.subject,
+      voicemail_summary: vm.summary,
+      voicemail_transcript: vm.transcript,
+      callback_number: vm.callbackNumber,
+      voicemail_at: vm.voicemailAt,
+      audio_message_id: vm.audioMessageId,
+      audio_attachment_id: vm.audioAttachmentId,
+      audio_filename: vm.audioFilename,
+      tracking_id: provider.trackingId,
+      business_profile_id: provider.businessProfileId,
+      display_name: provider.displayName,
+      slug: provider.slug,
+      city: provider.city,
+      state: provider.state,
+      phone: provider.phone,
+      pipeline_stage: provider.pipelineStage,
+      is_converted: isConverted,
+      ads_status: provider.adsStatus,
+      medjobs_status: provider.medjobsStatus,
+    });
+  }
+
+  // Sort by most recent first
+  returnedCalls.sort((a, b) => b.voicemail_at.localeCompare(a.voicemail_at));
+
+  return returnedCalls;
 }

@@ -4,6 +4,7 @@
  * WorkQueueTab - Shows providers needing follow-up action, organized by urgency
  *
  * Sections:
+ * - Returned Calls: Voicemails from providers in growth pipeline (highest priority)
  * - Overdue Callbacks: callback_date < today
  * - Due Today: callback_date = today
  * - Needs Retry: voicemail/hung_up/left_message, stale > 2 days
@@ -12,7 +13,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import type { WorkQueueEntry, WorkQueueResult } from "@/lib/provider-growth/queries";
+import type { WorkQueueEntry, WorkQueueResult, ReturnedCallEntry } from "@/lib/provider-growth/queries";
 
 interface WorkQueueTabProps {
   onProviderClick: (trackingId: string) => void;
@@ -24,7 +25,7 @@ export function WorkQueueTab({ onProviderClick, refreshKey = 0 }: WorkQueueTabPr
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(["overdueCallbacks", "dueToday", "needsRetry", "stale"])
+    new Set(["returnedCalls", "overdueCallbacks", "dueToday", "needsRetry", "stale"])
   );
 
   const fetchData = useCallback(async () => {
@@ -132,6 +133,48 @@ export function WorkQueueTab({ onProviderClick, refreshKey = 0 }: WorkQueueTabPr
 
   return (
     <div className="space-y-4">
+      {/* Returned Calls - Highest Priority */}
+      {data.returnedCalls && data.returnedCalls.length > 0 && (
+        <div className="bg-white rounded-xl border border-teal-200">
+          {/* Section header */}
+          <button
+            onClick={() => toggleSection("returnedCalls")}
+            className="w-full flex items-center justify-between px-4 py-3 bg-teal-50 rounded-t-xl border-b border-teal-200"
+          >
+            <div className="flex items-center gap-2">
+              <span>📞</span>
+              <span className="font-medium text-teal-700">Returned Calls</span>
+              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-teal-100 text-teal-700">
+                {data.returnedCalls.length}
+              </span>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-400 transition-transform ${
+                expandedSections.has("returnedCalls") ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {/* Section content */}
+          {expandedSections.has("returnedCalls") && (
+            <ul className="divide-y divide-gray-100">
+              {data.returnedCalls.map((entry) => (
+                <ReturnedCallRow
+                  key={entry.thread_id}
+                  entry={entry}
+                  onClick={() => onProviderClick(entry.tracking_id)}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {sections.map((section) => (
         <div
           key={section.id}
@@ -369,4 +412,105 @@ function timeAgo(isoDate: string): string {
   if (days < 7) return `${days}d ago`;
   if (days < 30) return `${Math.floor(days / 7)}w ago`;
   return `${Math.floor(days / 30)}mo ago`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Returned Call Row (Voicemail from Growth Provider)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ReturnedCallRowProps {
+  entry: ReturnedCallEntry;
+  onClick: () => void;
+}
+
+function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
+  const location = [entry.city, entry.state].filter(Boolean).join(", ");
+  const hasAudio = entry.audio_message_id && entry.audio_attachment_id;
+
+  // Build audio URL for playback
+  const audioUrl = hasAudio
+    ? `/api/admin/support-email/${encodeURIComponent(entry.thread_id)}/attachments/${encodeURIComponent(entry.audio_message_id!)}/` +
+      `${encodeURIComponent(entry.audio_attachment_id!)}`
+    : null;
+
+  return (
+    <div className="px-4 py-3">
+      <div className="flex items-start justify-between gap-4">
+        {/* Left: Provider info */}
+        <div className="min-w-0 flex-1">
+          {/* Line 1: Name + stage badge */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClick}
+              className="truncate text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors text-left"
+            >
+              {entry.display_name || "Unnamed Provider"}
+            </button>
+            <StageBadge stage={entry.pipeline_stage} isConverted={entry.is_converted} />
+          </div>
+
+          {/* Line 2: Location + phone */}
+          <p className="mt-0.5 text-xs text-gray-500">
+            {location && <span>{location}</span>}
+            {location && entry.phone && <span className="text-gray-400"> · </span>}
+            {entry.phone && (
+              <a
+                href={`tel:${entry.phone}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                {entry.phone}
+              </a>
+            )}
+          </p>
+
+          {/* Line 3: Voicemail summary */}
+          {entry.voicemail_summary && (
+            <p className="mt-1.5 text-xs text-gray-600 line-clamp-2">
+              {entry.voicemail_summary}
+            </p>
+          )}
+
+          {/* Audio player */}
+          {audioUrl && (
+            <div className="mt-2 flex items-center gap-2">
+              <audio
+                controls
+                preload="metadata"
+                className="h-8 min-w-0 flex-1 max-w-xs"
+                src={audioUrl}
+                onClick={(e) => e.stopPropagation()}
+              >
+                Your browser does not support audio playback.
+              </audio>
+              {entry.audio_filename && (
+                <span className="text-[10px] text-gray-400 truncate max-w-[100px]">
+                  {entry.audio_filename}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Time info */}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="px-2 py-1 text-xs font-medium rounded bg-teal-100 text-teal-700">
+            Returned call
+          </span>
+          <span className="text-xs text-gray-400">
+            {timeAgo(entry.voicemail_at)}
+          </span>
+          {entry.callback_number && (
+            <a
+              href={`tel:${entry.callback_number}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              {entry.callback_number}
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

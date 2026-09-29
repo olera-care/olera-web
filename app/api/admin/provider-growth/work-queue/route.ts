@@ -17,6 +17,8 @@ import { getWorkQueueProviders, type SubtabCountsFilterOptions } from "@/lib/pro
  * - careTypes: comma-separated care type filter values
  * - search: provider name search
  * - assignedTo: filter by assigned admin ID
+ * - claimedFrom: filter by claim date start
+ * - claimedTo: filter by claim date end
  */
 export async function GET(request: NextRequest) {
   try {
@@ -57,6 +59,16 @@ export async function GET(request: NextRequest) {
     const assignedTo = searchParams.get("assignedTo");
     if (assignedTo) {
       filters.assignedTo = assignedTo;
+    }
+
+    const claimedFrom = searchParams.get("claimedFrom");
+    if (claimedFrom) {
+      filters.claimedFrom = claimedFrom;
+    }
+
+    const claimedTo = searchParams.get("claimedTo");
+    if (claimedTo) {
+      filters.claimedTo = claimedTo;
     }
 
     const result = await getWorkQueueProviders(filters);

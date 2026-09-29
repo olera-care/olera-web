@@ -3358,7 +3358,7 @@ export async function getWorkQueueProviders(
   filters: SubtabCountsFilterOptions = {}
 ): Promise<WorkQueueResult> {
   const db = getServiceClient();
-  const { completenessMin, completenessMax, careTypes, search, assignedTo } = filters;
+  const { completenessMin, completenessMax, careTypes, search, assignedTo, claimedFrom, claimedTo } = filters;
   const today = new Date().toISOString().split("T")[0];
   const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -3395,14 +3395,46 @@ export async function getWorkQueueProviders(
 
   if (trackingIdsWithActivity.length === 0) {
     // Still fetch returned calls - they're independent of touchpoints
-    const returnedCalls = await getReturnedCallsForGrowthProviders();
+    let returnedCalls = await getReturnedCallsForGrowthProviders();
+
+    // Apply filters to returned calls
+    const hasFilters = completenessMin !== undefined || completenessMax !== undefined ||
+      (careTypes && careTypes.length > 0) || search;
+
+    if (hasFilters) {
+      const knownCareTypes = new Set(
+        Object.values(CARE_TYPE_FILTER_MAPPING).flat().map((ct) => ct.toLowerCase())
+      );
+
+      returnedCalls = returnedCalls.filter((entry) => {
+        if (search && !entry.display_name?.toLowerCase().includes(search.toLowerCase())) return false;
+        if (completenessMin !== undefined && entry.profile_completeness < completenessMin) return false;
+        if (completenessMax !== undefined && entry.profile_completeness > completenessMax) return false;
+        if (careTypes && careTypes.length > 0) {
+          const providerCareTypes = entry.care_types || [];
+          if (providerCareTypes.length === 0) return false;
+          const matches = careTypes.some((filterType) => {
+            if (filterType === "other") {
+              return providerCareTypes.some((pct) => !knownCareTypes.has(pct.toLowerCase()));
+            }
+            const mappedValues = CARE_TYPE_FILTER_MAPPING[filterType] || [];
+            return providerCareTypes.some((pct) =>
+              mappedValues.some((mv) => mv.toLowerCase() === pct.toLowerCase())
+            );
+          });
+          if (!matches) return false;
+        }
+        return true;
+      });
+    }
+
     return { returnedCalls, overdueCallbacks: [], dueToday: [], needsRetry: [], stale: [], totalCount: returnedCalls.length };
   }
 
   // Fetch all tracking records with profile info for providers with activity
   // Include providers in active stages (new_claim, pitched, no_show) that are NOT paying
   // Exclude paying providers (ads_status = subscribed AND/OR medjobs_status = subscribed)
-  const { data: trackingRecords, error: trackingError } = await db
+  let trackingQuery = db
     .from("provider_growth_tracking")
     .select(`
       id,
@@ -3410,6 +3442,7 @@ export async function getWorkQueueProviders(
       pipeline_stage,
       assigned_to,
       last_activity_at,
+      claimed_at,
       ads_status,
       medjobs_status,
       ads_eligible,
@@ -3435,6 +3468,16 @@ export async function getWorkQueueProviders(
     .in("pipeline_stage", ["new_claim", "pitched", "no_show"])
     .neq("ads_status", "subscribed")
     .neq("medjobs_status", "subscribed");
+
+  // Apply date range filter at DB level
+  if (claimedFrom) {
+    trackingQuery = trackingQuery.gte("claimed_at", claimedFrom);
+  }
+  if (claimedTo) {
+    trackingQuery = trackingQuery.lte("claimed_at", claimedTo + "T23:59:59.999Z");
+  }
+
+  const { data: trackingRecords, error: trackingError } = await trackingQuery;
 
   if (trackingError) {
     console.error("[work-queue] Error fetching tracking:", trackingError);

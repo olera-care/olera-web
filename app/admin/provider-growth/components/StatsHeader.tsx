@@ -16,14 +16,18 @@ import type { GrowthStats } from "@/lib/provider-growth/queries";
 interface StatsHeaderProps {
   stats: GrowthStats | null;
   loading?: boolean;
+  /** Total callbacks due (today + overdue) */
+  callbacksDue?: number;
+  /** Subset that are overdue */
+  callbacksOverdue?: number;
 }
 
-export function StatsHeader({ stats, loading }: StatsHeaderProps) {
+export function StatsHeader({ stats, loading, callbacksDue = 0, callbacksOverdue = 0 }: StatsHeaderProps) {
   if (loading) {
     return (
       <div className="mb-6">
-        <div className="grid grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-gray-200 bg-white px-4 py-3 animate-pulse">
               <div className="h-7 w-16 bg-gray-200 rounded mb-1" />
               <div className="h-3 w-20 bg-gray-100 rounded" />
@@ -44,7 +48,15 @@ export function StatsHeader({ stats, loading }: StatsHeaderProps) {
       ? `${stats.pending_outcomes_today} today, ${stats.pending_outcomes_past} past`
       : `${stats.pending_outcomes_today} today`;
 
-  // Key metrics: Claims → Converted → Paying + Pending Outcomes
+  // Build sublabel for callbacks due
+  const callbacksDueToday = callbacksDue - callbacksOverdue;
+  const callbacksSublabel = callbacksDue === 0
+    ? "All done"
+    : callbacksOverdue > 0
+      ? `${callbacksDueToday} today, ${callbacksOverdue} overdue`
+      : `${callbacksDueToday} today`;
+
+  // Key metrics: Claims → Converted → Paying + Pending Outcomes + Callbacks Due
   const statItems = [
     {
       label: "New Claims",
@@ -68,11 +80,18 @@ export function StatsHeader({ stats, loading }: StatsHeaderProps) {
       highlight: stats.pending_outcomes > 0,
       warning: stats.pending_outcomes_past > 0, // Warning color if past meetings need logging
     },
+    {
+      label: "Callbacks Due",
+      value: callbacksDue,
+      sublabel: callbacksSublabel,
+      highlight: callbacksDue > 0 && callbacksOverdue === 0,
+      warning: callbacksOverdue > 0, // Warning color if overdue callbacks
+    },
   ];
 
   return (
     <div className="mb-6">
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-5 gap-3">
         {statItems.map((item) => {
           // Determine card styling based on state
           let cardClass = "border-gray-200 bg-white";

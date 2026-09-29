@@ -55,7 +55,7 @@ export function WorkQueueTab({
     setResolveError(null);
     try {
       const res = await fetch(`/api/admin/support-email/${encodeURIComponent(pendingResolve.thread_id)}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "mark_handled" }),
       });

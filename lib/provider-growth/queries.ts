@@ -3219,6 +3219,11 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
     (trackingRecords || []).map((t) => [t.id, t])
   );
 
+  // Fetch campaign status for all tracked providers to exclude those with live campaigns
+  // Providers with live campaigns belong in Converted → Live tab, not Work Queue
+  const businessProfileIds = (trackingRecords || []).map((t) => t.business_profile_id);
+  const campaignStatusMap = await getAdCampaignStatusForProviders(businessProfileIds);
+
   // Process into work queue categories
   const overdueCallbacks: WorkQueueEntry[] = [];
   const dueTodayCallbacks: WorkQueueEntry[] = [];
@@ -3252,6 +3257,12 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
       });
 
       if (!hasFollowUp && (callbackDate <= today)) {
+        // Skip providers with live campaigns - they belong in Converted → Live tab
+        const campaignInfo = campaignStatusMap.get(tracking.business_profile_id);
+        if (campaignInfo?.status === "live") {
+          continue;
+        }
+
         // Handle both array and object shapes from Supabase join
         const profileData = tracking.business_profiles as
           | { display_name: string | null; slug: string | null; city: string | null; state: string | null; phone: string | null; email: string | null }
@@ -3312,6 +3323,12 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
 
     // Check if last outcome was a retry-worthy outcome and it's been > 2 days
     if (outcome && retryOutcomes.includes(outcome) && latestTp.created_at < twoDaysAgo) {
+      // Skip providers with live campaigns - they belong in Converted → Live tab
+      const campaignInfo = campaignStatusMap.get(tracking.business_profile_id);
+      if (campaignInfo?.status === "live") {
+        continue;
+      }
+
       const profileData = tracking.business_profiles as
         | { display_name: string | null; slug: string | null; city: string | null; state: string | null; phone: string | null; email: string | null }
         | { display_name: string | null; slug: string | null; city: string | null; state: string | null; phone: string | null; email: string | null }[];
@@ -3357,6 +3374,12 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
 
     // Stale if last activity was > 7 days ago
     if (latestTp.created_at < sevenDaysAgo) {
+      // Skip providers with live campaigns - they belong in Converted → Live tab
+      const campaignInfo = campaignStatusMap.get(tracking.business_profile_id);
+      if (campaignInfo?.status === "live") {
+        continue;
+      }
+
       const details = latestTp.details as Record<string, unknown> | null;
       const profileData = tracking.business_profiles as
         | { display_name: string | null; slug: string | null; city: string | null; state: string | null; phone: string | null; email: string | null }

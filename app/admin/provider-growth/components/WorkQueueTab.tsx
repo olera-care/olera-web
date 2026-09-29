@@ -288,6 +288,7 @@ function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function StageBadge({ stage, isConverted }: { stage: string; isConverted: boolean }) {
+  // Show "Converted" badge for free trial providers
   if (isConverted) {
     return (
       <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">
@@ -296,23 +297,35 @@ function StageBadge({ stage, isConverted }: { stage: string; isConverted: boolea
     );
   }
 
+  // Only show badges for meaningful pipeline states
+  // Skip "new_claim" - all providers here are claimed by definition, showing it is noise
   const stageLabels: Record<string, string> = {
-    new_claim: "Claimed",
     meeting_scheduled: "Meeting",
     pitched: "Pitched",
     no_show: "No-show",
+    not_interested: "Not Interested",
   };
 
   const stageColors: Record<string, string> = {
-    new_claim: "bg-blue-100 text-blue-700",
     meeting_scheduled: "bg-purple-100 text-purple-700",
     pitched: "bg-purple-100 text-purple-700",
     no_show: "bg-orange-100 text-orange-700",
+    not_interested: "bg-gray-100 text-gray-600",
   };
+
+  // No badge for new_claim - it's the default state, no need to show it
+  if (stage === "new_claim") {
+    return null;
+  }
+
+  // Only render badge if we have a label for this stage
+  if (!stageLabels[stage]) {
+    return null;
+  }
 
   return (
     <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${stageColors[stage] || "bg-gray-100 text-gray-600"}`}>
-      {stageLabels[stage] || stage}
+      {stageLabels[stage]}
     </span>
   );
 }

@@ -16,13 +16,15 @@ import type { GrowthStats } from "@/lib/provider-growth/queries";
 interface StatsHeaderProps {
   stats: GrowthStats | null;
   loading?: boolean;
-  /** Total callbacks due (today + overdue) */
-  callbacksDue?: number;
-  /** Subset that are overdue */
-  callbacksOverdue?: number;
+  /** Total work queue items needing attention */
+  workQueueCount?: number;
+  /** Returned calls (high priority - someone called back) */
+  workQueueReturnedCalls?: number;
+  /** Callbacks due today */
+  workQueueDueToday?: number;
 }
 
-export function StatsHeader({ stats, loading, callbacksDue = 0, callbacksOverdue = 0 }: StatsHeaderProps) {
+export function StatsHeader({ stats, loading, workQueueCount = 0, workQueueReturnedCalls = 0, workQueueDueToday = 0 }: StatsHeaderProps) {
   if (loading) {
     return (
       <div className="mb-6">
@@ -48,15 +50,17 @@ export function StatsHeader({ stats, loading, callbacksDue = 0, callbacksOverdue
       ? `${stats.pending_outcomes_today} today, ${stats.pending_outcomes_past} past`
       : `${stats.pending_outcomes_today} today`;
 
-  // Build sublabel for callbacks due
-  const callbacksDueToday = callbacksDue - callbacksOverdue;
-  const callbacksSublabel = callbacksDue === 0
+  // Build sublabel for work queue
+  const workQueueParts: string[] = [];
+  if (workQueueReturnedCalls > 0) workQueueParts.push(`${workQueueReturnedCalls} returned`);
+  if (workQueueDueToday > 0) workQueueParts.push(`${workQueueDueToday} due today`);
+  const workQueueSublabel = workQueueCount === 0
     ? "All done"
-    : callbacksOverdue > 0
-      ? `${callbacksDueToday} today, ${callbacksOverdue} overdue`
-      : `${callbacksDueToday} today`;
+    : workQueueParts.length > 0
+      ? workQueueParts.join(", ")
+      : "Needs attention";
 
-  // Key metrics: Claims → Converted → Paying + Pending Outcomes + Callbacks Due
+  // Key metrics: Claims → Converted → Paying + Pending Outcomes + Work Queue
   const statItems = [
     {
       label: "New Claims",
@@ -78,14 +82,13 @@ export function StatsHeader({ stats, loading, callbacksDue = 0, callbacksOverdue
       value: stats.pending_outcomes,
       sublabel: pendingSublabel,
       highlight: stats.pending_outcomes > 0,
-      warning: stats.pending_outcomes_past > 0, // Warning color if past meetings need logging
+      warning: stats.pending_outcomes_past > 0,
     },
     {
-      label: "Callbacks Due",
-      value: callbacksDue,
-      sublabel: callbacksSublabel,
-      highlight: callbacksDue > 0 && callbacksOverdue === 0,
-      warning: callbacksOverdue > 0, // Warning color if overdue callbacks
+      label: "Work Queue",
+      value: workQueueCount,
+      sublabel: workQueueSublabel,
+      // No highlight/warning - keep it neutral
     },
   ];
 

@@ -661,8 +661,9 @@ export default function ProviderGrowthPage() {
       <StatsHeader
         stats={stats}
         loading={loadingStats}
-        callbacksDue={workQueueSubtabCounts ? workQueueSubtabCounts.dueToday + workQueueSubtabCounts.overdue : 0}
-        callbacksOverdue={workQueueSubtabCounts?.overdue ?? 0}
+        workQueueCount={workQueueCount}
+        workQueueReturnedCalls={workQueueSubtabCounts?.returnedCalls ?? 0}
+        workQueueDueToday={workQueueSubtabCounts?.dueToday ?? 0}
       />
 
       {/* Tabs */}

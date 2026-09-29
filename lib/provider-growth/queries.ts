@@ -1809,16 +1809,52 @@ export interface SubtabCounts {
   converted: { notContacted: number; inProgress: number; live: number; ended: number };
 }
 
-export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts> {
-  const db = getServiceClient();
+export interface SubtabCountsFilterOptions {
+  completenessMin?: number;
+  completenessMax?: number;
+  careTypes?: string[];
+  claimedFrom?: string;
+  claimedTo?: string;
+  search?: string;
+  assignedTo?: string;
+}
 
-  // Get all new_claim tracking records with conversion status
-  const { data: newClaims, error: claimsError } = await db
+export async function getClaimedAndConvertedSubtabCounts(
+  filters: SubtabCountsFilterOptions = {}
+): Promise<SubtabCounts> {
+  const db = getServiceClient();
+  const { completenessMin, completenessMax, careTypes, claimedFrom, claimedTo, search, assignedTo } = filters;
+
+  // Check if we need profile data for filtering
+  const needsProfileData = completenessMin !== undefined || completenessMax !== undefined ||
+    (careTypes && careTypes.length > 0) || search;
+
+  // Define the select string - always include profile data when needed for filtering
+  const selectWithProfiles = "id, business_profile_id, ads_status, medjobs_status, claimed_at, assigned_to, business_profiles!inner(display_name, category, city, state, address, phone, email, website, description, image_url, care_types, metadata)";
+  const selectBasic = "id, business_profile_id, ads_status, medjobs_status, claimed_at, assigned_to";
+
+  // Build base query
+  let query = db
     .from("provider_growth_tracking")
-    .select("id, business_profile_id, ads_status, medjobs_status")
+    .select(needsProfileData ? selectWithProfiles : selectBasic)
     .eq("pipeline_stage", "new_claim");
 
-  if (claimsError || !newClaims) {
+  // Apply date range filter at DB level
+  if (claimedFrom) {
+    query = query.gte("claimed_at", claimedFrom);
+  }
+  if (claimedTo) {
+    query = query.lte("claimed_at", claimedTo + "T23:59:59.999Z");
+  }
+
+  // Apply assigned_to filter at DB level
+  if (assignedTo) {
+    query = query.eq("assigned_to", assignedTo);
+  }
+
+  const { data, error: claimsError } = await query;
+
+  if (claimsError || !data) {
     console.error("[provider-growth] New claims query error:", claimsError);
     return {
       claimed: { notContacted: 0, inProgress: 0 },
@@ -1826,19 +1862,90 @@ export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts
     };
   }
 
-  if (newClaims.length === 0) {
+  if (data.length === 0) {
     return {
       claimed: { notContacted: 0, inProgress: 0 },
       converted: { notContacted: 0, inProgress: 0, live: 0, ended: 0 },
     };
   }
 
-  // Get call stats for ALL new_claim providers
-  const allIds = newClaims.map((c) => c.id);
+  // Type the claims data - profile data is optional depending on filters
+  interface ClaimWithProfile {
+    id: string;
+    business_profile_id: string;
+    ads_status: string;
+    medjobs_status: string;
+    claimed_at: string | null;
+    assigned_to: string | null;
+    business_profiles?: ProfileFields;
+  }
+  const newClaims = data as unknown as ClaimWithProfile[];
+
+  // Apply in-memory filters if we have profile data
+  let filteredClaims = newClaims;
+
+  if (needsProfileData) {
+    // Apply search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredClaims = filteredClaims.filter((claim) => {
+        const profile = claim.business_profiles;
+        return profile?.display_name?.toLowerCase().includes(searchLower);
+      });
+    }
+
+    // Apply completeness filter
+    if (completenessMin !== undefined || completenessMax !== undefined) {
+      filteredClaims = filteredClaims.filter((claim) => {
+        const profile = claim.business_profiles;
+        if (!profile) return false;
+        const completeness = computeProfileCompleteness(profile);
+        if (completenessMin !== undefined && completeness < completenessMin) return false;
+        if (completenessMax !== undefined && completeness > completenessMax) return false;
+        return true;
+      });
+    }
+
+    // Apply care types filter
+    if (careTypes && careTypes.length > 0) {
+      const knownCareTypes = new Set(
+        Object.values(CARE_TYPE_FILTER_MAPPING).flat().map((ct) => ct.toLowerCase())
+      );
+
+      filteredClaims = filteredClaims.filter((claim) => {
+        const profile = claim.business_profiles;
+        const providerCareTypes = profile?.care_types || [];
+        if (providerCareTypes.length === 0) return false;
+
+        return careTypes.some((filterType) => {
+          if (filterType === "other") {
+            return providerCareTypes.some(
+              (pct) => !knownCareTypes.has(pct.toLowerCase())
+            );
+          }
+          const mappedValues = CARE_TYPE_FILTER_MAPPING[filterType] || [];
+          return providerCareTypes.some((pct) =>
+            mappedValues.some((mv) => mv.toLowerCase() === pct.toLowerCase())
+          );
+        });
+      });
+    }
+  }
+
+  // If all filtered out, return zeros
+  if (filteredClaims.length === 0) {
+    return {
+      claimed: { notContacted: 0, inProgress: 0 },
+      converted: { notContacted: 0, inProgress: 0, live: 0, ended: 0 },
+    };
+  }
+
+  // Get call stats for filtered providers
+  const allIds = filteredClaims.map((c) => c.id);
   const callStats = await getCallStatsForTrackingIds(allIds);
 
   // Get campaign status for converted providers (those with ads_status = free_intro)
-  const convertedProviderIds = newClaims
+  const convertedProviderIds = filteredClaims
     .filter((c) => c.ads_status === "free_intro")
     .map((c) => c.business_profile_id);
   const campaignData = convertedProviderIds.length > 0
@@ -1851,7 +1958,7 @@ export async function getClaimedAndConvertedSubtabCounts(): Promise<SubtabCounts
     converted: { notContacted: 0, inProgress: 0, live: 0, ended: 0 },
   };
 
-  for (const claim of newClaims) {
+  for (const claim of filteredClaims) {
     const hasCalls = (callStats.get(claim.id)?.count || 0) > 0;
     // "Converted" = started free trial (not yet paying)
     const isConverted =

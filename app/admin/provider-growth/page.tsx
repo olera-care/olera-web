@@ -228,9 +228,39 @@ export default function ProviderGrowthPage() {
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
     try {
+      // Build filter params for subtab-counts to match provider list filters
+      const subtabParams = new URLSearchParams();
+      if (providerFilters.completenessMin !== undefined) {
+        subtabParams.set("completenessMin", String(providerFilters.completenessMin));
+      }
+      if (providerFilters.completenessMax !== undefined) {
+        subtabParams.set("completenessMax", String(providerFilters.completenessMax));
+      }
+      if (providerFilters.careTypes.length > 0) {
+        subtabParams.set("careTypes", providerFilters.careTypes.join(","));
+      }
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) {
+        subtabParams.set("claimedFrom", resolved.from);
+      }
+      if (resolved.to) {
+        subtabParams.set("claimedTo", resolved.to);
+      }
+      if (debouncedSearch) {
+        subtabParams.set("search", debouncedSearch);
+      }
+      if (selectedAdminFilter) {
+        subtabParams.set("assignedTo", selectedAdminFilter);
+      }
+
+      const subtabQueryString = subtabParams.toString();
+      const subtabUrl = subtabQueryString
+        ? `/api/admin/provider-growth/subtab-counts?${subtabQueryString}`
+        : "/api/admin/provider-growth/subtab-counts";
+
       const [statsRes, subtabRes, workQueueRes] = await Promise.all([
         fetch("/api/admin/provider-growth/stats"),
-        fetch("/api/admin/provider-growth/subtab-counts"),
+        fetch(subtabUrl),
         fetch("/api/admin/provider-growth/work-queue"),
       ]);
 
@@ -276,7 +306,7 @@ export default function ProviderGrowthPage() {
     } finally {
       setLoadingStats(false);
     }
-  }, []);
+  }, [providerFilters, dateRange, debouncedSearch, selectedAdminFilter]);
 
   // Fetch providers
   const fetchProviders = useCallback(async () => {

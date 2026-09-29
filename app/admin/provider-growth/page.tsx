@@ -688,6 +688,10 @@ export default function ProviderGrowthPage() {
           onProviderClick={(trackingId) => {
             fetchAndSelectProvider(trackingId);
           }}
+          onReturnedCallResolved={() => {
+            // Refresh stats to update work queue counts
+            fetchStats();
+          }}
           search={debouncedSearch}
           assignedTo={selectedAdminFilter}
           filters={providerFilters}

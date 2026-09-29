@@ -14,6 +14,7 @@
 import Link from "next/link";
 import type { WorkQueueEntry, WorkQueueResult, ReturnedCallEntry } from "@/lib/provider-growth/queries";
 import type { WorkQueueSubTab } from "./GrowthTabs";
+import { EligibilityBadges } from "./EligibilityBadges";
 
 interface WorkQueueTabProps {
   data: WorkQueueResult | null;
@@ -128,7 +129,7 @@ function WorkQueueRow({ entry, onClick }: WorkQueueRowProps) {
       <div className="flex items-start justify-between gap-4">
         {/* Left: Provider info */}
         <div className="min-w-0 flex-1">
-          {/* Line 1: Name + stage badge */}
+          {/* Line 1: Name + verification badge + stage badge */}
           <div className="flex items-center gap-2">
             {entry.slug ? (
               <Link
@@ -143,6 +144,7 @@ function WorkQueueRow({ entry, onClick }: WorkQueueRowProps) {
                 {entry.display_name || "Unnamed Provider"}
               </span>
             )}
+            <VerificationBadge state={entry.verification_state} providerName={entry.display_name} />
             <StageBadge stage={entry.pipeline_stage} isConverted={entry.is_converted} />
           </div>
 
@@ -169,8 +171,16 @@ function WorkQueueRow({ entry, onClick }: WorkQueueRowProps) {
           )}
         </div>
 
-        {/* Right: Queue reason info */}
+        {/* Right: Eligibility badges + Queue reason info */}
         <div className="flex shrink-0 flex-col items-end gap-1">
+          {/* Eligibility badges */}
+          <div className="flex items-center gap-2">
+            <EligibilityBadges
+              adsEligible={entry.ads_eligible}
+              medjobsEligible={entry.medjobs_eligible}
+              medjobsUniversity={entry.medjobs_catchment_university}
+            />
+          </div>
           <QueueReasonBadge entry={entry} />
           {entry.last_activity_outcome && (
             <span className="text-xs text-gray-400">
@@ -212,7 +222,7 @@ function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
       <div className="flex items-start justify-between gap-4">
         {/* Left: Provider info */}
         <div className="min-w-0 flex-1">
-          {/* Line 1: Name + stage badge */}
+          {/* Line 1: Name + verification badge + stage badge */}
           <div className="flex items-center gap-2">
             <button
               onClick={onClick}
@@ -220,6 +230,7 @@ function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
             >
               {entry.display_name || "Unnamed Provider"}
             </button>
+            <VerificationBadge state={entry.verification_state} providerName={entry.display_name} />
             <StageBadge stage={entry.pipeline_stage} isConverted={entry.is_converted} />
           </div>
 
@@ -263,8 +274,16 @@ function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
           )}
         </div>
 
-        {/* Right: Time info */}
+        {/* Right: Eligibility badges + Time info */}
         <div className="flex shrink-0 flex-col items-end gap-1">
+          {/* Eligibility badges */}
+          <div className="flex items-center gap-2">
+            <EligibilityBadges
+              adsEligible={entry.ads_eligible}
+              medjobsEligible={entry.medjobs_eligible}
+              medjobsUniversity={entry.medjobs_catchment_university}
+            />
+          </div>
           <span className="text-xs text-gray-400">
             {timeAgo(entry.voicemail_at)}
           </span>
@@ -328,6 +347,74 @@ function StageBadge({ stage, isConverted }: { stage: string; isConverted: boolea
       {stageLabels[stage]}
     </span>
   );
+}
+
+function VerificationBadge({ state, providerName }: { state: string | null; providerName: string | null }) {
+  const verificationLink = `/admin/verification?search=${encodeURIComponent(providerName || "")}`;
+
+  // Verified or not_required: show green checkmark
+  if (state === "verified" || state === "not_required") {
+    return (
+      <a
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="text-emerald-600 hover:text-emerald-700 transition-colors"
+        title="Verified — click to view"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </a>
+    );
+  }
+
+  // Pending verification: show amber badge
+  if (state === "pending") {
+    return (
+      <a
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded hover:bg-amber-100 transition-colors"
+        title="Click to review verification"
+      >
+        Pending Verification
+      </a>
+    );
+  }
+
+  // Unverified: show orange badge
+  if (state === "unverified") {
+    return (
+      <a
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
+        title="Click to verify this provider"
+      >
+        Unverified
+      </a>
+    );
+  }
+
+  // Rejected: show red badge
+  if (state === "rejected") {
+    return (
+      <a
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+        title="Verification rejected — click for details"
+      >
+        Rejected
+      </a>
+    );
+  }
+
+  return null;
 }
 
 function QueueReasonBadge({ entry }: { entry: WorkQueueEntry }) {

@@ -14,7 +14,9 @@
 import Link from "next/link";
 import type { WorkQueueEntry, WorkQueueResult, ReturnedCallEntry } from "@/lib/provider-growth/queries";
 import type { WorkQueueSubTab } from "./GrowthTabs";
+import type { ProviderFiltersValue } from "./ProviderFilters";
 import { EligibilityBadges } from "./EligibilityBadges";
+import { CARE_TYPE_FILTER_MAPPING } from "@/lib/provider-growth/stages";
 
 interface WorkQueueTabProps {
   data: WorkQueueResult | null;
@@ -22,9 +24,22 @@ interface WorkQueueTabProps {
   error: string | null;
   subTab: WorkQueueSubTab;
   onProviderClick: (trackingId: string) => void;
+  // Filters
+  search?: string;
+  assignedTo?: string | null;
+  filters?: ProviderFiltersValue;
 }
 
-export function WorkQueueTab({ data, loading, error, subTab, onProviderClick }: WorkQueueTabProps) {
+export function WorkQueueTab({
+  data,
+  loading,
+  error,
+  subTab,
+  onProviderClick,
+  search,
+  assignedTo,
+  filters,
+}: WorkQueueTabProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
@@ -45,19 +60,77 @@ export function WorkQueueTab({ data, loading, error, subTab, onProviderClick }: 
     return null;
   }
 
-  // Get the right list based on subtab
+  // Common filter logic for both entry types
+  const matchesFilters = (e: WorkQueueEntry | ReturnedCallEntry): boolean => {
+    // Search filter (match display_name)
+    if (search?.trim()) {
+      const searchLower = search.toLowerCase().trim();
+      if (!e.display_name?.toLowerCase().includes(searchLower)) {
+        return false;
+      }
+    }
+
+    // Assigned to filter (only for WorkQueueEntry which has assigned_to)
+    if (assignedTo && "assigned_to" in e) {
+      if ((e as WorkQueueEntry).assigned_to !== assignedTo) {
+        return false;
+      }
+    }
+
+    // Profile completeness filter
+    if (filters?.completenessMin !== undefined) {
+      if ((e.profile_completeness ?? 0) < filters.completenessMin) {
+        return false;
+      }
+    }
+    if (filters?.completenessMax !== undefined) {
+      if ((e.profile_completeness ?? 0) > filters.completenessMax) {
+        return false;
+      }
+    }
+
+    // Care types filter (matches main query logic exactly)
+    if (filters?.careTypes && filters.careTypes.length > 0) {
+      if (!e.care_types || e.care_types.length === 0) return false;
+
+      // Build set of all known care types for "other" detection
+      const knownCareTypes = new Set(
+        Object.values(CARE_TYPE_FILTER_MAPPING).flat().map((ct) => ct.toLowerCase())
+      );
+
+      const hasMatch = filters.careTypes.some((filterType) => {
+        if (filterType === "other") {
+          // Match if provider has any care type not in known categories
+          return e.care_types!.some(
+            (pct) => !knownCareTypes.has(pct.toLowerCase())
+          );
+        }
+        // Match if provider has any care type in the mapped values (exact match)
+        const mappedValues = CARE_TYPE_FILTER_MAPPING[filterType] || [];
+        return e.care_types!.some((pct) =>
+          mappedValues.some((mv) => mv.toLowerCase() === pct.toLowerCase())
+        );
+      });
+
+      if (!hasMatch) return false;
+    }
+
+    return true;
+  };
+
+  // Get the filtered list based on subtab
   const getEntries = (): WorkQueueEntry[] | ReturnedCallEntry[] => {
     switch (subTab) {
       case "returned_calls":
-        return data.returnedCalls;
+        return data.returnedCalls.filter(matchesFilters);
       case "overdue":
-        return data.overdueCallbacks;
+        return data.overdueCallbacks.filter(matchesFilters);
       case "due_today":
-        return data.dueToday;
+        return data.dueToday.filter(matchesFilters);
       case "needs_retry":
-        return data.needsRetry;
+        return data.needsRetry.filter(matchesFilters);
       case "stale":
-        return data.stale;
+        return data.stale.filter(matchesFilters);
       default:
         return [];
     }
@@ -120,6 +193,8 @@ interface WorkQueueRowProps {
 
 function WorkQueueRow({ entry, onClick }: WorkQueueRowProps) {
   const location = [entry.city, entry.state].filter(Boolean).join(", ");
+  const category = entry.care_types?.slice(0, 2).join(", ") || null;
+  const locationCategory = [location, category].filter(Boolean).join(" · ");
 
   return (
     <div
@@ -148,9 +223,9 @@ function WorkQueueRow({ entry, onClick }: WorkQueueRowProps) {
             <StageBadge stage={entry.pipeline_stage} isConverted={entry.is_converted} />
           </div>
 
-          {/* Line 2: Location */}
-          {location && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">{location}</p>
+          {/* Line 2: Location · Category */}
+          {locationCategory && (
+            <p className="mt-0.5 truncate text-xs text-gray-500">{locationCategory}</p>
           )}
 
           {/* Line 3: Contact info */}
@@ -209,6 +284,8 @@ interface ReturnedCallRowProps {
 
 function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
   const location = [entry.city, entry.state].filter(Boolean).join(", ");
+  const category = entry.care_types?.slice(0, 2).join(", ") || null;
+  const locationCategory = [location, category].filter(Boolean).join(" · ");
   const hasAudio = entry.audio_message_id && entry.audio_attachment_id;
 
   // Build audio URL for playback
@@ -234,11 +311,11 @@ function ReturnedCallRow({ entry, onClick }: ReturnedCallRowProps) {
             <StageBadge stage={entry.pipeline_stage} isConverted={entry.is_converted} />
           </div>
 
-          {/* Line 2: Location + phone */}
-          {(location || entry.phone) && (
+          {/* Line 2: Location · Category + phone */}
+          {(locationCategory || entry.phone) && (
             <p className="mt-0.5 text-xs text-gray-500">
-              {location && <span>{location}</span>}
-              {location && entry.phone && <span className="text-gray-400"> · </span>}
+              {locationCategory && <span>{locationCategory}</span>}
+              {locationCategory && entry.phone && <span className="text-gray-400"> · </span>}
               {entry.phone && (
                 <a
                   href={`tel:${entry.phone}`}

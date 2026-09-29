@@ -651,6 +651,9 @@ export default function ProviderGrowthPage() {
           onProviderClick={(trackingId) => {
             fetchAndSelectProvider(trackingId);
           }}
+          search={debouncedSearch}
+          assignedTo={selectedAdminFilter}
+          filters={providerFilters}
         />
       ) : (
         <>

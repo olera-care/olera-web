@@ -3060,6 +3060,8 @@ export interface WorkQueueEntry {
   phone: string | null;
   email: string | null;
   verification_state: string | null;
+  care_types: string[] | null;
+  profile_completeness: number;
   pipeline_stage: PipelineStage;
   assigned_to: string | null;
   // What makes them in the queue
@@ -3114,6 +3116,8 @@ export interface ReturnedCallEntry {
   state: string | null;
   phone: string | null;
   verification_state: string | null;
+  care_types: string[] | null;
+  profile_completeness: number;
   pipeline_stage: PipelineStage;
   is_converted: boolean;
   ads_status: AdsStatus;
@@ -3216,7 +3220,13 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
         state,
         phone,
         email,
-        verification_state
+        verification_state,
+        category,
+        address,
+        description,
+        image_url,
+        care_types,
+        metadata
       )
     `)
     .in("id", trackingIdsWithActivity)
@@ -3278,7 +3288,7 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
         }
 
         // Handle both array and object shapes from Supabase join
-        type ProfileShape = { display_name: string | null; slug: string | null; city: string | null; state: string | null; phone: string | null; email: string | null; verification_state: string | null };
+        type ProfileShape = ProfileFields & { slug: string | null; verification_state: string | null };
         const profileData = tracking.business_profiles as ProfileShape | ProfileShape[];
         const profile = Array.isArray(profileData) ? profileData[0] : profileData;
 
@@ -3297,6 +3307,8 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
           phone: profile?.phone ?? null,
           email: profile?.email ?? null,
           verification_state: profile?.verification_state ?? null,
+          care_types: profile?.care_types ?? null,
+          profile_completeness: profile ? computeProfileCompleteness(profile) : 0,
           pipeline_stage: tracking.pipeline_stage as PipelineStage,
           assigned_to: tracking.assigned_to,
           queue_reason: callbackDate < today ? "overdue_callback" : "due_today",
@@ -3346,7 +3358,7 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
         continue;
       }
 
-      type ProfileShape = { display_name: string | null; slug: string | null; city: string | null; state: string | null; phone: string | null; email: string | null; verification_state: string | null };
+      type ProfileShape = ProfileFields & { slug: string | null; verification_state: string | null };
       const profileData = tracking.business_profiles as ProfileShape | ProfileShape[];
       const profile = Array.isArray(profileData) ? profileData[0] : profileData;
 
@@ -3365,6 +3377,8 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
         phone: profile?.phone ?? null,
         email: profile?.email ?? null,
         verification_state: profile?.verification_state ?? null,
+        care_types: profile?.care_types ?? null,
+        profile_completeness: profile ? computeProfileCompleteness(profile) : 0,
         pipeline_stage: tracking.pipeline_stage as PipelineStage,
         assigned_to: tracking.assigned_to,
         queue_reason: "needs_retry",
@@ -3401,7 +3415,7 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
       }
 
       const details = latestTp.details as Record<string, unknown> | null;
-      type ProfileShape = { display_name: string | null; slug: string | null; city: string | null; state: string | null; phone: string | null; email: string | null; verification_state: string | null };
+      type ProfileShape = ProfileFields & { slug: string | null; verification_state: string | null };
       const profileData = tracking.business_profiles as ProfileShape | ProfileShape[];
       const profile = Array.isArray(profileData) ? profileData[0] : profileData;
 
@@ -3420,6 +3434,8 @@ export async function getWorkQueueProviders(): Promise<WorkQueueResult> {
         phone: profile?.phone ?? null,
         email: profile?.email ?? null,
         verification_state: profile?.verification_state ?? null,
+        care_types: profile?.care_types ?? null,
+        profile_completeness: profile ? computeProfileCompleteness(profile) : 0,
         pipeline_stage: tracking.pipeline_stage as PipelineStage,
         assigned_to: tracking.assigned_to,
         queue_reason: "stale",
@@ -3593,7 +3609,13 @@ async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]
         city,
         state,
         phone,
-        verification_state
+        verification_state,
+        category,
+        address,
+        description,
+        image_url,
+        care_types,
+        metadata
       )
     `)
     .in("pipeline_stage", ["new_claim", "meeting_scheduled", "pitched", "no_show", "upgrade_meeting"])
@@ -3614,6 +3636,8 @@ async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]
     state: string | null;
     phone: string | null;
     verificationState: string | null;
+    careTypes: string[] | null;
+    profileCompleteness: number;
     pipelineStage: PipelineStage;
     adsStatus: AdsStatus;
     medjobsStatus: MedjobsStatus;
@@ -3632,6 +3656,9 @@ async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]
     const normalizedPhone = normalizePhoneForMatch(profile.phone);
     if (!normalizedPhone) continue;
 
+    // Cast profile to ProfileFields for completeness calculation
+    const profileForCompleteness = profile as unknown as ProfileFields;
+
     providersByPhone.set(normalizedPhone, {
       trackingId: p.id,
       businessProfileId: p.business_profile_id,
@@ -3641,6 +3668,8 @@ async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]
       state: profile.state,
       phone: profile.phone,
       verificationState: profile.verification_state ?? null,
+      careTypes: profile.care_types ?? null,
+      profileCompleteness: computeProfileCompleteness(profileForCompleteness),
       pipelineStage: p.pipeline_stage as PipelineStage,
       adsStatus: p.ads_status as AdsStatus,
       medjobsStatus: p.medjobs_status as MedjobsStatus,
@@ -3680,6 +3709,8 @@ async function getReturnedCallsForGrowthProviders(): Promise<ReturnedCallEntry[]
       state: provider.state,
       phone: provider.phone,
       verification_state: provider.verificationState,
+      care_types: provider.careTypes,
+      profile_completeness: provider.profileCompleteness,
       pipeline_stage: provider.pipelineStage,
       is_converted: isConverted,
       ads_status: provider.adsStatus,

@@ -253,15 +253,23 @@ export default function ProviderGrowthPage() {
         subtabParams.set("assignedTo", selectedAdminFilter);
       }
 
-      const subtabQueryString = subtabParams.toString();
-      const subtabUrl = subtabQueryString
-        ? `/api/admin/provider-growth/subtab-counts?${subtabQueryString}`
+      const filterQueryString = subtabParams.toString();
+
+      // Build URLs with filter params for all three endpoints
+      const statsUrl = filterQueryString
+        ? `/api/admin/provider-growth/stats?${filterQueryString}`
+        : "/api/admin/provider-growth/stats";
+      const subtabUrl = filterQueryString
+        ? `/api/admin/provider-growth/subtab-counts?${filterQueryString}`
         : "/api/admin/provider-growth/subtab-counts";
+      const workQueueUrl = filterQueryString
+        ? `/api/admin/provider-growth/work-queue?${filterQueryString}`
+        : "/api/admin/provider-growth/work-queue";
 
       const [statsRes, subtabRes, workQueueRes] = await Promise.all([
-        fetch("/api/admin/provider-growth/stats"),
+        fetch(statsUrl),
         fetch(subtabUrl),
-        fetch("/api/admin/provider-growth/work-queue"),
+        fetch(workQueueUrl),
       ]);
 
       if (statsRes.ok) {

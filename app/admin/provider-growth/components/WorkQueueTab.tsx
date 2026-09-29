@@ -11,7 +11,7 @@
  * - Stale: no activity in 7+ days
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { WorkQueueEntry, WorkQueueResult, ReturnedCallEntry } from "@/lib/provider-growth/queries";
 import type { WorkQueueSubTab } from "./GrowthTabs";
@@ -25,7 +25,8 @@ interface WorkQueueTabProps {
   error: string | null;
   subTab: WorkQueueSubTab;
   onProviderClick: (trackingId: string) => void;
-  onReturnedCallResolved?: () => void;
+  /** Called after resolving a returned call. Pass thread_id for optimistic removal. */
+  onReturnedCallResolved?: (threadId: string) => void;
   // Filters
   search?: string;
   assignedTo?: string | null;
@@ -48,6 +49,26 @@ export function WorkQueueTab({
   const [resolving, setResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
 
+  // State for undo toast
+  const [undoToast, setUndoToast] = useState<{
+    threadId: string;
+    displayName: string | null;
+  } | null>(null);
+  const [undoing, setUndoing] = useState(false);
+  const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-dismiss undo toast after 5 seconds
+  useEffect(() => {
+    if (undoToast) {
+      undoTimeoutRef.current = setTimeout(() => {
+        setUndoToast(null);
+      }, 5000);
+      return () => {
+        if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+      };
+    }
+  }, [undoToast]);
+
   // Handle resolve confirmation
   const handleResolve = async () => {
     if (!pendingResolve) return;
@@ -60,15 +81,48 @@ export function WorkQueueTab({
         body: JSON.stringify({ action: "mark_handled" }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to resolve");
+        const responseData = await res.json().catch(() => ({}));
+        throw new Error(responseData.error || "Failed to resolve");
       }
+      // Show undo toast
+      setUndoToast({
+        threadId: pendingResolve.thread_id,
+        displayName: pendingResolve.display_name,
+      });
+      // Close modal and trigger optimistic removal
+      const threadId = pendingResolve.thread_id;
       setPendingResolve(null);
-      onReturnedCallResolved?.();
+      onReturnedCallResolved?.(threadId);
     } catch (e) {
       setResolveError(e instanceof Error ? e.message : "Failed to resolve");
     } finally {
       setResolving(false);
+    }
+  };
+
+  // Handle undo
+  const handleUndo = async () => {
+    if (!undoToast) return;
+    setUndoing(true);
+    try {
+      const res = await fetch(`/api/admin/support-email/${encodeURIComponent(undoToast.threadId)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "needs_reply" }),
+      });
+      if (!res.ok) {
+        console.error("Failed to undo resolve");
+        return;
+      }
+      // Clear toast and refresh to bring item back
+      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+      setUndoToast(null);
+      // Trigger a refresh - pass empty string to signal "just refresh, no optimistic removal"
+      onReturnedCallResolved?.("");
+    } catch (e) {
+      console.error("Failed to undo:", e);
+    } finally {
+      setUndoing(false);
     }
   };
   if (loading) {
@@ -232,6 +286,33 @@ export function WorkQueueTab({
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Undo toast */}
+        {undoToast && (
+          <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg">
+            <span className="text-sm">
+              Resolved {undoToast.displayName || "returned call"}
+            </span>
+            <button
+              onClick={handleUndo}
+              disabled={undoing}
+              className="text-sm font-medium text-primary-300 hover:text-primary-200 transition-colors disabled:opacity-50"
+            >
+              {undoing ? "Undoing..." : "Undo"}
+            </button>
+            <button
+              onClick={() => {
+                if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+                setUndoToast(null);
+              }}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         )}
       </>

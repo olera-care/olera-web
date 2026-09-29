@@ -688,8 +688,27 @@ export default function ProviderGrowthPage() {
           onProviderClick={(trackingId) => {
             fetchAndSelectProvider(trackingId);
           }}
-          onReturnedCallResolved={() => {
-            // Refresh stats to update work queue counts
+          onReturnedCallResolved={(threadId) => {
+            // Optimistically remove the resolved item from local state
+            if (threadId) {
+              setWorkQueueData((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      returnedCalls: prev.returnedCalls.filter((rc) => rc.thread_id !== threadId),
+                      totalCount: Math.max(0, prev.totalCount - 1),
+                    }
+                  : null
+              );
+              // Also update the subtab counts
+              setWorkQueueSubtabCounts((prev) =>
+                prev
+                  ? { ...prev, returnedCalls: Math.max(0, prev.returnedCalls - 1) }
+                  : null
+              );
+              setWorkQueueCount((prev) => Math.max(0, prev - 1));
+            }
+            // Refresh stats to get fresh data from server
             fetchStats();
           }}
           search={debouncedSearch}

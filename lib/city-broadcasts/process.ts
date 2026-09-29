@@ -117,7 +117,6 @@ export async function detectNewEvents(): Promise<DetectedEvent[]> {
     console.error("[city-broadcasts] Failed to fetch profiles:", pErr);
   } else if (recentProfiles && recentProfiles.length > 0) {
     // Filter out profiles that already have a broadcast event
-    // Use prefixed IDs to match what findExistingActivityForCity returns
     // Use raw UUID - event_type column distinguishes profile events from question events
     const profileEventIds = recentProfiles.map((p) => p.id);
     const { data: existing } = await db

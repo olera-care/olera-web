@@ -22,6 +22,7 @@ import {
   complete,
   derivedStep,
   makeRecord,
+  openingRungs,
   resolveNext,
   satisfied,
   stillToCome,
@@ -104,6 +105,39 @@ ok(
 ok(
   "every rung the system answers says so in the UI",
   steps.every((s) => !s.satisfiedBy || Boolean(s.satisfiedNote)),
+);
+
+console.log("\nWhat opens on a student nobody has touched");
+ok(
+  "a fresh applicant gets reaching out, and only that",
+  JSON.stringify(openingRungs("students", {}, [])) === JSON.stringify([REACH]),
+  JSON.stringify(openingRungs("students", {}, [])),
+);
+ok(
+  "one already interviewed by a provider gets nothing",
+  openingRungs("students", { interview_booked: "2026-09-10" }, []).length === 0,
+);
+ok(
+  "one already hired gets nothing",
+  openingRungs("students", { hired: "2026-09-01" }, []).length === 0,
+);
+// The regression of 30 September, in one assertion. A student partway
+// through has rows on later rungs and none on the first, and the block used
+// to read that as "never started" and queue first contact with somebody we
+// had already interviewed. It also put the waiting count one above the
+// number of students, which is how it was noticed.
+ok(
+  "one partway through gets nothing, though nothing sits on the first rung",
+  openingRungs("students", {}, [{ step: APPLICATION }, { step: QUALIFY }]).length === 0,
+  JSON.stringify(openingRungs("students", {}, [{ step: APPLICATION }, { step: QUALIFY }])),
+);
+ok(
+  "one with a row on the first rung still gets nothing",
+  openingRungs("students", {}, [{ step: REACH }]).length === 0,
+);
+ok(
+  "and the count of waiting tasks can never exceed one per untouched student",
+  openingRungs("students", {}, []).length <= 1,
 );
 
 console.log("\nWhere a student stands, from the facts alone");

@@ -18,6 +18,7 @@ import {
   derivedStep,
   forwardStep,
   formatPhone,
+  openingRungs,
   type BoardRecord,
   type BoardTask,
   type BoardUniversity,
@@ -698,17 +699,11 @@ export async function GET() {
             : derivedStep("students", facts);
       const round = pending[0]?.round ?? 0;
 
-      // The rungs that open together: the meeting and the application. Both
-      // are the next thing when an application lands, and neither waits on
-      // the other. A rung the system has already answered is skipped, and so
-      // is everything behind a fact that supersedes it — nobody needs
-      // meeting a student who has already been interviewed.
-      const block = LADDERS.students.openTogether ?? 0;
-      const from = derivedStep("students", facts) ?? block;
-      for (let k = Math.max(0, from); k < block; k += 1) {
-        if (tasks.some((t) => t.step === k)) continue;
-        const key = LADDERS.students.steps[k]?.satisfiedBy;
-        if (key && facts[key]) continue;
+      // The rungs to open on a student nobody has touched yet. The rule for
+      // when not to lives in openingRungs, where it can be tested: it is
+      // subtler than it looks, and getting it wrong queued first contact
+      // with students we had already interviewed.
+      for (const k of openingRungs("students", facts, tasks)) {
         tasks.push({
           id: `auto:${st.id}:${k}`,
           section: "students",

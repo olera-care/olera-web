@@ -522,6 +522,46 @@ export function carryFrom(
 }
 
 /**
+ * Which of a ladder's opening rungs to put on a record that has just arrived.
+ *
+ * A record that appears on its own — a student, from an application — has no
+ * task queued for it, so the board opens the first `openTogether` rungs to
+ * give it something to do. The question this answers is when NOT to.
+ *
+ * Two reasons not to. The system can already see the rung is answered, via
+ * the fact it names or a later fact that supersedes it; or the record has
+ * started, which is what any stored row at or beyond that rung means.
+ *
+ * The second test used to read `=== k` rather than `>= k`, and that was the
+ * whole of a bug shipped on 30 September. It was enough by accident: the
+ * students ladder opened with "Complete their application", so a student who
+ * had got anywhere at all had a row sitting on step 0 and the block skipped.
+ * Reordering the ladder in front of that rung moved those rows to step 3 and
+ * left step 0 empty, so every student already partway through was handed a
+ * fresh "Reach out to them" — first contact with somebody we had already
+ * interviewed. Eleven students, twelve waiting tasks, and one of the twelve
+ * telling somebody to do a thing that was done weeks ago.
+ */
+export function openingRungs(
+  section: SectionKey,
+  facts: Record<string, string | true> | undefined,
+  /** Every task already stored against the record, finished or not. */
+  stored: ReadonlyArray<{ step: number }>,
+): number[] {
+  const ladder = LADDERS[section];
+  const block = ladder.openTogether ?? 0;
+  const from = derivedStep(section, facts) ?? block;
+  const out: number[] = [];
+  for (let k = Math.max(0, from); k < block; k += 1) {
+    if (stored.some((t) => t.step >= k)) continue;
+    const key = ladder.steps[k]?.satisfiedBy;
+    if (key && facts?.[key]) continue;
+    out.push(k);
+  }
+  return out;
+}
+
+/**
  * The rung a branch returns to: one round on from where it left.
  *
  * That round was logged before the branch opened, so going back to it would

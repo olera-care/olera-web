@@ -1,14 +1,14 @@
 {
   "state": "DC",
   "stateName": "District of Columbia",
-  "checkedAt": "2026-10-02T07:34:41.977Z",
+  "checkedAt": "2026-10-02T09:32:16.106Z",
   "total": 5,
   "skipped": 0,
   "parseErrors": 0,
   "errors": 0,
   "programsWithFlags": 3,
-  "totalFlags": 5,
-  "highSeverityFlags": 4,
+  "totalFlags": 4,
+  "highSeverityFlags": 3,
   "programs": [
     {
       "programId": "epd-waiver-program",
@@ -30,18 +30,18 @@
         "income_1": null,
         "income_2": null,
         "assets_individual": 4000,
-        "assets_couple": null,
+        "assets_couple": 6000,
         "phone": "2027245626",
         "sources": {
           "age": "https://dacl.dc.gov/service/epd-waiver",
-          "income": "https://dacl.dc.gov/service/epd-waiver",
+          "income": "https://www.dc-medicaid.com/dcwebportal/documentInformation/getDocument/17695",
           "assets": "https://dacl.dc.gov/service/epd-waiver",
-          "phone": "https://dacl.dc.gov/page/elderly-and-persons-disabilities-waiver"
+          "phone": "https://dhcf.dc.gov/page/epd-waiver-services"
         },
-        "notes": "Current DC EPD Waiver page lists the senior pathway age as 65+; income value was not current enough to verify beyond a 2023 figure, so left null."
+        "notes": "Current official DC sources show the program is active; age threshold for seniors is 65+, and countable assets are $4,000 individual / $6,000 couple. I could not verify a current separate income limit from an official current source in the retrieved results."
       },
       "flags": [],
-      "notes": "Current DC EPD Waiver page lists the senior pathway age as 65+; income value was not current enough to verify beyond a 2023 figure, so left null."
+      "notes": "Current official DC sources show the program is active; age threshold for seniors is 65+, and countable assets are $4,000 individual / $6,000 couple. I could not verify a current separate income limit from an official current source in the retrieved results."
     },
     {
       "programId": "safe-at-home-program",
@@ -68,10 +68,10 @@
         "sources": {
           "age": "https://dacl.dc.gov/service/safe-home",
           "income": "https://dacl.dc.gov/service/safe-home",
-          "assets": "null",
+          "assets": null,
           "phone": "https://dacl.dc.gov/service/safe-home"
         },
-        "notes": "Current DC Safe at Home eligibility uses age 60+ for the senior pathway; no asset test was found in the official source, and the program is currently active under DACL."
+        "notes": "Current DC Safe at Home appears to use age 60+ for seniors and an annual income limit of 100% AMI; no asset test found in official sources."
       },
       "flags": [
         {
@@ -89,7 +89,7 @@
           "pctDiff": 94
         }
       ],
-      "notes": "Current DC Safe at Home eligibility uses age 60+ for the senior pathway; no asset test was found in the official source, and the program is currently active under DACL."
+      "notes": "Current DC Safe at Home appears to use age 60+ for seniors and an annual income limit of 100% AMI; no asset test found in official sources."
     },
     {
       "programId": "dacl-benefits-assistance",
@@ -114,12 +114,12 @@
         "assets_couple": null,
         "phone": "2027245626",
         "sources": {
-          "age": "https://dacl.dc.gov/sites/default/files/dc/sites/dacl/service_content/attachments/Case%20Management%20FAQ_2.pdf",
+          "age": "https://dacl.dc.gov/service/information-referralassistance",
           "income": "https://dacl.dc.gov/service/benefits-assistance",
-          "assets": "null",
+          "assets": "https://dacl.dc.gov/service/benefits-assistance",
           "phone": "https://dacl.dc.gov/service/benefits-assistance"
         },
-        "notes": "DACL Benefits Assistance is a help/referral service for Medicaid, SNAP, and related benefits; no standalone countable asset test was found on the program page. Senior pathway appears to begin at age 60."
+        "notes": "Benefits Assistance is an application-help service for Medicaid/SNAP and other benefits; the authoritative DC source found gives a senior intake threshold of 60+ and lists the main contact number. No separate countable asset limit or income test for this program was found in the retrievable official sources."
       },
       "flags": [
         {
@@ -129,7 +129,7 @@
           "verifiedValue": 60
         }
       ],
-      "notes": "DACL Benefits Assistance is a help/referral service for Medicaid, SNAP, and related benefits; no standalone countable asset test was found on the program page. Senior pathway appears to begin at age 60."
+      "notes": "Benefits Assistance is an application-help service for Medicaid/SNAP and other benefits; the authoritative DC source found gives a senior intake threshold of 60+ and lists the main contact number. No separate countable asset limit or income test for this program was found in the retrievable official sources."
     },
     {
       "programId": "senior-centers",
@@ -146,37 +146,31 @@
         "hasVerifiableFacts": true
       },
       "verified": {
-        "age": 55,
+        "age": 60,
         "income_1": null,
         "income_2": null,
         "assets_individual": null,
         "assets_couple": null,
-        "phone": "2027245626",
+        "phone": "2027245622",
         "sources": {
-          "age": "https://dacl.dc.gov/service/senior-centers",
+          "age": "https://dcoa.dc.gov/sites/default/files/dc/sites/dcoa/service_content/attachments/Senior%20Wellness%20Center%20Fact%20Sheet_0.pdf",
           "income": null,
           "assets": null,
-          "phone": "https://dacl.dc.gov/service/senior-centers"
+          "phone": "https://dc.gov/service/dc-aging-and-disability-resource-centers-locations"
         },
-        "notes": "Current DC Senior Centers page shows senior centers and contact phone; no income or asset test found."
+        "notes": "Current DC senior wellness/senior center pathway appears to use a 60+ age threshold; no income or asset test found for senior centers. Official contact number for help is 202-724-5622."
       },
       "flags": [
-        {
-          "field": "age",
-          "severity": "high",
-          "draftValue": 60,
-          "verifiedValue": 55
-        },
         {
           "field": "phone",
           "severity": "medium",
           "draftValue": [
             "2027247000"
           ],
-          "verifiedValue": "2027245626"
+          "verifiedValue": "2027245622"
         }
       ],
-      "notes": "Current DC Senior Centers page shows senior centers and contact phone; no income or asset test found."
+      "notes": "Current DC senior wellness/senior center pathway appears to use a 60+ age threshold; no income or asset test found for senior centers. Official contact number for help is 202-724-5622."
     },
     {
       "programId": "family-caregiver-support",
@@ -205,10 +199,10 @@
           "assets": null,
           "phone": "https://dacl.dc.gov/service/caregiver-programs"
         },
-        "notes": "Current DACL Caregiver Programs page lists the main contact as 202-724-5626; no separate age, income, or asset eligibility limits were found for the senior caregiver pathway."
+        "notes": "No authoritative age, income, or asset test found for DACL Caregiver Programs; current official main phone is 202-724-5626."
       },
       "flags": [],
-      "notes": "Current DACL Caregiver Programs page lists the main contact as 202-724-5626; no separate age, income, or asset eligibility limits were found for the senior caregiver pathway."
+      "notes": "No authoritative age, income, or asset test found for DACL Caregiver Programs; current official main phone is 202-724-5626."
     }
   ]
 }

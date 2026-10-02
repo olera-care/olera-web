@@ -1,0 +1,513 @@
+
+WOULD APPLY: 0 {}
+REVIEW: 450 {
+  'phone (run with --phones to apply official ones)': 185,
+  'tier dispute: draft 200% FPL 2026 vs verified 100% FPL 2026': 2,
+  'value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 300% SSI 2026 or 300% SSI 2025)': 1,
+  'aggregator source': 74,
+  'value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025 or 133% FPL 2024 or 135% FPL 2024 or 138% FPL 2024 or 138% FPL 2023 or 150% FPL 2022)': 4,
+  'asset limit (federal figure; applied with the yearly table)': 43,
+  'value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 300% SSI 2022)': 2,
+  'source dated 2024': 4,
+  'value fits more than one tier (185% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 200% FPL 2023)': 2,
+  'field age is applied by hand': 24,
+  'value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 120% FPL 2025 or 125% FPL 2025)': 4,
+  'source dated 2019': 6,
+  'not a 10-digit number': 1,
+  'outside sanity bounds (3x)': 14,
+  'value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025 or 125% FPL 2024 or 130% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 135% FPL 2023 or 135% FPL 2022 or 138% FPL 2022)': 3,
+  'value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025 or 120% FPL 2024 or 125% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 135% FPL 2022 or 138% FPL 2022)': 2,
+  'value fits more than one tier (185% FPL 2026 or 185% FPL 2025 or 200% FPL 2024 or 200% FPL 2023 or 300% SSI 2022)': 1,
+  'value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 300% SSI 2023)': 3,
+  'tier dispute: draft 200% FPL 2026 vs verified 165% FPL 2026': 1,
+  'value fits more than one tier (250% FPL 2023 or 300% SSI 2026 or 300% SSI 2025)': 2,
+  'value fits more than one tier (100% FPL 2026 or 100% FPL 2025 or 120% FPL 2022)': 2,
+  'value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 300% SSI 2026 or 300% SSI 2025)': 1,
+  'value fits more than one tier (165% FPL 2026 or 185% FPL 2024 or 185% FPL 2023 or 200% FPL 2022)': 1,
+  'value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025 or 150% FPL 2024 or 150% FPL 2023 or 165% FPL 2022)': 1,
+  'value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025 or 150% FPL 2023 or 165% FPL 2022)': 2,
+  'value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025)': 12,
+  'value fits more than one tier (165% FPL 2026 or 165% FPL 2025 or 165% FPL 2024 or 185% FPL 2022)': 4,
+  'value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025)': 5,
+  'value fits more than one tier (185% FPL 2026 or 185% FPL 2025 or 185% FPL 2024 or 200% FPL 2023)': 2,
+  'value fits more than one tier (185% FPL 2026 or 200% FPL 2025)': 1,
+  'draft fits a federal formula (300% FPL 2026); verified value fits none': 1,
+  'source dated 2023': 1,
+  'tier dispute: draft 100% FPL 2026 vs verified 200% FPL 2026': 2,
+  'value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 125% FPL 2025 or 130% FPL 2025)': 2,
+  'value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025)': 5,
+  'value fits more than one tier (120% FPL 2023 or 120% FPL 2022 or 125% FPL 2022 or 130% FPL 2022)': 1,
+  'value fits more than one tier (120% FPL 2023 or 125% FPL 2022 or 130% FPL 2022)': 1,
+  'tier dispute: draft 200% FPL 2026 vs verified 150% FPL 2026': 1,
+  'tier dispute: draft 200% FPL 2026 vs verified 120% FPL 2026': 1,
+  'value fits more than one tier (135% FPL 2026 or 138% FPL 2026 or 138% FPL 2025)': 2,
+  'source dated 2013': 1,
+  'value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025)': 2,
+  'value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025)': 8,
+  'value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025)': 1,
+  'tier dispute: draft 200% FPL 2026 vs verified 185% FPL 2026': 1,
+  'value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 120% FPL 2024 or 125% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 133% FPL 2022 or 135% FPL 2022 or 138% FPL 2022)': 1,
+  'value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025)': 1,
+  'value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025 or 138% FPL 2024 or 150% FPL 2023)': 1,
+  'value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025 or 138% FPL 2024 or 150% FPL 2023 or 165% FPL 2022)': 1,
+  'value fits more than one tier (150% FPL 2026 or 150% FPL 2025 or 165% FPL 2023)': 1,
+  'value fits more than one tier (138% FPL 2026 or 150% FPL 2025)': 1,
+  'value fits more than one tier (150% FPL 2026 or 150% FPL 2025 or 150% FPL 2024 or 165% FPL 2023)': 2,
+  'tier dispute: draft 100% FPL 2026 vs verified 150% FPL 2026': 2,
+  'value fits more than one tier (138% FPL 2026 or 150% FPL 2024 or 150% FPL 2023 or 165% FPL 2022)': 1
+}
+skipped (program not in drafts): 0
+
+-- apply list --
+
+-- review list --
+AK medicaid-seniors-disabled phone: ["211"] -> "8004787778"  [medium] phone (run with --phones to apply official ones) https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/
+AK hcbs-waiver phone: ["9072693463","211"] -> "8004789996"  [medium] phone (run with --phones to apply official ones) https://health.alaska.gov/en/services/hcbs-waivers/
+AK pace-elderly-care phone: ["9074653300","211"] -> "8006334227"  [medium] phone (run with --phones to apply official ones) https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly
+AK medicare-savings-programs phone: ["8774862048"] -> "8004786065"  [medium] phone (run with --phones to apply official ones) https://health.alaska.gov/en/services/extra-help-on-medicare-drug-costs/
+AK snap-food-benefits income_1: 3258 -> 1630  [high] tier dispute: draft 200% FPL 2026 vs verified 100% FPL 2026 https://health.alaska.gov/media/lorb0pgw/dpa-program-descriptions-0126.pdf
+AK snap-food-benefits income_2: 4406 -> 2203  [high] value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 300% SSI 2026 or 300% SSI 2025) https://health.alaska.gov/media/lorb0pgw/dpa-program-descriptions-0126.pdf
+AK weatherization-assistance-program phone: ["9077806868"] -> "8004787227"  [medium] phone (run with --phones to apply official ones) https://www.ahfc.us/efficiency/weatherization/weatherization-service-providers
+AK meals-on-wheels phone: ["9073490613","9074521735","9078520276"] -> "9074636179"  [medium] aggregator source https://www.ccsak.org/uploads/8/5/9/6/85963578/brochure__6_commonly_asked_questions_for_clients.pdf
+AK scsep-masst-employment phone: ["211"] -> "9074654872"  [medium] aggregator source https://www.jedc.org/wp-content/uploads/2025/10/SREC-Meeting-Minutes-10032025.pdf
+AL aesap-elderly-food-assistance income_1: 1729 -> 1305  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025 or 133% FPL 2024 or 135% FPL 2024 or 138% FPL 2024 or 138% FPL 2023 or 150% FPL 2022) https://dhr.alabama.gov/wp-content/uploads/2025/10/Form-DHR-FAP-2200-Rev.-10-2025.pdf
+AL aesap-elderly-food-assistance income_2: 2345 -> 1763  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025 or 133% FPL 2024 or 135% FPL 2024 or 138% FPL 2024 or 138% FPL 2023 or 150% FPL 2022) https://dhr.alabama.gov/wp-content/uploads/2025/10/Form-DHR-FAP-2200-Rev.-10-2025.pdf
+AL weatherization-assistance-program phone: ["211","3342624300","2569991166","2563833832","2568519800"] -> "3342428972"  [medium] phone (run with --phones to apply official ones) https://adeca.alabama.gov/wp-content/uploads/2025-WAP-State-Plan.pdf
+AL senior-aides-program age: 65 -> 55  [high] aggregator source https://www.slideserve.com/Anita/welcome-to-nacolg-your-regional-commission-december-4-2008
+AL senior-aides-program income_1: 2982 -> 1292  [high] aggregator source https://www.slideserve.com/Anita/welcome-to-nacolg-your-regional-commission-december-4-2008
+AR pace-comprehensive-care phone: ["4794636600","8702077500","8002522412"] -> "18668013435"  [medium] phone (run with --phones to apply official ones) https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/pace-program-of-all-inclusive-care-for-the-elderly/
+AR medicare-savings-programs assets_individual: 9090 -> 9950  [medium] asset limit (federal figure; applied with the yearly table) https://humanservices.arkansas.gov/divisions-shared-services/county-operations/medicaid-quick-reference-chart/
+AR medicare-savings-programs assets_couple: 13630 -> 14910  [medium] asset limit (federal figure; applied with the yearly table) https://humanservices.arkansas.gov/divisions-shared-services/county-operations/medicaid-quick-reference-chart/
+AR medicare-savings-programs phone: ["8004828988"] -> "8553721084"  [medium] aggregator source https://search.arkansas211.org/search/0714330c-8e86-5554-bff3-c23a140be949
+AR snap-food-benefits phone: ["18004828988","211","18009979999"] -> "18553721084"  [medium] phone (run with --phones to apply official ones) https://humanservices.arkansas.gov/divisions-shared-services/county-operations/contact-dco/
+AR liheap-energy-assistance phone: ["8882330326","211"] -> "8004828988"  [medium] phone (run with --phones to apply official ones) https://acf.gov/ocs/map/liheap-map-state-and-territory-contact-listing
+AR weatherization-assistance-program income_1: 2608 -> 1280  [high] value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 300% SSI 2022) https://adeq.state.ar.us/energy/assistance/wap.aspx
+AR weatherization-assistance-program income_2: 3525 -> 1820  [high] tier dispute: draft 200% FPL 2026 vs verified 100% FPL 2026 https://adeq.state.ar.us/energy/assistance/wap.aspx
+AR weatherization-assistance-program phone: ["8882330326","5013791535","8702021347","5017768446","4797852303","8703335127","211"] -> "5016827390"  [medium] source dated 2024 https://adeq.state.ar.us/energy/pdfs/state-plan-august-29-2024.pdf
+AR meals-on-wheels phone: ["5016822441","211"] -> "8004826359"  [medium] aggregator source https://search.arkansas211.org/search/2157d3ff-8296-5962-b65f-a3cbc7f1eea2
+AZ altcs-home-community-services phone: ["18554327587","211"] -> "8886216880"  [medium] phone (run with --phones to apply official ones) https://www.azahcccs.gov/members/ALTCSlocations.html
+AZ medicare-savings-programs phone: ["8554327587","1800","8777672382"] -> "8004324040"  [medium] phone (run with --phones to apply official ones) https://www.azahcccs.gov/Members/GetCovered/Categories/medicare.html
+AZ weatherization-assistance-program income_2: 3407 -> 3607  [medium] value fits more than one tier (185% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 200% FPL 2023) https://housing.az.gov/general-public/weatherization-assistance-program
+AZ weatherization-assistance-program phone: ["5204854985","5207242461","4808080429"] -> "6025344444"  [medium] phone (run with --phones to apply official ones) https://housing.az.gov/general-public/weatherization-assistance-program
+CA mssp-waiver phone: ["9164197500","18884528609"] -> "9165529105"  [medium] phone (run with --phones to apply official ones) https://www.dhcs.ca.gov/services/medi-cal-resources/multipurpose-senior-services-program-msspmedi-calwaiver/
+CA cbas-adult-day-services phone: ["9164407400","211"] -> "9164197545"  [medium] phone (run with --phones to apply official ones) https://www.aging.ca.gov/Providers_and_Partners/Community-Based_Adult_Services/
+CA calfresh-food-benefits age: 60 -> 55  [high] field age is applied by hand https://www.cdss.ca.gov/inforesources/calfresh/eligibility-and-issuance-requirements
+CA calfresh-food-benefits income_1: 2610 -> 1628  [high] value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 120% FPL 2025 or 125% FPL 2025) https://www.cdss.ca.gov/Portals/9/FA/Forms/CF24.pdf?ver=2026-10-01-095941-493
+CA calfresh-food-benefits income_2: 3526 -> 2203  [high] value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 120% FPL 2025 or 125% FPL 2025) https://www.cdss.ca.gov/Portals/9/FA/Forms/CF24.pdf?ver=2026-10-01-095941-493
+CA senior-legal-services phone: ["18005102020","18006758001"] -> "8002221753"  [medium] source dated 2019 https://dfpi.ca.gov/wp-content/uploads/sites/337/2019/07/Consumer_ResourceGuide.pdf
+CA ihss-in-home-supportive-services phone: ["211"] -> "8663767066"  [medium] phone (run with --phones to apply official ones) https://www.cdss.ca.gov/inforesources/county-ihss-offices
+CA caregiver-resource-centers phone: ["8006756694","9095141404"] -> "8005102020"  [medium] phone (run with --phones to apply official ones) https://aging.ca.gov/Aging_Resources/Caring_for_the_Caregivers/
+CO medicare-savings-programs assets_individual: 9660 -> 11160  [medium] asset limit (federal figure; applied with the yearly table) https://hcpf.colorado.gov/medicare-savings-programs-msp
+CO medicare-savings-programs assets_couple: 14490 -> 17470  [high] asset limit (federal figure; applied with the yearly table) https://hcpf.colorado.gov/medicare-savings-programs-msp
+CO medicare-savings-programs phone: ["8002213943","211"] -> "18007116994"  [medium] phone (run with --phones to apply official ones) https://hcpf.colorado.gov/health-first-colorado-buy-in-programs
+CO snap-food-benefits phone: ["8558554626","8008164451","211","8883282656"] -> "8005365298"  [medium] phone (run with --phones to apply official ones) https://www.fna.usda.gov/snap-directory-entry/colorado
+CO community-access-services-respite-care phone: ["211"] -> "3038662800"  [medium] phone (run with --phones to apply official ones) https://cdhs.colorado.gov/our-services/older-adult-services/state-unit-on-aging/caregiver-support
+CO senior-community-service-employment-program phone: ["211"] -> "8778725627"  [medium] phone (run with --phones to apply official ones) https://cdhs.colorado.gov/benefits-assistance/employment-assistance/senior-community-service-employment-program
+CO legal-aid-seniors phone: ["211"] -> "3038371313"  [medium] aggregator source https://www.coloradolegalservices.org/get-help/
+CO ltc-ombudsman phone: ["7209258609","3034411170","7196016282"] -> "3038623524"  [medium] phone (run with --phones to apply official ones) https://cdhs.colorado.gov/about-cdhs/performance-outcomes-and-reviews/ombudsman-offices/long-term-care-ombudsman
+CT snap-food-benefits assets_individual: 4500 -> 4250  [medium] asset limit (federal figure; applied with the yearly table) https://portal.ct.gov/dss/knowledge-base/articles/health-programs-overview/snap
+CT snap-food-benefits assets_couple: 4500 -> 4250  [medium] asset limit (federal figure; applied with the yearly table) https://portal.ct.gov/dss/knowledge-base/articles/health-programs-overview/snap
+CT energy-assistance-ceap phone: ["2037568151","2032350278","8604960622","8607389138"] -> "211"  [medium] not a 10-digit number https://portal.ct.gov/deep/environmental-justice/11-available-programs-and-initiatives
+CT weatherization-assistance income_1: 3252 -> 4059  [high] aggregator source https://www.cngcorp.com/smartenergy/rebatesandprograms/hes-ie
+CT weatherization-assistance income_2: 4253 -> 5310  [high] aggregator source https://www.cngcorp.com/smartenergy/rebatesandprograms/hes-ie
+CT weatherization-assistance phone: ["211"] -> "8608272655"  [medium] phone (run with --phones to apply official ones) https://portal.ct.gov/deep/about/contact-us/general-contact-information
+CT scsep-employment-training phone: ["2034612154","211"] -> "18004393307"  [medium] phone (run with --phones to apply official ones) https://portal.ct.gov/ads/knowledge-base/articles/employment-services/for-job-seekers/jobs-for-older-adults
+DC safe-at-home-program income_1: 6046 -> 99600  [high] outside sanity bounds (3x) https://dacl.dc.gov/service/safe-home
+DC safe-at-home-program income_2: 6879 -> 113850  [high] outside sanity bounds (3x) https://dacl.dc.gov/service/safe-home
+DC dacl-benefits-assistance age: 65 -> 60  [high] field age is applied by hand https://dacl.dc.gov/service/information-referralassistance
+DC senior-centers phone: ["2027247000"] -> "2027245622"  [medium] phone (run with --phones to apply official ones) https://dc.gov/service/dc-aging-and-disability-resource-centers-locations
+DE dsaapd-waivers age: 60 -> 55  [high] field age is applied by hand https://dhss.delaware.gov/dsaapd/
+DE pace-comprehensive-care phone: ["13026603380","3028653565","18002239074"] -> "18669408963"  [medium] phone (run with --phones to apply official ones) https://dhss.delaware.gov/wp-content/uploads/sites/2/2026/06/Program-Information-Rights-and-Responsibilities-English.pdf
+DE qmb-slmb-medicare-help income_1: 1585 -> 1330  [high] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025 or 125% FPL 2024 or 130% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 135% FPL 2023 or 135% FPL 2022 or 138% FPL 2022) https://dhss.delaware.gov/dmma/home/income-limits/
+DE qmb-slmb-medicare-help income_2: 2135 -> 1804  [high] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025 or 120% FPL 2024 or 125% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 135% FPL 2022 or 138% FPL 2022) https://dhss.delaware.gov/dmma/home/income-limits/
+DE qmb-slmb-medicare-help phone: ["8008529089","211"] -> "8668437212"  [medium] phone (run with --phones to apply official ones) https://medicaid.gov/about-us/where-can-people-get-help-medicaid-chip
+DE weatherization-assistance-program income_1: 2510 -> 2658  [medium] value fits more than one tier (185% FPL 2026 or 185% FPL 2025 or 200% FPL 2024 or 200% FPL 2023 or 300% SSI 2022) https://dnrec.delaware.gov/climate-coastal-energy/energy-office/programs/wap/
+DE weatherization-assistance-program income_2: 3407 -> 3607  [medium] value fits more than one tier (185% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 200% FPL 2023) https://dnrec.delaware.gov/climate-coastal-energy/energy-office/programs/wap/
+DE senior-medicare-patrol phone: ["8778082468"] -> "8002239074"  [medium] phone (run with --phones to apply official ones) https://dhss.delaware.gov/dsaapd/services/delaware-senior-medicare-patrol-program/
+DE scsep-employment phone: ["3022523211","211"] -> "3027813568"  [medium] aggregator source https://d2leuf3vilid4d.cloudfront.net/-/media/Communities/olderworkers/Files/2026/SCSEP-STATE-AND-TERRITORY-GRANTEES-3,-d-,25,-d-,2026.ashx?rev=6935c1d2026b44698630823ff64541b2&hash=51E4ACB19D27D1102E3B6A7A6BEDB611
+DE long-term-care-ombudsman phone: ["8002239074","211"] -> "18557731002"  [medium] phone (run with --phones to apply official ones) https://dhss.delaware.gov/office-of-the-secretary/long-term-care-ombudsman-program/
+FL smmc-ltc-hcbs-waivers income_2: 5964 -> 2982  [high] aggregator source https://www.medicaidplanningassistance.org/florida-medicaid-smmc-ltc/
+FL snap-food-benefits income_1: 2660 -> 2172  [high] value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 300% SSI 2023) https://www.fna.usda.gov/snap/recipient/eligibility
+FL snap-food-benefits income_2: 3607 -> 2948  [high] tier dispute: draft 200% FPL 2026 vs verified 165% FPL 2026 https://www.fna.usda.gov/snap/recipient/eligibility
+FL snap-food-benefits phone: ["8503004323","211"] -> "8667622237"  [medium] phone (run with --phones to apply official ones) https://www.fna.usda.gov/snap-directory-entry/florida
+FL liheap-energy-assistance phone: ["211","7725624177","5613554792","4078468532","8132725220"] -> "8507178450"  [medium] phone (run with --phones to apply official ones) https://acf.gov/ocs/map/liheap-map-state-and-territory-contact-listing
+FL eheap-emergency-home-energy-elderly phone: ["18009635337","211"] -> "8504142000"  [medium] aggregator source https://elderaffairs.org/programs-and-services/emergency-home-energy-assistance-for-the-elderly-program/
+FL weatherization-assistance-program income_1: 2660 -> 1565  [high] aggregator source https://www.cfcaa.org/weatherization/
+FL weatherization-assistance-program income_2: 3607 -> 2118  [high] aggregator source https://www.cfcaa.org/weatherization/
+FL scsep-employment phone: ["8558502525","8665006587","211"] -> "8504142000"  [medium] aggregator source https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/
+FL home-care-elderly-hce income_1: 2982 -> 2829  [medium] aggregator source https://elderaffairs.org/programs-and-services/home-care-for-the-elderly-hce-program/
+GA medicaid-aged-blind-disabled income_1: 2982 -> 2094  [high] value fits more than one tier (250% FPL 2023 or 300% SSI 2026 or 300% SSI 2025) https://dfcs.georgia.gov/document/document/dfcsabd-medicaid-512pdf-0/download
+GA home-community-based-services age: 65 -> 60  [high] field age is applied by hand https://aging.georgia.gov/programs-and-services/home-community-based-services
+GA medicare-savings-programs income_1: 1350 -> 1550  [medium] value fits more than one tier (100% FPL 2026 or 100% FPL 2025 or 120% FPL 2022) https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs
+GA medicare-savings-programs income_2: 1824 -> 2095  [medium] value fits more than one tier (100% FPL 2026 or 100% FPL 2025 or 120% FPL 2022) https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs
+GA medicare-savings-programs assets_individual: 9950 -> 7390  [high] asset limit (federal figure; applied with the yearly table) https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs
+GA medicare-savings-programs assets_couple: 14910 -> 11090  [high] asset limit (federal figure; applied with the yearly table) https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs
+GA liheap-energy-assistance phone: ["8774234746","211"] -> "4046573426"  [medium] phone (run with --phones to apply official ones) https://dhs.georgia.gov/low-income-home-energy-assistance-program
+GA weatherization-assistance-program phone: ["4045841000","211"] -> "4046563826"  [medium] phone (run with --phones to apply official ones) https://psc.ga.gov/about-the-psc/consumer-corner/consumer-advisories/utility-assistance-programs/
+GA scsep-employment-program phone: ["8558502525","7705382657","211"] -> "8665524464"  [medium] phone (run with --phones to apply official ones) https://dhs.georgia.gov/document/document/guidehealthsocialservicesv8pdf-0/download
+HI medquest-medicaid-seniors-disabled phone: ["8776285076"] -> "18003168005"  [medium] phone (run with --phones to apply official ones) https://medquest.hawaii.gov/en/contact-us.html
+HI snap-food-benefits assets_individual: 0 -> 4500  [high] asset limit (federal figure; applied with the yearly table) https://www.usda.gov/sites/default/files/guidance-documents/fns.snap-cola-fy26memo.pdf
+HI snap-food-benefits assets_couple: 0 -> 4500  [high] asset limit (federal figure; applied with the yearly table) https://www.usda.gov/sites/default/files/guidance-documents/fns.snap-cola-fy26memo.pdf
+HI liheap-energy-assistance phone: ["8084886834","8088470804","8086964261","211"] -> "8085865740"  [medium] phone (run with --phones to apply official ones) https://acf.gov/ocs/map/liheap-map-state-and-territory-contact-listing
+HI weatherization-assistance-program income_1: 2600 -> 2998  [medium] value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 300% SSI 2026 or 300% SSI 2025) https://gems.hawaii.gov/save-on-your-energy-bill-programs-for-hawaii-households/
+HI weatherization-assistance-program income_2: 3520 -> 4053  [medium] value fits more than one tier (165% FPL 2026 or 185% FPL 2024 or 185% FPL 2023 or 200% FPL 2022) https://gems.hawaii.gov/save-on-your-energy-bill-programs-for-hawaii-households/
+HI weatherization-assistance-program phone: ["211"] -> "8085868675"  [medium] phone (run with --phones to apply official ones) https://labor.hawaii.gov/ocs/service-programs-index/weatherization-assistance-program/
+HI home-delivered-meals-kupuna phone: ["8083568519","8089886747","8082150073","211"] -> "8087687700"  [medium] aggregator source https://keikitokupuna.org/about/
+HI caregiver-support-eoa age: 18 -> 55  [high] aggregator source https://www.caregiver.org/connecting-caregivers/services-by-state/hawaii/
+HI caregiver-support-eoa phone: ["8087687700","8089618626"] -> "8085860100"  [medium] phone (run with --phones to apply official ones) https://health.hawaii.gov/eoa/
+HI scsep-employment-training phone: ["8089618730","8083234320","211"] -> "8087687700"  [medium] aggregator source https://elderlyaffairs.com/about-us/
+HI home-community-services-eoa phone: ["211"] -> "8085860100"  [medium] phone (run with --phones to apply official ones) https://health.hawaii.gov/eoa/
+HI senior-companion-program age: 60 -> 55  [high] field age is applied by hand https://humanservices.hawaii.gov/ssd/home/adult-services/
+IA medicaid-hcbs-elderly-waiver phone: ["8558897985","8009722017"] -> "8003388366"  [medium] phone (run with --phones to apply official ones) https://hhs.iowa.gov/medicaid/about-medicaid/medicaid-projects/home-project/waiver-redesign-faq
+IA pace-elderly-care phone: ["8009722017","211"] -> "5152705000"  [medium] phone (run with --phones to apply official ones) https://hhs.iowa.gov/medicaid/plans-programs/program-all-inclusive-care-elderly-pace
+IA snap-food-benefits phone: ["8558897985","211"] -> "8009722017"  [medium] phone (run with --phones to apply official ones) https://hhs.iowa.gov/assistance-programs/food-assistance
+IA liheap-energy-assistance income_1: 1822 -> 2611  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025 or 150% FPL 2024 or 150% FPL 2023 or 165% FPL 2022) https://hhs.iowa.gov/assistance-programs/housing-rent-assistance/low-income-home-energy-assistance
+IA liheap-energy-assistance income_2: 2461 -> 3525  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025 or 150% FPL 2023 or 165% FPL 2022) https://hhs.iowa.gov/assistance-programs/housing-rent-assistance/low-income-home-energy-assistance
+IA liheap-energy-assistance phone: ["211","5633828436"] -> "8009722017"  [medium] phone (run with --phones to apply official ones) https://hhs.iowa.gov/assistance-programs/housing-rent-assistance/low-income-home-energy-assistance
+IA meals-on-wheels phone: ["8554106222","3193380515","5156993243","5157253333"] -> "8007792001"  [medium] phone (run with --phones to apply official ones) https://hhs.iowa.gov/family-community/aging-services/iowa-area-agencies-aging
+IA long-term-care-ombudsman phone: ["8005323213"] -> "8662361430"  [medium] phone (run with --phones to apply official ones) https://hhs.iowa.gov/family-community/aging-services/ltc-ombudsman
+IA state-supplementary-assistance phone: ["18773475678","18007792001","18007721213"] -> "5153283640"  [medium] phone (run with --phones to apply official ones) https://hhs.iowa.gov/assistance-programs/state-supplementary-assistance
+ID medicare-savings-programs assets_couple: 14910 -> 9950  [high] asset limit (federal figure; applied with the yearly table) https://healthandwelfare.idaho.gov/medicaid-program-income-limits
+ID snap-food-benefits income_1: 1255 -> 1696  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://healthandwelfare.idaho.gov/services-programs/food-assistance/apply-snap
+ID snap-food-benefits income_2: 1704 -> 2292  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://healthandwelfare.idaho.gov/services-programs/food-assistance/apply-snap
+ID energy-assistance-liheap phone: ["8009262588"] -> "2083757382"  [medium] phone (run with --phones to apply official ones) https://liheapch.acf.hhs.gov/profiles/Idaho.htm
+ID weatherization-assistance-program income_1: 2146 -> 2660  [high] value fits more than one tier (165% FPL 2026 or 165% FPL 2025 or 165% FPL 2024 or 185% FPL 2022) https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/apply-weatherization
+ID weatherization-assistance-program income_2: 2903 -> 3607  [high] value fits more than one tier (165% FPL 2026 or 165% FPL 2025 or 165% FPL 2024 or 185% FPL 2022) https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/apply-weatherization
+ID weatherization-assistance-program phone: ["8559443246","211","8004886151"] -> "2083321660"  [medium] phone (run with --phones to apply official ones) https://oemr.idaho.gov/financial-information/weatherization/
+ID nfcsp-caregiver-support phone: ["211","2083343833"] -> "8009262588"  [medium] phone (run with --phones to apply official ones) https://healthandwelfare.idaho.gov/services-programs/211
+ID long-term-care-ombudsman phone: ["2087362122","18005748656"] -> "2083343833"  [medium] phone (run with --phones to apply official ones) https://aging.idaho.gov/ombudsman-program/
+ID home-choice phone: ["8774561233","211"] -> "2084557118"  [medium] phone (run with --phones to apply official ones) https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice
+IL pace-comprehensive-care phone: ["8002528966"] -> "2177821200"  [medium] phone (run with --phones to apply official ones) https://hfs.illinois.gov/medicalproviders/pace.html
+IL medicare-savings-programs income_1: 1330 -> 1796  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025) https://ilaging.illinois.gov/content/dam/soi/en/web/aging/ship/documents/medicare-savings-program-chart.pdf
+IL medicare-savings-programs income_2: 1803 -> 2435  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025) https://ilaging.illinois.gov/content/dam/soi/en/web/aging/ship/documents/medicare-savings-program-chart.pdf
+IL snap-food-benefits income_1: 2608 -> 1696  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://www.dhs.state.il.us/page.aspx?item=30357
+IL snap-food-benefits income_2: 3525 -> 2292  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://www.dhs.state.il.us/page.aspx?item=30357
+IN hoosier-care-connect age: 59 -> 60  [high] field age is applied by hand https://www.in.gov/fssa/resource-guide/
+IN pathways-aging-waiver income_1: 2982 -> 1330  [high] aggregator source https://www.medicaidplanningassistance.org/indiana-pathways-for-aging/
+IN pathways-aging-waiver phone: ["8007139023","8335972777","8004030864","8009863505","211"] -> "8772849294"  [medium] phone (run with --phones to apply official ones) https://www.in.gov/pathways/resources
+IN medicare-savings-programs phone: ["8004030864"] -> "8004524800"  [medium] phone (run with --phones to apply official ones) https://www.in.gov/ship/help-paying-for-your-medicare-costs/
+IN snap-food-benefits assets_individual: 4500 -> 4750  [medium] asset limit (federal figure; applied with the yearly table) https://www.in.gov/fssa/dfr/snap-food-assistance/
+IN snap-food-benefits assets_couple: 4500 -> 4750  [medium] asset limit (federal figure; applied with the yearly table) https://www.in.gov/fssa/dfr/snap-food-assistance/
+IN weatherization-assistance-program age: 18 -> 60  [high] field age is applied by hand https://www.in.gov/ihcda/files/Indiana-LIHEAP-Intake-and-Operations-Program-Manual-PY2026.pdf
+IN weatherization-assistance-program income_1: 2388 -> 2660  [medium] value fits more than one tier (185% FPL 2026 or 185% FPL 2025 or 185% FPL 2024 or 200% FPL 2023) https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/
+IN weatherization-assistance-program income_2: 3223 -> 3607  [medium] value fits more than one tier (185% FPL 2026 or 185% FPL 2025 or 185% FPL 2024 or 200% FPL 2023) https://www.in.gov/ihcda/homeowners-and-renters/weatherizationenergy-conservation/
+IN weatherization-assistance-program phone: ["8007217385"] -> "8008720371"  [medium] phone (run with --phones to apply official ones) https://www.in.gov/oed/resources-and-information-center/customer-assistance-programs/
+IN indiana-ship-medicare-counseling phone: ["3178036131","8778392675"] -> "8004524800"  [medium] phone (run with --phones to apply official ones) https://www.in.gov/ship/
+IN scsep-employment-program phone: ["211"] -> "8007433333"  [medium] phone (run with --phones to apply official ones) https://www.in.gov/dwd/job-seekers/scsep/
+IN senior-legal-aid phone: ["8008690212"] -> "8666446407"  [medium] aggregator source https://www.indianalegalservices.org/senior/
+KS weatherization-assistance-program phone: ["8004320303","211"] -> "18007524422"  [medium] phone (run with --phones to apply official ones) https://content.dcf.ks.gov/ees/keesm/current/keesm13500.htm
+KS caregiver-support-programs age: 18 -> 60  [high] aggregator source https://www.jhawkaaa.org/caregiving
+KS legal-services-seniors phone: ["18883535337","18007236953","9138263160","9138262830"] -> "3162673975"  [medium] aggregator source https://www.kansaslegalservices.org/page/57/programs-seniors
+KS senior-care-act-services phone: ["8552002372","7852964986"] -> "8006771116"  [medium] phone (run with --phones to apply official ones) https://www.kdads.ks.gov/services-programs/aging
+KS senior-citizen-law-project phone: ["316"] -> "8883535337"  [medium] aggregator source https://www.kansaslegalservices.org/page/57/programs-seniors
+KY medicaid-long-term-care assets_couple: 4000 -> 3000  [high] asset limit (federal figure; applied with the yearly table) https://www.chfs.ky.gov/agencies/dms/dpo/Pages/enroll.aspx
+KY medicaid-long-term-care phone: ["8553068959","211"] -> "8554596328"  [medium] phone (run with --phones to apply official ones) https://www.chfs.ky.gov/agencies/dms/dpo/epb/Pages/enroll.aspx
+KY medicare-savings-programs-qmb-slmb-qi income_1: 1325 -> 1796  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025) https://www.chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx
+KY medicare-savings-programs-qmb-slmb-qi income_2: 1783 -> 2435  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025) https://www.chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx
+KY energy-assistance-liheap assets_couple: 2000 -> 4000  [high] asset limit (federal figure; applied with the yearly table) https://www.chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx
+KY weatherization-assistance-program phone: ["211","8595816607","8008174443"] -> "8006338896"  [medium] aggregator source https://www.kyhousing.org/Programs/Weatherization
+KY meals-on-wheels age: 60 -> 65  [high] aggregator source https://www.mealsonwheels.ky/get-meals
+KY meals-on-wheels phone: ["8592831885","211"] -> "9291411"  [medium] aggregator source https://www.mealsonwheels.ky/get-meals
+KY national-family-caregiver-support income_1: 2128 -> 1505  [high] value fits more than one tier (165% FPL 2026 or 165% FPL 2025 or 165% FPL 2024 or 185% FPL 2022) https://www.chfs.ky.gov/agencies/dail/pages/caregiversupport.aspx
+KY national-family-caregiver-support income_2: 2878 -> 2043  [high] value fits more than one tier (165% FPL 2026 or 165% FPL 2025 or 165% FPL 2024 or 185% FPL 2022) https://www.chfs.ky.gov/agencies/dail/pages/caregiversupport.aspx
+KY national-family-caregiver-support phone: ["211","5022665571","8592831885"] -> "5025646930"  [medium] phone (run with --phones to apply official ones) https://www.chfs.ky.gov/agencies/dail/pages/caregiversupport.aspx
+KY senior-community-service-employment phone: ["8334397759","6067896517","8595816607","2706861607"] -> "5025645759"  [medium] phone (run with --phones to apply official ones) https://www.chfs.ky.gov/agencies/dail/Pages/scsep.aspx
+KY long-term-care-ombudsman phone: ["8592779215","6068862374","8007372723"] -> "8003722991"  [medium] phone (run with --phones to apply official ones) https://www.ag.ky.gov/AG%20Publications/Protect-Nursing-Home-Residents.pdf
+KY senior-meals-program phone: ["8779250037","6069291366","6067396349","6064744179","6064736244"] -> "5025646930"  [medium] phone (run with --phones to apply official ones) https://www.chfs.ky.gov/agencies/dail/Pages/default.aspx
+LA medicaid-long-term-care phone: ["8774561146","8002300690","211"] -> "18883426207"  [medium] phone (run with --phones to apply official ones) https://ldh.la.gov/faq/category/24
+LA community-choices-waiver age: 21 -> 65  [high] field age is applied by hand https://ldh.la.gov/assets/docs/OAAS/publications/CCW_Fact_Sheet.pdf
+LA community-choices-waiver income_1: 2742 -> 2523  [medium] value fits more than one tier (185% FPL 2026 or 200% FPL 2025) https://ldh.la.gov/assets/docs/OAAS/publications/CCW_Fact_Sheet.pdf
+LA community-choices-waiver income_2: 5484 -> 5046  [medium] draft fits a federal formula (300% FPL 2026); verified value fits none https://ldh.la.gov/assets/docs/OAAS/publications/CCW_Fact_Sheet.pdf
+LA snap-food-benefits income_1: 2660 -> 1696  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://ldh.la.gov/supplemental-nutrition-assistance-program
+LA snap-food-benefits income_2: 3607 -> 2292  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://ldh.la.gov/supplemental-nutrition-assistance-program
+LA csfp-senior-food-boxes phone: ["5047292842","211"] -> "2253100091"  [medium] phone (run with --phones to apply official ones) https://ldh.la.gov/bureau-of-nutrition-services/commodity-supplemental-food-program
+LA adult-day-health-care-waiver age: 22 -> 65  [high] field age is applied by hand https://ldh.la.gov/office-of-aging-and-adult-services/ADHC-waiver
+LA caregiver-voucher-program age: 21 -> 65  [high] aggregator source https://www.lamedicaid.com/provweb1/Providermanuals/manuals/CCW2/CCW2_7.3_01-13-25.pdf
+MA frail-elder-waiver age: 65 -> 60  [high] field age is applied by hand https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants
+MA frail-elder-waiver assets_couple: 154140 -> 162660  [medium] asset limit (federal figure; applied with the yearly table) https://www.mass.gov/doc/frail-elder-waiver-fact-sheet-0/download
+MA pace-elder-care phone: ["8778379009"] -> "8888850484"  [medium] phone (run with --phones to apply official ones) https://www.mass.gov/doc/pace-brochure-english/download
+MA weatherization-assistance phone: ["6173576000","9784590551"] -> "6175731100"  [medium] phone (run with --phones to apply official ones) https://www.mass.gov/info-details/weatherization-assistance-program-wap
+MA meals-on-wheels phone: ["8009856000"] -> "8002434636"  [medium] aggregator source https://www.umass.edu/agriculture-food-environment/nutrition/publications-resources/food-access-resources
+MA scsep-employment-program phone: ["5088602241","211"] -> "6175424180"  [medium] source dated 2024 https://www.mass.gov/doc/operation-able-2024-2028-wioa-public-listening-session/download
+MA prescription-advantage income_1: 1761 -> 35910  [high] outside sanity bounds (3x) https://www.mass.gov/doc/prescription-advantage-rate-schedule-guide-for-members-eligible-for-medicare-1/download
+MA prescription-advantage income_2: 2379 -> 48690  [high] outside sanity bounds (3x) https://www.mass.gov/doc/prescription-advantage-rate-schedule-guide-for-members-eligible-for-medicare-1/download
+MA home-modification-loan phone: ["6177277001","211"] -> "18665005599"  [medium] phone (run with --phones to apply official ones) https://www.mass.gov/home-modification-loan-program-hmlp
+MA ecop-home-care phone: ["6177277750","211"] -> "8002434636"  [medium] phone (run with --phones to apply official ones) https://www.mass.gov/doc/summary-document-state-programs-and-services-for-alzheimers-and-dementia/download
+MA senior-care-options phone: ["8008412900","8006334227","8007721213"] -> "8885375816"  [medium] phone (run with --phones to apply official ones) https://www.mass.gov/info-details/senior-care-options-plans
+MD soar phone: ["18446275465","4107671100"] -> "4103131234"  [medium] phone (run with --phones to apply official ones) https://www.howardcountymd.gov/soar
+MD pace-comprehensive-care phone: ["8002433425","8004925231"] -> "4107671739"  [medium] phone (run with --phones to apply official ones) https://health.maryland.gov/mmcp/waiverprograms/pages/pace.aspx
+MD medicare-savings-program assets_individual: 9090 -> 9950  [medium] asset limit (federal figure; applied with the yearly table) https://health.maryland.gov/mmcp/eligibility/Pages/medicare-savings-programs.aspx
+MD medicare-savings-program assets_couple: 13630 -> 14910  [medium] asset limit (federal figure; applied with the yearly table) https://health.maryland.gov/mmcp/eligibility/Pages/medicare-savings-programs.aspx
+MD snap-food-benefits income_1: 2152 -> 1696  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://dhs.maryland.gov/documents/FIA/Action%20Transmittals-AT%20-%20Information%20Memo-IM/AT-IM2026/26-05%20AT%20SNAP%20Mass%20Changes%20for%20October%202025.pdf
+MD snap-food-benefits income_2: 2909 -> 2292  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://dhs.maryland.gov/documents/FIA/Action%20Transmittals-AT%20-%20Information%20Memo-IM/AT-IM2026/26-05%20AT%20SNAP%20Mass%20Changes%20for%20October%202025.pdf
+MD snap-food-benefits assets_individual: 3001 -> 4500  [high] asset limit (federal figure; applied with the yearly table) https://aging.maryland.gov/media/116
+MD snap-food-benefits assets_couple: 3001 -> 4500  [high] asset limit (federal figure; applied with the yearly table) https://aging.maryland.gov/media/116
+MD home-delivered-meals phone: ["4105580923","4102224257"] -> "3014754200"  [medium] phone (run with --phones to apply official ones) https://www.stmaryscountymd.gov/aging/homedeliveredmeals/
+MD national-family-caregiver-support age: 18 -> 55  [high] field age is applied by hand https://aging.maryland.gov/programs-and-services/caregivers
+MD national-family-caregiver-support phone: ["4107671100","2407773000","211"] -> "18446275465"  [medium] phone (run with --phones to apply official ones) https://aging.maryland.gov/programs-and-services/caregivers
+MD senior-legal-assistance-program phone: ["8008964213","8006771116","4103965605","30147542001064"] -> "8446275465"  [medium] phone (run with --phones to apply official ones) https://aging.maryland.gov/Pages/senior-legal-assistance.aspx
+MD long-term-care-ombudsman phone: ["4103136423","2407773005"] -> "4107671100"  [medium] phone (run with --phones to apply official ones) https://aging.maryland.gov/programs-and-services/long-term-care-ombudsman
+MD senior-call-check-program phone: ["8665020560","4107671100"] -> "18665023560"  [medium] phone (run with --phones to apply official ones) https://aging.maryland.gov/programs-and-services/senior-call-check
+ME weatherization-assistance-program phone: ["2072061261","2079742407","211"] -> "2076264600"  [medium] phone (run with --phones to apply official ones) https://www.maine.gov/energy/winter-heating-resources
+ME ship-medicare-counseling phone: ["2073966524"] -> "8773533771"  [medium] phone (run with --phones to apply official ones) https://www.maine.gov/pfr/insurance/consumers/medicare-supplement-insurance/where-to-get-help
+ME home-delivered-meals phone: ["2072879200","211"] -> "18773533771"  [medium] phone (run with --phones to apply official ones) https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/food-and-nutrition
+MI choice-waiver phone: ["7347222830","211"] -> "5172418474"  [medium] source dated 2023 https://www.michigan.gov/mdhhs/-/media/Project/Websites/mdhhs/Assistance-Programs/Medicaid-BPHASA/Other-Prov-Specific-Page-Docs/MI-Choice-Participant-Handbook---DCH-1433-2-2023-Final.pdf?rev=31bad12ce6994bc6a117b68e555f325f&hash=D63402EBA421A897A9AC1E49ACBEB2EF
+MI health-link-program phone: ["18009757630","18008037174","211"] -> "8332302057"  [medium] aggregator source https://www.caresource.com/documents/h4193_mi-snp-m-4199449_m-mmp-to-hide-2026-anoc-508.pdf
+MI senior-project-fresh phone: ["211"] -> "8557736424"  [medium] phone (run with --phones to apply official ones) https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs/senior-project-freshmarket-fresh
+MI senior-companion-program age: 21 -> 55  [high] aggregator source https://fsamich.org/programs/senior-programs/senior-companion/
+MN medical-assistance-medicaid phone: ["8553667873","211"] -> "8006573672"  [medium] phone (run with --phones to apply official ones) https://mn.gov/dhs/health-care/contact-us/consumer-support/
+MN msho-senior-health-options phone: ["6514312670","9528837979"] -> "6514312517"  [medium] phone (run with --phones to apply official ones) https://mn.gov/dhs/about-us/contact-us/contact-numbers/
+MN medicare-savings-programs phone: ["6514312670","8006573739"] -> "8663332466"  [medium] aggregator source https://mn.db101.org/mn/programs/health_coverage/medicare2/program2b.htm
+MN snap-food-benefits income_1: 1305 -> 2660  [high] tier dispute: draft 100% FPL 2026 vs verified 200% FPL 2026 https://mn.gov/dhs/mnfoodhelper/
+MN snap-food-benefits income_2: 1763 -> 3607  [high] tier dispute: draft 100% FPL 2026 vs verified 200% FPL 2026 https://mn.gov/dhs/mnfoodhelper/
+MN scsep-employment phone: ["8325990872","5073456822","6512597114"] -> "6512597581"  [medium] phone (run with --phones to apply official ones) https://mn.gov/deed/job-seekers/find-a-job/targeted-services/older/
+MO healthnet-medicaid income_1: 1131 -> 860  [high] source dated 2019 https://mydss.mo.gov/sites/mydss/files/media/pdf/2019/07/aged_blind_disabled_income_chart.pdf
+MO healthnet-medicaid income_2: 1533 -> 1166  [high] source dated 2019 https://mydss.mo.gov/sites/mydss/files/media/pdf/2019/07/aged_blind_disabled_income_chart.pdf
+MO healthnet-medicaid assets_individual: 6220.5 -> 3000  [high] source dated 2019 https://mydss.mo.gov/sites/mydss/files/media/pdf/2019/07/aged_blind_disabled_income_chart.pdf
+MO healthnet-medicaid assets_couple: 12441 -> 6000  [high] source dated 2019 https://mydss.mo.gov/sites/mydss/files/media/pdf/2019/07/aged_blind_disabled_income_chart.pdf
+MO snap-food-benefits income_1: 1330 -> 1632  [high] value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 120% FPL 2025 or 125% FPL 2025) https://dss.mo.gov/benefit-program-income-limits
+MO snap-food-benefits income_2: 1804 -> 2215  [high] value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 125% FPL 2025 or 130% FPL 2025) https://dss.mo.gov/benefit-program-income-limits
+MO snap-food-benefits assets_individual: 4750 -> 4500  [medium] asset limit (federal figure; applied with the yearly table) https://dss.mo.gov/food-assistance/apply-for-snap
+MO snap-food-benefits assets_couple: 4750 -> 4500  [medium] asset limit (federal figure; applied with the yearly table) https://dss.mo.gov/food-assistance/apply-for-snap
+MO weatherization-assistance-program phone: ["211"] -> "5737512254"  [medium] phone (run with --phones to apply official ones) https://dnr.mo.gov/energy/weatherization/low-income-assistance
+MO rx-prescription-assistance income_1: 1276 -> 1805  [high] aggregator source https://collaborate.umsystem.edu/sites/hrpublic/documents/GEN/CURRENT/RetireeMedicalM4APresentation.pdf
+MO rx-prescription-assistance income_2: 1711 -> 2428  [high] aggregator source https://collaborate.umsystem.edu/sites/hrpublic/documents/GEN/CURRENT/RetireeMedicalM4APresentation.pdf
+MO rx-prescription-assistance phone: ["8553734636","1800"] -> "8003751406"  [medium] phone (run with --phones to apply official ones) https://dss.mo.gov/mhd/morx-pharmacist-faqs
+MO property-tax-credit-circuit-breaker phone: ["8002436060","6362070847"] -> "5737513505"  [medium] phone (run with --phones to apply official ones) https://dor.mo.gov/personal/ptc/
+MO silp-senior-independent-living phone: ["5737516400"] -> "8002355503"  [medium] phone (run with --phones to apply official ones) https://health.mo.gov/sites/health/files/media/pdf/2026/02/Programs%20and%20Services%20Directory.pdf
+MS medicare-savings-programs phone: ["8004212408","8009483090","211"] -> "8448224622"  [medium] phone (run with --phones to apply official ones) https://www.mdhs.ms.gov/post/navigating-medicare-made-easy-with-ship/
+MS snap-food-benefits income_1: 1330 -> 1729  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025) https://www.mdhs.ms.gov/help/snap/
+MS snap-food-benefits income_2: 1804 -> 2345  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025) https://www.mdhs.ms.gov/help/snap/
+MS snap-food-benefits assets_individual: 4750 -> 4500  [medium] asset limit (federal figure; applied with the yearly table) https://www.mdhs.ms.gov/help/snap/
+MS snap-food-benefits assets_couple: 4750 -> 4500  [medium] asset limit (federal figure; applied with the yearly table) https://www.mdhs.ms.gov/help/snap/
+MS family-caregiver-support age: 55 -> 60  [high] field age is applied by hand https://www.mdhs.ms.gov/aging/caregivers/
+MS scsep-employment phone: ["6019600419","6016438671","6016832007","2283141433"] -> "6013216000"  [medium] phone (run with --phones to apply official ones) https://mdes.ms.gov/media/521454/py26-rfq_scsep_posts07212026.pdf
+MT big-sky-waiver-program assets_couple: 2000 -> 3000  [high] aggregator source https://www.medicaidplanningassistance.org/montana-big-sky-waiver/
+MT medicaid-abd phone: ["8887061535","211"] -> "8003628312"  [medium] phone (run with --phones to apply official ones) https://dphhs.mt.gov/assets/hrd/MedicaidMemberGuide.pdf
+MT medicare-savings-programs phone: ["18003621504"] -> "8887061535"  [medium] phone (run with --phones to apply official ones) https://www.dphhs.mt.gov/assets/hcsd/fmamanual/CMA001.pdf
+MT snap-food-benefits income_1: 2608 -> 1696  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://dphhs.mt.gov/hcsd/SNAP/
+MT snap-food-benefits income_2: 3526 -> 2292  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://dphhs.mt.gov/hcsd/SNAP/
+MT snap-food-benefits phone: ["18556428650","4064442990","211"] -> "8887061535"  [medium] phone (run with --phones to apply official ones) https://www.fna.usda.gov/snap-directory-entry/montana
+MT liheap-energy-assistance assets_individual: 13675 -> 14717  [medium] asset limit (federal figure; applied with the yearly table) https://dphhs.mt.gov/assets/rules/2026-532pro-arm.pdf
+MT liheap-energy-assistance phone: ["18005513191"] -> "8005417735"  [medium] phone (run with --phones to apply official ones) https://dphhs.mt.gov/hcsd/energyassistance/
+MT weatherization-assistance-program phone: ["4067283710","211"] -> "4064471625"  [medium] phone (run with --phones to apply official ones) https://dphhs.mt.gov/hcsd/energyassistance/
+MT meals-on-wheels phone: ["4064546993","6","211"] -> "8005513191"  [medium] phone (run with --phones to apply official ones) https://dphhs.mt.gov/SLTC/aging/NutritionServices
+MT scsep-employment phone: ["18778725627"] -> "4064932408"  [medium] aggregator source https://www.esgw.org/scsep/
+NC pace-comprehensive-care phone: ["9198554340","211"] -> "8882450179"  [medium] phone (run with --phones to apply official ones) https://medicaid.ncdhhs.gov/beneficiaries/long-term-services-and-supports/program-all-inclusive-care-elderly
+NC medicare-savings-programs phone: ["8882450179","211","8006334227"] -> "8006627030"  [medium] phone (run with --phones to apply official ones) https://medicaid.ncdhhs.gov/documents/medicaid/medcare-savings/open
+NC snap-food-benefits age: 60 -> 65  [high] field age is applied by hand https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps/simplified-nutritional-assistance-program-snap
+NC snap-food-benefits income_1: 1330 -> 1696  [high] aggregator source https://www.nhcgov.com/440/Food-and-Nutrition-SNAP
+NC snap-food-benefits income_2: 1804 -> 2292  [high] aggregator source https://www.nhcgov.com/440/Food-and-Nutrition-SNAP
+NC liheap-energy-assistance income_1: 1427 -> 1560  [medium] value fits more than one tier (120% FPL 2023 or 120% FPL 2022 or 125% FPL 2022 or 130% FPL 2022) https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance
+NC liheap-energy-assistance income_2: 1930 -> 2110  [medium] value fits more than one tier (120% FPL 2023 or 125% FPL 2022 or 130% FPL 2022) https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance
+NC liheap-energy-assistance phone: ["211"] -> "8006627030"  [medium] phone (run with --phones to apply official ones) https://liheapch.acf.hhs.gov/profiles/NC.htm
+NC home-delivered-meals phone: ["211","7044321111","7043363144"] -> "9198553400"  [medium] phone (run with --phones to apply official ones) https://www.ncdhhs.gov/home-delivered-meal-provider-directory-fy-24/open
+NC lifespan-respite-family-caregiver-support age: 18 -> 55  [high] field age is applied by hand https://www.ncdhhs.gov/divisions/aging/family-caregiver-support-program
+NC lifespan-respite-family-caregiver-support phone: ["8282655434","8282655434139","211"] -> "9198553417"  [medium] source dated 2024 https://www.nctreasurer.gov/documents/files/slgfdcompliancesupplements/93052-2024/open
+NC project-care-dementia-caregiver-support phone: ["18006627030","7044321111","8282655434","211"] -> "9843656992"  [medium] phone (run with --phones to apply official ones) https://www.ncdhhs.gov/rfa-fiduciary-agent-fy-25/open
+NC special-assistance-in-home phone: ["18006627030","9192127000","211"] -> "9199895300"  [medium] phone (run with --phones to apply official ones) https://www.johnstonnc.gov/dss/content.cfm?pageid=saih
+ND aging-in-community-project phone: ["211"] -> "7012315948"  [medium] aggregator source https://www.ndsu.edu/agriculture/extension/impact-stories/ndsu-extensions-aging-community-project-brings-care-rural-communities
+NE medicare-savings-program phone: ["8003834278"] -> "8556327633"  [medium] phone (run with --phones to apply official ones) https://dhhs.ne.gov/pages/accessnebraska.aspx?id=2636
+NE weatherization-assistance-program income_1: 2672 -> 1958  [high] value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 300% SSI 2023) https://dwee.nebraska.gov/aid/nebraska-weatherization-assistance-program
+NE weatherization-assistance-program income_2: 3625 -> 2645  [high] tier dispute: draft 200% FPL 2026 vs verified 150% FPL 2026 https://dwee.nebraska.gov/aid/nebraska-weatherization-assistance-program
+NE weatherization-assistance-program phone: ["4024446666","4023428232","211"] -> "8772532603"  [medium] phone (run with --phones to apply official ones) https://dwee.nebraska.gov/aid/nebraska-weatherization-assistance-program
+NE home-delivered-meals-aaa phone: ["4024714619","18006771116"] -> "4022231376"  [medium] phone (run with --phones to apply official ones) https://dhhs.ne.gov/pages/aging.aspx
+NE scsep-employment phone: ["211"] -> "5314278229"  [medium] aggregator source https://d2leuf3vilid4d.cloudfront.net/-/media/Communities/olderworkers/Files/2026/SCSEP-STATE-AND-TERRITORY-GRANTEES-3,-d-,25,-d-,2026.ashx?rev=6935c1d2026b44698630823ff64541b2&hash=51E4ACB19D27D1102E3B6A7A6BEDB611
+NE community-aging-services phone: ["4024714270","211"] -> "4024712307"  [medium] phone (run with --phones to apply official ones) https://dhhs.ne.gov/pages/aging.aspx
+NE aabd-cash-medical assets_individual: 2000 -> 4000  [high] asset limit (federal figure; applied with the yearly table) https://dhhs.ne.gov/Guidance%20Docs/Title%20469%20-%20Assistance%20to%20the%20Aged,%20Blind,%20Disabled%20Program.pdf
+NE aabd-cash-medical assets_couple: 3000 -> 6000  [high] asset limit (federal figure; applied with the yearly table) https://dhhs.ne.gov/Guidance%20Docs/Title%20469%20-%20Assistance%20to%20the%20Aged,%20Blind,%20Disabled%20Program.pdf
+NE ssad-aged-disabled-services phone: ["211"] -> "4024713121"  [medium] phone (run with --phones to apply official ones) https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx
+NH medicaid-aged-blind-disabled phone: ["8008523345","8003182596"] -> "8442753447"  [medium] phone (run with --phones to apply official ones) https://www.medicaid.gov/about-us/where-can-people-get-help-medicaid-chip
+NH cfi-waiver age: 18 -> 65  [high] field age is applied by hand https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/NH
+NH pace-comprehensive-care phone: ["6032719389","8666349412","1800"] -> "8446427223"  [medium] aggregator source https://www.nhpace.org/do-i-qualify/
+NH medicare-savings-programs income_1: 1660 -> 1350  [high] aggregator source https://www.kff.org/medicare/state-indicator/eligibility-for-medicare-savings-programs-for-qualified-medicare-beneficiaries-qmbs/
+NH medicare-savings-programs income_2: 2239 -> 1824  [high] aggregator source https://www.kff.org/medicare/state-indicator/eligibility-for-medicare-savings-programs-for-qualified-medicare-beneficiaries-qmbs/
+NH medicare-savings-programs assets_individual: 9090 -> 9950  [medium] aggregator source https://www.kff.org/medicare/state-indicator/eligibility-for-medicare-savings-programs-for-qualified-medicare-beneficiaries-qmbs/
+NH medicare-savings-programs assets_couple: 13630 -> 14910  [medium] aggregator source https://www.kff.org/medicare/state-indicator/eligibility-for-medicare-savings-programs-for-qualified-medicare-beneficiaries-qmbs/
+NH medicare-savings-programs phone: ["8006334227"] -> "18442753447"  [medium] phone (run with --phones to apply official ones) https://www.dhhs.nh.gov/medicaid-contact-directory
+NH snap-food-benefits phone: ["8773477627","211"] -> "6032719700"  [medium] phone (run with --phones to apply official ones) https://www.dhhs.nh.gov/programs-services/food-meals-assistance/supplemental-nutrition-assistance-program-snap
+NH liheap-energy-assistance phone: ["6032230043","6034363896","6034352500","211"] -> "6032713670"  [medium] phone (run with --phones to apply official ones) https://liheapch.acf.hhs.gov/profiles/NH.htm
+NH weatherization-assistance-program phone: ["6034352500","211"] -> "6036688010"  [medium] aggregator source https://caphr.org/system/files/2021-01/uploads/file/2017_08_WEATHERIZATION_BROCHURE_4c1.pdf
+NH meals-on-wheels phone: ["8666349412","211"] -> "6032719203"  [medium] aggregator source https://staging.nhfv.org/resources/bureau-of-elderly-and-adult-services/
+NH family-caregiver-support age: 18 -> 55  [high] source dated 2024 https://www.dhhs.nh.gov/sites/g/files/ehbemt476/files/inline-documents/sonh/rfa-2024-dltss-03-adrcs-app-e-appendix-e-nhfcsp-program-operations.pdf
+NH adult-day-services income_1: 2901 -> 1646  [high] value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 125% FPL 2025 or 130% FPL 2025) https://www.gc.nh.gov/rules/state_agencies/he-e500.html
+NH adult-day-services phone: ["8666349412","211"] -> "8003511888"  [medium] phone (run with --phones to apply official ones) https://www.dhhs.nh.gov/programs-services/adult-aging-care
+NH caregiver-respite-volunteer-programs phone: ["18666349412"] -> "6032253295"  [medium] phone (run with --phones to apply official ones) https://www.strathamnh.gov/Documents/Departments/Parks%20and%20Recreation/Senior%20Services/stratham_seniorresourceguide_final.pdf?t=202512231130030
+NJ alzheimers-adult-day-services phone: ["8772223737","211"] -> "18772223733"  [medium] phone (run with --phones to apply official ones) https://nj.gov/humanservices/doas/documents/ADSP%20Brochure%20(Print%20-%20English).pdf
+NM pace-comprehensive-care phone: ["8449450467","5059161932","711","18004322080"] -> "8002834465"  [medium] phone (run with --phones to apply official ones) https://www.hsd.state.nm.us/lookingforinformation/pace/
+NM community-benefit-program income_2: 1262 -> 1491  [high] aggregator source https://www.medicaidplanningassistance.org/mexico-centennial-care/
+NM senior-farmers-market-nutrition income_1: 2739 -> 1986  [high] aggregator source https://www.nmwic.org/fmnp/
+NM senior-farmers-market-nutrition income_2: 3706 -> 2686  [high] aggregator source https://www.nmwic.org/fmnp/
+NV medicaid-long-term-care phone: ["7756874210","211","8005252395"] -> "8776383472"  [medium] phone (run with --phones to apply official ones) https://www.medicaid.nv.gov/contactinfo
+NV medicare-savings-programs assets_individual: 9090 -> 9950  [medium] asset limit (federal figure; applied with the yearly table) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+NV medicare-savings-programs assets_couple: 13630 -> 14910  [medium] asset limit (federal figure; applied with the yearly table) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+NV snap-food-benefits income_1: 2608 -> 1729  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025) https://www.dss.nv.gov/access-nv/eligibility-payments-manual/income-limit-charts/
+NV snap-food-benefits income_2: 3526 -> 2345  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025) https://www.dss.nv.gov/access-nv/eligibility-payments-manual/income-limit-charts/
+NV snap-food-benefits assets_individual: 3200 -> 4250  [high] asset limit (federal figure; applied with the yearly table) https://www.dss.nv.gov/programs/snap/facts-faq/snap-faqs-4/
+NV snap-food-benefits assets_couple: 3200 -> 4250  [high] asset limit (federal figure; applied with the yearly table) https://www.dss.nv.gov/programs/snap/facts-faq/snap-faqs-4/
+NV energy-assistance-eap-liheap phone: ["211","7756840500"] -> "8009920900"  [medium] phone (run with --phones to apply official ones) https://www.dws.nv.gov/uploadedFiles/dwssnvgov/content/Home/Features/Forms/2824-EL_Energy%20Assistance%20Application-Large%20Print.pdf
+NV weatherization-assistance-program income_1: 2660 -> 1550  [high] value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 300% SSI 2023) https://housing.nv.gov/Programs/Weatherization/
+NV weatherization-assistance-program income_2: 3607 -> 2098  [high] tier dispute: draft 200% FPL 2026 vs verified 120% FPL 2026 https://housing.nv.gov/Programs/Weatherization/
+NV scsep-employment phone: ["7753232243","211","7756874210"] -> "7026483356"  [medium] aggregator source https://www.aarp.org/states/nevada/
+NV advocates-for-seniors phone: ["7756874210","211"] -> "7024863545"  [medium] phone (run with --phones to apply official ones) https://www.pebp.nv.gov/resources/community-resources/
+NV senior-rx-program income_1: 2763 -> 27746  [high] outside sanity bounds (3x) https://adsd.nv.gov/uploadedFiles/adsdnvgov/content/Programs/Seniors/SeniorRx/FAQ%20-%20Members.pdf
+NV senior-rx-program income_2: 3683 -> 37222  [high] outside sanity bounds (3x) https://adsd.nv.gov/uploadedFiles/adsdnvgov/content/Programs/Seniors/SeniorRx/FAQ%20-%20Members.pdf
+NV hcbw-fe-waiver phone: ["7756874210","211"] -> "8663036323"  [medium] phone (run with --phones to apply official ones) https://adsd.nv.gov/Programs/Seniors/HCBS_(FE)/HCBS_(FE)/
+NY pace-elderly-care phone: ["18884016582","8554574636","8662639083","8332522737"] -> "8887287223"  [medium] aggregator source https://pacecny.org/
+NY medicare-savings-program-qmb-slmb-qi income_1: 2494 -> 1856  [high] value fits more than one tier (135% FPL 2026 or 138% FPL 2026 or 138% FPL 2025) https://www.health.ny.gov/health_care/medicaid/program/update/savingsprogram/
+NY medicare-savings-program-qmb-slmb-qi income_2: 3375 -> 2509  [high] value fits more than one tier (135% FPL 2026 or 138% FPL 2026 or 138% FPL 2025) https://www.health.ny.gov/health_care/medicaid/program/update/savingsprogram/
+NY medicare-savings-program-qmb-slmb-qi phone: ["8886926116","5857868900","1800"] -> "8005412831"  [medium] phone (run with --phones to apply official ones) https://www.health.ny.gov/forms/instructions/doh-4328_instructions.pdf
+NY wrap-weatherization phone: ["7166619430","211"] -> "311"  [medium] source dated 2013 https://www.nyc.gov/html/mancb2/downloads/pdf/cb2seniorserviceguide2013.pdf
+NY senior-community-service-employment income_1: 1663 -> 1575  [medium] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025) https://aging.ny.gov/senior-community-service-employment-program-scsep
+NY senior-community-service-employment phone: ["2122446469"] -> "18778725627"  [medium] phone (run with --phones to apply official ones) https://www.dol.gov/agencies/eta/seniors/contact
+NY nyc-senior-homeowners-exemption phone: ["311"] -> "2126399675"  [medium] phone (run with --phones to apply official ones) https://www.nyc.gov/site/finance/property/landlords-sche.page
+OH medicaid-aged-blind-disabled phone: ["8003248680"] -> "18446406446"  [medium] phone (run with --phones to apply official ones) https://dam.assets.ohio.gov/image/upload/medicaid.ohio.gov/Resources/Publications/Forms/ODM07216fillx.pdf
+OH pace-all-inclusive-care phone: ["8446406446","5138627223","8888957223"] -> "18002664346"  [medium] phone (run with --phones to apply official ones) https://dam.assets.ohio.gov/image/upload/aging.ohio.gov/rules/Chapter_173-50_COMMENT_PERIOD_2025-11-19.pdf
+OH medicare-savings-programs income_1: 1350 -> 1816  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+OH medicare-savings-programs income_2: 1824 -> 2455  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+OH medicare-savings-programs phone: ["18003248680","18446406446"] -> "8006861578"  [medium] source dated 2019 https://insurance.ohio.gov/wps/wcm/connect/gov/7b4bb533-6c62-4576-9ae7-2185fbf2ff60/MedSavProg_2019.pdf?MOD=AJPERES&CONVERT_TO=url&CACHEID=ROOTWORKSPACE.Z18_M1HGGIK0N0JO00QO9DDDDM3000-7b4bb533-6c62-4576-9ae7-2185fbf2ff60-mS82ox.
+OH weatherization-assistance-program phone: ["8002820880","6142522799","7405948499","4197845393"] -> "8008481300"  [medium] phone (run with --phones to apply official ones) https://www.occ.ohio.gov/factsheet/home-weatherization-assistance-program-hwap
+OH nfcsp-caregiver-support phone: ["8662435678","211"] -> "8002664346"  [medium] phone (run with --phones to apply official ones) https://www.ohio.gov/home/caregiver
+OH scsep-employment phone: ["6144665500","9378400055","3308327220","7403535238","3307820978"] -> "3302534597"  [medium] aggregator source https://vantageaging.org/about-us/our-locations/
+OK advantage-waiver-hcbs assets_couple: 3000 -> 4000  [high] asset limit (federal figure; applied with the yearly table) https://oklahoma.gov/ohca/policies-and-rules/xpolicy/medical-assistance-for-adults-and-children-eligibility/advantage-waiver-services/determining-financial-eligibility-for-advantage-program-services.html
+OK medicare-savings-programs income_1: 1235 -> 1816  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://oklahoma.gov/okdhs/medicareandmeds/mippa.html
+OK medicare-savings-programs income_2: 1663 -> 2455  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://oklahoma.gov/okdhs/medicareandmeds/mippa.html
+OK medicare-savings-programs assets_individual: 9090 -> 9950  [medium] asset limit (federal figure; applied with the yearly table) https://oklahoma.gov/okdhs/medicareandmeds/mippa.html
+OK medicare-savings-programs assets_couple: 13630 -> 14910  [medium] asset limit (federal figure; applied with the yearly table) https://oklahoma.gov/okdhs/medicareandmeds/mippa.html
+OK medicare-savings-programs phone: ["4055213646","4055225050","211"] -> "4055213679"  [medium] phone (run with --phones to apply official ones) https://oklahoma.gov/okdhs/services/health/medicare.html
+OK snap-food-benefits income_1: 1330 -> 1739  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025) https://www.fns.usda.gov/snap-recipient/eligibility
+OK snap-food-benefits income_2: 1804 -> 2345  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025) https://www.fns.usda.gov/snap-recipient/eligibility
+OK snap-food-benefits phone: ["8777600114","211","8778234369"] -> "8664111877"  [medium] phone (run with --phones to apply official ones) https://oklahoma.gov/okdhs/services/snap.html
+OK home-delivered-meals phone: ["211","8002522412"] -> "8002112116"  [medium] phone (run with --phones to apply official ones) https://oklahoma.gov/okdhs/services/aging/titleiii.html
+OR opi-m-medicaid-home-care phone: ["8556732372","211"] -> "5039455600"  [medium] phone (run with --phones to apply official ones) https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/opi-m-scm-checklist.docx
+OR pace-elderly-care phone: ["18556732372"] -> "8442247223"  [medium] phone (run with --phones to apply official ones) https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf
+OR medicare-savings-programs phone: ["18002828096"] -> "8556732372"  [medium] phone (run with --phones to apply official ones) https://www.oregon.gov/odhs/aging-disability-services/pages/medicare-savings-programs.aspx
+OR meals-on-wheels phone: ["5039455811","5033642856","8004698772","5033043400"] -> "8556732372"  [medium] phone (run with --phones to apply official ones) https://www.oregon.gov/odhs/food/pages/default.aspx
+OR legal-aid-services-laso phone: ["5032242640","5032445204","5419268678","5413856944","18006786944"] -> "5032244086"  [medium] aggregator source https://lasoregon.org/locations/portland-regional-office/
+OR elderly-rental-assistance phone: ["211","8666986155"] -> "5039862000"  [medium] phone (run with --phones to apply official ones) https://www.oregon.gov/ohcs/for-providers/Documents/manuals/ERA-Operations-Manual.pdf
+OR senior-tuition-audit phone: ["9717226111","5033250910"] -> "8005478887"  [medium] aggregator source https://www.pdx.edu/senior-adult-learning-center/salc-history
+OR hrsn-health-social-needs phone: ["8002730557","211"] -> "9716731222"  [medium] phone (run with --phones to apply official ones) https://sharedsystems.dhsoha.state.or.us/DHSForms/Served/le-991901.pdf
+PA community-healthchoices-chc age: 21 -> 55  [high] field age is applied by hand https://www.pa.gov/agencies/dhs/resources/medicaid/chc
+PA community-healthchoices-chc assets_individual: 8000 -> 2000  [high] outside sanity bounds (3x) https://www.pa.gov/content/dam/copapwp-pagov/en/dhs/documents/healthchoices/hc-services/documents/Eligibility%20for%20CHC.pdf
+PA community-healthchoices-chc phone: ["18775504227","211"] -> "18448243655"  [medium] phone (run with --phones to apply official ones) https://www.pa.gov/agencies/dhs/contact/long-term-care-contacts
+PA life-program phone: ["7177831550"] -> "18775504227"  [medium] phone (run with --phones to apply official ones) https://www.pa.gov/services/dhs/enroll-in-the-living-independently-for-the-elderly-program-life
+PA healthy-horizons-qmb-slmb-qi income_1: 1350 -> 1816  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+PA healthy-horizons-qmb-slmb-qi income_2: 1824 -> 2455  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+PA healthy-horizons-qmb-slmb-qi phone: ["8665504355","8006927462"] -> "8006334227"  [medium] phone (run with --phones to apply official ones) https://www.pa.gov/agencies/dhs/resources/aging-physical-disabilities/medicaid-older-people-and-people-with-disabilities
+PA home-delivered-meals phone: ["7177719610","8149461235"] -> "7177831550"  [medium] phone (run with --phones to apply official ones) https://www.palottery.pa.gov/Benefits/Local-Services-Senior-Centers-Meals.aspx
+PA oplap-legal-assistance phone: ["8777277529","211"] -> "7177831550"  [medium] phone (run with --phones to apply official ones) https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program
+RI medicaid-ltss-elderly assets_couple: 8000 -> 6000  [high] asset limit (federal figure; applied with the yearly table) https://eohhs.ri.gov/consumer/health-care/long-term-services-and-supports
+RI class-waiver phone: ["8556974347","211"] -> "4014623000"  [medium] phone (run with --phones to apply official ones) https://dhs.ri.gov/programs-and-services/long-term-services-and-supports/eligibility-how-apply
+RI pace-elderly-care phone: ["4014341400","4016544176","211"] -> "4014906566"  [medium] phone (run with --phones to apply official ones) https://eohhs.ri.gov/consumer/older-adults
+RI medicare-savings-programs phone: ["4014620311","211"] -> "18556974347"  [medium] phone (run with --phones to apply official ones) https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx
+RI snap-food-benefits income_1: 2608 -> 2461  [medium] value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 300% SSI 2022) https://dhs.ri.gov/media/12206/download?language=en
+RI snap-food-benefits income_2: 3540 -> 3337  [medium] tier dispute: draft 200% FPL 2026 vs verified 185% FPL 2026 https://dhs.ri.gov/media/12206/download?language=en
+RI liheap-energy-assistance phone: ["4012732000","4014371000","211"] -> "8007456575"  [medium] phone (run with --phones to apply official ones) https://liheapch.acf.hhs.gov/profiles/RI.htm
+RI weatherization-assistance-program phone: ["211","4017234520"] -> "4014626400"  [medium] phone (run with --phones to apply official ones) https://acf.gov/ocs/map/liheap-map-state-and-territory-contact-listing
+RI caregiver-respite-support phone: ["4014217833","211"] -> "4014624444"  [medium] phone (run with --phones to apply official ones) https://oha.ri.gov/resources/caregiver-supportsrespite
+RI scsep-employment-program phone: ["4014628000","211"] -> "4014628794"  [medium] aggregator source https://d2leuf3vilid4d.cloudfront.net/-/media/Communities/olderworkers/Files/2026/SCSEP-STATE-AND-TERRITORY-GRANTEES-3,-d-,25,-d-,2026.ashx?rev=6935c1d2026b44698630823ff64541b2&hash=51E4ACB19D27D1102E3B6A7A6BEDB611
+RI legal-aid-seniors phone: ["4012742652","4018462264","4014217799","4014217758","4018313150"] -> "4015215040"  [medium] aggregator source https://ribar.com/?pg=PublicServiceProgramsHome
+RI pharmaceutical-assistance-elderly age: 65 -> 55  [high] field age is applied by hand https://oha.ri.gov/media/2966/download?language=en
+RI at-home-cost-share-program income_1: 1569 -> 1249  [high] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 120% FPL 2024 or 125% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 133% FPL 2022 or 135% FPL 2022 or 138% FPL 2022) https://oha.ri.gov/resources/home-care/home-cost-share
+RI at-home-cost-share-program income_2: 2129 -> 1691  [high] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025 or 120% FPL 2024 or 125% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 135% FPL 2022 or 138% FPL 2022) https://oha.ri.gov/resources/home-care/home-cost-share
+RI hcc-senior-companion-program age: 60 -> 55  [high] field age is applied by hand https://oha.ri.gov/media/2886/download?language=en
+SC medicaid-aged-blind-disabled income_1: 2982 -> 1330  [high] value fits more than one tier (250% FPL 2023 or 300% SSI 2026 or 300% SSI 2025) https://www.scdhhs.gov/members/program-eligibility-and-income-limits
+SC medicaid-aged-blind-disabled assets_individual: 9950 -> 7080  [high] asset limit (federal figure; applied with the yearly table) https://www1.scdhhs.gov/mppm/word/section300/chapter%20303%20amb-qmb-slmb.doc
+SC medicaid-aged-blind-disabled assets_couple: 14910 -> 10620  [high] asset limit (federal figure; applied with the yearly table) https://www1.scdhhs.gov/mppm/word/section300/chapter%20303%20amb-qmb-slmb.doc
+SC medicare-savings-programs income_1: 1330 -> 1816  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+SC medicare-savings-programs income_2: 1804 -> 2455  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025) https://www.medicare.gov/basics/costs/help/medicare-savings-programs
+SC snap-food-benefits income_1: 1729 -> 1305  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025 or 133% FPL 2024 or 135% FPL 2024 or 138% FPL 2024 or 138% FPL 2023 or 150% FPL 2022) https://dss.sc.gov/assistance-programs/snap/faq/
+SC snap-food-benefits income_2: 2345 -> 1763  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025 or 133% FPL 2024 or 135% FPL 2024 or 138% FPL 2024 or 138% FPL 2023 or 150% FPL 2022) https://dss.sc.gov/assistance-programs/snap/faq/
+SC snap-food-benefits phone: ["8888980055","211"] -> "8006161309"  [medium] phone (run with --phones to apply official ones) https://dss.sc.gov/contact-dss/
+SC congregate-home-delivered-meals phone: ["8642429733","8004344036","8644893868","8648851000"] -> "8037349900"  [medium] phone (run with --phones to apply official ones) https://aging.sc.gov/sites/default/files/documents/SeniorNutritionProgram/Senior%20Nutrition%20Program%20Flyer_Revised%20July_10_2025.pdf
+SC legal-assistance-seniors phone: ["18883465592","8037996653"] -> "18008689095"  [medium] phone (run with --phones to apply official ones) https://aging.sc.gov/programs-initiatives/legal-assistance-older-adults
+SC esap-food-benefits age: 60 -> 65  [high] field age is applied by hand https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/
+SC senior-farmers-market-nutrition income_1: 2769 -> 28953  [high] outside sanity bounds (3x) https://dss.sc.gov/news/senior-farmers-market-nutrition-program-returns-june-1st-2/
+SC senior-farmers-market-nutrition income_2: 3769 -> 39128  [high] outside sanity bounds (3x) https://dss.sc.gov/news/senior-farmers-market-nutrition-program-returns-june-1st-2/
+SD medicaid-seniors-disabled phone: ["8552566742"] -> "8005971603"  [medium] phone (run with --phones to apply official ones) https://dss.sd.gov/medicaid/contact/PhoneList.aspx
+SD medicare-savings-programs income_1: 1350 -> 1781  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025) https://dss.sd.gov/formsandpubs/docs/MEDELGBLTY/MedicareSavingsProgramBrochureEntire.pdf
+SD medicare-savings-programs income_2: 1824 -> 2400  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025) https://dss.sd.gov/formsandpubs/docs/MEDELGBLTY/MedicareSavingsProgramBrochureEntire.pdf
+SD medicare-savings-programs assets_individual: 9430 -> 7140  [high] asset limit (federal figure; applied with the yearly table) https://consumer.sd.gov/fastfacts/medicaid.aspx
+SD medicare-savings-programs assets_couple: 14130 -> 10750  [high] asset limit (federal figure; applied with the yearly table) https://consumer.sd.gov/fastfacts/medicaid.aspx
+SD csfp-senior-food-box phone: ["6058533656","211"] -> "6057733413"  [medium] phone (run with --phones to apply official ones) https://doe.sd.gov/cans/csfp.aspx
+SD weatherization-assistance income_1: 2152 -> 261  [high] outside sanity bounds (3x) https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx
+SD weatherization-assistance income_2: 2920 -> 352  [high] outside sanity bounds (3x) https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx
+SD weatherization-assistance phone: ["6053481460","6056987654"] -> "8002338503"  [medium] phone (run with --phones to apply official ones) https://dss.sd.gov/formsandpubs/docs/GEN/guide_to_assistance.pdf
+SD meals-on-wheels phone: ["6053333305","8336639673"] -> "6053946002"  [medium] phone (run with --phones to apply official ones) https://dakotaathome.sd.gov/search/c0c77b9b-3b90-5b03-931d-3fb09ced81bb
+SD scsep-employment income_2: 2054 -> 27050  [high] outside sanity bounds (3x) https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx
+SD long-term-care-ombudsman phone: ["6057733656","8556423055"] -> "8336639673"  [medium] phone (run with --phones to apply official ones) https://dhs.sd.gov/ltss/ombudsman-program
+SD senior-companions age: 21 -> 55  [high] aggregator source https://www.good-sam.com/senior-companions/volunteers
+SD senior-box-program-csfp phone: ["6053322331","6052257410","6058864030"] -> "6057733413"  [medium] phone (run with --phones to apply official ones) https://doe.sd.gov/cans/csfp.aspx
+TN medicare-savings-programs phone: ["8778010044"] -> "8552590701"  [medium] phone (run with --phones to apply official ones) https://www.tn.gov/tenncare/contact-us.html
+TN snap-food-benefits income_1: 1330 -> 1729  [high] aggregator source https://snapbenefitshelp.com/en/blog/tennessee-snap-eligibility-2026
+TN snap-food-benefits income_2: 1804 -> 2348  [high] aggregator source https://snapbenefitshelp.com/en/blog/tennessee-snap-eligibility-2026
+TN snap-food-benefits phone: ["8663114287"] -> "8337728347"  [medium] phone (run with --phones to apply official ones) https://www.tn.gov/humanservices/need-help-/tdhs-contact-us.html
+TN nfcsp-caregiver-support age: 55 -> 60  [high] field age is applied by hand https://www.tn.gov/content/dam/tn/aging/documents/06_Helping_Caregivers.pdf
+TN scsep-employment phone: ["7319895111","8003726013","7315874213","8656912551"] -> "6157415671"  [medium] phone (run with --phones to apply official ones) https://www.tn.gov/workforce/jobs-and-education/services-by-group/services-by-group-redirect/senior-work-experience-program.html
+TN senior-law-alliance phone: ["18444","18002381443","86569125514212"] -> "8444357486"  [medium] aggregator source https://www.help4tn.org/node/1500/free-senior-legal-helpline
+TN senior-advocate-program phone: ["8656912551","86569125514212","86569125514216"] -> "8668366678"  [medium] phone (run with --phones to apply official ones) https://www.tn.gov/disability-and-aging/resource-directory/aaad.html
+TX medicaid-buy-in-qmb-slmb-qi income_1: 1796 -> 1330  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025 or 138% FPL 2024 or 150% FPL 2023) https://fhb.hhs.texas.gov/handbooks/medicaid-elderly-people-disabilities-handbook/appendix-xxxi-budget-reference-chart
+TX medicaid-buy-in-qmb-slmb-qi income_2: 2435 -> 1804  [high] value fits more than one tier (130% FPL 2026 or 133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 133% FPL 2025 or 135% FPL 2025 or 138% FPL 2025 or 138% FPL 2024 or 150% FPL 2023 or 165% FPL 2022) https://fhb.hhs.texas.gov/handbooks/medicaid-elderly-people-disabilities-handbook/appendix-xxxi-budget-reference-chart
+TX star-plus-medicaid-hcbs phone: ["18774385658","211","8777826440"] -> "8009642777"  [medium] phone (run with --phones to apply official ones) https://fhb.hhs.texas.gov/handbooks/starplus-handbook/3300-administrative-procedures
+TX snap-food-benefits income_1: 1330 -> 1696  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://fhb.hhs.texas.gov/handbooks/texas-works-handbook/c-120-supplemental-nutrition-assistance-program
+TX snap-food-benefits income_2: 1804 -> 2292  [high] value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 133% FPL 2025) https://fhb.hhs.texas.gov/handbooks/texas-works-handbook/c-120-supplemental-nutrition-assistance-program
+TX liheap-energy-assistance income_1: 1995 -> 1883  [medium] value fits more than one tier (150% FPL 2026 or 150% FPL 2025 or 165% FPL 2023) https://www.tdhca.texas.gov/community-affairs-income-guidelines
+TX liheap-energy-assistance income_2: 2705 -> 2555  [medium] value fits more than one tier (138% FPL 2026 or 150% FPL 2025) https://www.tdhca.texas.gov/community-affairs-income-guidelines
+TX cba-waiver phone: ["211","8775417905"] -> "8774385658"  [medium] aggregator source https://www.txp2p.org/services/services-for-parents-pathway-to-adulthood/services-and-supports
+TX community-caregiver-support age: 18 -> 60  [high] aggregator source https://nasua.org/familycaregiver/pdf/sf-tx.pdf
+TX community-caregiver-support phone: ["18559372372","8775417905"] -> "18002529240"  [medium] phone (run with --phones to apply official ones) https://www.dshs.texas.gov/alzheimers-disease/risk-reduction-promoting-cognitive-health/prevention/resources-support-family-caregivers
+UT medicaid-program assets_couple: 4000 -> 3000  [high] asset limit (federal figure; applied with the yearly table) https://oepmanuals.dhhs.utah.gov/500/503_Household_Size_and_Asset_Limits.htm
+UT liheap-heat-energy-assistance income_1: 1956 -> 1550  [high] value fits more than one tier (150% FPL 2026 or 150% FPL 2025 or 150% FPL 2024 or 165% FPL 2023) https://jobs.utah.gov/housing/scso/seal/heat.html
+UT liheap-heat-energy-assistance income_2: 2644 -> 2110  [high] value fits more than one tier (150% FPL 2026 or 150% FPL 2025 or 150% FPL 2024 or 165% FPL 2023) https://jobs.utah.gov/housing/scso/seal/heat.html
+UT liheap-heat-energy-assistance phone: ["211","4355861112"] -> "18662054357"  [medium] phone (run with --phones to apply official ones) https://acf.gov/ocs/map/liheap-map-state-and-territory-contact-listing
+UT weatherization-assistance-program income_1: 2510 -> 380  [high] outside sanity bounds (3x) https://jobs.utah.gov/housing/scso/wap/how.html
+UT weatherization-assistance-program income_2: 3407 -> 514  [high] outside sanity bounds (3x) https://jobs.utah.gov/housing/scso/wap/how.html
+UT weatherization-assistance-program phone: ["8012143215","4357527242","8012293800","4358650195"] -> "8015383939"  [medium] phone (run with --phones to apply official ones) https://jobs.utah.gov/housing/scso/wap/how.html
+UT caregiver-support-program age: 18 -> 60  [high] field age is applied by hand https://daas.utah.gov/seniors/
+UT caregiver-support-program phone: ["18774244640","8014682460","8014513377","8016253866"] -> "8015383910"  [medium] phone (run with --phones to apply official ones) https://daas.utah.gov/
+UT scsep-employment income_1: 1583 -> 1983  [high] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025 or 125% FPL 2024 or 130% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 135% FPL 2023 or 135% FPL 2022 or 138% FPL 2022) https://daas.utah.gov/seniors/
+UT scsep-employment income_2: 2142 -> 2689  [high] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025 or 125% FPL 2024 or 130% FPL 2024 or 125% FPL 2023 or 130% FPL 2023 or 133% FPL 2023 or 135% FPL 2023 or 135% FPL 2022 or 138% FPL 2022) https://daas.utah.gov/seniors/
+UT scsep-employment phone: ["8007712153","211"] -> "8015383910"  [medium] phone (run with --phones to apply official ones) https://daas.utah.gov/seniors/
+UT legal-services-seniors phone: ["8013288849","8016498895","211"] -> "8013288891"  [medium] aggregator source https://www.utahlegalservices.org/contact
+UT long-term-care-ombudsman phone: ["8012293809"] -> "3852221273"  [medium] phone (run with --phones to apply official ones) https://daas.utah.gov/ombudsman-locations-3/
+VA scsep-senior-employment phone: ["5713637688","8043433000"] -> "8046627035"  [medium] phone (run with --phones to apply official ones) https://dars.virginia.gov/aging/senior-employment-program/
+VA family-caregiver-support phone: ["8005523402","8046629333"] -> "7037465999"  [medium] phone (run with --phones to apply official ones) https://dars.virginia.gov/aging/home-community/find-local-aaa/
+VT choices-for-care-waiver assets_individual: 10000 -> 2000  [high] aggregator source https://www.medicaidlongtermcare.org/eligibility/vermont/
+VT choices-for-care-waiver phone: ["18002508427","211"] -> "18004255119"  [medium] phone (run with --phones to apply official ones) https://dvha.vermont.gov/members/long-term-care
+VT medicaid-abd phone: ["8002508427","211"] -> "18558999600"  [medium] phone (run with --phones to apply official ones) https://info.healthconnect.vermont.gov/compare-plans/medicaid-and-dr-dynasaur
+VT pace-comprehensive-care phone: ["8006334227","211"] -> "8022412401"  [medium] phone (run with --phones to apply official ones) https://humanservices.vermont.gov/help-and-resources
+VT medicare-savings-programs income_1: 1305 -> 1995  [high] tier dispute: draft 100% FPL 2026 vs verified 150% FPL 2026 https://dvha.vermont.gov/members/medicare-savings-program
+VT medicare-savings-programs income_2: 1763 -> 2707  [high] tier dispute: draft 100% FPL 2026 vs verified 150% FPL 2026 https://dvha.vermont.gov/members/medicare-savings-program
+VT 3squaresvt-older-vermonters assets_individual: 4250 -> 4500  [medium] asset limit (federal figure; applied with the yearly table) https://dcf.vermont.gov/benefits/3SquaresVT
+VT weatherization-assistance phone: ["8028632345","8026651748","8024791053","8005451084","8027486040","8027224575"] -> "8022410935"  [medium] phone (run with --phones to apply official ones) https://energysaver.vermont.gov/programs-incentives
+VT meals-on-wheels phone: ["8024657293","8022241825"] -> "8006425119"  [medium] aggregator source https://www.agewellvt.org/services/food-meal-delivery/meals-on-wheels/
+VT caregiver-support-program age: 18 -> 60  [high] field age is applied by hand https://ddsd.vermont.gov/services/caregiver-programs
+VT caregiver-support-program phone: ["8002508427","211"] -> "8006425119"  [medium] phone (run with --phones to apply official ones) https://ddsd.vermont.gov/services/caregiver-programs
+VT scsep-employment phone: ["8778725627"] -> "8004393307"  [medium] phone (run with --phones to apply official ones) https://labor.vermont.gov/vt-retain/individuals/resources
+WA apple-health-medicaid income_1: 1835 -> 994  [high] aggregator source https://www.waseniorsupport.org/programs/apple-health-classic-medicaid
+WA apple-health-medicaid income_2: 2490 -> 1491  [high] aggregator source https://www.waseniorsupport.org/programs/apple-health-classic-medicaid
+WA weatherization-assistance-program phone: ["5094527145"] -> "3607252857"  [medium] phone (run with --phones to apply official ones) https://dcyf.wa.gov/services/housing-basic-needs/basic-needs-community-resource-directory
+WA home-delivered-meals phone: ["3605335100","2064485767","18443485464","211"] -> "2537984600"  [medium] phone (run with --phones to apply official ones) https://www.piercecountywa.gov/6826/Senior-Nutrition
+WA family-caregiver-support age: 18 -> 55  [high] field age is applied by hand https://www.dshs.wa.gov/adult-and-aging-services/caregiving-resources/information-caregivers
+WA family-caregiver-support phone: ["8004223263","211"] -> "18555670252"  [medium] phone (run with --phones to apply official ones) https://www.dshs.wa.gov/media/578/download?inline
+WA scsep-employment-program phone: ["4253664457","211"] -> "18778725627"  [medium] phone (run with --phones to apply official ones) https://www.dol.gov/agencies/eta/seniors
+WA long-term-care-ombudsman phone: ["2537983789"] -> "8005626028"  [medium] aggregator source https://www.waombudsman.org/about/staff/
+WA abd-cash-assistance assets_individual: 6000 -> 12000  [high] asset limit (federal figure; applied with the yearly table) https://manuals.dshs.wa.gov/book/export/html/17
+WA abd-cash-assistance assets_couple: 6000 -> 12000  [high] asset limit (federal figure; applied with the yearly table) https://manuals.dshs.wa.gov/book/export/html/17
+WA seattle-gold-card-discounts phone: ["2065825011"] -> "2066840500"  [medium] phone (run with --phones to apply official ones) https://seattle.gov/agefriendly/programs/discounts
+WI senior-employment-program-wise phone: ["9202295557","6082424928","211"] -> "6082677286"  [medium] phone (run with --phones to apply official ones) https://www.dhs.wisconsin.gov/employment-skills/index.htm
+WI family-care phone: ["8449472372","211"] -> "8003623002"  [medium] phone (run with --phones to apply official ones) https://www.dhs.wisconsin.gov/familycare/index.htm
+WI iris-self-directed-care phone: ["18556772372","211"] -> "8885154747"  [medium] phone (run with --phones to apply official ones) https://www.dhs.wisconsin.gov/iris/index.htm
+WV medicare-savings-programs phone: ["3045870105"] -> "18777161212"  [medium] phone (run with --phones to apply official ones) https://bms.wv.gov/members/applying-healthcare
+WV aged-disabled-waiver age: 18 -> 65  [high] field age is applied by hand https://adwprogram.wv.gov/
+WV snap-food-benefits income_1: 2660 -> 1608  [high] value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 120% FPL 2025 or 125% FPL 2025) https://bfa.wv.gov/snap
+WV snap-food-benefits income_2: 3607 -> 2171  [high] value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025) https://bfa.wv.gov/snap
+WV liheap-energy-assistance income_1: 1884 -> 2454  [high] value fits more than one tier (138% FPL 2026 or 150% FPL 2024 or 150% FPL 2023 or 165% FPL 2022) https://bfa.wv.gov/utility-assistancelieap
+WV liheap-energy-assistance income_2: 2464 -> 3209  [high] value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 135% FPL 2025 or 138% FPL 2025 or 150% FPL 2023 or 165% FPL 2022) https://bfa.wv.gov/utility-assistancelieap
+WV nfcsp-caregiver-support phone: ["8779873646","211"] -> "3045583317"  [medium] aggregator source https://wvats.cedwvu.org/media/3774/pathways-to-funding-for-adults-accessible.pdf
+WV visions-blind-services phone: ["18006423021","211"] -> "8006428207"  [medium] aggregator source https://wvdrs.org/adults/specialized-services/services-for-the-blind-and-impaired/
+WV home-modification-accessibility-grant phone: ["8669812372","3047206861"] -> "3045583317"  [medium] phone (run with --phones to apply official ones) https://www.wv.gov/agencies/senior-services-bureau
+WY state-parks-senior-discounts phone: ["8779967275"] -> "3077776323"  [medium] phone (run with --phones to apply official ones) https://wyoparks.wyo.gov/index.php/learn/contact
+WY tax-refund-elderly-disabled assets_individual: 29950 -> 25000  [high] aggregator source https://codes.findlaw.com/wy/title-39-taxation-and-revenue/wy-st-sect-39-11-109/
+WY tax-refund-elderly-disabled assets_couple: 59900 -> 25000  [high] aggregator source https://codes.findlaw.com/wy/title-39-taxation-and-revenue/wy-st-sect-39-11-109/
+WY tax-refund-elderly-disabled phone: ["3077777320","211"] -> "8669898901"  [medium] aggregator source https://wyotax.org/wp-content/uploads/2020/07/Current-Property-Tax-Assistance-Programs-2013.pdf

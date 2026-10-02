@@ -28,6 +28,9 @@ export interface JobDetails {
   requirements?: MedjobsRequirements;
 }
 
+/** Student's weekly availability schedule - day name to array of time windows */
+export type AvailabilitySchedule = Record<string, Array<{ start: string; end: string }>>;
+
 interface ScheduleInterviewModalProps {
   /** Provider → Student: pass the student's profile ID */
   studentProfileId?: string;
@@ -47,6 +50,8 @@ interface ScheduleInterviewModalProps {
   onScheduledUnverified?: () => void;
   /** Provider's hiring defaults — job description pre-fills Notes, all fields stored with interview. */
   jobDetails?: JobDetails;
+  /** Student's availability schedule - used to filter date/time options (provider → student only) */
+  studentAvailability?: AvailabilitySchedule;
 }
 
 const FORMAT_OPTIONS: { value: "video" | "phone" | "in_person"; label: string }[] = [
@@ -56,7 +61,10 @@ const FORMAT_OPTIONS: { value: "video" | "phone" | "in_person"; label: string }[
 ];
 
 // Generate date options for next 30 days (dropdown format)
-function getDateOptions(): { value: string; label: string }[] {
+// If availability is provided, only include dates where student has availability
+function getDateOptions(
+  availability?: AvailabilitySchedule
+): { value: string; label: string }[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const options: { value: string; label: string }[] = [];
@@ -64,6 +72,10 @@ function getDateOptions(): { value: string; label: string }[] {
   for (let i = 0; i < 30; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() + i);
+
+    // Skip dates where student has no availability
+    if (!hasAvailabilityOnDate(d, availability)) continue;
+
     const dateStr = d.toISOString().split("T")[0];
 
     let label: string;
@@ -92,6 +104,45 @@ const TIME_SLOTS = [
   "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
   "17:00", "17:30", "18:00",
 ];
+
+// Day keys matching student availability_schedule format
+const DAY_KEYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Convert a Date to the day key used in availability_schedule (Mon, Tue, etc.) */
+function getDayKey(date: Date): string {
+  return DAY_KEYS[date.getDay()];
+}
+
+/** Check if a date has any availability windows */
+function hasAvailabilityOnDate(
+  date: Date,
+  availability: AvailabilitySchedule | undefined
+): boolean {
+  if (!availability) return true; // No availability data = show all
+  const dayKey = getDayKey(date);
+  const windows = availability[dayKey];
+  return Array.isArray(windows) && windows.length > 0;
+}
+
+/** Check if a time slot falls within any of the availability windows */
+function isTimeInWindows(
+  time: string,
+  windows: Array<{ start: string; end: string }>
+): boolean {
+  return windows.some(({ start, end }) => time >= start && time < end);
+}
+
+/** Get filtered time slots for a specific date based on availability */
+function getAvailableTimeSlots(
+  date: Date,
+  availability: AvailabilitySchedule | undefined
+): string[] {
+  if (!availability) return TIME_SLOTS; // No availability data = show all
+  const dayKey = getDayKey(date);
+  const windows = availability[dayKey];
+  if (!Array.isArray(windows) || windows.length === 0) return [];
+  return TIME_SLOTS.filter((slot) => isTimeInWindows(slot, windows));
+}
 
 function formatTimeSlot(time24: string): string {
   const [hours, minutes] = time24.split(":").map(Number);
@@ -235,6 +286,7 @@ export default function ScheduleInterviewModal({
   initialValues,
   onScheduledUnverified,
   jobDetails,
+  studentAvailability,
 }: ScheduleInterviewModalProps) {
   // Pre-fill notes with job description if provided and no initial notes
   const defaultNotes = initialValues?.notes ?? jobDetails?.job_description ?? "";
@@ -255,9 +307,45 @@ export default function ScheduleInterviewModal({
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
 
-  // Date and time options for dropdowns
-  const dateOptions = useMemo(() => getDateOptions(), []);
-  const timeOptions = useMemo(() => TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) })), []);
+  // Date and time options for dropdowns - filtered by student availability when provided
+  const dateOptions = useMemo(
+    () => getDateOptions(studentAvailability),
+    [studentAvailability]
+  );
+
+  // Time options filtered by selected date's availability windows
+  const timeOptions = useMemo(() => {
+    if (!date) {
+      // No date selected yet - show all times (will be filtered once date is picked)
+      return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
+    }
+    const selectedDate = new Date(date + "T00:00:00");
+    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability);
+    return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
+  }, [date, studentAvailability]);
+
+  // Time options for alternative time (same filtering logic)
+  const altTimeOptions = useMemo(() => {
+    if (!altDate) {
+      return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
+    }
+    const selectedDate = new Date(altDate + "T00:00:00");
+    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability);
+    return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
+  }, [altDate, studentAvailability]);
+
+  // Clear time selection if it's no longer valid after date change
+  useEffect(() => {
+    if (time && !timeOptions.some(opt => opt.value === time)) {
+      setTime("");
+    }
+  }, [time, timeOptions]);
+
+  useEffect(() => {
+    if (altTime && !altTimeOptions.some(opt => opt.value === altTime)) {
+      setAltTime("");
+    }
+  }, [altTime, altTimeOptions]);
 
   const handleSubmit = async () => {
     if (!date || !time) { setError("Please select a date and time."); return; }
@@ -554,7 +642,7 @@ export default function ScheduleInterviewModal({
                 label="Select alternative date"
               />
               <StyledDropdown
-                options={timeOptions}
+                options={altTimeOptions}
                 value={altTime}
                 onChange={setAltTime}
                 placeholder="Select time"

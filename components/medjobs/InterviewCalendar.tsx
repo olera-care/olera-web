@@ -128,6 +128,65 @@ function typeIcon(type: string) {
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/* ── Availability Filtering Helpers ── */
+
+type AvailabilitySchedule = Record<string, Array<{ start: string; end: string }>>;
+
+const TIME_SLOTS = [
+  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+  "17:00", "17:30", "18:00",
+];
+
+function getDayKey(date: Date): string {
+  return DAY_HEADERS[date.getDay()];
+}
+
+function hasAvailabilityOnDate(date: Date, availability: AvailabilitySchedule | undefined): boolean {
+  if (!availability) return true;
+  const dayKey = getDayKey(date);
+  const windows = availability[dayKey];
+  return Array.isArray(windows) && windows.length > 0;
+}
+
+function isTimeInWindows(time: string, windows: Array<{ start: string; end: string }>): boolean {
+  return windows.some(({ start, end }) => time >= start && time < end);
+}
+
+function getAvailableTimeSlots(date: Date, availability: AvailabilitySchedule | undefined): string[] {
+  if (!availability) return TIME_SLOTS;
+  const dayKey = getDayKey(date);
+  const windows = availability[dayKey];
+  if (!Array.isArray(windows) || windows.length === 0) return [];
+  return TIME_SLOTS.filter((slot) => isTimeInWindows(slot, windows));
+}
+
+function getDateOptions(availability?: AvailabilitySchedule): { value: string; label: string }[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const options: { value: string; label: string }[] = [];
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    if (!hasAvailabilityOnDate(d, availability)) continue;
+    const dateStr = d.toISOString().split("T")[0];
+    let label: string;
+    if (i === 0) label = "Today";
+    else if (i === 1) label = "Tomorrow";
+    else label = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    options.push({ value: dateStr, label });
+  }
+  return options;
+}
+
+function formatTimeSlot(time24: string): string {
+  const [hours, minutes] = time24.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
+  const hour12 = hours % 12 || 12;
+  return minutes === 0 ? `${hour12}:00 ${period}` : `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
+}
+
 /* ── Main Calendar Component ── */
 
 export default function InterviewCalendar({
@@ -518,6 +577,9 @@ function InterviewDetailModal({
   const resumeStoragePath = studentMeta.resume_url as string | undefined;
   const videoUrl = studentMeta.video_intro_url as string | undefined;
 
+  // Student availability for filtering reschedule options
+  const studentAvailability = studentMeta.availability_schedule as AvailabilitySchedule | undefined;
+
   // State for signed document URLs
   const [signedResumeUrl, setSignedResumeUrl] = useState<string | null>(null);
   const [resumeLoading, setResumeLoading] = useState(false);
@@ -621,7 +683,28 @@ function InterviewDetailModal({
   const [showReschedule, setShowReschedule] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
-  const todayStr = new Date().toISOString().split("T")[0];
+
+  // Filtered date/time options based on student availability
+  const rescheduleDateOptions = useMemo(
+    () => getDateOptions(studentAvailability),
+    [studentAvailability]
+  );
+  const rescheduleTimeOptions = useMemo(() => {
+    if (!rescheduleDate) {
+      return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
+    }
+    const selectedDate = new Date(rescheduleDate + "T00:00:00");
+    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability);
+    return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
+  }, [rescheduleDate, studentAvailability]);
+
+  // Clear time if it's no longer valid after date change
+  useEffect(() => {
+    if (rescheduleTime && !rescheduleTimeOptions.some(opt => opt.value === rescheduleTime)) {
+      setRescheduleTime("");
+    }
+  }, [rescheduleTime, rescheduleTimeOptions]);
+
   const canReschedule = !!rescheduleDate && !!rescheduleTime && !isLoading;
   const handleReschedule = async () => {
     if (!canReschedule) return;
@@ -662,19 +745,26 @@ function InterviewDetailModal({
       return (
         <div className="space-y-3">
           <div className="flex gap-2">
-            <input
-              type="date"
-              min={todayStr}
+            <select
               value={rescheduleDate}
               onChange={(e) => setRescheduleDate(e.target.value)}
-              className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-            <input
-              type="time"
+              className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="">Select date</option>
+              {rescheduleDateOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <select
               value={rescheduleTime}
               onChange={(e) => setRescheduleTime(e.target.value)}
-              className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
+              className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="">Select time</option>
+              {rescheduleTimeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
           <button
             type="button"

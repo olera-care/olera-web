@@ -17,6 +17,13 @@ import {
   getSeasonalStatusLabel,
 } from "@/lib/medjobs-helpers";
 import { EMPLOYER_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
+import {
+  type AvailabilitySchedule,
+  TIME_SLOTS,
+  getDateOptions,
+  getAvailableTimeSlots,
+  formatTimeSlot,
+} from "@/lib/medjobs/availability-utils";
 
 type ViewState = "profile" | "schedule" | "success";
 
@@ -37,66 +44,6 @@ const FORMAT_OPTIONS: { value: "video" | "phone" | "in_person"; label: string }[
   { value: "phone", label: "Phone" },
   { value: "in_person", label: "In person" },
 ];
-
-// Availability filtering helpers
-type AvailabilitySchedule = Record<string, Array<{ start: string; end: string }>>;
-const DAY_KEYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-function getDayKey(date: Date): string {
-  return DAY_KEYS[date.getDay()];
-}
-
-function hasAvailabilityOnDate(date: Date, availability: AvailabilitySchedule | undefined): boolean {
-  if (!availability) return true;
-  const dayKey = getDayKey(date);
-  const windows = availability[dayKey];
-  return Array.isArray(windows) && windows.length > 0;
-}
-
-function isTimeInWindows(time: string, windows: Array<{ start: string; end: string }>): boolean {
-  return windows.some(({ start, end }) => time >= start && time < end);
-}
-
-function getAvailableTimeSlots(date: Date, availability: AvailabilitySchedule | undefined): string[] {
-  if (!availability) return TIME_SLOTS;
-  const dayKey = getDayKey(date);
-  const windows = availability[dayKey];
-  if (!Array.isArray(windows) || windows.length === 0) return [];
-  return TIME_SLOTS.filter((slot) => isTimeInWindows(slot, windows));
-}
-
-function getDateOptions(availability?: AvailabilitySchedule): { value: string; label: string }[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const options: { value: string; label: string }[] = [];
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    // Skip dates where student has no availability
-    if (!hasAvailabilityOnDate(d, availability)) continue;
-    const dateStr = d.toISOString().split("T")[0];
-    let label: string;
-    if (i === 0) label = "Today";
-    else if (i === 1) label = "Tomorrow";
-    else label = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-    options.push({ value: dateStr, label });
-  }
-  return options;
-}
-
-const TIME_SLOTS = [
-  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-  "17:00", "17:30", "18:00",
-];
-
-function formatTimeSlot(time24: string): string {
-  const [hours, minutes] = time24.split(":").map(Number);
-  const period = hours >= 12 ? "PM" : "AM";
-  const hour12 = hours % 12 || 12;
-  return minutes === 0 ? `${hour12}:00 ${period}` : `${hour12}:${minutes.toString().padStart(2, "0")} ${period}`;
-}
 
 function formatExperienceDate(ym: string): string {
   const [year, month] = ym.split("-");

@@ -333,7 +333,9 @@ export async function getProgramsForFamily(
     // Hard exclusions only on facts we actually hold.
     if (p.requires_veteran === true && facts.veteranStatus === "no") continue;
     if (p.requires_medicaid && (facts.medicaidStatus === "doesNotHave" || facts.medicaidStatus === "denied")) continue;
-    if (p.min_age != null && ageMeetsMin({ exact: facts.age, band: facts.ageBand }, p.min_age) === false) continue;
+    // min_age is the March 2026 seed too, and seed-seniorized (SNAP carries
+    // 60), so a 58-year-old lost programs that take anyone. The finder stopped
+    // excluding on it; this path matches. It still boosts below.
     // Income: max_income_single is the March 2026 seed, which disagrees with
     // the fact-checked drafts on 91 of 136 programs (DC Safe at Home carried
     // $6,046 against a real $8,300). The finder stopped excluding on it on
@@ -382,6 +384,7 @@ export async function getProgramsForFamily(
       const ceiling = incomeBandCeiling(facts.incomeBand);
       if (ceiling != null && p.max_income_single != null && ceiling <= p.max_income_single) score += 6;
     }
+    if (p.min_age != null && ageMeetsMin({ exact: facts.age, band: facts.ageBand }, p.min_age) === true) score += 6;
     scored.push({ program: p, isState, score });
   }
 

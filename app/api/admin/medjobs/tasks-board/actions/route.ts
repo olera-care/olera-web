@@ -960,6 +960,8 @@ export async function POST(req: Request) {
             archived_reason: body.reason ?? null,
             archived_by: user.id,
             archived_at: new Date().toISOString(),
+            // Preserve the original status so unarchive can restore it.
+            archived_from_status: outreach.status,
           },
         })
         .eq("id", outreach.id);
@@ -989,34 +991,50 @@ export async function POST(req: Request) {
 
     case "unarchive_record": {
       const research = { ...((outreach.research_data ?? {}) as Record<string, unknown>) };
+      // Restore the original status if it was a "finished" state, otherwise
+      // reset to researched. A provider who was ready_for_students before
+      // archiving should stay that way — they completed the ladder.
+      const FINISHED_STATUSES = new Set([
+        "active_partner",
+        "ready_for_students",
+        "not_interested",
+        "no_response_closed",
+        "do_not_contact",
+        "wrong_contact",
+      ]);
+      const originalStatus = research.archived_from_status as string | undefined;
+      const restoredStatus =
+        originalStatus && FINISHED_STATUSES.has(originalStatus) ? originalStatus : "researched";
+
       delete research.archived_reason;
       delete research.archived_by;
       delete research.archived_at;
+      delete research.archived_from_status;
 
       const { error } = await db
         .from("student_outreach")
-        .update({ ...stamp(user.id), status: "researched", research_data: research })
+        .update({ ...stamp(user.id), status: restoredStatus, research_data: research })
         .eq("id", outreach.id);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-      // Give it something to do again, but only if nothing is open already.
-      // A provider restarts at rung 0, which is now Research: a record that
-      // has been off the board wants looking at before it is called. An
-      // advisor starts at 1, because rung 0 there is the fan-out that found
-      // it in the first place.
-      const { count } = await db
-        .from("student_outreach_tasks")
-        .select("id", { count: "exact", head: true })
-        .eq("outreach_id", outreach.id)
-        .eq("status", "pending");
-      if (!count) {
-        await db.from("student_outreach_tasks").insert({
-          outreach_id: outreach.id,
-          task_type: "outreach_contact",
-          status: "pending",
-          due_at: new Date().toISOString().slice(0, 10),
-          payload: { step: outreach.kind === "provider" ? 0 : 1, round: 0 },
-        });
+      // Give it something to do again, but only if:
+      // 1. Nothing is open already, AND
+      // 2. The record wasn't in a finished state (finished records are done climbing)
+      if (restoredStatus === "researched") {
+        const { count } = await db
+          .from("student_outreach_tasks")
+          .select("id", { count: "exact", head: true })
+          .eq("outreach_id", outreach.id)
+          .eq("status", "pending");
+        if (!count) {
+          await db.from("student_outreach_tasks").insert({
+            outreach_id: outreach.id,
+            task_type: "outreach_contact",
+            status: "pending",
+            due_at: new Date().toISOString().slice(0, 10),
+            payload: { step: outreach.kind === "provider" ? 0 : 1, round: 0 },
+          });
+        }
       }
       return NextResponse.json({ ok: true, restored: outreach.organization_name });
     }

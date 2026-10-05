@@ -628,6 +628,7 @@ export async function GET() {
 
       const research = (row.research_data ?? {}) as {
         olera_provider_id?: string;
+        olera_provider_slug?: string;
         website?: string;
         address?: string;
         date?: string;
@@ -688,9 +689,13 @@ export async function GET() {
         state: closed ? row.status.replace(/_/g, " ") : null,
         tasks,
         // Providers only: the slug for linking to the admin directory.
+        // Try provider_business_profile_id first (linked to business_profiles),
+        // then fall back to olera_provider_slug from research_data.
         directorySlug:
-          row.kind === "provider" && row.provider_business_profile_id
-            ? directorySlugOf.get(row.provider_business_profile_id as string) ?? null
+          row.kind === "provider"
+            ? (row.provider_business_profile_id
+                ? directorySlugOf.get(row.provider_business_profile_id as string)
+                : null) ?? research.olera_provider_slug ?? null
             : null,
       });
     }

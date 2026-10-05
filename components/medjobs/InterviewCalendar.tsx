@@ -633,19 +633,22 @@ function InterviewDetailModal({
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
 
+  // Get student timezone for proper timestamp conversion
+  const studentTimezone = getStudentTimezone(interview.student?.metadata);
+
   // Filtered date/time options based on student availability
   const rescheduleDateOptions = useMemo(
-    () => getDateOptions(studentAvailability),
-    [studentAvailability]
+    () => getDateOptions(studentAvailability, studentTimezone),
+    [studentAvailability, studentTimezone]
   );
   const rescheduleTimeOptions = useMemo(() => {
     if (!rescheduleDate) {
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
     const selectedDate = new Date(rescheduleDate + "T00:00:00");
-    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability);
+    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, studentTimezone);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
-  }, [rescheduleDate, studentAvailability]);
+  }, [rescheduleDate, studentAvailability, studentTimezone]);
 
   // Clear time if it's no longer valid after date change
   useEffect(() => {
@@ -655,8 +658,6 @@ function InterviewDetailModal({
   }, [rescheduleTime, rescheduleTimeOptions]);
 
   const canReschedule = !!rescheduleDate && !!rescheduleTime && !isLoading;
-  // Get student timezone for proper timestamp conversion
-  const studentTimezone = getStudentTimezone(interview.student?.metadata);
   const handleReschedule = async () => {
     if (!canReschedule) return;
     // Interpret selected time in student's timezone, not browser's local timezone

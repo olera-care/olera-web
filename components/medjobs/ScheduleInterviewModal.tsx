@@ -225,9 +225,11 @@ export default function ScheduleInterviewModal({
   const firstName = otherName.split(" ")[0];
 
   // Date and time options for dropdowns - filtered by student availability when provided
+  // Use student's timezone to determine "today" and day-of-week correctly
+  const tz = studentTimezone ?? DEFAULT_TIMEZONE;
   const dateOptions = useMemo(
-    () => getDateOptions(studentAvailability),
-    [studentAvailability]
+    () => getDateOptions(studentAvailability, tz),
+    [studentAvailability, tz]
   );
 
   // Time options filtered by selected date's availability windows
@@ -237,9 +239,9 @@ export default function ScheduleInterviewModal({
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
     const selectedDate = new Date(date + "T00:00:00");
-    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability);
+    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, tz);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
-  }, [date, studentAvailability]);
+  }, [date, studentAvailability, tz]);
 
   // Time options for alternative time (same filtering logic)
   const altTimeOptions = useMemo(() => {
@@ -247,9 +249,9 @@ export default function ScheduleInterviewModal({
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
     const selectedDate = new Date(altDate + "T00:00:00");
-    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability);
+    const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, tz);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
-  }, [altDate, studentAvailability]);
+  }, [altDate, studentAvailability, tz]);
 
   // Clear time selection if it's no longer valid after date change
   useEffect(() => {

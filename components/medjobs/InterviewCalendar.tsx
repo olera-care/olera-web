@@ -22,7 +22,7 @@ import {
   getAvailableTimeSlots,
   formatTimeSlot,
 } from "@/lib/medjobs/availability-utils";
-import { getStudentTimezone, dateTimeToISO } from "@/lib/medjobs/timezone";
+import { getStudentTimezone, dateTimeToISO, getTimezoneLabel } from "@/lib/medjobs/timezone";
 
 /* ── Types ── */
 
@@ -719,7 +719,7 @@ function InterviewDetailModal({
             </select>
           </div>
           <p className="text-xs text-gray-500 -mt-1">
-            Times in {interview.student?.display_name?.split(" ")[0] || "student"}&apos;s timezone
+            Times shown in {getTimezoneLabel(studentTimezone)}
           </p>
           <button
             type="button"

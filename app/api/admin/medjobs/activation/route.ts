@@ -293,11 +293,13 @@ export async function GET(req: NextRequest) {
               detail:
                 (r.research_data as { general_contact?: { phone?: string } } | null)
                   ?.general_contact?.phone ?? null,
-              // Try business_profiles slug first, fall back to olera_provider_slug
+              // Try business_profiles slug first, fall back to olera_provider_slug or olera_provider_id
               directorySlug: r.provider_business_profile_id
                 ? providerSlugs.get(r.provider_business_profile_id) ?? null
-                : (r.research_data as { olera_provider_slug?: string } | null)
-                    ?.olera_provider_slug ?? null,
+                : (r.research_data as { olera_provider_slug?: string; olera_provider_id?: string } | null)
+                    ?.olera_provider_slug
+                  ?? (r.research_data as { olera_provider_id?: string } | null)?.olera_provider_id
+                  ?? null,
             })),
           }
         : undefined,

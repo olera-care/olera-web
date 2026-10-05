@@ -690,12 +690,13 @@ export async function GET() {
         tasks,
         // Providers only: the slug for linking to the admin directory.
         // Try provider_business_profile_id first (linked to business_profiles),
-        // then fall back to olera_provider_slug from research_data.
+        // then fall back to olera_provider_slug OR olera_provider_id from research_data.
+        // The directory accepts both slug and provider_id as valid identifiers.
         directorySlug:
           row.kind === "provider"
             ? (row.provider_business_profile_id
                 ? directorySlugOf.get(row.provider_business_profile_id as string)
-                : null) ?? research.olera_provider_slug ?? null
+                : null) ?? research.olera_provider_slug ?? research.olera_provider_id ?? null
             : null,
       });
     }

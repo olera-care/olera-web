@@ -16,6 +16,7 @@ import {
   getAvailableTimeSlots,
   formatTimeSlot,
 } from "@/lib/medjobs/availability-utils";
+import { getTimezoneLabel, DEFAULT_TIMEZONE } from "@/lib/medjobs/timezone";
 
 export interface ScheduleFormData {
   type: "video" | "in_person" | "phone";
@@ -56,6 +57,8 @@ interface ScheduleInterviewModalProps {
   jobDetails?: JobDetails;
   /** Student's availability schedule - used to filter date/time options (provider → student only) */
   studentAvailability?: AvailabilitySchedule;
+  /** Student's timezone (IANA format) - displayed for clarity. Defaults to America/Chicago. */
+  studentTimezone?: string;
 }
 
 const FORMAT_OPTIONS: { value: "video" | "phone" | "in_person"; label: string }[] = [
@@ -200,6 +203,7 @@ export default function ScheduleInterviewModal({
   onScheduledUnverified,
   jobDetails,
   studentAvailability,
+  studentTimezone,
 }: ScheduleInterviewModalProps) {
   // Pre-fill notes with job description if provided and no initial notes
   const defaultNotes = initialValues?.notes ?? jobDetails?.job_description ?? "";
@@ -519,6 +523,11 @@ export default function ScheduleInterviewModal({
             />
           </div>
         </div>
+
+        {/* Timezone indicator */}
+        <p className="text-xs text-gray-500 -mt-3">
+          Times shown in {getTimezoneLabel(studentTimezone ?? DEFAULT_TIMEZONE)}
+        </p>
 
         {/* Alternative time - progressive disclosure */}
         {!showAltTime ? (

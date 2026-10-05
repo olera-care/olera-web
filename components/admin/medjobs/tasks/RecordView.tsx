@@ -225,6 +225,18 @@ export default function RecordView({
               )}
             </h3>
           )}
+          {/* View in directory link — explicit navigation to the full provider profile */}
+          {record.directorySlug && (
+            <a
+              href={`/admin/directory/${record.directorySlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-[12.5px] font-medium text-primary-700 hover:text-primary-800 hover:underline"
+            >
+              <OpenIcon />
+              View in directory
+            </a>
+          )}
           {record.state && (
             <p className="mt-0.5 text-[12.5px] text-gray-500">{record.state}</p>
           )}

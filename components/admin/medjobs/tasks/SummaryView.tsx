@@ -249,7 +249,7 @@ export default function SummaryView({
                                   e.stopPropagation();
                                   window.open(`/admin/directory/${r.directorySlug}`, "_blank", "noopener,noreferrer");
                                 }}
-                                className="block max-w-full truncate text-left text-primary-700 underline decoration-primary-300 underline-offset-2 hover:text-primary-800 hover:decoration-primary-600"
+                                className="block max-w-full truncate text-left text-gray-900 hover:text-primary-700"
                               >
                                 {r.name}
                               </button>

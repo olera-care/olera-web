@@ -109,7 +109,7 @@ export default function ProfileCard({
                             e.stopPropagation();
                             onOpenDirectory(r.directorySlug!);
                           }}
-                          className="block truncate text-[13px] text-brand-600 hover:text-brand-700 hover:underline text-left"
+                          className="block truncate text-[13px] text-gray-900 hover:text-primary-700 text-left"
                         >
                           {r.name}
                         </button>

@@ -452,7 +452,7 @@ export default function CandidateBottomSheet({
             {candidate.placementStatus ? (
               // Student is already hired by this provider
               <a
-                href="/provider/medjobs/candidates?tab=interviews"
+                href="/provider/caregivers"
                 className="w-full py-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

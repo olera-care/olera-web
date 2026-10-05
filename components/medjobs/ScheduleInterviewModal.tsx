@@ -16,7 +16,7 @@ import {
   getAvailableTimeSlots,
   formatTimeSlot,
 } from "@/lib/medjobs/availability-utils";
-import { getTimezoneLabel, DEFAULT_TIMEZONE } from "@/lib/medjobs/timezone";
+import { getTimezoneLabel, DEFAULT_TIMEZONE, dateTimeToISO } from "@/lib/medjobs/timezone";
 
 export interface ScheduleFormData {
   type: "video" | "in_person" | "phone";
@@ -304,8 +304,10 @@ export default function ScheduleInterviewModal({
       }
     }
 
-    const proposedTime = new Date(`${date}T${time}`).toISOString();
-    const alternativeTime = altDate && altTime ? new Date(`${altDate}T${altTime}`).toISOString() : undefined;
+    // Interpret selected date/time in the student's timezone, not browser's local timezone
+    const tz = studentTimezone ?? DEFAULT_TIMEZONE;
+    const proposedTime = dateTimeToISO(date, time, tz);
+    const alternativeTime = altDate && altTime ? dateTimeToISO(altDate, altTime, tz) : undefined;
 
     try {
       // Provider → student: record the one-time Terms acceptance (the scheduling

@@ -22,6 +22,7 @@ import {
   getAvailableTimeSlots,
   formatTimeSlot,
 } from "@/lib/medjobs/availability-utils";
+import { getStudentTimezone, dateTimeToISO } from "@/lib/medjobs/timezone";
 
 /* ── Types ── */
 
@@ -654,9 +655,12 @@ function InterviewDetailModal({
   }, [rescheduleTime, rescheduleTimeOptions]);
 
   const canReschedule = !!rescheduleDate && !!rescheduleTime && !isLoading;
+  // Get student timezone for proper timestamp conversion
+  const studentTimezone = getStudentTimezone(interview.student?.metadata);
   const handleReschedule = async () => {
     if (!canReschedule) return;
-    const iso = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
+    // Interpret selected time in student's timezone, not browser's local timezone
+    const iso = dateTimeToISO(rescheduleDate, rescheduleTime, studentTimezone);
     await onUpdateStatus(interview.id, "rescheduled", iso);
     onClose();
   };
@@ -714,6 +718,9 @@ function InterviewDetailModal({
               ))}
             </select>
           </div>
+          <p className="text-xs text-gray-500 -mt-1">
+            Times in {interview.student?.display_name?.split(" ")[0] || "student"}&apos;s timezone
+          </p>
           <button
             type="button"
             onClick={handleReschedule}

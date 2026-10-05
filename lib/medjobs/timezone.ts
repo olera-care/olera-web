@@ -139,3 +139,78 @@ export function getTimezoneLabel(timezone: string): string {
 
   return `${timezone} (${abbr})`;
 }
+
+/**
+ * Convert a date string (YYYY-MM-DD) and time string (HH:MM) in a specific
+ * timezone to a UTC ISO string.
+ *
+ * Example: dateTimeToISO("2024-10-07", "09:00", "America/Chicago")
+ *   → "2024-10-07T14:00:00.000Z" (9 AM Central = 2 PM UTC)
+ *
+ * This is needed because `new Date("2024-10-07T09:00")` interprets the time
+ * in the browser's local timezone, not the specified timezone.
+ */
+export function dateTimeToISO(
+  dateStr: string,
+  timeStr: string,
+  timezone: string
+): string {
+  // Create a Date object for the given date/time in the specified timezone.
+  // We use Intl.DateTimeFormat to figure out the timezone offset.
+  const localDateStr = `${dateStr}T${timeStr}:00`;
+
+  // Get the timezone offset for this specific date/time in the target timezone.
+  // We need to handle DST correctly, so we compute offset for the specific date.
+  const targetDate = new Date(localDateStr);
+
+  // Format in the target timezone to get individual components
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  // Parse the date in the target timezone and compare to get offset
+  // First, create a date object that we'll adjust
+  const parts = formatter.formatToParts(targetDate);
+  const getPart = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+
+  // The formatter shows what time targetDate represents in the target timezone.
+  // We want the reverse: interpret dateStr/timeStr AS IF in target timezone.
+
+  // Use a different approach: calculate offset by comparing formatted vs actual
+  const utcDate = new Date(`${dateStr}T${timeStr}:00Z`);
+
+  // Get what time utcDate shows in the target timezone
+  const tzParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(utcDate);
+
+  const tzYear = tzParts.find((p) => p.type === "year")?.value ?? "";
+  const tzMonth = tzParts.find((p) => p.type === "month")?.value ?? "";
+  const tzDay = tzParts.find((p) => p.type === "day")?.value ?? "";
+  const tzHour = tzParts.find((p) => p.type === "hour")?.value ?? "";
+  const tzMinute = tzParts.find((p) => p.type === "minute")?.value ?? "";
+
+  const tzDateStr = `${tzYear}-${tzMonth}-${tzDay}T${tzHour}:${tzMinute}:00Z`;
+  const tzDate = new Date(tzDateStr);
+
+  // The offset is how much later the timezone time is from UTC
+  const offsetMs = tzDate.getTime() - utcDate.getTime();
+
+  // To go from "time in timezone" to UTC, we subtract the offset
+  const inputAsUtc = new Date(`${dateStr}T${timeStr}:00Z`);
+  const result = new Date(inputAsUtc.getTime() - offsetMs);
+
+  return result.toISOString();
+}

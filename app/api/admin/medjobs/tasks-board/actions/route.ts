@@ -93,6 +93,7 @@ type Body =
     }
   | { op: "unarchive_record"; recordId: string }
   | { op: "clear_flag"; recordId: string }
+  | { op: "revert_status"; recordId: string }
   | { op: "delete_record"; recordId: string; reason?: string }
   | {
       op: "save_fields";
@@ -987,6 +988,37 @@ export async function POST(req: Request) {
         .eq("id", outreach.id);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ ok: true });
+    }
+
+    // ── clear a finished status ──────────────────────────────────────────────
+    // Undo a "ready for students" or other finished state so the record can
+    // be worked again. This is for when somebody reached the goal by mistake
+    // or the situation changed.
+    case "revert_status": {
+      const { error } = await db
+        .from("student_outreach")
+        .update({ ...stamp(user.id), status: "in_progress" })
+        .eq("id", outreach.id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+      // Give it a task to pick up from, starting at the first rung. A record
+      // whose status was cleared probably needs to be re-confirmed rather
+      // than picked up mid-ladder.
+      const { count } = await db
+        .from("student_outreach_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("outreach_id", outreach.id)
+        .eq("status", "pending");
+      if (!count) {
+        await db.from("student_outreach_tasks").insert({
+          outreach_id: outreach.id,
+          task_type: "outreach_contact",
+          status: "pending",
+          due_at: new Date().toISOString().slice(0, 10),
+          payload: { step: outreach.kind === "provider" ? 0 : 1, round: 0 },
+        });
+      }
+      return NextResponse.json({ ok: true, cleared: outreach.organization_name });
     }
 
     case "unarchive_record": {

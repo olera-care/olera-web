@@ -163,7 +163,8 @@ export default function CandidateBottomSheet({
     if (!date) {
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
-    const selectedDate = new Date(date + "T00:00:00");
+    // Use UTC noon to avoid timezone day-boundary issues
+    const selectedDate = new Date(date + "T12:00:00Z");
     const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, studentTimezone);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
   }, [date, studentAvailability, studentTimezone]);
@@ -171,7 +172,8 @@ export default function CandidateBottomSheet({
     if (!altDate) {
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
-    const selectedDate = new Date(altDate + "T00:00:00");
+    // Use UTC noon to avoid timezone day-boundary issues
+    const selectedDate = new Date(altDate + "T12:00:00Z");
     const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, studentTimezone);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
   }, [altDate, studentAvailability, studentTimezone]);

@@ -238,7 +238,8 @@ export default function ScheduleInterviewModal({
       // No date selected yet - show all times (will be filtered once date is picked)
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
-    const selectedDate = new Date(date + "T00:00:00");
+    // Use UTC noon to avoid timezone day-boundary issues
+    const selectedDate = new Date(date + "T12:00:00Z");
     const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, tz);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
   }, [date, studentAvailability, tz]);
@@ -248,7 +249,8 @@ export default function ScheduleInterviewModal({
     if (!altDate) {
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
-    const selectedDate = new Date(altDate + "T00:00:00");
+    // Use UTC noon to avoid timezone day-boundary issues
+    const selectedDate = new Date(altDate + "T12:00:00Z");
     const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, tz);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
   }, [altDate, studentAvailability, tz]);

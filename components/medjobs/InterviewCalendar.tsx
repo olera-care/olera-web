@@ -645,7 +645,8 @@ function InterviewDetailModal({
     if (!rescheduleDate) {
       return TIME_SLOTS.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
     }
-    const selectedDate = new Date(rescheduleDate + "T00:00:00");
+    // Use UTC noon to avoid timezone day-boundary issues
+    const selectedDate = new Date(rescheduleDate + "T12:00:00Z");
     const availableSlots = getAvailableTimeSlots(selectedDate, studentAvailability, studentTimezone);
     return availableSlots.map(slot => ({ value: slot, label: formatTimeSlot(slot) }));
   }, [rescheduleDate, studentAvailability, studentTimezone]);

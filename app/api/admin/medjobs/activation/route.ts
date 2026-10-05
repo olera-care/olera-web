@@ -293,9 +293,11 @@ export async function GET(req: NextRequest) {
               detail:
                 (r.research_data as { general_contact?: { phone?: string } } | null)
                   ?.general_contact?.phone ?? null,
+              // Try business_profiles slug first, fall back to olera_provider_slug
               directorySlug: r.provider_business_profile_id
                 ? providerSlugs.get(r.provider_business_profile_id) ?? null
-                : null,
+                : (r.research_data as { olera_provider_slug?: string } | null)
+                    ?.olera_provider_slug ?? null,
             })),
           }
         : undefined,

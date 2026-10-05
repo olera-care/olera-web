@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { generateProviderSlug } from "@/lib/slugify";
 import { LADDERS, type ContactField, type SectionKey } from "@/lib/medjobs/ladders";
 import {
   SKIPPED,
@@ -294,7 +295,52 @@ async function createFound(
   // Migration 074 requires a provider row to say where it came from, and a
   // swept one has no directory behind it. 235 accepts manual_entry for
   // exactly this.
-  if (provider) research.manual_entry = true;
+  if (provider) {
+    research.manual_entry = true;
+
+    // Create a directory entry so the provider is linkable from MedJobs.
+    // This makes manually added providers show up in the directory and
+    // enables the "View in directory" link.
+    const baseSlug = generateProviderSlug(found.name, null);
+
+    // Only create directory entry if we can generate a valid slug
+    // (names like "!!!" would produce an empty slug)
+    if (baseSlug) {
+      const providerId = crypto.randomUUID();
+
+      // Ensure slug uniqueness
+      let slug = baseSlug;
+      const { data: existing } = await db
+        .from("olera-providers")
+        .select("provider_id")
+        .eq("slug", baseSlug)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
+      }
+
+      const { error: dirError } = await db.from("olera-providers").insert({
+        provider_id: providerId,
+        provider_name: found.name.slice(0, 200),
+        provider_category: "Home Care (Non-medical)", // Default for MedJobs providers
+        slug,
+        deleted: false,
+        deleted_at: null,
+        phone: found.phone?.trim() ? formatPhone(found.phone) : null,
+        email: found.email?.trim() || null,
+        website: found.website?.trim() || null,
+        address: found.address?.trim() || null,
+      });
+
+      if (!dirError) {
+        // Store the directory link so the provider can be opened in the directory
+        research.olera_provider_id = providerId;
+        research.olera_provider_slug = slug;
+      }
+      // If directory creation fails, continue anyway — the MedJobs record is
+      // still useful, just without a directory link.
+    }
+  }
   if (found.website?.trim()) research.website = found.website.trim();
   if (found.address?.trim()) research.address = found.address.trim();
   if (found.date?.trim()) research.date = found.date.trim();

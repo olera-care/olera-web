@@ -155,34 +155,11 @@ export function dateTimeToISO(
   timeStr: string,
   timezone: string
 ): string {
-  // Create a Date object for the given date/time in the specified timezone.
-  // We use Intl.DateTimeFormat to figure out the timezone offset.
-  const localDateStr = `${dateStr}T${timeStr}:00`;
+  // Strategy: Calculate the timezone's offset from UTC for this specific date/time,
+  // then apply that offset to convert the input (in target timezone) to UTC.
+  // This correctly handles DST since we use the offset for the specific date.
 
-  // Get the timezone offset for this specific date/time in the target timezone.
-  // We need to handle DST correctly, so we compute offset for the specific date.
-  const targetDate = new Date(localDateStr);
-
-  // Format in the target timezone to get individual components
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  // Parse the date in the target timezone and compare to get offset
-  // First, create a date object that we'll adjust
-  const parts = formatter.formatToParts(targetDate);
-  const getPart = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
-
-  // The formatter shows what time targetDate represents in the target timezone.
-  // We want the reverse: interpret dateStr/timeStr AS IF in target timezone.
-
-  // Use a different approach: calculate offset by comparing formatted vs actual
+  // Create a reference point: the input time interpreted as UTC
   const utcDate = new Date(`${dateStr}T${timeStr}:00Z`);
 
   // Get what time utcDate shows in the target timezone

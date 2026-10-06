@@ -8,6 +8,7 @@
  * 1. Accepted interview terms (interview_terms_accepted_at in metadata)
  * 2. Completed MedJobs eligibility (medjobs_eligibility_completed_at in metadata)
  * 3. Enrolled/activated via staffing outreach
+ * 4. Marked "ready for students" in MedJobs task board (student_outreach.status)
  *
  * Parameters:
  * - `campus` — Student's campus slug (for "Near You" catchment scoping)

@@ -57,8 +57,8 @@ export async function GET(
     const pdfBuffer = await renderStudentPdf(studentData);
     const filename = studentPdfFilename(studentData);
 
-    // Return PDF response
-    return new NextResponse(pdfBuffer, {
+    // Return PDF response (convert Buffer to Uint8Array for NextResponse)
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",

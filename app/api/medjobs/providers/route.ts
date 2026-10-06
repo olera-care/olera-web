@@ -33,6 +33,8 @@ export type ProviderCard = ProviderCardData & {
   isProgram: boolean;
   createdAt?: string | null;
   opportunity?: OpportunityProfile;
+  /** True if marked "ready for students" in MedJobs task board */
+  isReadyForStudents?: boolean;
 };
 
 const PAGE_SIZE = 12;
@@ -69,6 +71,19 @@ function getMedjobsProviders(campus: string, scope: "near" | "all"): Promise<Pro
 
       const outreachProviderIds = new Set<string>(
         (outreachRows ?? []).map((r) => r.provider_id as string)
+      );
+
+      // Get providers marked "ready for students" in the MedJobs task board
+      // This is the canonical signal that a provider is ready to hire
+      const { data: readyRows } = await db
+        .from("student_outreach")
+        .select("provider_business_profile_id")
+        .eq("kind", "provider")
+        .eq("status", "ready_for_students")
+        .not("provider_business_profile_id", "is", null);
+
+      const readyForStudentsIds = new Set<string>(
+        (readyRows ?? []).map((r) => r.provider_business_profile_id as string)
       );
 
       // Query business_profiles for MedJobs-interested providers
@@ -117,15 +132,21 @@ function getMedjobsProviders(campus: string, scope: "near" | "all"): Promise<Pro
         // NOT business_profiles.id. The link is via metadata.source_provider_id.
         const isEnrolledViaOutreach = !!sourceProviderId && outreachProviderIds.has(sourceProviderId);
 
+        // Check if marked "ready for students" in MedJobs task board
+        // This is the canonical signal from admin workflow
+        const isReadyForStudents = readyForStudentsIds.has(row.id);
+
         // Determine if this is a verified/real provider:
         // - Claimed profiles (real person verified ownership), OR
-        // - Enrolled via outreach (we vetted them during campaigns)
+        // - Enrolled via outreach (we vetted them during campaigns), OR
+        // - Marked ready for students (admin verified in task board)
         const isClaimed = row.claim_state === "claimed";
-        const isVerifiedProvider = isClaimed || isEnrolledViaOutreach;
+        const isVerifiedProvider = isClaimed || isEnrolledViaOutreach || isReadyForStudents;
 
         // Skip if no MedJobs interest OR not a verified provider
         // This filters out test accounts and unverified directory listings
-        if (!hasAcceptedTerms && !hasCompletedEligibility && !isEnrolledViaOutreach) {
+        // Sources: 1) accepted terms, 2) completed eligibility, 3) outreach enrolled, 4) ready for students
+        if (!hasAcceptedTerms && !hasCompletedEligibility && !isEnrolledViaOutreach && !isReadyForStudents) {
           continue;
         }
         if (!isVerifiedProvider) {
@@ -136,6 +157,7 @@ function getMedjobsProviders(campus: string, scope: "near" | "all"): Promise<Pro
         card.isProgram = row.claim_state === "claimed";
         card.createdAt = row.created_at ?? null;
         card.opportunity = readOpportunityProfile(meta);
+        card.isReadyForStudents = isReadyForStudents;
         cards.push(card);
       }
 

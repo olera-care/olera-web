@@ -20,6 +20,7 @@ const dirRow = {
   cms_data: { overall_rating: 5 },
   ai_trust_signals: { summary_score: 80 },
   parent_organization: { name: "Elderlink Inc" },
+  facebook_url: "https://www.facebook.com/elderlinkhomecare",
 } as unknown as IOSProvider;
 
 const bareProfile = {
@@ -37,6 +38,7 @@ assert.equal(inherited.placeId, "PLACE_DIRECTORY", "must inherit directory place
 assert.equal(inherited.cmsData?.overall_rating, 5, "must inherit CMS quality");
 assert.equal(inherited.aiTrustSignals?.summary_score, 80, "must inherit trust signals");
 assert.equal(inherited.parentOrganization?.name, "Elderlink Inc", "must inherit franchise parent");
+assert.equal(inherited.facebookUrl, "https://www.facebook.com/elderlinkhomecare", "must inherit Facebook page");
 assert.equal(inherited.source, "account", "still resolves as an account row");
 assert.equal(inherited.rawProviderId, "profile-1", "raw id stays the profile id");
 
@@ -72,6 +74,7 @@ assert.equal(native.placeId, null, "no directory row -> no place_id");
 assert.equal(native.cmsData, null);
 assert.equal(native.aiTrustSignals, null);
 assert.equal(native.parentOrganization, null);
+assert.equal(native.facebookUrl, null);
 
 // 5. Category inheritance (the adapter's original job) still works when the
 //    account row predates category syncing.
@@ -90,5 +93,6 @@ const direct = directoryRowToProvider(dirRow);
 assert.equal(direct.source, "directory");
 assert.equal(direct.googleReviewsData?.rating, 4.9);
 assert.equal(direct.rawProviderId, "abc123");
+assert.equal(direct.facebookUrl, "https://www.facebook.com/elderlinkhomecare");
 
 console.log("check-provider-inheritance: all assertions passed (6 groups)");

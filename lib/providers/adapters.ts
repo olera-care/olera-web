@@ -21,6 +21,7 @@ export function directoryRowToProvider(row: IOSProvider): ProviderView {
     cmsData: row.cms_data ?? null,
     aiTrustSignals: row.ai_trust_signals ?? null,
     parentOrganization: row.parent_organization ?? null,
+    facebookUrl: row.facebook_url ?? null,
   };
 }
 
@@ -83,5 +84,6 @@ export function accountRowToProvider(
     cmsData: directoryRow?.cms_data ?? null,
     aiTrustSignals: directoryRow?.ai_trust_signals ?? null,
     parentOrganization: directoryRow?.parent_organization ?? null,
+    facebookUrl: directoryRow?.facebook_url ?? null,
   };
 }

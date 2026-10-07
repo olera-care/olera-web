@@ -29,6 +29,7 @@
     "cortex:dev-sweep": "npx tsx scripts/cortex-dev-sweep.ts",
     "check:question-dedup": "npx tsx scripts/check-question-dedup.ts",
     "check:provider-inheritance": "npx tsx scripts/check-provider-inheritance.ts",
+    "check:provider-section-order": "npx tsx scripts/check-provider-section-order.ts",
     "check:place-id-rebind": "npx tsx scripts/check-place-id-rebind.ts",
     "check:openai-key": "npx tsx scripts/check-openai-key.ts",
     "check:navigator-packets": "npx tsx scripts/check-navigator-packets.ts",

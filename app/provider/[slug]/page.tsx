@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -67,6 +68,7 @@ import { resolveProviderIdVariants } from "@/lib/provider-id-variants";
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
+import { getSectionOrder, safeFacebookUrl, type ProviderSectionKey } from "@/lib/provider-section-order";
 import { getServiceClient } from "@/lib/admin";
 import { ViewTracker } from "@/components/analytics/ViewTracker";
 
@@ -239,6 +241,23 @@ function HighlightIcon({ icon, className }: { icon: HighlightIconType; className
   }
 }
 
+// Facebook page found by the website sweep (migration 273). Shown for every
+// category when present; an outbound profile link, so nofollow.
+function FacebookLink({ href, className }: { href: string; className?: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="nofollow noopener noreferrer"
+      className={`inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium ${className ?? ""}`}
+    >
+      <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971H15.83c-1.491 0-1.956.93-1.956 1.886v2.264h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
+      </svg>
+      Facebook
+    </a>
+  );
+}
 
 // ============================================================
 // Page Component
@@ -266,6 +285,7 @@ export default async function ProviderPage({
   let providerPlaceId: string | null = null;
   let rawProviderId: string | null = null;
   let parentOrganization: { name: string; url?: string } | null = null;
+  let facebookUrl: string | null = null;
   let providerSource: "ios" | "bp" = "ios";
 
   // Resolve the provider through the canonical front door (lib/providers).
@@ -285,6 +305,7 @@ export default async function ProviderPage({
     providerPlaceId = p.placeId;
     rawProviderId = p.rawProviderId;
     parentOrganization = p.parentOrganization;
+    facebookUrl = safeFacebookUrl(p.facebookUrl);
     providerSource = p.source === "account" ? "bp" : "ios";
   }
 
@@ -729,21 +750,305 @@ export default async function ProviderPage({
   const hasBenefitsData = !!(benefitsData && benefitsData.programs.length > 0);
 
   // ============================================================
-  // Section navigation items — only show tabs for visible sections
+  // Content sections: which are visible, in which order (category-aware,
+  // see lib/provider-section-order.ts), and the nav tabs that follow them
   // ============================================================
-  const sectionItems: SectionItem[] = [];
-  sectionItems.push({ id: "highlights", label: "Highlights" });
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
-  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
-  sectionItems.push({ id: "services", label: "Services" });
-  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
-  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
-  sectionItems.push({ id: "about", label: "About" });
-  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
-  if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
+  const sectionOrder = getSectionOrder(profile.category);
+  const sectionVisible: Record<ProviderSectionKey, boolean> = {
+    reviewsTop: hasGoogleReviews,
+    qa: !isStudentContext,
+    benefits: !isStudentContext && hasBenefitsData,
+    services: true,
+    screening: hasStaffScreening,
+    reviewsEmpty: !isStudentContext && !hasGoogleReviews,
+    // Only 4/5 and 5/5 show publicly; lower scores are used for ranking only.
+    quality: (cmsData?.overall_rating ?? 0) >= 4,
+    trust: (aiTrustSignals?.summary_score ?? 0) > 0,
+    about: true,
+    pricing: pricingDetails.length > 0,
+    payment: hasAcceptedPayments,
+    team: hasStaff,
+  };
+  // The first visible section sits under the hero with no divider above it.
+  const firstSection = sectionOrder.find((key) => sectionVisible[key]);
+  const sectionBorder = (key: ProviderSectionKey) => (key === firstSection ? "" : "border-t border-gray-200");
+
+  const SECTION_NAV: Partial<Record<ProviderSectionKey, SectionItem>> = {
+    reviewsTop: { id: "reviews", label: "Reviews" },
+    qa: { id: "qa", label: "Q&A" },
+    benefits: { id: "benefits", label: "Benefits" },
+    services: { id: "services", label: "Services" },
+    reviewsEmpty: { id: "reviews", label: "Reviews" },
+    quality: { id: "quality", label: "Quality" },
+    trust: { id: "trust-signals", label: "Verified" },
+    about: { id: "about", label: "About" },
+    pricing: { id: "pricing", label: "Pricing" },
+    payment: { id: "payment", label: "Payment" },
+  };
+  const sectionItems: SectionItem[] = [
+    { id: "highlights", label: "Highlights" },
+    ...sectionOrder.flatMap((key) => (sectionVisible[key] && SECTION_NAV[key] ? [SECTION_NAV[key]] : [])),
+  ];
+
+  const sectionNodes: Record<ProviderSectionKey, ReactNode> = {
+    /* ── What families are saying (above services when reviews exist) ── */
+    reviewsTop: sectionVisible.reviewsTop && (
+      <div id="reviews" className="scroll-mt-20">
+        <ReviewsSection
+          providerId={profile.slug}
+          providerSlug={profile.slug}
+          providerName={profile.display_name}
+          mockReviews={reviewsToShow}
+          isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+          googleReviewsData={googleReviewsData}
+          placeId={providerPlaceId}
+          heading={isStudentContext ? "About this provider" : undefined}
+          hideBorder={firstSection === "reviewsTop"}
+        />
+      </div>
+    ),
+    /* ── Customer Questions & Answers (family-facing; hidden in student context) ── */
+    qa: sectionVisible.qa && (
+      <div id="qa" className={`py-8 scroll-mt-20 ${sectionBorder("qa")}`}>
+        <QASectionWithVariant
+          providerId={profile.slug}
+          providerName={profile.display_name}
+          providerImage={images[0]}
+          providerSlug={profile.slug}
+          providerLocation={profile.city && profile.state ? `${profile.city}, ${profile.state}` : ""}
+          providerCareTypes={profile.care_types || []}
+          providerRating={rating}
+          providerPriceRange={priceRange ?? undefined}
+          providerCity={profile.city ?? undefined}
+          providerState={profile.state ?? undefined}
+          questions={publicQuestions.map((q) => ({
+            id: q.id,
+            question: q.question,
+            answer: q.answer,
+            asker_name: q.asker_name,
+            status: q.status,
+            answered_at: q.answered_at ?? undefined,
+            created_at: q.created_at,
+            suggestion_key: q.suggestion_key,
+            asked_count: q.asked_count,
+          }))}
+          suggestedQuestions={getSuggestedQuestions(profile.category)}
+          suggestionStats={suggestionStats}
+          hasBenefitsData={hasBenefitsData && !!benefitsData}
+          similarProvidersForMulti={similarProvidersForMulti}
+          alternativeProviders={outreachCandidates}
+          providerCategory={outreachCategoryString}
+        />
+
+        {/* Outreach arm of the 5-way intake A/B. Slot itself renders
+            null for the ~80% not in the outreach arm, so no wrapping div
+            here — it would leave a phantom mt-6 gap. The module owns
+            its own top margin. See IntakeVariantSlots.tsx. */}
+        {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
+          <AgentOutreachSlot
+            sourceProviderId={profile.slug}
+            sourceProviderName={profile.display_name}
+            city={profile.city!}
+            state={profile.state!}
+            category={outreachCategoryString!}
+            topProviders={outreachCandidates}
+          />
+        )}
+      </div>
+    ),
+    /* ── Benefits Discovery ── */
+    /* Wrapped in BenefitsArmGate so the section disappears for the
+        40% of visitors in the outreach or multi_provider arms of the
+        5-way intake A/B. The 60% in the 3 benefits arms see the existing
+        module unchanged (with its internal mod-3 copy A/B). */
+    benefits: sectionVisible.benefits && benefitsData && (
+      <BenefitsArmGate>
+        <div id="benefits" className={`py-8 scroll-mt-20 ${sectionBorder("benefits")}`}>
+          <BenefitsDiscoveryModule
+            providerState={profile.state!}
+            stateId={benefitsData.stateId}
+            stateName={benefitsData.stateName}
+            providerName={profile.display_name}
+            providerSlug={profile.slug}
+            providerCareTypes={profile.care_types}
+            providerCategory={profile.category}
+            topPrograms={benefitsData.programs.map((p) => ({
+              id: p.id,
+              name: p.name,
+              shortName: p.shortName,
+              tagline: p.tagline,
+              savingsRange: p.savingsRange,
+            }))}
+            allPrograms={benefitsAllPrograms}
+            entrySource={`/provider/${profile.slug}`}
+          />
+        </div>
+      </BenefitsArmGate>
+    ),
+    /* ── Care Services ── */
+    services: (
+      <div id="services" className={`py-8 scroll-mt-20 ${sectionBorder("services")}`}>
+        <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
+        <CareServicesList services={careServices} initialCount={6} />
+      </div>
+    ),
+    /* ── Staff Screening — hidden when no real data ── */
+    screening: sectionVisible.screening && (
+      <div id="screening" className={`py-8 scroll-mt-20 ${sectionBorder("screening")}`}>
+        <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
+        <StaffScreeningList items={staffScreeningItems} initialCount={6} />
+      </div>
+    ),
+    /* ── What families are saying (below Q&A when no reviews — empty state;
+          hidden in student context, the "be first to review" prompt is family-facing) ── */
+    reviewsEmpty: sectionVisible.reviewsEmpty && (
+      <div id="reviews" className="scroll-mt-20">
+        <ReviewsSection
+          providerId={profile.slug}
+          providerSlug={profile.slug}
+          providerName={profile.display_name}
+          mockReviews={reviewsToShow}
+          isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+          googleReviewsData={googleReviewsData}
+          placeId={providerPlaceId}
+          hideBorder={firstSection === "reviewsEmpty"}
+        />
+      </div>
+    ),
+    /* ── CMS Quality & Safety ── */
+    quality: sectionVisible.quality && cmsData && (
+      <div className={`py-8 ${sectionBorder("quality")}`}>
+        <CMSQualitySection cmsData={cmsData} />
+      </div>
+    ),
+    /* ── AI Verified Credentials ── */
+    trust: sectionVisible.trust && aiTrustSignals && (
+      <div className={`py-8 ${sectionBorder("trust")}`}>
+        <AiTrustSignalsSection signals={aiTrustSignals} />
+      </div>
+    ),
+    /* ── About ── */
+    about: (
+      <div id="about" className={`py-8 scroll-mt-20 ${sectionBorder("about")}`}>
+        <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
+        <ExpandableText
+          text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
+          maxLength={300}
+        />
+      </div>
+    ),
+    /* ── Detailed Pricing ── */
+    pricing: sectionVisible.pricing && (
+      <div id="pricing" className={`py-8 scroll-mt-20 ${sectionBorder("pricing")}`}>
+        <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Prices at {profile.display_name}</h2>
+        <div className="space-y-2">
+          {pricingDetails.map((item) => (
+            <div
+              key={item.service}
+              className="flex items-center justify-between py-3.5 px-4 bg-gray-50 rounded-lg"
+            >
+              <span className="text-base font-medium text-gray-900">{item.service}</span>
+              <span className="text-base font-semibold text-gray-900">
+                {item.rate} <span className="font-normal text-gray-500">/{item.rateType.replace("per ", "")}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+          Get a custom quote
+        </ScrollToConnectionCard>
+        {pricingConfig && (
+          <p className="text-xs text-gray-400 mt-4 leading-relaxed">
+            {pricingConfig.disclaimer({
+              providerName: profile.display_name,
+              city: profile.city ?? undefined,
+              state: profile.state ?? undefined,
+            })}
+            {pricingConfig.coverageNote && (
+              <> {pricingConfig.coverageNote({
+                providerName: profile.display_name,
+                city: profile.city ?? undefined,
+                state: profile.state ?? undefined,
+              })}</>
+            )}
+          </p>
+        )}
+      </div>
+    ),
+    /* ── Payment & Insurance — hidden when no real data ── */
+    payment: sectionVisible.payment && (
+      <div id="payment" className={`py-8 scroll-mt-20 ${sectionBorder("payment")}`}>
+        <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Acceptable Payment / Insurance Options</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {acceptedPayments.map((payment) => (
+            <div key={payment} className="flex items-center justify-between py-3 px-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-base text-primary-600 font-medium">{payment}</span>
+              </div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-base text-gray-500">
+          For clarity and guidance,{" "}
+          <ScrollToConnectionCard entryPoint="book_consultation" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+            Book a consultation
+          </ScrollToConnectionCard>
+        </p>
+      </div>
+    ),
+    /* ── Facility Manager — hidden when no staff data ── */
+    team: sectionVisible.team && (
+      <div id="team" className={`py-8 scroll-mt-20 ${sectionBorder("team")}`}>
+        <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Facility manager</h2>
+        <div className="flex flex-col md:flex-row items-start gap-6">
+          <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center w-full md:w-52 md:flex-shrink-0 shadow-md">
+            <div className="relative mx-auto mb-5 w-24 h-24">
+              {staff!.image ? (
+                <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
+                  <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
+                </div>
+              )}
+              {displayClaimState === "verified" && (
+                <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                  <circle cx="10" cy="10" r="10" fill="white" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+            <p className="text-base font-bold text-gray-900">{staff!.name}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{staff!.position}</p>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
+            <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
+            {/* Desktop: button in care motivation column with spacing to align with card bottom */}
+            <ScrollToConnectionCard entryPoint="message_host" className="hidden md:inline-block mt-6 px-6 py-2.5 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+              Message {staff!.name.split(" ")[0]}
+            </ScrollToConnectionCard>
+          </div>
+        </div>
+        {/* Mobile: button full-width below */}
+        <ScrollToConnectionCard entryPoint="message_host" className="md:hidden w-full mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center">
+          Message {staff!.name.split(" ")[0]}
+        </ScrollToConnectionCard>
+        <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
+          <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />
+          </svg>
+          To help protect your family, the Olera team vet facility managers for information accuracy.
+        </div>
+      </div>
+    ),
+  };
 
   // ============================================================
   // Render
@@ -1000,6 +1305,8 @@ export default async function ProviderPage({
                   </p>
                 )}
 
+                {facebookUrl && <FacebookLink href={facebookUrl} className="mt-1" />}
+
                 {/* Row 2: Highlights only (category is now eyebrow above name) */}
                 {(() => {
                   const categoryLower = categoryLabel?.toLowerCase() || "";
@@ -1219,6 +1526,7 @@ export default async function ProviderPage({
                 {profile.address && (
                   <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
                 )}
+                {facebookUrl && <FacebookLink href={facebookUrl} className="mt-1.5" />}
               </div>
 
               {/* Highlight badges — data-driven, variable count (1-4 items) */}
@@ -1382,268 +1690,10 @@ export default async function ProviderPage({
                 );
               })()}
 
-              {/* ── What families are saying (above services when reviews exist) ── */}
-              {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
-                <div id="reviews" className="scroll-mt-20">
-                  <ReviewsSection
-                    providerId={profile.slug}
-                    providerSlug={profile.slug}
-                    providerName={profile.display_name}
-                    mockReviews={reviewsToShow}
-                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-                    googleReviewsData={googleReviewsData}
-                    placeId={providerPlaceId}
-                    heading={isStudentContext ? "About this provider" : undefined}
-                    hideBorder
-                  />
-                </div>
-              )}
-
-              {/* ── Customer Questions & Answers (family-facing; hidden in student context) ── */}
-              {!isStudentContext && (
-              <div id="qa" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
-                <QASectionWithVariant
-                  providerId={profile.slug}
-                  providerName={profile.display_name}
-                  providerImage={images[0]}
-                  providerSlug={profile.slug}
-                  providerLocation={profile.city && profile.state ? `${profile.city}, ${profile.state}` : ""}
-                  providerCareTypes={profile.care_types || []}
-                  providerRating={rating}
-                  providerPriceRange={priceRange ?? undefined}
-                  providerCity={profile.city ?? undefined}
-                  providerState={profile.state ?? undefined}
-                  questions={publicQuestions.map((q) => ({
-                    id: q.id,
-                    question: q.question,
-                    answer: q.answer,
-                    asker_name: q.asker_name,
-                    status: q.status,
-                    answered_at: q.answered_at ?? undefined,
-                    created_at: q.created_at,
-                    suggestion_key: q.suggestion_key,
-                    asked_count: q.asked_count,
-                  }))}
-                  suggestedQuestions={getSuggestedQuestions(profile.category)}
-                  suggestionStats={suggestionStats}
-                  hasBenefitsData={hasBenefitsData && !!benefitsData}
-                  similarProvidersForMulti={similarProvidersForMulti}
-                  alternativeProviders={outreachCandidates}
-                  providerCategory={outreachCategoryString}
-                />
-
-                {/* Outreach arm of the 5-way intake A/B. Slot itself renders
-                    null for the ~80% not in the outreach arm, so no wrapping div
-                    here — it would leave a phantom mt-6 gap. The module owns
-                    its own top margin. See IntakeVariantSlots.tsx. */}
-                {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
-                  <AgentOutreachSlot
-                    sourceProviderId={profile.slug}
-                    sourceProviderName={profile.display_name}
-                    city={profile.city!}
-                    state={profile.state!}
-                    category={outreachCategoryString!}
-                    topProviders={outreachCandidates}
-                  />
-                )}
-              </div>
-              )}
-
-              {/* ── Benefits Discovery ── */}
-              {/* Wrapped in BenefitsArmGate so the section disappears for the
-                  40% of visitors in the outreach or multi_provider arms of the
-                  5-way intake A/B. The 60% in the 3 benefits arms see the existing
-                  module unchanged (with its internal mod-3 copy A/B). */}
-              {!isStudentContext && hasBenefitsData && benefitsData && (
-                <BenefitsArmGate>
-                  <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
-                    <BenefitsDiscoveryModule
-                      providerState={profile.state!}
-                      stateId={benefitsData.stateId}
-                      stateName={benefitsData.stateName}
-                      providerName={profile.display_name}
-                      providerSlug={profile.slug}
-                      providerCareTypes={profile.care_types}
-                      providerCategory={profile.category}
-                      topPrograms={benefitsData.programs.map((p) => ({
-                        id: p.id,
-                        name: p.name,
-                        shortName: p.shortName,
-                        tagline: p.tagline,
-                        savingsRange: p.savingsRange,
-                      }))}
-                      allPrograms={benefitsAllPrograms}
-                      entrySource={`/provider/${profile.slug}`}
-                    />
-                  </div>
-                </BenefitsArmGate>
-              )}
-
-              {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
-                <CareServicesList services={careServices} initialCount={6} />
-              </div>
-
-              {/* ── Staff Screening — hidden when no real data ── */}
-              {hasStaffScreening && (
-                <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
-                  <StaffScreeningList items={staffScreeningItems} initialCount={6} />
-                </div>
-              )}
-
-              {/* ── What families are saying (below Q&A when no reviews — empty state;
-                    hidden in student context, the "be first to review" prompt is family-facing) ── */}
-              {!isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
-                <div id="reviews" className="scroll-mt-20">
-                  <ReviewsSection
-                    providerId={profile.slug}
-                    providerSlug={profile.slug}
-                    providerName={profile.display_name}
-                    mockReviews={reviewsToShow}
-                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-                    googleReviewsData={googleReviewsData}
-                    placeId={providerPlaceId}
-                  />
-                </div>
-              )}
-
-              {/* ── CMS Quality & Safety — only show 4/5 and 5/5 publicly (lower scores used for ranking only) ── */}
-              {cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
-                <div className="py-8 border-t border-gray-200">
-                  <CMSQualitySection cmsData={cmsData} />
-                </div>
-              )}
-
-              {/* ── AI Verified Credentials ── */}
-              {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
-                <div className="py-8 border-t border-gray-200">
-                  <AiTrustSignalsSection signals={aiTrustSignals} />
-                </div>
-              )}
-
-              {/* ── About ── */}
-              <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
-                <ExpandableText
-                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
-                  maxLength={300}
-                />
-              </div>
-
-              {/* ── Detailed Pricing ── */}
-              {pricingDetails.length > 0 && (
-                <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Prices at {profile.display_name}</h2>
-                  <div className="space-y-2">
-                    {pricingDetails.map((item) => (
-                      <div
-                        key={item.service}
-                        className="flex items-center justify-between py-3.5 px-4 bg-gray-50 rounded-lg"
-                      >
-                        <span className="text-base font-medium text-gray-900">{item.service}</span>
-                        <span className="text-base font-semibold text-gray-900">
-                          {item.rate} <span className="font-normal text-gray-500">/{item.rateType.replace("per ", "")}</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
-                    Get a custom quote
-                  </ScrollToConnectionCard>
-                  {pricingConfig && (
-                    <p className="text-xs text-gray-400 mt-4 leading-relaxed">
-                      {pricingConfig.disclaimer({
-                        providerName: profile.display_name,
-                        city: profile.city ?? undefined,
-                        state: profile.state ?? undefined,
-                      })}
-                      {pricingConfig.coverageNote && (
-                        <> {pricingConfig.coverageNote({
-                          providerName: profile.display_name,
-                          city: profile.city ?? undefined,
-                          state: profile.state ?? undefined,
-                        })}</>
-                      )}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* ── Payment & Insurance — hidden when no real data ── */}
-              {hasAcceptedPayments && (
-                <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Acceptable Payment / Insurance Options</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {acceptedPayments.map((payment) => (
-                      <div key={payment} className="flex items-center justify-between py-3 px-4 border-b border-gray-100">
-                        <div className="flex items-center gap-3">
-                          <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                          </svg>
-                          <span className="text-base text-primary-600 font-medium">{payment}</span>
-                        </div>
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-5 text-base text-gray-500">
-                    For clarity and guidance,{" "}
-                    <ScrollToConnectionCard entryPoint="book_consultation" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
-                      Book a consultation
-                    </ScrollToConnectionCard>
-                  </p>
-                </div>
-              )}
-
-              {/* ── Facility Manager — hidden when no staff data ── */}
-              {hasStaff && (
-                <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Facility manager</h2>
-                  <div className="flex flex-col md:flex-row items-start gap-6">
-                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center w-full md:w-52 md:flex-shrink-0 shadow-md">
-                      <div className="relative mx-auto mb-5 w-24 h-24">
-                        {staff!.image ? (
-                          <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
-                            <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
-                          </div>
-                        )}
-                        {displayClaimState === "verified" && (
-                          <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
-                            <circle cx="10" cy="10" r="10" fill="white" />
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                      <p className="text-base font-bold text-gray-900">{staff!.name}</p>
-                      <p className="text-sm text-gray-500 mt-0.5">{staff!.position}</p>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
-                      <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
-                      {/* Desktop: button in care motivation column with spacing to align with card bottom */}
-                      <ScrollToConnectionCard entryPoint="message_host" className="hidden md:inline-block mt-6 px-6 py-2.5 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
-                        Message {staff!.name.split(" ")[0]}
-                      </ScrollToConnectionCard>
-                    </div>
-                  </div>
-                  {/* Mobile: button full-width below */}
-                  <ScrollToConnectionCard entryPoint="message_host" className="md:hidden w-full mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center">
-                    Message {staff!.name.split(" ")[0]}
-                  </ScrollToConnectionCard>
-                  <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
-                    <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />
-                    </svg>
-                    To help protect your family, the Olera team vet facility managers for information accuracy.
-                  </div>
-                </div>
-              )}
+              {/* ── Sections in this category's order (lib/provider-section-order.ts) ── */}
+              {sectionOrder.map((key) => (
+                <Fragment key={key}>{sectionNodes[key]}</Fragment>
+              ))}
 
               {/* ── Disclaimer ── */}
               <div className="py-8 border-t border-gray-200">

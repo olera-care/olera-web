@@ -48,6 +48,7 @@ export interface Provider {
   cms_data: CMSData | null; // CMS Medicare quality data (JSONB)
   ai_trust_signals: AiTrustSignals | null; // AI-verified trust signals (JSONB)
   last_viewed_at: string | null; // Tracks page views for tiered refresh
+  facebook_url?: string | null; // Facebook page found by the website sweep (migration 273)
 }
 
 /**

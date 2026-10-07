@@ -28,6 +28,8 @@ export interface ProviderView {
   cmsData: CMSData | null;
   aiTrustSignals: AiTrustSignals | null;
   parentOrganization: { name: string; url?: string } | null;
+  /** Facebook page found by the website sweep (migration 273). Directory-side, like the fields above. */
+  facebookUrl: string | null;
 }
 
 /**

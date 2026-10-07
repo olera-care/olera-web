@@ -392,6 +392,25 @@
 - If she says she needs help at home: rescreen via the Elder Helpline 1-800-963-5337, and get her county.
 - Product gap: `unrelated` triage inside an open STUCK case goes silent. It should route to a person with a draft.
 
+### 2026-09-25 (late) — CARE-NAV study team update on Benefits Finder fixes (`vigilant-morse`, no app code)
+
+**What happened.** We mapped Minh-Nguyet's "CARE-NAV Phase 1 User Feedback Summary 3.0" (Slack F0C2JEXRSKT, 31 caregivers) item by item against the Benefits Finder releases that went to prod on Sep 24 (#2143 #2144 #2145 #2146 #2152 #2153).
+- Result: 8 done, 9 partial, 19 not yet, 5 app-only (iOS prototype: swipe, heart, back nav, truncation, end-of-life onboarding). That is about a third of the way.
+- Posted a short update as TJ in #care-nav-study-team: https://oleraworkspace.slack.com/archives/C09N33RQGTH/p1790331688697699
+- The post covers the first minute, five doc items addressed, the whole-flow cleanup, and what is still open.
+
+**Decisions.**
+- Don't claim "all comments addressed." Most of the doc was about the iOS app, and the researchers who coded it would catch an over-claim.
+- The post stays separate from the "cohort one product is ready" announcement TJ and Logan still owe the channel.
+- TJ cut the tracker link and the ask for percentages/quotes, to keep the post short.
+
+**Artifact (private, not shared):** item-by-item map at https://claude.ai/artifact/KsbZVE86pRsbVwn9Z5KFjk
+
+**Next Up (from the doc's open items).**
+- Fix-before-rollout items still open: ZIP/location search, the insurance filter (the single most requested change), veteran/housing screener filters.
+- Also open: Olera Score explanation, rating counts, font size, photo diversity, voice acting on answers.
+- The three-tap 50/50 test is read on Oct 2 and Oct 9.
+
 ### 2026-09-25 (later) — Four provider Meta arms rebuilt as instant forms and published (`vigilant-morse`, #2177 → staging, hotfix #2179 → main `1f375003`)
 
 **What happened.** Wescastle (Atlanta), Rosemonte (North Phoenix), and HomeWell (Oak Ridge) had been built as Meta *traffic* ads by copying Wescastle's shape. TJ: provider Meta arms are ALWAYS native instant forms linked to the provider (Hoop pattern). Rebuilt all three, and added LumiWell (Fresno, stock photos). All four are published and ACTIVE, scheduled to start 27–28 Sep. Saved as memory `feedback_provider_meta_is_instant_form`.
@@ -474,6 +493,14 @@
 - **Offered, not done:** Liz's portrait as the hero photo (the current hero is a stock kitchen image).
 - **TJ in Meta Ads Manager:** Pascagoula form consent copy + one question (who is the care for, how soon), so families arrive with words.
 - **Watch Friday:** day-2 family check replies for the 5; whether Liz has messaged the other 4. Meta and Nextdoor spend still not synced.
+
+### 2026-09-23 (night) — Cortex: answers wide questions from the record, reads Slack properly, and "visualize" publishes a real artifact (`zen-goodall`, #2084→#2117 all in PROD; #2118 merged to staging)
+
+- **Shipped to prod today:** proposals wait 7 days, and a parked "Accept, later" state (migration 249); approved work gets a nudge in the brief; Sonnet 5 answers with a lookup-tool loop over a precomputed ledger, shipped work, ads engagement, a provider ranking (reply > engage > leads), record search and document reading; web search for questions about the outside world; Slack reader fixes (newest page, threads, form-encoded calls, names from `<@U…>` mentions, attached docx/pdf/txt read via mammoth/unpdf); the brief says what Cortex could not look up; #2109, Cortex never claims an action it did not take.
+- **Visualize (#2110, prod via #2117):** "visualize X" in the Cortex DM → Cortex writes a source brief → fires the Claude Code routine "Cortex visualize" (`trig_01Jxpf8bwgMyvVAxa5GncWsP`, API trigger, no connectors) → the session runs the repo's `.claude/skills/visualize` and publishes an artifact after TJ taps Allow. Env `CORTEX_VISUAL_ROUTINE_URL` and `CORTEX_VISUAL_ROUTINE_TOKEN` are set in Vercel Production as secrets. **First live run worked at 22:31 ICT.**
+- **Open:** #2118 (bold `*visualize*` from Slack failed the anchored match) merged to staging 2026-09-23.
+- **Decisions:** Olera facts come only from the record or lookups, and counts and rankings are computed in code; the model only reports them. Visualize uses one-tap approval per run, not a standing page that each run overwrites. The routine has no connectors, because by default a routine gets all of them, including Mercury and Gmail.
+- **Next:** promote #2118; time the first visualize run end to end; layer 3, a nightly replay of TJ's real questions as regression tests; confirm the live Slack feed (`slack_events`) once channel messages flow.
 
 ### 2026-09-23 (later) — Ad Boost pre-flight for seven: the landing pages were the finding, and Meta-to-provider-page turns out to be 6x cheaper and untested (`channel-name-precision` #2095 merged, prod data fixes, NO campaigns launched)
 

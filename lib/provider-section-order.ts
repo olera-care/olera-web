@@ -46,13 +46,15 @@ export const DEFAULT_SECTION_ORDER: ProviderSectionKey[] = [
 const CATEGORY_SECTION_ORDER: Partial<Record<ProfileCategory, ProviderSectionKey[]>> = {
   // Families ask who the caregiver is (screening, meeting them first, backup)
   // and how scheduling works (minimum hours) before they ask about money.
+  // Q&A stays second: it is the page's engagement engine and carries the
+  // intake test (TJ, 7 Oct 2026).
   home_care_agency: [
     "services",
+    "qa",
     "screening",
     "trust",
     "pricing",
     "reviewsTop",
-    "qa",
     "benefits",
     "payment",
     "about",

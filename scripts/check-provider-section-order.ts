@@ -28,7 +28,7 @@ for (const c of CATEGORIES) {
 
 // The two categories with a plan lead with what families ask about first.
 assert.equal(getSectionOrder("home_care_agency")[0], "services");
-assert.equal(getSectionOrder("home_care_agency")[1], "screening");
+assert.equal(getSectionOrder("home_care_agency")[1], "qa");
 assert.equal(getSectionOrder("nursing_home")[0], "quality");
 
 // Everything else is the page as it was.

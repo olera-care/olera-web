@@ -72,11 +72,11 @@ Every section hides itself when empty, as before. An order only decides what com
 | # | Section | Shown when | Why here |
 |---|---|---|---|
 | 1 | Care Services | always (inferred list if no data) | TJ: lead with services |
-| 2 | Staff Screening | provider entered screening (81 claimed) | caregiver questions are the top topic |
-| 3 | Verified credentials | trust signals > 0 (55%) | State Licensed, background checks: the screening answer for unclaimed pages |
-| 4 | Itemized pricing | provider entered rows (20 claimed) | hourly rates; the headline price is already in the hero |
-| 5 | Google reviews | any reviews (69%) | |
-| 6 | Q&A | always (family context) | |
+| 2 | Q&A | always (family context) | TJ, 7 Oct: stays second, it is the engagement engine and carries the intake test |
+| 3 | Staff Screening | provider entered screening (81 claimed) | caregiver questions are the top topic |
+| 4 | Verified credentials | trust signals > 0 (55%) | State Licensed, background checks: the screening answer for unclaimed pages |
+| 5 | Itemized pricing | provider entered rows (20 claimed) | hourly rates; the headline price is already in the hero |
+| 6 | Google reviews | any reviews (69%) | |
 | 7 | Benefits | state has programs | |
 | 8 | Payment options | provider entered (128 claimed) | |
 | 9 | About | always | |

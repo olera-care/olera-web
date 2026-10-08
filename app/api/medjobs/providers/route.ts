@@ -264,6 +264,19 @@ function getMedjobsProviders(campus: string, scope: "near" | "all"): Promise<Pro
             continue;
           }
           if (seenIds.has(provider.provider_id)) continue;
+
+          // Check if we already have this provider via business_profiles (name-based dedup)
+          // This handles cases where a provider exists in BOTH sources
+          const providerNameLower = provider.provider_name?.toLowerCase() ?? "";
+          if (providerNameLower) {
+            const alreadyFound = cards.some((c) => {
+              const cardNameLower = c.name.toLowerCase();
+              // Name must be included (handles "Comfort Keepers" matching "Comfort Keepers of Tallahassee")
+              return cardNameLower.includes(providerNameLower) || providerNameLower.includes(cardNameLower);
+            });
+            if (alreadyFound) continue;
+          }
+
           seenIds.add(provider.provider_id);
 
           const card = toCardFormat(provider) as ProviderCard;

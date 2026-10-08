@@ -31,6 +31,21 @@ import {
 
 const TABLE = "cortex_oncall_cases";
 
+/**
+ * Cortex's own Slack user id. An event's authorizations name the bot only when
+ * the bot token is the one Slack picked; with a user token installed too it can
+ * name a person, and then a mention in #cortex would be answered twice.
+ */
+let botUserIdCache: string | null = null;
+export async function cortexBotUserId(): Promise<string | null> {
+  if (botUserIdCache) return botUserIdCache;
+  const token = process.env.SLACK_BOT_TOKEN;
+  if (!token) return null;
+  const auth = await slackApi<{ user_id?: string }>(token, "auth.test", {}).catch(() => null);
+  botUserIdCache = auth?.user_id ?? null;
+  return botUserIdCache;
+}
+
 function founderUserId(): string | null {
   const id = process.env.WAR_ROOM_BRIEF_SLACK_USER_ID?.trim() || "";
   return /^[UW][A-Z0-9]{2,}$/i.test(id) ? id : null;
@@ -94,6 +109,8 @@ export type OncallMention = {
   threadTs: string;
   user: string;
   text: string;
+  /** Files on the mention itself: what is left to read when the thread is not. */
+  files?: DmFile[];
   botUserId: string | null;
   ownAppId: string | null;
 };
@@ -153,7 +170,7 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
     thread = await readThread(token, mention.channel, mention.threadTs, mention.botUserId, mention.ownAppId);
   } catch (error) {
     // A private channel needs groups:history; without it only this message is readable.
-    thread = { messages: [{ user: mention.user, name: null, text: mention.text, ts: mention.ts, fromCortex: false, files: 0 }], images: [] };
+    thread = { messages: [{ user: mention.user, name: null, text: mention.text, ts: mention.ts, fromCortex: false, files: (mention.files ?? []).length }], images: imageFiles(mention.files) };
     console.error("[oncall] thread read failed:", error);
   }
   const { images, failed } = await downloadImages(token, thread.images);
@@ -264,6 +281,8 @@ function repository(): string {
  */
 export async function pollOncallCases(db: SupabaseClient): Promise<{ checked: number; posted: string[] }> {
   const { data, error } = await db.from(TABLE).select("*").in("status", ["building", "pr_open"]).limit(50);
+  // Before migration 276 there is nothing to poll; not a failure every ten minutes.
+  if (error?.code === "42P01") return { checked: 0, posted: [] };
   if (error) throw new Error(error.message);
   const cases = (data ?? []) as OncallCase[];
   if (!cases.length) return { checked: 0, posted: [] };

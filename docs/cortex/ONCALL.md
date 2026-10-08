@@ -34,7 +34,7 @@ In `#cortex`, a message that mentions Cortex goes to on call; a plain message is
 
 1. **Migration 276** applied to the shared Supabase project.
 2. **Slack app:** add the bot scope `app_mentions:read` and subscribe to the bot event `app_mention`. To read threads in private channels it also needs `groups:history` (public: `channels:history`); without it Cortex plans from the mention alone. Reinstall the app after changing scopes. Cortex must be in the channel: `/invite @Cortex`.
-3. **The routine:** create "Cortex on-call builder" on claude.ai (same environment as "Cortex visualize", repo `olera-care/olera-web`, model Opus, tools Bash, Read, Write, Edit, Glob, Grep, Skill), with the prompt below. Add an API trigger and copy its URL and token.
+3. **The routine:** "Cortex on-call builder" (`trig_01Cv16GZxiS1uVZ47bgac8Ap`) was created on 8 Oct 2026 with the prompt below (same environment as "Cortex visualize", repo `olera-care/olera-web`, Opus, tools Bash, Read, Write, Edit, Glob, Grep, Skill). A test fire opened PR #2461 in 37 seconds on its own branch (`cortex-oncall-<id>`), pushed with git and opened with the GitHub MCP tool. Still to do on claude.ai: remove the account connectors it was given by default (they cannot be cleared through the API), and add an API trigger, copying its URL and token.
 4. **Vercel env (production and preview):** `CORTEX_ONCALL_ROUTINE_URL` and `CORTEX_ONCALL_ROUTINE_TOKEN`. `WAR_ROOM_GITHUB_TOKEN` (already set) must read pull requests.
 
 ### Routine prompt

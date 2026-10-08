@@ -4,7 +4,7 @@
  *   npx tsx scripts/check-cortex-oncall.ts
  */
 import assert from "node:assert/strict";
-import { bodyHasMarker, canStartBuild, isGoCommand, isStopCommand, mentionsUser, oncallMarker, oncallText, routinePayload, threadTranscript } from "../lib/war-room/oncall";
+import { planRevisedSincePr, bodyHasMarker, canStartBuild, isGoCommand, isStopCommand, mentionsUser, oncallMarker, oncallText, routinePayload, threadTranscript } from "../lib/war-room/oncall";
 
 // Mentions are stripped; the words stay.
 assert.equal(oncallText("<@U09CORTEX> texts show only Admin Reply"), "texts show only Admin Reply");
@@ -45,5 +45,11 @@ assert.ok(cut.length <= 2_100, String(cut.length));
 assert.ok(cut.startsWith("A: message 0 "));
 assert.ok(cut.includes("(earlier messages left out)"));
 assert.ok(cut.trimEnd().endsWith("x".repeat(80)) && cut.includes("message 199"));
+
+// With a PR up, only a plan posted after it can be built again.
+assert.ok(planRevisedSincePr({ plan_at: "2026-10-08T10:00:00Z", pr_opened_at: null }));
+assert.ok(!planRevisedSincePr({ plan_at: "2026-10-08T10:00:00Z", pr_opened_at: "2026-10-08T11:00:00Z" }));
+assert.ok(planRevisedSincePr({ plan_at: "2026-10-08T12:00:00Z", pr_opened_at: "2026-10-08T11:00:00Z" }));
+assert.ok(!planRevisedSincePr({ plan_at: null, pr_opened_at: null }));
 
 console.log("cortex on-call checks passed");

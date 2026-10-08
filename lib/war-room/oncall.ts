@@ -19,7 +19,7 @@
  * scripts/check-cortex-oncall.ts.
  */
 
-export type OncallStatus = "waiting" | "building" | "pr_open" | "merged" | "failed" | "dropped";
+export type OncallStatus = "waiting" | "queued" | "building" | "pr_open" | "merged" | "failed" | "dropped";
 
 export type OncallCase = {
   id: string;
@@ -32,6 +32,10 @@ export type OncallCase = {
   session_url: string | null;
   pr_url: string | null;
   build_started_at: string | null;
+  /** When the current plan was posted. */
+  plan_at: string | null;
+  /** When the cron found the current pull request. */
+  pr_opened_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -131,6 +135,17 @@ export function prOpenedReply(prUrl: string, prNumber: number | null, title: str
 
 export function mergedReply(prUrl: string, prNumber: number | null): string {
   return `TJ merged <${prUrl}|${prNumber ? `#${prNumber}` : "the pull request"}> into staging. It reaches the live site with the next promotion to production.`;
+}
+
+/** With a PR up, "go" builds a follow-up only from a plan posted after the PR. */
+export function planRevisedSincePr(c: Pick<OncallCase, "plan_at" | "pr_opened_at">): boolean {
+  if (!c.plan_at) return false;
+  if (!c.pr_opened_at) return true;
+  return Date.parse(c.plan_at) > Date.parse(c.pr_opened_at);
+}
+
+export function queuedReply(): string {
+  return "Another build is running, so this one is queued. It starts on its own when that one finishes, and I'll post here.";
 }
 
 /** How long a build may run with no pull request before the case says so. */

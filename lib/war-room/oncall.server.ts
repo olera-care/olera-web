@@ -14,6 +14,8 @@ import {
   isGoCommand,
   isStopCommand,
   mergedReply,
+  planRevisedSincePr,
+  queuedReply,
   notFounderGoReply,
   oncallText,
   planFooter,
@@ -149,17 +151,18 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
     return { action: "already building" };
   }
 
-  // After a failed build, "go" retries the same plan.
-  if (existing?.plan && (existing.status === "waiting" || existing.status === "failed") && isGoCommand(text)) {
+  if (existing?.plan && isGoCommand(text) && existing.status !== "merged" && existing.status !== "dropped") {
     if (!canStartBuild(mention.user, founder)) {
       await say(notFounderGoReply(founder));
       return { action: "go refused" };
     }
-    return startBuild(db, token, existing, mention, say);
-  }
-  if (existing?.status === "pr_open" && isGoCommand(text)) {
-    await say(`The pull request is already up: <${existing.pr_url}|open it>. Tell me what to change and I'll plan a follow-up.`);
-    return { action: "pr already open" };
+    // With a PR up, "go" builds a follow-up only once the plan has changed
+    // since; otherwise it would build the same thing twice.
+    if (existing.status === "pr_open" && !planRevisedSincePr(existing)) {
+      await say(`The pull request is already up: <${existing.pr_url}|open it>. Tell me what to change and I'll plan a follow-up.`);
+      return { action: "pr already open" };
+    }
+    return requestBuild(db, token, existing, { channel: mention.channel, threadTs: mention.threadTs, botUserId: mention.botUserId, ownAppId: mention.ownAppId }, say);
   }
 
   // Everything else is a request, or an answer to the plan's questions: read
@@ -194,11 +197,14 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
     channel: mention.channel,
     thread_ts: mention.threadTs,
     requested_by: existing?.requested_by ?? mention.user,
-    status: "waiting",
+    // A PR that is up stays watched, so its merge is still reported; "go"
+    // then builds a follow-up from this plan.
+    status: existing?.status === "pr_open" ? "pr_open" : existing?.status === "queued" ? "queued" : "waiting",
+    plan_at: now,
     plan: answer.reply,
-    // A new round after a PR or a failure is a new build: the old links go.
-    session_url: null,
+    session_url: existing?.status === "pr_open" ? existing.session_url : null,
     pr_url: existing?.status === "pr_open" ? existing.pr_url : null,
+    pr_opened_at: existing?.status === "pr_open" ? existing.pr_opened_at : null,
     build_started_at: null,
     updated_at: now,
   };
@@ -211,11 +217,34 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
   return { action: existing ? "plan revised" : "planned" };
 }
 
+type BuildContext = { channel: string; threadTs: string; botUserId: string | null; ownAppId: string | null };
+
+/**
+ * One build at a time: it spends TJ's Claude plan, and two routine sessions
+ * may share a branch. A "go" while another case is building queues this one;
+ * the cron starts it when that build ends.
+ */
+async function requestBuild(
+  db: SupabaseClient,
+  token: string,
+  current: OncallCase,
+  ctx: BuildContext,
+  say: (text: string) => Promise<unknown>,
+): Promise<{ action: string }> {
+  const { data: running } = await db.from(TABLE).select("id").eq("status", "building").neq("id", current.id).limit(1);
+  if (running?.length) {
+    await db.from(TABLE).update({ status: "queued", updated_at: new Date().toISOString() }).eq("id", current.id);
+    await say(queuedReply());
+    return { action: "queued" };
+  }
+  return startBuild(db, token, current, ctx, say);
+}
+
 async function startBuild(
   db: SupabaseClient,
   token: string,
   current: OncallCase,
-  mention: OncallMention,
+  mention: BuildContext,
   say: (text: string) => Promise<unknown>,
 ): Promise<{ action: string }> {
   const url = process.env.CORTEX_ONCALL_ROUTINE_URL?.trim();
@@ -228,7 +257,7 @@ async function startBuild(
   const now = new Date().toISOString();
   const { data: claimed } = await db.from(TABLE)
     .update({ status: "building", build_started_at: now, updated_at: now })
-    .eq("id", current.id).in("status", ["waiting", "failed"])
+    .eq("id", current.id).in("status", ["waiting", "failed", "pr_open", "queued"])
     .select("id");
   if (!claimed?.length) return { action: "already claimed" };
 
@@ -246,11 +275,12 @@ async function startBuild(
   ].join("\n\n");
   const start = await fireRoutine(url, routineToken, routinePayload({ caseId: current.id, brief, channelName: name, permalink: link }));
   if (!start.started) {
-    await db.from(TABLE).update({ status: "waiting", build_started_at: null, updated_at: new Date().toISOString() }).eq("id", current.id);
+    // Back where it was: a PR that was up is still up.
+    await db.from(TABLE).update({ status: current.status === "pr_open" ? "pr_open" : "waiting", build_started_at: null, updated_at: new Date().toISOString() }).eq("id", current.id);
     await say(`I couldn't start the build: ${start.reason}. Say "@Cortex go" to try again.`);
     return { action: "routine refused" };
   }
-  await db.from(TABLE).update({ brief, session_url: start.sessionUrl, updated_at: new Date().toISOString() }).eq("id", current.id);
+  await db.from(TABLE).update({ brief, session_url: start.sessionUrl, pr_url: null, pr_opened_at: null, updated_at: new Date().toISOString() }).eq("id", current.id);
   await say(buildStartedReply(start.sessionUrl));
   return { action: "build started" };
 }
@@ -280,7 +310,7 @@ function repository(): string {
  * hours is reported, not left hanging.
  */
 export async function pollOncallCases(db: SupabaseClient): Promise<{ checked: number; posted: string[] }> {
-  const { data, error } = await db.from(TABLE).select("*").in("status", ["building", "pr_open"]).limit(50);
+  const { data, error } = await db.from(TABLE).select("*").in("status", ["building", "pr_open", "queued"]).limit(50);
   // Before migration 276 there is nothing to poll; not a failure every ten minutes.
   if (error?.code === "42P01") return { checked: 0, posted: [] };
   if (error) throw new Error(error.message);
@@ -300,7 +330,7 @@ export async function pollOncallCases(db: SupabaseClient): Promise<{ checked: nu
   for (const c of building) {
     const pull = recent.find((p) => bodyHasMarker(p.body, c.id));
     if (pull) {
-      await db.from(TABLE).update({ status: "pr_open", pr_url: pull.html_url, updated_at: new Date().toISOString() }).eq("id", c.id);
+      await db.from(TABLE).update({ status: "pr_open", pr_url: pull.html_url, pr_opened_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", c.id);
       await say(c, prOpenedReply(pull.html_url, pull.number, pull.title));
       posted.push(`${c.id}: PR #${pull.number}`);
     } else if (c.build_started_at && now - Date.parse(c.build_started_at) > BUILD_TIMEOUT_MS) {
@@ -322,6 +352,16 @@ export async function pollOncallCases(db: SupabaseClient): Promise<{ checked: nu
       await db.from(TABLE).update({ status: "dropped", updated_at: new Date().toISOString() }).eq("id", c.id);
       await say(c, `TJ closed <${pull.html_url}|#${pull.number}> without merging it. Mention me with what to change and I'll plan it again.`);
       posted.push(`${c.id}: closed`);
+    }
+  }
+  // The next queued build, once nothing is building.
+  const { data: stillBuilding } = await db.from(TABLE).select("id").eq("status", "building").limit(1);
+  if (!stillBuilding?.length && token) {
+    const { data: next } = await db.from(TABLE).select("*").eq("status", "queued").order("updated_at", { ascending: true }).limit(1);
+    const queued = (next ?? [])[0] as OncallCase | undefined;
+    if (queued) {
+      const started = await startBuild(db, token, queued, { channel: queued.channel, threadTs: queued.thread_ts, botUserId: await cortexBotUserId(), ownAppId: null }, (text) => say(queued, text));
+      posted.push(`${queued.id}: ${started.action}`);
     }
   }
   return { checked: cases.length, posted };

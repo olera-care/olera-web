@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS cortex_oncall_cases (
   -- Slack user id of whoever first mentioned Cortex.
   requested_by text,
   status text NOT NULL DEFAULT 'waiting'
-    CHECK (status IN ('waiting', 'building', 'pr_open', 'merged', 'failed', 'dropped')),
+    CHECK (status IN ('waiting', 'queued', 'building', 'pr_open', 'merged', 'failed', 'dropped')),
   -- The latest plan Cortex posted.
   plan text,
   -- The brief handed to the build routine.
@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS cortex_oncall_cases (
   session_url text,
   pr_url text,
   build_started_at timestamptz,
+  -- When the current plan was posted, and when its pull request was found:
+  -- with a PR up, "go" builds a follow-up only from a newer plan.
+  plan_at timestamptz,
+  pr_opened_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (channel, thread_ts)

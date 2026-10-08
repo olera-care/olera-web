@@ -985,7 +985,14 @@ async function loadFeeds(
   // the profile uuid, but city-lead texts leave it null — which is how every
   // system text sent to a city lead would otherwise be missing from their
   // timeline, i.e. exactly the story this page was built to show.
-  const phones = profiles.map((p) => (p.phone ?? "").trim()).filter(Boolean);
+  //
+  // Profiles store the number however it was typed ("2398415271"), but sendSMS
+  // logs the E.164 it dialled ("+12398415271"), so carry both spellings.
+  const phones = profiles.flatMap((p) => {
+    const raw = (p.phone ?? "").trim();
+    const k = last10(p.phone);
+    return [raw, k ? `+1${k}` : ""].filter(Boolean);
+  });
   const recipients = Array.from(new Set([...addrs, ...phones]));
 
   // email_log keys a family three different ways depending on which sender wrote
@@ -1050,17 +1057,15 @@ async function loadFeeds(
   );
 
   // Texts only: short bodies, and the body IS the message, so it has to be shown.
-  const smsBodies = await fetchInChunks<{ id: string; html_body: string | null }>(recipients, (g) =>
-    gte(
-      db
-        .from("email_log")
-        .select("id, html_body")
-        .eq("channel", "sms")
-        .in("recipient", g)
-        .order("created_at", { ascending: false })
-        .limit(EMAIL_LIMIT),
-      "created_at",
-    ),
+  // Fetched by the ids of the text rows already found, not by recipient: a text
+  // can reach the timeline through provider_id or metadata alone, and matching
+  // the body on recipient left those rows with no body, so the page showed the
+  // humanized email_type ("Admin Reply") in place of what was actually sent.
+  const smsIds = Array.from(
+    new Set([...byAddr, ...byLegacy, ...byMeta].filter((e) => e.channel === "sms").map((e) => e.id)),
+  );
+  const smsBodies = await fetchInChunks<{ id: string; html_body: string | null }>(smsIds, (g) =>
+    db.from("email_log").select("id, html_body").in("id", g),
   );
   const smsBodyById = new Map(smsBodies.map((r) => [r.id, r.html_body]));
 

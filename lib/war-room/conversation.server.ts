@@ -515,6 +515,19 @@ const BRIEF_MODE = `BRIEF MODE. This output is not shown to the founder as a cha
 // freedom from the chat length limits, different reader.
 const HANDOFF_MODE = `HANDOFF MODE. This output is not shown to the founder as a chat reply. It is stored as a brief for a Claude Code session that will do the work in the olera-web repo and cannot see this chat or Olera's record. The voice length limits and the phone-screen rules above do not apply. Use your lookups to confirm the facts it depends on, then write the brief in the format asked for. Up to about 900 words. Do not claim to have saved, sent or built anything; supply the brief only. The rules about Olera facts, time zones and names still apply.`;
 
+// On call: a plan posted in a team Slack thread (lib/war-room/oncall.ts). The
+// readers are whoever raised it (often Ces) and TJ, who decides whether to
+// build; the plan is also the start of the brief a Claude Code session builds
+// from, so it names what it checked.
+const ONCALL_MODE = `ON-CALL MODE. Someone on the team mentioned you in a Slack thread about something in Olera's product: a bug, a wrong number, a change they want. You are the on-call engineer's first pass. You cannot read the code; a Claude Code session builds the fix later if TJ says go. Your job is to make that build go right. Read the whole thread and any screenshot. Call work_in_progress and shipped_work first: if an open or recent pull request already covers this, say so plainly with its number and stop there. Use your other lookups to confirm the facts (the record, the family or provider involved, the texts or emails behind it), and name what you checked.
+
+Reply in Slack, to the people in the thread, in this shape:
+*What I think is happening:* one to three sentences, with the specific record you looked at. Say how sure you are, and what you could not see.
+*Plan:* two to five short numbered steps a developer would follow, in plain words, naming the page or feature, not file paths you have not seen.
+*Questions:* only what would change the plan, numbered, addressed to the person who can answer (TJ decides product behaviour; the person who reported it knows what they saw). Say "None" when there are none.
+If the thread is not about something to build or fix (a question, a request for data), just answer it in a few sentences and skip the shape.
+Questions are allowed here, unlike the DM rule above. Up to about 250 words. Refer to families by first name or case, never a full name with a phone number. Never say you built, fixed, changed or opened anything.`;
+
 const CONVERSATION_SYSTEM = `You are Cortex, Olera's thinking partner. The founder brings you whatever is on his mind about Olera: a provider email, a strategy doubt, a meeting, a draft, a screenshot. You answer from everything Olera knows, the way a sharp cofounder who has read every record would. You are not a status reporter: the conversation is the product, and a daily brief is only one of your opening lines.
 
 Two kinds of question reach you, and they have different rules.
@@ -598,7 +611,7 @@ export async function answerFounderQuestion(
   focusInvestigationId?: string | null,
   priorTurn?: ConversationTurn | null,
   options: {
-    mode?: "reply" | "brief" | "handoff";
+    mode?: "reply" | "brief" | "handoff" | "oncall";
     /** Images he attached, base64. Sent with the question so a screenshot is read, not ignored. */
     images?: Array<{ mediaType: string; data: string }>;
     surface?: ConversationSurface;
@@ -609,10 +622,10 @@ export async function answerFounderQuestion(
     memory?: string;
   } = {},
 ): Promise<{ answered: boolean; reply: string; costUsd?: number; correction?: string }> {
-  const brief = options.mode === "brief" || options.mode === "handoff";
+  const brief = options.mode === "brief" || options.mode === "handoff" || options.mode === "oncall";
   const model = brief ? BRIEF_MODEL : CONVERSATION_MODEL;
   const SUPPORTS_ADAPTIVE = supportsAdaptive(model);
-  const briefMode = options.mode === "handoff" ? HANDOFF_MODE : BRIEF_MODE;
+  const briefMode = options.mode === "handoff" ? HANDOFF_MODE : options.mode === "oncall" ? ONCALL_MODE : BRIEF_MODE;
   if (!process.env.ANTHROPIC_API_KEY) {
     return { answered: false, reply: "I cannot answer questions right now: no model key is configured." };
   }

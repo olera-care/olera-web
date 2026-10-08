@@ -15,8 +15,12 @@ import { postAsCortex } from "@/lib/war-room/team-messages.server";
 import { handleInboxCommand, parseInboxCommand } from "@/lib/war-room/inbox-operator.server";
 import { applyTuningMessage, initiativeForThread, recordGrade } from "@/lib/war-room/tuning.server";
 import { providerCardReply } from "@/lib/war-room/provider-gaps.server";
+import { handleOncallMention } from "@/lib/war-room/oncall.server";
+import { mentionsUser } from "@/lib/war-room/oncall";
 
-export const maxDuration = 90;
+// 120, not 90: an on-call plan reads the thread and screenshots before the
+// answer engine, which alone may use 85 seconds.
+export const maxDuration = 120;
 
 type SlackEventsEnvelope = {
   type?: string;
@@ -103,6 +107,28 @@ export async function POST(request: NextRequest) {
     // Its own posts, joins and other apps are skipped the way the DM path does
     // (lib/war-room/dm-intake.ts), or an answer ending in "?" would be read
     // back as a question and answered again, forever.
+    // "@Cortex" in any channel is an on-call request (lib/war-room/oncall.ts):
+    // plan in the thread, build on TJ's go, stop at a pull request. Needs the
+    // app_mention event subscription and app_mentions:read on the app. In a
+    // channel the bot is in, the same message also arrives as a plain
+    // message event; the #cortex branch below skips those, so one mention gets
+    // one reply.
+    const botUserId = (payload.authorizations ?? []).find((auth) => auth.is_bot)?.user_id ?? null;
+    if (payload.event.type === "app_mention" && payload.event.channel && payload.event.ts && payload.event.user) {
+      if (request.headers.get("x-slack-retry-num")) return NextResponse.json({ ok: true, retry: true });
+      if (isOwnMessage(payload)) return NextResponse.json({ ok: true, oncall: { ignored: "own message" } });
+      const result = await handleOncallMention(db, {
+        channel: payload.event.channel,
+        ts: payload.event.ts,
+        threadTs: payload.event.thread_ts ?? payload.event.ts,
+        user: payload.event.user,
+        text: payload.event.text ?? "",
+        botUserId,
+        ownAppId: payload.api_app_id ?? null,
+      });
+      return NextResponse.json({ ok: true, oncall: result });
+    }
+
     const cortexChannel = process.env.CORTEX_SLACK_CHANNEL?.trim();
     const inCortexChannel = Boolean(cortexChannel) && /^[CG][A-Z0-9]{8,}$/.test(cortexChannel!)
       && payload.event.channel === cortexChannel
@@ -110,7 +136,9 @@ export async function POST(request: NextRequest) {
       // The DM path's own filter, not "any app_id": the founder's messages
       // through the Claude connector carry an app id and must still count.
       && !isOwnMessage(payload) && (!payload.event.subtype || payload.event.subtype === "file_share")
-      && Boolean(payload.event.user);
+      && Boolean(payload.event.user)
+      // A mention is the on-call path's, above.
+      && !mentionsUser(payload.event.text, botUserId);
     if (inCortexChannel) {
       if (request.headers.get("x-slack-retry-num")) return NextResponse.json({ ok: true, retry: true });
       const text = cleanDmText(payload.event.text).replace(/<@[A-Z0-9]+>/g, "").replace(/\s+/g, " ").trim();

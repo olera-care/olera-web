@@ -755,6 +755,11 @@ Free text in `care_type` was **quietly recreating the defect the feature exists 
 
 #### Next Up
 
+### Cortex on call (#2460) — to go live
+- TJ: reinstall the Olera v2 Alerts app (Slack OAuth page, pick the webhook channel the alerts already use, Allow). The `app_mention` event is saved; the reinstall grants `app_mentions:read`.
+- TJ: on claude.ai, "Cortex on-call builder" → add an API trigger, copy the token to the clipboard; remove the default connectors. Then set `CORTEX_ONCALL_ROUTINE_URL` / `CORTEX_ONCALL_ROUTINE_TOKEN` in Vercel (prod + preview).
+- Merge #2460, then test live on Ces's "Admin Reply" thread in #careseeker-support. First "@Cortex go" also proves `WAR_ROOM_BRIEF_SLACK_USER_ID` is TJ's U-id.
+
 1. **Plan the manual router before writing it.** TJ's sketch differs from the drawn one: type a provider name from scratch, system finds and verifies them and cross-checks distance — which is what was done by hand this morning to build the ranked three.
 2. Tap a chip to correct it; the durable details block on the record header (`app/admin/relationships/families/[seekerId]`).
 3. **Clean up:** `Zz Chip Test (delete me)` (`277a4f34`) and three fictional notes on Test McTest (`b32bb6fd`). Shared DB, so both are visible in production.
@@ -6923,6 +6928,15 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-10-08/09 — No LLC/Inc renames; Cortex on call (`plucky-snyder`)
+
+- **Directory renames (#2457 → prod via #2458).** A Google name that differs from ours only by a legal suffix, casing or punctuation now changes nothing and raises no flag. A cosmetic rename still applies when Google's name is better: it drops a suffix ours carries, or ours is ALL CAPS and Google's is mixed case (never adopting a suffix Google added or swapping ours). `lib/providers/directory-health.ts`, `scripts/check-directory-health.ts`. All 11 renames already applied were undone through the ledger (`undone_by` = "rule: no legal-suffix renames"); they cannot reapply because `google_name` is stamped.
+- **Cortex on call (#2460, open, not merged).** "@Cortex" in any channel: plan + questions in the thread, each mention revises, only TJ's "@Cortex go" fires the "Cortex on-call builder" routine (`trig_01Cv16GZxiS1uVZ47bgac8Ap`), which stops at a PR to staging with marker `cortex-oncall:<case id>`; cron `cortex-oncall` (10 min) posts the PR back and the merge. One build at a time (queue); a PR stays watched after later mentions. Design + setup: `docs/cortex/ONCALL.md`. Files: `lib/war-room/oncall.ts`, `oncall.server.ts`, `app/api/cron/cortex-oncall/route.ts`, the `app_mention` branch in `app/api/integrations/slack/events/route.ts`, `ONCALL_MODE` in `conversation.server.ts`, migration 276.
+- **Verified:** routine test fire opened PR #2461 in 37s on its own branch via the GitHub MCP tool (closed). Migration 276 applied by TJ; table + CHECK verified. Cortex already ingests #careseeker-support threads (60 replies this month), so `groups:history` exists. Cortex runs as the **Olera v2 Alerts** Slack app (A0AJCRW5H1Q), not a separate app; `app_mention` event saved there.
+- **Keep:** a routine created through the API gets every account connector attached, and `mcp_connections: []` on update does not clear them; remove them in the claude.ai UI.
+- **Keep:** the auto-mode classifier blocks Supabase migrations and bulk prod writes even after TJ says ok in chat; hand him the SQL.
+- **Data pulled for the investor doc:** benefits pages ~2,400 Google clicks/mo (2,241 in 6 Sep–3 Oct), weekly organic users 222 → 821 since mid-June; `/benefits/finder` itself gets ~18 search visitors/mo. Claimed provider orgs: 201 since 1 Sep, 29 on 1–8 Oct, 1,060 all-time (claim dates exist only since 16 Jul).
 
 ### 2026-09-18 — "Looking for work" archive reason (`magical-snyder`, PR #1960 open)
 

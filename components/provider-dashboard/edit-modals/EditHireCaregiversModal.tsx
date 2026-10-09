@@ -52,6 +52,16 @@ export default function EditHireCaregiversModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Clean requirements object: remove falsy/empty values for storage and comparison
+  const cleanReq = (r: MedjobsRequirements): MedjobsRequirements => {
+    const clean: MedjobsRequirements = {};
+    if (r.background_check) clean.background_check = true;
+    if (r.drug_test) clean.drug_test = true;
+    if (r.transportation) clean.transportation = true;
+    if (r.other?.trim()) clean.other = r.other.trim();
+    return clean;
+  };
+
   const snapshot = (p?: Prn, b?: Bucket[], r?: MedjobsRequirements, jd?: string) =>
     JSON.stringify({ p: p ?? null, b: [...(b ?? [])].sort(), r: cleanReq(r ?? {}), jd: jd ?? "" });
   const hasChanges =
@@ -62,16 +72,6 @@ export default function EditHireCaregiversModal({
     setBuckets((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
   const toggleReq = (k: keyof MedjobsRequirements) =>
     setReq((prev) => ({ ...prev, [k]: !prev[k] }));
-
-  // Clean requirements object: remove falsy/empty values for storage
-  const cleanReq = (r: MedjobsRequirements): MedjobsRequirements => {
-    const clean: MedjobsRequirements = {};
-    if (r.background_check) clean.background_check = true;
-    if (r.drug_test) clean.drug_test = true;
-    if (r.transportation) clean.transportation = true;
-    if (r.other?.trim()) clean.other = r.other.trim();
-    return clean;
-  };
 
   async function handleSave() {
     if (!hasChanges && !guidedMode) {

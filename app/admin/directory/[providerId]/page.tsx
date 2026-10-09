@@ -384,7 +384,7 @@ export default function AdminDirectoryDetailPage() {
     hiringDescription !== (originalHiring.description ?? "") ||
     JSON.stringify([...hiringBuckets].sort()) !== JSON.stringify([...(originalHiring.buckets ?? [])].sort()) ||
     hiringPrn !== originalHiring.prn ||
-    JSON.stringify(cleanReqs(hiringReqs)) !== JSON.stringify(originalHiring.reqs ?? {});
+    JSON.stringify(cleanReqs(hiringReqs)) !== JSON.stringify(cleanReqs(originalHiring.reqs ?? {}));
 
   const toggleHiringBucket = (b: Bucket) =>
     setHiringBuckets((prev) => (prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]));

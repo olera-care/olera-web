@@ -60,6 +60,42 @@ export function parseProviderImages(images: string | null): string[] {
   return filterDeadImageUrls(images.split(" | ").filter(Boolean));
 }
 
+const KNOWN_PROVIDER_CATEGORIES = new Set([
+  "Home Care (Non-medical)",
+  "Home Health Care",
+  "Assisted Living",
+  "Independent Living",
+  "Memory Care",
+  "Nursing Home",
+  "Hospice",
+]);
+
+/**
+ * The single category a listing is treated as. Directory rows can list several
+ * ("Home Care (Non-medical) | Home Health Care"); the first one we recognise
+ * wins. Without this, a combined string matched no map and fell back to
+ * assisted living, so 16 home care agencies were priced monthly.
+ */
+export function primaryProviderCategory(category: string | null | undefined): string {
+  if (!category) return "";
+  if (KNOWN_PROVIDER_CATEGORIES.has(category)) return category;
+  for (const part of category.split("|")) {
+    const trimmed = part.trim();
+    if (KNOWN_PROVIDER_CATEGORIES.has(trimmed)) return trimmed;
+  }
+  return category;
+}
+
+/**
+ * Olera has hidden every price on this listing, the area estimate included.
+ * Set in the admin directory editor ("Hide all prices"), for providers who
+ * have objected to a price on their page (TJ, 10 Oct 2026). Values are text;
+ * the bulk import also left lowercase "true".
+ */
+export function isPriceHidden(provider: Pick<Provider, "contact_for_price">): boolean {
+  return (provider.contact_for_price ?? "").trim().toLowerCase() === "true";
+}
+
 /** Categories where pricing is per-hour rather than per-month */
 const HOURLY_CATEGORIES = new Set([
   "Home Care (Non-medical)",
@@ -67,7 +103,14 @@ const HOURLY_CATEGORIES = new Set([
 ]);
 
 /**
- * Format price range for display
+ * Format the directory's lower/upper price.
+ *
+ * NOT a provider's price and never shown to families: these columns came from
+ * a Sept 2025 script that asked AI models for "typical pricing" (Gemini without
+ * web search first, a hard-coded Texas average as fallback), and which one
+ * produced each number was not stored. Kept only for internal uses such as
+ * onboarding completeness. Families see the provider's own price or Olera's
+ * survey-based area estimate (Home Care Page plan, Phase 1, TJ 9 Oct 2026).
  */
 export function formatPriceRange(provider: Provider): string | null {
   const suffix = HOURLY_CATEGORIES.has(provider.provider_category) ? "/hr" : "/mo";
@@ -370,17 +413,18 @@ export function toCardFormat(provider: Provider): ProviderCardData {
   const { image: cardImage, imageType } = resolveCardImage(provider);
 
   // Pricing: Tier 3 categories (Home Health, Nursing Home, Hospice) suppress
-  // dollar amounts on cards — lead with coverage education instead.
-  const pricingConfig = getPricingConfig(provider.provider_category);
+  // dollar amounts on cards — lead with coverage education instead. A
+  // directory row carries no price of its own (its lower/upper columns are AI
+  // estimates, see formatPriceRange), so the card shows the area estimate.
+  const category = primaryProviderCategory(provider.provider_category);
+  const pricingConfig = getPricingConfig(category);
   let priceRange = "";
   let isRegionalEstimate = false;
   let isMetroAdjusted = false;
 
-  if (pricingConfig.tier !== 3) {
-    priceRange = formatPriceRange(provider) || "";
-
-    if (!priceRange && provider.state) {
-      const regional = getRegionalEstimate(provider.provider_category, provider.state, provider.city);
+  if (pricingConfig.tier !== 3 && !isPriceHidden(provider)) {
+    if (provider.state) {
+      const regional = getRegionalEstimate(category, provider.state, provider.city);
       if (regional) {
         priceRange = regional.formatted;
         isRegionalEstimate = true;
@@ -603,9 +647,8 @@ export function enrichBpCards(
       bp.imageType = seeded.imageType;
       if (seeded.images.length > 0) bp.images = seeded.images;
     }
-    if (bp.priceRange === "Contact for pricing" && seeded.priceRange !== "Contact for pricing") {
-      bp.priceRange = seeded.priceRange;
-    }
+    // No price is borrowed from the directory row: its price is an AI
+    // estimate, and a claimed agency's "Contact for pricing" is its choice.
     if (bp.rating === 0 && seeded.rating > 0) {
       bp.rating = seeded.rating;
       bp.reviewCount = seeded.reviewCount;

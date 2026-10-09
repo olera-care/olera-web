@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceCaption, priceHeaderPrefix, priceInline } from "@/components/providers/price-labels";
 import Image from "next/image";
 import Link from "next/link";
 import { createPortal } from "react-dom";
@@ -22,6 +24,8 @@ interface GuideBottomSheetProps {
   providerImage?: string | null;
   careTypes?: string[];
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   ctaVariant?: string | null;
   /** Provider category for pre-filling care type (e.g. "Home Care", "Assisted Living") */
   providerCategory?: string | null;
@@ -49,6 +53,7 @@ export default function GuideBottomSheet({
   providerImage,
   careTypes = [],
   priceRange,
+  priceSource,
   ctaVariant,
   providerCategory,
   startInEnrichment = false,
@@ -545,6 +550,7 @@ export default function GuideBottomSheet({
               providerImage={providerImage}
               careTypes={careTypes}
               priceRange={priceRange}
+              priceSource={priceSource}
               ctaVariant={ctaVariant || "guide"}
             />
           )}

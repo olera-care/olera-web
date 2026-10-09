@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceCaption, priceHeaderPrefix, priceInline } from "@/components/providers/price-labels";
 import Image from "next/image";
 import Link from "next/link";
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
@@ -26,6 +28,8 @@ interface CompareCardProps {
   providerPhone?: string | null;
   providerImage?: string | null;
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   rating?: number | null;
   reviewCount?: number | null;
   services?: string[];
@@ -58,6 +62,7 @@ export default function CompareCard({
   providerPhone,
   providerImage,
   priceRange,
+  priceSource,
   rating,
   reviewCount,
   services,
@@ -130,9 +135,10 @@ export default function CompareCard({
     rating,
     reviewCount,
     priceRange,
+    priceSource,
     services,
     highlights,
-  }), [providerId, providerSlug, providerName, providerImage, providerCategory, providerCity, providerState, rating, reviewCount, priceRange, services, highlights]);
+  }), [providerId, providerSlug, providerName, providerImage, providerCategory, providerCity, providerState, rating, reviewCount, priceRange, priceSource, services, highlights]);
 
   // All providers for comparison
   const allProviders = useMemo(
@@ -523,10 +529,10 @@ export default function CompareCard({
         <div className="px-5 pt-5 pb-5">
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. {unitLabel} · {providerCity || "Local"}
+              {priceHeaderPrefix(priceSource)}{unitLabel} · {providerCity || "Local"}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {priceRange || "Contact for pricing"}
+              {isShowablePrice(priceRange) ? priceRange : "Rates not published"}
             </p>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -569,6 +575,7 @@ export default function CompareCard({
             providerImage={providerImage}
             careTypes={services}
             priceRange={priceRange}
+            priceSource={priceSource}
             ctaVariant={ctaVariant || "compare"}
           />
         </div>
@@ -702,7 +709,7 @@ export default function CompareCard({
           </div>
 
           {/* Pricing context */}
-          {priceRange ? (
+          {isShowablePrice(priceRange) ? (
             <div className="mb-4">
               {(providerCategory || locationStr) && (
                 <p className="text-[13px] text-gray-500 font-medium mb-1">
@@ -712,9 +719,11 @@ export default function CompareCard({
               <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
                 {priceRange}
               </p>
-              <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
-                Area estimate — not this provider&apos;s actual price
-              </p>
+              {priceCaption(priceSource) && (
+                <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+                  {priceCaption(priceSource)}
+                </p>
+              )}
             </div>
           ) : (
             <div className="mb-4">
@@ -723,8 +732,8 @@ export default function CompareCard({
                   {providerCategory}{locationStr ? ` in ${locationStr}` : ""}
                 </p>
               )}
-              <p className="text-[18px] font-bold text-gray-900 leading-snug">
-                Contact for pricing
+              <p className="text-[15px] font-medium text-gray-600 leading-snug">
+                Rates not published. Ask them.
               </p>
             </div>
           )}
@@ -836,10 +845,10 @@ export default function CompareCard({
           {/* Price section */}
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. {unitLabel} · {providerCity || "Local"}
+              {priceHeaderPrefix(priceSource)}{unitLabel} · {providerCity || "Local"}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {priceRange || "Contact for pricing"}
+              {isShowablePrice(priceRange) ? priceRange : "Rates not published"}
             </p>
           </div>
 
@@ -1018,7 +1027,7 @@ export default function CompareCard({
                       )}
                       <span className="text-gray-300">·</span>
                       <span className="text-[13px] font-semibold text-gray-900">
-                        {provider.priceRange || "Contact for pricing"}
+                        {isShowablePrice(provider.priceRange) ? priceInline(provider.priceRange, provider.priceSource) : "Rates not published"}
                       </span>
                     </div>
                   </div>

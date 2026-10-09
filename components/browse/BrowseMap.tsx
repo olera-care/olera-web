@@ -66,7 +66,14 @@ function toGeoJSON(providers: ProviderCardData[]): GeoJSON.FeatureCollection {
         rating: p.rating,
         score: p.rating > 0 ? p.rating.toFixed(1) : "—",
         primaryCategory: p.primaryCategory,
-        priceRange: p.priceRange,
+        // Same rule as the cards: an area estimate says so, and "Contact for
+        // pricing" is not printed as if it were a price.
+        priceRange:
+          !p.priceRange || p.priceRange === "Contact for pricing"
+            ? ""
+            : p.isRegionalEstimate
+              ? `${p.isMetroAdjusted ? "Area avg." : "State avg."} ${p.priceRange}`
+              : p.priceRange,
       },
     })),
   };
@@ -116,9 +123,9 @@ function buildPopupHTML(props: Record<string, unknown>): string {
         <div style="font-size:12px;color:#6b7280;margin-top:2px;">
           ${props.primaryCategory}
         </div>
-        <div style="margin-top:8px;font-size:14px;font-weight:700;color:#111;">
+        ${props.priceRange ? `<div style="margin-top:8px;font-size:14px;font-weight:700;color:#111;">
           ${props.priceRange}
-        </div>
+        </div>` : ""}
       </div>
     </a>
   `;

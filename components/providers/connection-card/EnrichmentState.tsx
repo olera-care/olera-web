@@ -7,6 +7,8 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { RECIPIENT_OPTIONS } from "./constants";
 import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 import type { CareRecipient } from "./types";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceInline } from "@/components/providers/price-labels";
 import {
   trackEnrichmentStarted,
   trackEnrichmentStepCompleted,
@@ -51,6 +53,8 @@ interface EnrichmentStateProps {
   onSkip: () => void;
   saving?: boolean;
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   /** @deprecated No longer used in new UI but kept for backward compatibility */
   careTypes?: string[];
   /** Provider's category (e.g., "Home Care") - used to pre-fill care type and skip that step */
@@ -228,6 +232,7 @@ export default function EnrichmentState({
   onSkip,
   saving,
   priceRange = null,
+  priceSource,
   careTypes: _careTypes,
   providerCategory,
   successTitle,
@@ -538,8 +543,9 @@ export default function EnrichmentState({
     }
   }, [trackingParams, prefilledCareType, careType, recipient, timeline, careNeed, paymentMethod, name, phone, onSave, onSkip, getAllData]);
 
-  // Compute price display for banner
-  const priceDisplay = priceRange || successSubtitle;
+  // Compute price display for banner. A real amount carries its label in short
+  // form ("$28/hr estimated"); "Contact for pricing" is never shown as a price.
+  const priceDisplay = isShowablePrice(priceRange) ? priceInline(priceRange, priceSource) : successSubtitle;
 
   return (
     <div>

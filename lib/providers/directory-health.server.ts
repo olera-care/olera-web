@@ -213,7 +213,9 @@ export type DirectoryHealthSummary = {
 export async function directoryHealthSummary(db: SupabaseClient, days = 7): Promise<DirectoryHealthSummary> {
   const since = new Date(Date.now() - days * 86_400_000).toISOString();
   const [{ data: recent }, { count: openFlags }, { count: checked }, { count: unchecked }, { data: last }, { data: deadRows }] = await Promise.all([
-    db.from("provider_health_actions").select("kind").gte("created_at", since).limit(10_000),
+    // What stands: an action a person undid did not happen, for the count.
+    // On 9 Oct the brief said "renamed 11 this week" after all 11 were undone.
+    db.from("provider_health_actions").select("kind").gte("created_at", since).is("undone_at", null).limit(10_000),
     // Flags a person must decide. A dead website is a signal the Google pass
     // consumes, not a human task, so it is counted apart (deadWebsites).
     db.from("provider_health_actions").select("id", { count: "exact", head: true }).is("applied_at", null).is("resolved_at", null).is("undone_at", null).neq("kind", "website_dead"),

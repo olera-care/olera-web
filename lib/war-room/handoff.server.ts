@@ -38,12 +38,12 @@ export function handoffNote(text: string): string | null {
 }
 
 /** What Cortex is asked to write. Its brief mode has the record and the lookups, so evidence is real. */
-export function handoffQuestion(note: string): string {
-  return `Write a handoff brief for a Claude Code session that will do this work in the olera-web repo. It reads only this brief, not our chat, so it must stand on its own.${note ? ` He says the brief is about: ${note}` : " It is about the subject of our last exchange."}
+export function handoffQuestion(note: string, source = "Telegram", conversation?: string): string {
+  return `Write a handoff brief for a Claude Code session that will do this work in the olera-web repo. It reads only this brief, not our chat, so it must stand on its own.${note ? ` He says the brief is about: ${note}` : " It is about the subject of the conversation below."}${conversation ? `\n\nTHE CONVERSATION, OLDEST FIRST (the brief is written from this):\n${conversation}` : ""}
 
 Format, in Markdown:
 # <a title of under ten words>
-**Raised:** <today's date>, from Telegram.
+**Raised:** <today's date>, from ${source}.
 ## What he asked
 His own words, quoted, and what he wants done.
 ## What happened
@@ -59,14 +59,14 @@ Rules: no invented facts, no filler, no em dashes. Leave out anything a session 
 }
 
 /** The title is the brief's first heading; a brief with none gets his note or a dated fallback. */
-export function handoffTitle(body: string, note: string): string {
+export function handoffTitle(body: string, note: string, source = "Telegram"): string {
   const heading = body.match(/^#\s+(.+)$/m)?.[1]?.trim();
-  return (heading || note.split("\n")[0] || `Handoff from Telegram, ${new Date().toISOString().slice(0, 10)}`).slice(0, 140);
+  return (heading || note.split("\n")[0] || `Handoff from ${source}, ${new Date().toISOString().slice(0, 10)}`).slice(0, 140);
 }
 
-export async function saveHandoff(db: SupabaseClient, args: { body: string; note: string; chatId: string }): Promise<Handoff> {
+export async function saveHandoff(db: SupabaseClient, args: { body: string; note: string; chatId: string; source?: string }): Promise<Handoff> {
   const { data, error } = await db.from("cortex_handoffs")
-    .insert({ title: handoffTitle(args.body, args.note), body: args.body, repo: "olera-web", status: "open", note: args.note || null, chat_id: args.chatId })
+    .insert({ title: handoffTitle(args.body, args.note, args.source), body: args.body, repo: "olera-web", status: "open", note: args.note || null, chat_id: args.chatId })
     .select("*")
     .single();
   if (error) throw new Error(error.code === "42P01" ? "the handoffs table isn't there yet (migration 265)" : error.message);

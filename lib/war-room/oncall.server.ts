@@ -5,6 +5,7 @@ import { downloadSlackFile } from "./attachments.server";
 import { slackApi } from "./sources.server";
 import { postAsCortex } from "./team-messages.server";
 import { fireRoutine } from "./visualize.server";
+import { handoffNote } from "./handoff.server";
 import {
   BUILD_TIMEOUT_MS,
   bodyHasMarker,
@@ -65,7 +66,7 @@ async function getCase(db: SupabaseClient, channel: string, threadTs: string): P
 type RawSlackMessage = { user?: string; bot_id?: string; app_id?: string; text?: string; ts?: string; files?: DmFile[] };
 
 /** The thread, oldest first, with names, plus the image files in it (newest last). */
-async function readThread(token: string, channel: string, threadTs: string, botUserId: string | null, ownAppId: string | null) {
+export async function readThread(token: string, channel: string, threadTs: string, botUserId: string | null, ownAppId: string | null) {
   const replies = await slackApi<{ messages?: RawSlackMessage[] }>(token, "conversations.replies", { channel, ts: threadTs, limit: 60 });
   const raw = replies.messages ?? [];
   const names = new Map<string, string | null>();
@@ -137,6 +138,17 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
   } catch (error) {
     await say(`I can't take this on yet: ${error instanceof Error ? error.message : "the case store failed"}.`);
     return { action: "no table" };
+  }
+
+  // "hand this off" in a thread where Cortex was mentioned.
+  const handoff = handoffNote(text);
+  if (handoff !== null) {
+    const { slackHandoff } = await import("./slack-handoff.server");
+    await say(await slackHandoff(db, {
+      channel: mention.channel, threadTs: mention.threadTs, note: handoff, user: mention.user,
+      founderId: founder, botUserId: mention.botUserId, ownAppId: mention.ownAppId, source: "a Slack thread",
+    }));
+    return { action: "handoff" };
   }
 
   if (existing && isStopCommand(text)) {

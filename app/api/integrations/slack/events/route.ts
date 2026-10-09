@@ -17,6 +17,8 @@ import { applyTuningMessage, initiativeForThread, recordGrade } from "@/lib/war-
 import { providerCardReply } from "@/lib/war-room/provider-gaps.server";
 import { cortexBotUserId, handleOncallMention } from "@/lib/war-room/oncall.server";
 import { mentionsUser } from "@/lib/war-room/oncall";
+import { handoffNote } from "@/lib/war-room/handoff.server";
+import { slackHandoff } from "@/lib/war-room/slack-handoff.server";
 
 // 120, not 90: an on-call plan reads the thread and screenshots before the
 // answer engine, which alone may use 85 seconds.
@@ -152,6 +154,17 @@ export async function POST(request: NextRequest) {
       const say = (reply: string) => postAsCortex(payload.event!.channel!, reply, { threadTs }).catch(() => null);
       const founderId = process.env.WAR_ROOM_BRIEF_SLACK_USER_ID?.trim() || null;
       const fromFounder = Boolean(founderId) && payload.event.user === founderId;
+      // "hand this off": the brief is written from this thread (or the recent
+      // channel) and saved for /handoff. Before the answer engine, which used
+      // to claim it had done it.
+      const handoff = handoffNote(text);
+      if (handoff !== null) {
+        await say(await slackHandoff(db, {
+          channel: payload.event.channel!, threadTs: payload.event.thread_ts ?? null, note: handoff,
+          user: payload.event.user ?? null, founderId, botUserId, ownAppId: payload.api_app_id ?? null, source: "Slack #cortex",
+        }));
+        return NextResponse.json({ ok: true, cortexChannel: { handoff: true } });
+      }
       const command = parseInboxCommand(text);
       if (command) {
         if (!fromFounder) {
@@ -278,6 +291,18 @@ export async function POST(request: NextRequest) {
       // only rejects when we positively know the sender is somebody else.
       if (founderUserId && payload.event.user !== founderUserId) {
         return NextResponse.json({ ok: true, founderAnswer: { captured: false, reason: "not the founder" } });
+      }
+
+      const dmHandoff = handoffNote(text);
+      if (dmHandoff !== null && dmTarget && payload.event.channel) {
+        const reply = await slackHandoff(db, {
+          channel: payload.event.channel, threadTs: payload.event.thread_ts ?? null, note: dmHandoff,
+          // Strict, unlike answers above: a handoff spends his Claude plan, so
+          // an unverifiable sender is refused, never assumed to be him.
+          user: payload.event.user ?? null, founderId: founderUserId, botUserId, ownAppId: payload.api_app_id ?? null, source: "a Slack DM",
+        });
+        await sendSlackDirectMessage(dmTarget, reply, { threadTs: payload.event.thread_ts }).catch(() => null);
+        return NextResponse.json({ ok: true, handoff: true });
       }
 
       // "Approved, go ahead" approves the one decision waiting on him. It used

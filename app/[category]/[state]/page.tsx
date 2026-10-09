@@ -108,7 +108,7 @@ export default async function StatePage({
               </span>
               {data.avgLowerPrice && data.avgUpperPrice && (
                 <span className="inline-flex items-center gap-1.5">
-                  Average cost: <span className="font-semibold text-gray-900">${data.avgLowerPrice.toLocaleString()} - ${data.avgUpperPrice.toLocaleString()}</span>
+                  State average cost: <span className="font-semibold text-gray-900">${data.avgLowerPrice.toLocaleString()} - ${data.avgUpperPrice.toLocaleString()}</span>
                 </span>
               )}
             </div>

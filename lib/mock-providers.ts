@@ -643,9 +643,10 @@ export function mockProviderToProfile(provider: Provider): Profile {
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import {
   parseProviderImages,
-  formatPriceRange as formatIOSPriceRange,
   getPrimaryImage,
+  primaryProviderCategory,
   getCategoryDisplayName,
+  isPriceHidden,
 } from "@/lib/types/provider";
 import { generateProviderSlug } from "@/lib/slugify";
 
@@ -674,11 +675,7 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
   // Use only facility photos for gallery; don't mix in the logo
   const allImages = images.length > 0 ? images : [];
 
-  const priceRange = formatIOSPriceRange(provider);
   const categoryDisplay = getCategoryDisplayName(provider.provider_category);
-
-  // Determine price unit based on category (matches HOURLY_CATEGORIES in lib/types/provider.ts)
-  const isHourly = provider.provider_category === "Home Care (Non-medical)" || provider.provider_category === "Home Health Care";
 
   // Build metadata with iOS-specific fields
   const metadata: OrganizationMetadata & {
@@ -687,18 +684,13 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     images?: string[];
     badge?: string;
     accepted_payments?: string[];
-    price_min?: number;
-    price_max?: number;
-    price_unit?: "HOUR" | "MONTH";
   } = {
-    price_range: priceRange || undefined,
+    // No price from the directory row: lower_price/upper_price are AI
+    // estimates, not the provider's (see formatPriceRange). The page falls
+    // back to Olera's labelled area estimate, unless Olera has hidden prices
+    // on this listing, in which case the page shows none at all.
+    ...(isPriceHidden(provider) && { contact_for_pricing: true }),
     amenities: [categoryDisplay],
-    // Raw price fields for structured data (JSON-LD PriceSpecification)
-    ...(provider.lower_price != null && { price_min: provider.lower_price }),
-    ...(provider.upper_price != null && { price_max: provider.upper_price }),
-    ...((provider.lower_price != null || provider.upper_price != null) && {
-      price_unit: isHourly ? "HOUR" as const : "MONTH" as const,
-    }),
     // Prefer fresh Google API rating over legacy google_rating
     rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? undefined,
     review_count: provider.google_reviews_data?.review_count ?? undefined,
@@ -717,7 +709,7 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     source_provider_id: provider.provider_id, // Links back to the original olera-providers record
     slug: provider.slug || generateProviderSlug(provider.provider_name, provider.state),
     type: "organization",
-    category: iosCategoryMap[provider.provider_category] || "assisted_living",
+    category: iosCategoryMap[primaryProviderCategory(provider.provider_category)] || "assisted_living",
     display_name: provider.provider_name,
     description: provider.provider_description,
     image_url: primaryImage,

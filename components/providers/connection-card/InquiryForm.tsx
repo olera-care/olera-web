@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import {
-  getPricingForProviderSync,
-  formatPricingRange,
-} from "@/lib/pricing-ranges";
+import { getPricingForProviderSync } from "@/lib/pricing-ranges";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceCaption } from "@/components/providers/price-labels";
 
 interface InquiryFormProps {
   providerName: string;
@@ -15,6 +14,8 @@ interface InquiryFormProps {
   connectionCount?: number;
   careTypes?: string[];
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   city?: string | null;
   state?: string | null;
   /**
@@ -35,6 +36,7 @@ export default function InquiryForm({
   connectionCount,
   careTypes = [],
   priceRange = null,
+  priceSource,
   city = null,
   state = null,
   onEngage,
@@ -43,9 +45,12 @@ export default function InquiryForm({
   const [honeypot, setHoneypot] = useState("");
   const [localError, setLocalError] = useState("");
 
-  // Resolve pricing from care types
+  // Coverage notes come from the care type; the number comes only from the
+  // page's single price source, so the card never shows a different figure
+  // from the header (and shows none when the agency chose not to publish).
   const pricing = getPricingForProviderSync(careTypes);
-  const estimateRange = priceRange || (pricing.range ? formatPricingRange(pricing.range) : null);
+  const estimateRange = isShowablePrice(priceRange) ? priceRange : null;
+  const caption = priceCaption(priceSource);
   const careLabel = pricing.careTypeLabel || (careTypes.length > 0 ? careTypes[0] : null);
   const locationStr = [city, state].filter(Boolean).join(", ");
 
@@ -109,9 +114,11 @@ export default function InquiryForm({
           <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
             {estimateRange}
           </p>
-          <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
-            Area estimate — not this provider&apos;s actual price
-          </p>
+          {caption && (
+            <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+              {caption}
+            </p>
+          )}
           {pricing.medicareNote && (
             <p className="text-[12px] text-primary-700 font-medium mt-2">
               {pricing.medicareNote}
@@ -129,9 +136,11 @@ export default function InquiryForm({
           <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
             {estimateRange}
           </p>
-          <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
-            Area estimate — not this provider&apos;s actual price
-          </p>
+          {caption && (
+            <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+              {caption}
+            </p>
+          )}
         </div>
       ) : pricing.isHospice ? (
         <div className="mb-4">

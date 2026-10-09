@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceCaption, priceHeaderPrefix, priceInline } from "@/components/providers/price-labels";
 import Image from "next/image";
 import Link from "next/link";
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
@@ -23,6 +25,8 @@ interface GuideCardProps {
   providerImage?: string | null;
   careTypes?: string[];
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   ctaVariant?: string | null;
   ctaPreviewMode?: boolean;
 }
@@ -42,6 +46,7 @@ export default function GuideCard({
   providerImage,
   careTypes = [],
   priceRange,
+  priceSource,
   ctaVariant,
   ctaPreviewMode = false,
 }: GuideCardProps) {
@@ -388,10 +393,10 @@ export default function GuideCard({
           {/* Price section - consistent with regular view */}
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. {unitLabel} · {shortLocation}
+              {priceHeaderPrefix(priceSource)}{unitLabel} · {shortLocation}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {priceRange || "Contact for pricing"}
+              {isShowablePrice(priceRange) ? priceRange : "Rates not published"}
             </p>
           </div>
 
@@ -475,6 +480,7 @@ export default function GuideCard({
             providerImage={providerImage}
             careTypes={careTypes.length > 0 ? careTypes : (providerCategory ? [providerCategory] : [])}
             priceRange={priceRange}
+            priceSource={priceSource}
             ctaVariant={ctaVariant || "guide"}
           />
         </div>
@@ -492,10 +498,10 @@ export default function GuideCard({
           {/* Pricing header */}
           <div className="mb-4 pb-4 border-b border-gray-100">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Est. {unitLabel} · {shortLocation}
+              {priceHeaderPrefix(priceSource)}{unitLabel} · {shortLocation}
             </p>
             <p className="text-xl font-semibold text-gray-900">
-              {priceRange || "Contact for pricing"}
+              {isShowablePrice(priceRange) ? priceRange : "Rates not published"}
             </p>
           </div>
 
@@ -652,6 +658,7 @@ export default function GuideCard({
             saving={enrichmentSubmitting}
             providerCategory={providerCategory}
             priceRange={priceRange}
+            priceSource={priceSource}
             successTitle={`Connected with ${providerName}`}
             providerCity={providerCity}
             providerState={providerState}
@@ -700,7 +707,7 @@ export default function GuideCard({
         </div>
 
         {/* Pricing context */}
-        {priceRange ? (
+        {isShowablePrice(priceRange) ? (
           <div className="mb-4">
             {(careLabel || locationStr) && (
               <p className="text-[13px] text-gray-500 font-medium mb-1">
@@ -710,9 +717,11 @@ export default function GuideCard({
             <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
               {priceRange}
             </p>
-            <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
-              Area estimate — not this provider&apos;s actual price
-            </p>
+            {priceCaption(priceSource) && (
+                <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+                  {priceCaption(priceSource)}
+                </p>
+              )}
           </div>
         ) : (
           <div className="mb-4">
@@ -721,9 +730,9 @@ export default function GuideCard({
                 {careLabel}{locationStr ? ` in ${locationStr}` : ""}
               </p>
             )}
-            <p className="text-[18px] font-bold text-gray-900 leading-snug">
-              Contact for pricing
-            </p>
+            <p className="text-[15px] font-medium text-gray-600 leading-snug">
+                Rates not published. Ask them.
+              </p>
           </div>
         )}
 

@@ -7,6 +7,8 @@ import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/sessio
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import CompareBottomSheet, { type CompareProvider } from "./CompareBottomSheet";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceInline } from "@/components/providers/price-labels";
 
 interface MobileStickyCompareProps {
   providerName: string;
@@ -18,6 +20,8 @@ interface MobileStickyCompareProps {
   providerPhone?: string | null;
   providerImage?: string | null;
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   /** Pricing tier (3 = Medicare/Medicaid) */
   pricingTier?: number | null;
   /** Pricing disclaimer text for tooltip */
@@ -47,6 +51,7 @@ export default function MobileStickyCompare({
   providerPhone,
   providerImage,
   priceRange,
+  priceSource,
   pricingTier,
   pricingDisclaimer,
   rating,
@@ -176,6 +181,7 @@ export default function MobileStickyCompare({
     rating,
     reviewCount,
     priceRange,
+    priceSource,
     services,
     highlights,
   };
@@ -277,22 +283,13 @@ export default function MobileStickyCompare({
   // Parse price display - single line format
   const getPriceDisplay = () => {
     // Medicare/Medicaid tier (tier 3) without explicit pricing
-    if (pricingTier === 3 && !priceRange) {
-      return "Medicare/Medicaid may cover";
+    // One label rule for every surface (components/providers/price-labels.ts):
+    // the agency's own rate shows plainly, an area estimate says "estimated",
+    // and "Contact for pricing" is never shown as if it were a price.
+    if (!isShowablePrice(priceRange)) {
+      return pricingTier === 3 ? "Medicare/Medicaid may cover" : "Rates not published";
     }
-    if (!priceRange) {
-      return "Contact for pricing";
-    }
-    const isHourly = priceRange.includes("/hr");
-    const isMonthly = priceRange.includes("/mo");
-
-    if (isHourly) {
-      return `${priceRange} estimated`;
-    }
-    if (isMonthly) {
-      return `${priceRange} estimated`;
-    }
-    return `${priceRange} estimated`;
+    return priceInline(priceRange, priceSource);
   };
 
   const priceDisplay = getPriceDisplay();

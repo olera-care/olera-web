@@ -1,3 +1,4 @@
+import type { PriceSource } from "@/components/providers/PriceEstimate";
 // ============================================================
 // ConnectionCard Types
 // ============================================================
@@ -43,6 +44,8 @@ export interface ConnectionCardProps {
   providerName: string;
   providerSlug: string;
   priceRange: string | null;
+  /** Where priceRange came from; drives its label. Defaults to an area estimate. */
+  priceSource?: PriceSource;
   reviewCount: number | undefined;
   phone: string | null;
   acceptedPayments: string[];

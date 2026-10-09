@@ -36,6 +36,7 @@ import {
   RATE_UNIT_SUFFIX,
 } from "@/lib/pricing-config";
 import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice } from "@/components/providers/price-labels";
 import { getProfileCategoryFallbackImage, getCategoryFallbackImage } from "@/lib/types/provider";
 import { filterDeadImageUrls, liveImageUrlOrNull } from "@/lib/images/dead-hosts";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
@@ -73,6 +74,12 @@ import { ViewTracker } from "@/components/analytics/ViewTracker";
 // ============================================================
 // Dynamic Metadata (SEO title, description, OG, canonical)
 // ============================================================
+
+/** Where a similar provider's card price came from, for the shared label rule. */
+function cardPriceSource(p: { priceRange?: string | null; isRegionalEstimate?: boolean }): PriceSource {
+  if (!isShowablePrice(p.priceRange)) return "contact_only";
+  return p.isRegionalEstimate ? "regional_estimate" : "provider_reported";
+}
 
 export async function generateMetadata({
   params,
@@ -522,6 +529,7 @@ export default async function ProviderPage({
       image: p.image || null,
       rating: p.rating || null,
       priceRange: p.priceRange || null,
+      priceSource: cardPriceSource(p),
       city,
       state,
       distanceMiles: null, // Could calculate if we had lat/lng on Provider type
@@ -1683,6 +1691,7 @@ export default async function ProviderPage({
                     providerName={profile.display_name}
                     providerSlug={profile.slug}
                     priceRange={priceRange}
+                    priceSource={priceSource}
                     reviewCount={googleReviewsData?.review_count ?? reviewCount}
                     phone={profile.phone}
                     acceptedPayments={acceptedPayments}
@@ -1707,6 +1716,7 @@ export default async function ProviderPage({
                       rating: p.rating || null,
                       reviewCount: p.reviewCount || null,
                       priceRange: p.priceRange || null,
+                      priceSource: cardPriceSource(p),
                       services: p.careTypes || [],
                       highlights: p.highlights || [],
                     }))}
@@ -1756,6 +1766,7 @@ export default async function ProviderPage({
           <MobileCTAVariantRouter
             providerName={profile.display_name}
             priceRange={priceRange}
+            priceSource={priceSource}
             pricingTier={pricingConfig?.tier}
             pricingDisclaimer={pricingConfig?.disclaimer({
               providerName: profile.display_name,
@@ -1785,6 +1796,7 @@ export default async function ProviderPage({
               rating: p.rating || null,
               reviewCount: p.reviewCount || null,
               priceRange: p.priceRange || null,
+              priceSource: cardPriceSource(p),
               services: p.careTypes || [],
               highlights: p.highlights || [],
             }))}

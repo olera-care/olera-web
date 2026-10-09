@@ -18,7 +18,7 @@ import {
 } from "@/lib/types/provider";
 import type { BusinessProfile } from "@/lib/types";
 import { expandCityAliases } from "@/lib/city-aliases";
-import { getStateMedian, getPricingConfig, PRICING_DATA_SOURCE } from "@/lib/pricing-config";
+import { getRegionalEstimate, getPricingConfig, PRICING_DATA_SOURCE } from "@/lib/pricing-config";
 
 // ============================================================
 // Category slug ↔ Supabase mapping
@@ -339,30 +339,23 @@ export async function fetchPowerPageData(opts: {
   // Category-specific pricing config (needed for avg price suppression + cost note)
   const pricingConfig = getPricingConfig(opts.category);
 
-  // Compute average prices with minimum sample size requirement
-  // Tier 3 categories (Home Health, Nursing Home, Hospice) suppress dollar amounts —
-  // coverage education is more useful than misleading price averages.
-  const MIN_SAMPLE_SIZE = 5;
+  // Average cost comes from Olera's CareScout/Genworth estimate only. The
+  // directory's lower/upper prices are AI estimates (see formatPriceRange in
+  // lib/types/provider.ts), so averaging them presented guesses as local data.
+  // Tier 3 categories (Home Health, Nursing Home, Hospice) suppress dollar
+  // amounts: coverage education is more useful than a price average.
   let avgLowerPrice: number | null = null;
   let avgUpperPrice: number | null = null;
   let isStateAverage = false;
 
-  if (pricingConfig.tier !== 3) {
-    // Use proper null checks so $0 prices aren't excluded
-    const priced = (providers as Provider[]).filter((p) => p.lower_price != null && p.upper_price != null);
-
-    if (priced.length >= MIN_SAMPLE_SIZE) {
-      // Enough local data — use provider-based average
-      avgLowerPrice = Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length);
-      avgUpperPrice = Math.round(priced.reduce((s, p) => s + (p.upper_price ?? 0), 0) / priced.length);
-    } else if (opts.stateAbbrev) {
-      // Not enough local data — fall back to state-level median
-      const stateMedian = getStateMedian(opts.category, opts.stateAbbrev);
-      if (stateMedian) {
-        avgLowerPrice = Math.round(stateMedian.value * 0.85);
-        avgUpperPrice = Math.round(stateMedian.value * 1.15);
-        isStateAverage = true;
-      }
+  if (pricingConfig.tier !== 3 && opts.stateAbbrev) {
+    // The same function the provider cards on this page use, so the header
+    // and the cards never show two different estimates.
+    const regional = getRegionalEstimate(opts.category, opts.stateAbbrev, city);
+    if (regional) {
+      avgLowerPrice = regional.low;
+      avgUpperPrice = regional.high;
+      isStateAverage = !regional.isMetroAdjusted;
     }
   }
 

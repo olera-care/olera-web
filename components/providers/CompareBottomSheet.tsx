@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceCaption, priceHeaderPrefix, priceInline } from "@/components/providers/price-labels";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +25,8 @@ export interface CompareProvider {
   rating?: number | null;
   reviewCount?: number | null;
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   services?: string[];
   highlights?: string[];
 }
@@ -659,6 +663,7 @@ export default function CompareBottomSheet({
               providerImage={currentProvider.image}
               careTypes={currentProvider.category ? [currentProvider.category] : []}
               priceRange={currentProvider.priceRange}
+              priceSource={currentProvider.priceSource}
               ctaVariant={ctaVariant || "compare"}
             />
           </div>
@@ -1125,7 +1130,7 @@ function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showTo
             )}
             <span className="text-gray-300">·</span>
             <span className="text-[13px] font-semibold text-gray-900">
-              {provider.priceRange || "Contact for pricing"}
+              {isShowablePrice(provider.priceRange) ? priceInline(provider.priceRange, provider.priceSource) : "Rates not published"}
             </span>
           </div>
         </div>

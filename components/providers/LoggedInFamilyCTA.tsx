@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
-import {
-  getPricingForProviderSync,
-  formatPricingRange,
-} from "@/lib/pricing-ranges";
+import { getPricingForProviderSync } from "@/lib/pricing-ranges";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceCaption } from "@/components/providers/price-labels";
 
 interface LoggedInFamilyCTAProps {
   providerId: string;
@@ -20,6 +19,8 @@ interface LoggedInFamilyCTAProps {
   providerImage?: string | null;
   careTypes?: string[];
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   /** CTA variant for analytics */
   ctaVariant?: string | null;
 }
@@ -46,6 +47,7 @@ export default function LoggedInFamilyCTA({
   providerImage,
   careTypes = [],
   priceRange,
+  priceSource,
   ctaVariant,
 }: LoggedInFamilyCTAProps) {
   const router = useRouter();
@@ -60,7 +62,9 @@ export default function LoggedInFamilyCTA({
 
   // Resolve pricing from care types
   const pricing = getPricingForProviderSync(careTypes);
-  const estimateRange = priceRange || (pricing.range ? formatPricingRange(pricing.range) : null);
+  // The number comes only from the page's single price source (see InquiryForm).
+  const estimateRange = isShowablePrice(priceRange) ? priceRange : null;
+  const caption = priceCaption(priceSource);
   const careLabel = pricing.careTypeLabel || providerCategory || (careTypes.length > 0 ? careTypes[0] : null);
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
 
@@ -181,9 +185,11 @@ export default function LoggedInFamilyCTA({
           <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
             {estimateRange}
           </p>
-          <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
-            Area estimate — not this provider&apos;s actual price
-          </p>
+          {caption && (
+            <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+              {caption}
+            </p>
+          )}
           {pricing.medicareNote && (
             <p className="text-[12px] text-primary-700 font-medium mt-2">
               {pricing.medicareNote}
@@ -201,9 +207,11 @@ export default function LoggedInFamilyCTA({
           <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
             {estimateRange}
           </p>
-          <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
-            Area estimate — not this provider&apos;s actual price
-          </p>
+          {caption && (
+            <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+              {caption}
+            </p>
+          )}
         </div>
       ) : pricing.isHospice ? (
         /* Hospice: covered by insurance */
@@ -218,15 +226,15 @@ export default function LoggedInFamilyCTA({
           </p>
         </div>
       ) : (
-        /* No pricing data: show "Contact for pricing" */
+        /* No price to show: say so plainly, never styled as a price */
         <div className="mb-4">
           {(careLabel || locationStr) && (
             <p className="text-[13px] text-gray-500 font-medium mb-1">
               {careLabel}{locationStr ? ` in ${locationStr}` : ""}
             </p>
           )}
-          <p className="text-[18px] font-bold text-gray-900 leading-snug">
-            Contact for pricing
+          <p className="text-[15px] font-medium text-gray-600 leading-snug">
+            Rates not published. Ask them.
           </p>
         </div>
       )}

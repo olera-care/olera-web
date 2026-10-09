@@ -646,6 +646,7 @@ import {
   getPrimaryImage,
   primaryProviderCategory,
   getCategoryDisplayName,
+  isPriceHidden,
 } from "@/lib/types/provider";
 import { generateProviderSlug } from "@/lib/slugify";
 
@@ -686,7 +687,9 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
   } = {
     // No price from the directory row: lower_price/upper_price are AI
     // estimates, not the provider's (see formatPriceRange). The page falls
-    // back to Olera's labelled area estimate.
+    // back to Olera's labelled area estimate, unless Olera has hidden prices
+    // on this listing, in which case the page shows none at all.
+    ...(isPriceHidden(provider) && { contact_for_pricing: true }),
     amenities: [categoryDisplay],
     // Prefer fresh Google API rating over legacy google_rating
     rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? undefined,

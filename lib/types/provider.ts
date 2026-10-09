@@ -86,6 +86,16 @@ export function primaryProviderCategory(category: string | null | undefined): st
   return category;
 }
 
+/**
+ * Olera has hidden every price on this listing, the area estimate included.
+ * Set in the admin directory editor ("Hide all prices"), for providers who
+ * have objected to a price on their page (TJ, 10 Oct 2026). Values are text;
+ * the bulk import also left lowercase "true".
+ */
+export function isPriceHidden(provider: Pick<Provider, "contact_for_price">): boolean {
+  return (provider.contact_for_price ?? "").trim().toLowerCase() === "true";
+}
+
 /** Categories where pricing is per-hour rather than per-month */
 const HOURLY_CATEGORIES = new Set([
   "Home Care (Non-medical)",
@@ -412,7 +422,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
   let isRegionalEstimate = false;
   let isMetroAdjusted = false;
 
-  if (pricingConfig.tier !== 3) {
+  if (pricingConfig.tier !== 3 && !isPriceHidden(provider)) {
     if (provider.state) {
       const regional = getRegionalEstimate(category, provider.state, provider.city);
       if (regional) {

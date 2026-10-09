@@ -797,14 +797,14 @@ export default function AdminDirectoryDetailPage() {
         {/* Pricing */}
         <Section title="Pricing">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <FieldInput label="Lower Price" value={formData.lower_price as string} onChange={(v) => updateField("lower_price", v === "" ? null : Number(v))} type="number" />
-            <FieldInput label="Upper Price" value={formData.upper_price as string} onChange={(v) => updateField("upper_price", v === "" ? null : Number(v))} type="number" />
+            <FieldInput label="Lower Price (AI estimate, not shown)" value={formData.lower_price as string} onChange={(v) => updateField("lower_price", v === "" ? null : Number(v))} type="number" />
+            <FieldInput label="Upper Price (AI estimate, not shown)" value={formData.upper_price as string} onChange={(v) => updateField("upper_price", v === "" ? null : Number(v))} type="number" />
             <Select
-              label="Contact for Price"
+              label="Prices on this page"
               options={[
-                { value: "", label: "—" },
-                { value: "True", label: "True" },
-                { value: "False", label: "False" },
+                { value: "", label: "Show Olera's area estimate" },
+                { value: "True", label: "Hide all prices (incl. estimate)" },
+                { value: "False", label: "Show Olera's area estimate" },
               ]}
               value={(formData.contact_for_price as string) ?? ""}
               onChange={(val) => updateField("contact_for_price", val || null)}

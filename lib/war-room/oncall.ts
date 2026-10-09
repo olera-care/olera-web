@@ -120,6 +120,43 @@ export function planFooter(founderId: string | null): string {
   return `_Answer here and mention me to update the plan. ${tj}: say "@Cortex go" to build it. I stop at a pull request to staging; merging stays with you._`;
 }
 
+/**
+ * What a reply is, so the code around it fits. The model opens every on-call
+ * reply with one tag on its own line; the code strips it and decides the
+ * footer and whether "go" can build anything (TJ, 2026-10-09, after a data
+ * question and an "already fixed" answer both ended "say go to build it").
+ * - plan: something to build or fix in the code. Footer offers "go".
+ * - gap: Cortex could not see the data; the plan is to build the lookup that would. Footer offers "go".
+ * - done: already fixed, shipped or in flight. Nothing to build.
+ * - answer: a question answered. Nothing to build.
+ * A missing or unknown tag is an answer: a lost "go" offer is cheap, a "go" that builds nothing is not.
+ */
+export type ReplyKind = "plan" | "gap" | "done" | "answer";
+
+const KIND_TAG = /^\s*\[\[\s*(?:kind\s*:\s*)?(plan|gap|done|answer)\s*\]\]\s*\n?/i;
+
+export function parseReplyKind(reply: string): { kind: ReplyKind; body: string } {
+  const match = reply.match(KIND_TAG);
+  if (!match) return { kind: "answer", body: reply.replace(/\[\[[^\]\n]{0,30}\]\]/g, "").trim() };
+  return { kind: match[1].toLowerCase() as ReplyKind, body: reply.slice(match[0].length).trim() };
+}
+
+export function isBuildable(kind: ReplyKind): boolean {
+  return kind === "plan" || kind === "gap";
+}
+
+/** The line under a reply, or null for none. */
+export function footerFor(kind: ReplyKind, founderId: string | null): string | null {
+  const tj = founderId ? `<@${founderId}>` : "TJ";
+  if (kind === "plan") return planFooter(founderId);
+  if (kind === "gap") return `_${tj}: say "@Cortex go" and I'll build the lookup, so I can answer this next time. I stop at a pull request to staging._`;
+  return null;
+}
+
+export function nothingToBuildReply(): string {
+  return "There's nothing to build in this thread yet. Tell me what you want built, mention me, and I'll plan it first.";
+}
+
 export function notFounderGoReply(founderId: string | null): string {
   const tj = founderId ? `<@${founderId}>` : "TJ";
   return `Only TJ can start a build. ${tj}, say "@Cortex go" here when the plan looks right.`;

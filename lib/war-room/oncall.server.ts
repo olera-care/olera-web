@@ -206,6 +206,11 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
   // plan; a plain answer leaves an earlier plan in the thread as it was.
   const buildable = isBuildable(kind);
   const keepPlan = !buildable && kind !== "done";
+  const plan = buildable
+    // A gap's reply explains what Cortex could not see; the build routine
+    // needs to be told that the work is a new lookup, not a product fix.
+    ? kind === "gap" ? `${GAP_BRIEF}\n\n${body}` : body
+    : keepPlan ? existing?.plan ?? null : null;
   const now = new Date().toISOString();
   const row = {
     channel: mention.channel,
@@ -213,9 +218,10 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
     requested_by: existing?.requested_by ?? mention.user,
     // A PR that is up stays watched, so its merge is still reported; "go"
     // then builds a follow-up from this plan.
-    status: existing?.status === "pr_open" ? "pr_open" : existing?.status === "queued" ? "queued" : "waiting",
+    // A queued case whose plan was just closed ("done") leaves the queue.
+    status: existing?.status === "pr_open" ? "pr_open" : existing?.status === "queued" && plan ? "queued" : "waiting",
     plan_at: buildable ? now : keepPlan ? existing?.plan_at ?? null : null,
-    plan: buildable ? body : keepPlan ? existing?.plan ?? null : null,
+    plan,
     session_url: existing?.status === "pr_open" ? existing.session_url : null,
     pr_url: existing?.status === "pr_open" ? existing.pr_url : null,
     pr_opened_at: existing?.status === "pr_open" ? existing.pr_opened_at : null,
@@ -231,6 +237,8 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
   await say(footer ? `${body}\n\n${footer}` : body);
   return { action: `${kind}${existing ? " (revised)" : ""}` };
 }
+
+const GAP_BRIEF = "WHAT TO BUILD: a new read-only Cortex lookup (LOOKUP_TOOLS and its case in lib/war-room/lookups.server.ts) that answers the question below from Olera's existing tables. Cortex could not answer it because no lookup reads that data. Do not change product behaviour.";
 
 type BuildContext = { channel: string; threadTs: string; botUserId: string | null; ownAppId: string | null };
 
@@ -374,7 +382,9 @@ export async function pollOncallCases(db: SupabaseClient): Promise<{ checked: nu
   if (!stillBuilding?.length && token) {
     const { data: next } = await db.from(TABLE).select("*").eq("status", "queued").order("updated_at", { ascending: true }).limit(1);
     const queued = (next ?? [])[0] as OncallCase | undefined;
-    if (queued) {
+    if (queued && !queued.plan) {
+      await db.from(TABLE).update({ status: "waiting", updated_at: new Date().toISOString() }).eq("id", queued.id);
+    } else if (queued) {
       const started = await startBuild(db, token, queued, { channel: queued.channel, threadTs: queued.thread_ts, botUserId: await cortexBotUserId(), ownAppId: null }, (text) => say(queued, text));
       posted.push(`${queued.id}: ${started.action}`);
     }

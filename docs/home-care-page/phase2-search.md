@@ -16,6 +16,17 @@ What every provider page tells Google, made true and allowed. One change to
 
 Nothing on the visible page changes. Titles, canonicals and URLs are untouched.
 
+**Follow-up, 9 October (after release):** price markup now comes only from a price
+the agency entered on its claimed account. The directory's `lower_price` /
+`upper_price` turned out to be AI estimates: a September 2025 script
+(`olera_pricing_extractor.py`) asked Gemini 1.5 Flash, with no web search, for
+"typical pricing", then Perplexity, then Grok, and wrote a hard-coded Texas average
+when all failed. Which one produced each number was never stored. Evidence they
+are not the agency's price: 7,760 priced home care listings share 732 ranges; in
+302 of 1,058 cities every priced agency has the identical range; of 16 home care
+agencies that later entered their own price, 9 charge above the directory's top and
+none below. TJ, 9 Oct: drop them from the markup now and from the page in Phase 1.
+
 ## Baseline, 9 October 2026
 
 - **Review snippets report:** 2,420 valid items, 0 invalid (Google's update of 7 October).

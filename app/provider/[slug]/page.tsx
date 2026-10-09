@@ -1364,14 +1364,19 @@ export default async function ProviderPage({
                         </div>
                       </div>
                     )}
-                    {reqLabels.length > 0 && (
+                    {(reqLabels.length > 0 || req.other) && (
                       <div className="mt-4">
                         <p className="text-sm font-medium text-gray-500">Requirements</p>
-                        <div className="mt-1 flex flex-wrap gap-2">
-                          {reqLabels.map((r) => (
-                            <span key={r} className="inline-block rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs text-amber-800">{r}</span>
-                          ))}
-                        </div>
+                        {reqLabels.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {reqLabels.map((r) => (
+                              <span key={r} className="inline-block rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs text-amber-800">{r}</span>
+                            ))}
+                          </div>
+                        )}
+                        {req.other && (
+                          <p className="mt-2 text-sm text-gray-700">{req.other}</p>
+                        )}
                       </div>
                     )}
                     <p className="mt-4 text-sm font-medium text-emerald-700">

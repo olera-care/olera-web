@@ -540,6 +540,8 @@ export async function GET() {
       loggedOn: t.completed_at ? day(t.completed_at) : null,
       spawned: [],
       spawnedRecords: [],
+      // Carry the task type so special types like "custom_note" can render differently.
+      taskType: t.task_type,
     });
     tasksByOutreach.set(t.outreach_id, list);
   }
@@ -561,6 +563,7 @@ export async function GET() {
       loggedOn: t.completed_at ? day(t.completed_at) : null,
       spawned: [],
       spawnedRecords: [],
+      taskType: t.task_type,
     };
   };
 

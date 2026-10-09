@@ -10,7 +10,7 @@ README for how to run a comparison).
 ## 1. Snapshots
 
 - **Page set:** `scripts/provider-baseline/page-set.json`, 29 real pages.
-- **Baseline taken:** 9 October 2026 against https://olera.care, in WebKit at
+- **Baseline taken:** 9 October 2026 (re-taken the same day after the tool learned to pin live counters; production unchanged) against https://olera.care, in WebKit at
   402 and 1,440 wide. Saved at
   `~/Desktop/olera-provider-pages-handoff/baseline/2026-10-09/` (screenshots
   are too large for git: about 80 MB).

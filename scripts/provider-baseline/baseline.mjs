@@ -69,6 +69,10 @@ const BLOCKED_HOSTS = [
 const PIXEL_THRESHOLD = 0.1;
 const SCREENSHOT_TOLERANCE_PX = 100;
 
+// Text that counts live activity, as regular expression sources. Its digits
+// are pinned in screenshots and its words recorded (not compared).
+const LIVE_TEXT = ["\\d[\\d,]* famil(y|ies) checked this month"];
+
 // Freeze motion so two runs paint the same frame.
 const STILL_CSS = `*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important;scroll-behavior:auto!important}`;
 
@@ -206,6 +210,25 @@ async function snapshotPage(browser, base, slug, device, outDir) {
       grid.style.cssText += ";visibility:hidden;height:360px;overflow:hidden";
       return n;
     });
+    // Live counters move between runs ("69 families checked this month").
+    // Record what they said, then pin the digits so pixels compare.
+    // React renders "69" and " families…" as separate text nodes, so match on
+    // the smallest element whose whole text fits, then pin each digit node.
+    result.liveText = await page.evaluate((patterns) => {
+      const seen = [];
+      const res = patterns.map((p) => new RegExp(p));
+      for (const el of document.body.querySelectorAll("*")) {
+        const text = el.textContent || "";
+        if (text.length > 120 || !res.some((re) => re.test(text))) continue;
+        if ([...el.children].some((c) => res.some((re) => re.test(c.textContent || "")))) continue;
+        seen.push(text.trim());
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let t = walker.nextNode(); t; t = walker.nextNode()) {
+          t.nodeValue = t.nodeValue.replace(/\d[\d,]*/g, "00");
+        }
+      }
+      return seen;
+    }, LIVE_TEXT);
     await page.waitForTimeout(500);
     const shot = path.join("screens", `${slug}.${device}.png`);
     await page.screenshot({ path: path.join(outDir, shot), fullPage: true, animations: "disabled" });

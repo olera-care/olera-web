@@ -18,7 +18,10 @@ import {
   queuedReply,
   notFounderGoReply,
   oncallText,
-  planFooter,
+  footerFor,
+  isBuildable,
+  nothingToBuildReply,
+  parseReplyKind,
   prOpenedReply,
   routinePayload,
   threadTranscript,
@@ -151,7 +154,13 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
     return { action: "already building" };
   }
 
-  if (existing?.plan && isGoCommand(text) && existing.status !== "merged" && existing.status !== "dropped") {
+  // "go" with nothing buildable (an answer, an "already done", or no case
+  // yet) builds nothing and says so, rather than planning the word "go".
+  if (isGoCommand(text) && (!existing?.plan || existing.status === "merged" || existing.status === "dropped")) {
+    await say(nothingToBuildReply());
+    return { action: "nothing to build" };
+  }
+  if (existing?.plan && isGoCommand(text)) {
     if (!canStartBuild(mention.user, founder)) {
       await say(notFounderGoReply(founder));
       return { action: "go refused" };
@@ -167,7 +176,7 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
 
   // Everything else is a request, or an answer to the plan's questions: read
   // the thread and plan (again).
-  if (!existing) await say("On it. Reading the thread and checking the record; a plan in about a minute.");
+  if (!existing) await say("Looking into it. Back in about a minute.");
   let thread: Awaited<ReturnType<typeof readThread>>;
   try {
     thread = await readThread(token, mention.channel, mention.threadTs, mention.botUserId, mention.ownAppId);
@@ -192,6 +201,11 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
     await say(`I couldn't work this one out: ${answer.reply}`);
     return { action: "plan failed" };
   }
+  const { kind, body } = parseReplyKind(answer.reply);
+  // Only a plan (or a lookup to build) can be built. "Done" closes the old
+  // plan; a plain answer leaves an earlier plan in the thread as it was.
+  const buildable = isBuildable(kind);
+  const keepPlan = !buildable && kind !== "done";
   const now = new Date().toISOString();
   const row = {
     channel: mention.channel,
@@ -200,8 +214,8 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
     // A PR that is up stays watched, so its merge is still reported; "go"
     // then builds a follow-up from this plan.
     status: existing?.status === "pr_open" ? "pr_open" : existing?.status === "queued" ? "queued" : "waiting",
-    plan_at: now,
-    plan: answer.reply,
+    plan_at: buildable ? now : keepPlan ? existing?.plan_at ?? null : null,
+    plan: buildable ? body : keepPlan ? existing?.plan ?? null : null,
     session_url: existing?.status === "pr_open" ? existing.session_url : null,
     pr_url: existing?.status === "pr_open" ? existing.pr_url : null,
     pr_opened_at: existing?.status === "pr_open" ? existing.pr_opened_at : null,
@@ -210,11 +224,12 @@ export async function handleOncallMention(db: SupabaseClient, mention: OncallMen
   };
   const { error } = await db.from(TABLE).upsert(row, { onConflict: "channel,thread_ts" });
   if (error) {
-    await say(`${answer.reply}\n\n_I couldn't save this case (${error.message}), so "go" won't work yet._`);
+    await say(`${body}\n\n_I couldn't save this case (${error.message}), so "go" won't work yet._`);
     return { action: "plan unsaved" };
   }
-  await say(`${answer.reply}\n\n${planFooter(founder)}`);
-  return { action: existing ? "plan revised" : "planned" };
+  const footer = footerFor(kind, founder);
+  await say(footer ? `${body}\n\n${footer}` : body);
+  return { action: `${kind}${existing ? " (revised)" : ""}` };
 }
 
 type BuildContext = { channel: string; threadTs: string; botUserId: string | null; ownAppId: string | null };

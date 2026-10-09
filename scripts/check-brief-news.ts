@@ -4,7 +4,7 @@
  *   npx tsx scripts/check-brief-news.ts
  */
 import assert from "node:assert/strict";
-import { numbersCheck, numbersIn, rememberKeys, renderPlainBrief, renewalFact, selectNews, withDrafts, type BriefFact } from "../lib/war-room/brief-news";
+import { moveWindow, stableKey, numbersCheck, numbersIn, rememberKeys, renderPlainBrief, renewalFact, selectNews, withDrafts, type BriefFact } from "../lib/war-room/brief-news";
 
 const f = (key: string, weight: number, text = key): BriefFact => ({ key, text, weight });
 
@@ -42,5 +42,14 @@ assert.ok(numbersCheck("Two things this week.", factTexts).ok);
 assert.equal(renderPlainBrief([], [], "Next date: Hoop renews Oct 15."), "Nothing new today. Next date: Hoop renews Oct 15.");
 assert.equal(renderPlainBrief([f("a", 1, "One."), f("b", 1, "Two.")], [], null), "One. Two.");
 assert.equal(withDrafts("Reply to Robbie.", [{ key: "m", text: "x", weight: 1, draft: "Hi Robbie,\nthanks" }]), "Reply to Robbie.\n\n_Draft:_\n> Hi Robbie,\n> thanks");
+
+// A question whose counts drift is the same question; a new subject is not.
+assert.equal(stableKey("question", "Question-to-claim reads inert at ~4% answers (68/1,642)"), stableKey("question", "Question-to-claim reads inert at ~5% answers (69/1,650)"));
+assert.notEqual(stableKey("question", "Direct traffic never decomposed"), stableKey("question", "Question-to-claim reads inert"));
+// An unhandled move comes back every few days, not daily and not never.
+const d0 = new Date("2026-10-06T10:00:00Z");
+const day = (n: number) => new Date(d0.getTime() + n * 86_400_000);
+const windows = [0, 1, 2, 3, 4, 5, 6].map((n) => moveWindow(day(n)));
+assert.ok(new Set(windows).size >= 2 && new Set(windows).size <= 3, String(windows));
 
 console.log("brief news checks passed");

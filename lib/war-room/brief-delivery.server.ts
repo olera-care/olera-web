@@ -20,7 +20,7 @@ import { openItems } from "@/lib/war-room/inbox-operator.server";
 import { loadCalendar } from "@/lib/war-room/calendar.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
 import Anthropic from "@anthropic-ai/sdk";
-import { briefPrompt, numbersCheck, rememberKeys, renderPlainBrief, renewalFact, selectNews, withDrafts, type BriefFact } from "@/lib/war-room/brief-news";
+import { briefPrompt, moveWindow, numbersCheck, stableKey, rememberKeys, renderPlainBrief, renewalFact, selectNews, withDrafts, type BriefFact } from "@/lib/war-room/brief-news";
 
 /**
  * The mouth.
@@ -566,13 +566,16 @@ export async function deliverWarRoomBrief(
     if (!legacy) {
       const facts: BriefFact[] = [];
       const moveTitle = move?.title ?? null;
-      if (move) facts.push({ key: `move:${chosenKey ?? move.title}`, text: move.line.replace(/^\*|\*$/g, ""), weight: 100, draft: move.draft ?? null });
-      if (question) facts.push({ key: `question:${question.title}`, text: `Only you can answer this. ${withoutStaleRenewalCounts(question.title)}: ${question.question}`, weight: 90 });
+      // The move is the one thing to do. An unreplied provider email or approved
+      // work not marked done used to lead every brief until handled; now it is
+      // said again every few days rather than daily, so it is not lost.
+      if (move) facts.push({ key: `${chosenKey ? `move:${chosenKey}` : stableKey("move", move.title)}:${moveWindow()}`, text: move.line.replace(/^\*|\*$/g, ""), weight: 100, draft: move.draft ?? null });
+      if (question) facts.push({ key: stableKey("question", question.title), text: `Only you can answer this. ${withoutStaleRenewalCounts(question.title)}: ${question.question}`, weight: 90 });
       const renewalNews = renewalFact(renewal, shortDate);
       if (renewalNews) facts.push(renewalNews);
       for (const candidate of momentCandidates) {
         if (candidate.title === moveTitle) continue;
-        facts.push({ key: `moment:${candidate.title}`, text: `New provider email: ${candidate.title}.`, weight: 70 });
+        facts.push({ key: candidate.subjectKey ?? stableKey("moment", candidate.title), text: `New provider email: ${candidate.title}.`, weight: 70 });
       }
       const lastBriefAt = (state as { last_success_at?: string | null } | null)?.last_success_at ?? null;
       for (const reading of readings) {
@@ -580,12 +583,12 @@ export async function deliverWarRoomBrief(
         if (lastBriefAt && Date.parse(reading.measuredAt) <= Date.parse(lastBriefAt)) continue;
         facts.push({ key: `reading:${reading.label}:${reading.headline}`, text: `${reading.label}: ${reading.headline}`, weight: 60 });
       }
-      for (const row of approvedOpen) if (row.title !== moveTitle) facts.push({ key: `approved:${row.title}`, text: `Approved but not marked done: ${row.title}.`, weight: 50 });
-      for (const row of proposals) if (row.title !== moveTitle) facts.push({ key: `proposal:${row.title}`, text: `Waiting on your decision: ${row.title}.`, weight: 45 });
-      for (const item of unanswerable) facts.push({ key: `gap:${item.slice(0, 160)}`, text: `I couldn't look this up: ${item.slice(0, 240)}`, weight: 20 });
+      for (const row of approvedOpen) if (row.title !== moveTitle) facts.push({ key: stableKey("approved", row.title), text: `Approved but not marked done: ${row.title}.`, weight: 50 });
+      for (const row of proposals) if (row.title !== moveTitle) facts.push({ key: stableKey("proposal", row.title), text: `Waiting on your decision: ${row.title}.`, weight: 45 });
+      for (const item of unanswerable) facts.push({ key: stableKey("gap", item), text: `I couldn't look this up: ${item.slice(0, 240)}`, weight: 20 });
       const news = selectNews(facts, previousKeys);
       // The question is only recorded as asked when it was actually said.
-      questionShown = Boolean(question && news.some((fact) => fact.key === `question:${question!.title}`));
+      questionShown = Boolean(question && news.some((fact) => fact.key === stableKey("question", question!.title)));
       // Monday (Eastern): the standing picture, once a week.
       const weekly = easternDay().weekday === 1
         ? [

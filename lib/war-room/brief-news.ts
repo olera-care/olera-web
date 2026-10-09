@@ -32,6 +32,26 @@ export type BriefFact = {
 
 export const MAX_NEWS = 2;
 
+/**
+ * Identity for a thing whose wording carries counts that drift between scans
+ * ("~4% answers (68/1,642)" becomes "(69/1,650)"). Without this a question or
+ * proposal whose title gained one count read as new every scan and was asked
+ * again. Readings keep their digits: a changed number there IS the news.
+ * Never for ids (thread or proposal ids): they are stable already, and
+ * stripping their digits would make different items collide.
+ */
+export function stableKey(prefix: string, text: string): string {
+  return `${prefix}:${text.toLowerCase().replace(/[\d,.%~]+/g, "#").replace(/\s+/g, " ").trim().slice(0, 160)}`;
+}
+
+/** Days per window in which an unhandled move may be said again. */
+export const MOVE_RESURFACE_DAYS = 3;
+
+/** The window a move is in: the same move is news again once every MOVE_RESURFACE_DAYS. */
+export function moveWindow(now: Date = new Date()): number {
+  return Math.floor(now.getTime() / (MOVE_RESURFACE_DAYS * 86_400_000));
+}
+
 /** The facts that are new since the last brief, most important first, at most MAX_NEWS. */
 export function selectNews(facts: BriefFact[], previousKeys: Iterable<string>): BriefFact[] {
   const seen = new Set(previousKeys);

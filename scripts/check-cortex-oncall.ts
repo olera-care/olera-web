@@ -4,7 +4,7 @@
  *   npx tsx scripts/check-cortex-oncall.ts
  */
 import assert from "node:assert/strict";
-import { planRevisedSincePr, bodyHasMarker, canStartBuild, isGoCommand, isStopCommand, mentionsUser, oncallMarker, oncallText, routinePayload, threadTranscript } from "../lib/war-room/oncall";
+import { footerFor, isBuildable, parseReplyKind, planRevisedSincePr, bodyHasMarker, canStartBuild, isGoCommand, isStopCommand, mentionsUser, oncallMarker, oncallText, routinePayload, threadTranscript } from "../lib/war-room/oncall";
 
 // Mentions are stripped; the words stay.
 assert.equal(oncallText("<@U09CORTEX> texts show only Admin Reply"), "texts show only Admin Reply");
@@ -51,5 +51,19 @@ assert.ok(planRevisedSincePr({ plan_at: "2026-10-08T10:00:00Z", pr_opened_at: nu
 assert.ok(!planRevisedSincePr({ plan_at: "2026-10-08T10:00:00Z", pr_opened_at: "2026-10-08T11:00:00Z" }));
 assert.ok(planRevisedSincePr({ plan_at: "2026-10-08T12:00:00Z", pr_opened_at: "2026-10-08T11:00:00Z" }));
 assert.ok(!planRevisedSincePr({ plan_at: null, pr_opened_at: null }));
+
+// Reply kinds: the tag is stripped and decides the footer.
+assert.deepEqual(parseReplyKind("[[plan]]\n\n*Plan:* 1. Fix it"), { kind: "plan", body: "*Plan:* 1. Fix it" });
+assert.deepEqual(parseReplyKind("[[ Answer ]]\nWe had 10 inquiries."), { kind: "answer", body: "We had 10 inquiries." });
+assert.equal(parseReplyKind("[[kind: done]]\nShipped in #2459.").kind, "done");
+assert.equal(parseReplyKind("[[gap]]\nI can't see leads by source.").kind, "gap");
+// No tag, or an unknown one: an answer, and no stray brackets reach Slack.
+assert.deepEqual(parseReplyKind("Just text."), { kind: "answer", body: "Just text." });
+assert.deepEqual(parseReplyKind("[[maybe]]\nHmm."), { kind: "answer", body: "Hmm." });
+assert.ok(isBuildable("plan") && isBuildable("gap") && !isBuildable("done") && !isBuildable("answer"));
+assert.ok(footerFor("plan", "UTJ")?.includes("@Cortex go"));
+assert.ok(footerFor("gap", "UTJ")?.includes("build the lookup"));
+assert.equal(footerFor("answer", "UTJ"), null);
+assert.equal(footerFor("done", "UTJ"), null);
 
 console.log("cortex on-call checks passed");

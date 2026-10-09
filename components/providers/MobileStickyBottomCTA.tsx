@@ -12,6 +12,8 @@ import Pill from "@/components/providers/connection-card/Pill";
 import StepIndicator from "@/components/providers/connection-card/StepIndicator";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import NextBestOption from "@/components/providers/connection-card/NextBestOption";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceInline } from "@/components/providers/price-labels";
 import {
   RECIPIENT_OPTIONS,
   URGENCY_OPTIONS,
@@ -203,6 +205,8 @@ function MobileEmailCaptureForm({
 interface MobileStickyBottomCTAProps {
   providerName: string;
   priceRange: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   /** Pricing tier (3 = Medicare/Medicaid) */
   pricingTier?: number | null;
   /** Pricing disclaimer text for tooltip */
@@ -233,6 +237,7 @@ interface MobileStickyBottomCTAProps {
 export default function MobileStickyBottomCTA({
   providerName,
   priceRange,
+  priceSource,
   pricingTier,
   pricingDisclaimer,
   providerId,
@@ -628,23 +633,13 @@ export default function MobileStickyBottomCTA({
   // Parse price display - single line format
   const getPriceDisplay = () => {
     // Medicare/Medicaid tier (tier 3) without explicit pricing
-    if (pricingTier === 3 && !priceRange) {
-      return "Medicare/Medicaid may cover";
+    // One label rule for every surface (components/providers/price-labels.ts):
+    // the agency's own rate shows plainly, an area estimate says "estimated",
+    // and "Contact for pricing" is never shown as if it were a price.
+    if (!isShowablePrice(priceRange)) {
+      return pricingTier === 3 ? "Medicare/Medicaid may cover" : "Rates not published";
     }
-    if (!priceRange) {
-      return "Contact for pricing";
-    }
-    const isHourly = priceRange.includes("/hr");
-    const isMonthly = priceRange.includes("/mo");
-
-    if (isHourly) {
-      return `${priceRange} estimated`;
-    }
-    if (isMonthly) {
-      return `${priceRange} estimated`;
-    }
-    // Default case (no unit specified)
-    return `${priceRange} estimated`;
+    return priceInline(priceRange, priceSource);
   };
 
   const priceDisplay = getPriceDisplay();
@@ -939,6 +934,7 @@ export default function MobileStickyBottomCTA({
               saving={hook.submitting}
               careTypes={careTypes}
               priceRange={priceRange}
+              priceSource={priceSource}
               providerCity={providerCity}
               providerState={providerState}
               providerCategory={providerCategory}

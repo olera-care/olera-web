@@ -183,7 +183,9 @@ export function checkDestination(input: DestinationCheckInput): DestinationCheck
     priceSource = "provider_reported";
   } else if (summarizeProviderRates(details, input.category)) {
     priceSource = "provider_reported";
-  } else if (input.state) {
+  } else if (input.state && (!input.category || getPricingConfig(input.category).tier !== 3)) {
+    // Mirrors the provider page: Medicare-tier categories (home health,
+    // nursing home, hospice) show coverage education, never an area estimate.
     priceSource = "regional_estimate";
   } else {
     priceSource = "contact_only";

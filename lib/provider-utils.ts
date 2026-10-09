@@ -462,6 +462,8 @@ export interface SimilarProviderForMulti {
   image: string | null;
   rating: number | null;
   priceRange: string | null;
+  /** Where priceRange came from: the agency's own rate or Olera's area estimate. */
+  priceSource?: "provider_reported" | "regional_estimate" | "contact_only";
   city: string | null;
   state: string | null;
   /** Distance in miles from source provider (null if not calculable) */

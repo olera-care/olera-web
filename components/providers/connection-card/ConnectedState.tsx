@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import NextBestOption from "./NextBestOption";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceCaption } from "@/components/providers/price-labels";
 
 interface ConnectedStateProps {
   providerName: string;
@@ -12,6 +14,8 @@ interface ConnectedStateProps {
   providerImage?: string | null;
   careTypes?: string[];
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   /** @deprecated Not currently used in the new UI */
   phone?: string | null;
   /** @deprecated Not currently used in the new UI */
@@ -33,6 +37,7 @@ export default function ConnectedState({
   providerImage,
   careTypes = [],
   priceRange,
+  priceSource,
   connectionId,
   justSent = false,
 }: ConnectedStateProps) {
@@ -82,7 +87,7 @@ export default function ConnectedState({
       </div>
 
       {/* Pricing context - matches LoggedInFamilyCTA */}
-      {priceRange ? (
+      {isShowablePrice(priceRange) ? (
         <div className="mb-4">
           {(careLabel || locationStr) && (
             <p className="text-[13px] text-gray-500 font-medium mb-1">
@@ -92,9 +97,11 @@ export default function ConnectedState({
           <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
             {priceRange}
           </p>
-          <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
-            Area estimate — not this provider&apos;s actual price
-          </p>
+          {priceCaption(priceSource) && (
+            <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+              {priceCaption(priceSource)}
+            </p>
+          )}
         </div>
       ) : (
         <div className="mb-4">
@@ -103,8 +110,8 @@ export default function ConnectedState({
               {careLabel}{locationStr ? ` in ${locationStr}` : ""}
             </p>
           )}
-          <p className="text-[18px] font-bold text-gray-900 leading-snug">
-            Contact for pricing
+          <p className="text-[15px] font-medium text-gray-600 leading-snug">
+            Rates not published. Ask them.
           </p>
         </div>
       )}

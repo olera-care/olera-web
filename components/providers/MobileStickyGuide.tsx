@@ -7,6 +7,8 @@ import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/sessio
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import GuideBottomSheet from "./GuideBottomSheet";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+import { isShowablePrice, priceInline } from "@/components/providers/price-labels";
 
 interface MobileStickyGuideProps {
   providerName: string;
@@ -17,6 +19,8 @@ interface MobileStickyGuideProps {
   providerImage?: string | null;
   careTypes?: string[];
   priceRange?: string | null;
+  /** Where priceRange came from; drives its label. */
+  priceSource?: PriceSource;
   /** Pricing tier (3 = Medicare/Medicaid) */
   pricingTier?: number | null;
   /** Pricing disclaimer text for tooltip */
@@ -41,6 +45,7 @@ export default function MobileStickyGuide({
   providerImage,
   careTypes = [],
   priceRange,
+  priceSource,
   pricingTier,
   pricingDisclaimer,
   providerCategory,
@@ -244,22 +249,13 @@ export default function MobileStickyGuide({
   // Parse price display - single line format
   const getPriceDisplay = () => {
     // Medicare/Medicaid tier (tier 3) without explicit pricing
-    if (pricingTier === 3 && !priceRange) {
-      return "Medicare/Medicaid may cover";
+    // One label rule for every surface (components/providers/price-labels.ts):
+    // the agency's own rate shows plainly, an area estimate says "estimated",
+    // and "Contact for pricing" is never shown as if it were a price.
+    if (!isShowablePrice(priceRange)) {
+      return pricingTier === 3 ? "Medicare/Medicaid may cover" : "Rates not published";
     }
-    if (!priceRange) {
-      return "Contact for pricing";
-    }
-    const isHourly = priceRange.includes("/hr");
-    const isMonthly = priceRange.includes("/mo");
-
-    if (isHourly) {
-      return `${priceRange} estimated`;
-    }
-    if (isMonthly) {
-      return `${priceRange} estimated`;
-    }
-    return `${priceRange} estimated`;
+    return priceInline(priceRange, priceSource);
   };
 
   const priceDisplay = getPriceDisplay();
@@ -512,6 +508,7 @@ export default function MobileStickyGuide({
         providerImage={providerImage}
         careTypes={careTypes}
         priceRange={priceRange}
+        priceSource={priceSource}
         providerCategory={providerCategory}
         ctaVariant={ctaVariant}
       />

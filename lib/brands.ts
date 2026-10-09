@@ -208,22 +208,14 @@ function unitSuffix(category: string): string {
   return unit === "hour" ? "/hr" : unit === "day" ? "/day" : "/mo";
 }
 
-const MIN_PRICED_FOR_RANGE = 5;
-
-function rateRange(rows: LightRow[], category: string): { range: string; pricedCount: number } | null {
-  if (getPricingConfig(category).tier === 3) return null;
-  const priced = rows.filter(
-    (r) => r.lower_price != null && r.upper_price != null && (r.upper_price as number) >= (r.lower_price as number),
-  );
-  if (priced.length < MIN_PRICED_FOR_RANGE) return null;
-  const lo = median(priced.map((r) => r.lower_price as number));
-  const hi = median(priced.map((r) => r.upper_price as number));
-  if (lo == null || hi == null) return null;
-  const suffix = unitSuffix(category);
-  return {
-    range: hi > lo ? `$${lo.toLocaleString()} - $${hi.toLocaleString()}${suffix}` : `$${lo.toLocaleString()}${suffix}`,
-    pricedCount: priced.length,
-  };
+/**
+ * Brand-wide typical rate. Always none: the only per-location prices we hold are
+ * the directory's lower/upper columns, which are AI estimates (see
+ * formatPriceRange in lib/types/provider.ts), not prices the locations publish.
+ * Every caller already renders nothing when this is null.
+ */
+function rateRange(): { range: string; pricedCount: number } | null {
+  return null;
 }
 
 /** The synced Google rating when we have one, else the older scraped column. */
@@ -291,7 +283,7 @@ function summarize(name: string, rows: LightRow[]): BrandSummary {
 
   // Tier 3 categories (home health, nursing home, hospice) suppress dollar
   // amounts everywhere else on the site; keep the hub consistent.
-  const rate = rateRange(rows, primaryCategory);
+  const rate = rateRange();
   const typicalRate = rate?.range ?? null;
   const pricedCount = rate?.pricedCount ?? 0;
   const totalReviews = rows.reduce((sum, r) => sum + reviewCountOf(r), 0);
@@ -343,14 +335,8 @@ export const listBrands = cache(async (): Promise<BrandSummary[]> => {
 
 function toLocation(r: LightRow, brand: string): BrandLocation {
   const category = (r.provider_category || "").split(" | ")[0] || "Senior Care";
-  let priceRange: string | null = null;
-  if (getPricingConfig(category).tier !== 3 && r.lower_price != null && r.upper_price != null) {
-    const suffix = unitSuffix(category);
-    priceRange =
-      r.upper_price > r.lower_price
-        ? `$${r.lower_price.toLocaleString()} - $${r.upper_price.toLocaleString()}${suffix}`
-        : `$${r.lower_price.toLocaleString()}${suffix}`;
-  }
+  // No per-location price: the directory's is an AI estimate, not the location's.
+  const priceRange: string | null = null;
   return {
     id: r.provider_id,
     slug: r.slug || r.provider_id,
@@ -456,7 +442,7 @@ export const getBrandHub = cache(async (slug: string): Promise<BrandHub | null> 
     else byCategory.set(cat, [r]);
   }
   const ratesByCategory: BrandCategoryRate[] = [...byCategory.entries()]
-    .map(([category, rows]) => ({ category, rows, rate: rateRange(rows, category) }))
+    .map(([category, rows]) => ({ category, rows, rate: rateRange() }))
     .filter((x) => x.rate)
     .sort((a, b) => b.rows.length - a.rows.length)
     .map((x) => ({

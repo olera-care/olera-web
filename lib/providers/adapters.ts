@@ -2,6 +2,7 @@ import { iosProviderToProfile } from "@/lib/mock-providers";
 import {
   SUPABASE_CAT_TO_PROFILE_CATEGORY,
   type Provider as IOSProvider,
+  primaryProviderCategory,
 } from "@/lib/types/provider";
 import type { Profile, GoogleReviewsData } from "@/lib/types";
 import type { ProviderView } from "./types";
@@ -66,7 +67,7 @@ export function accountRowToProvider(
 ): ProviderView {
   const directoryCategory = directoryRow?.provider_category ?? null;
   const inheritedCategory = directoryCategory
-    ? SUPABASE_CAT_TO_PROFILE_CATEGORY[directoryCategory]
+    ? SUPABASE_CAT_TO_PROFILE_CATEGORY[primaryProviderCategory(directoryCategory)]
     : undefined;
   const profile = !row.category && inheritedCategory
     ? { ...row, category: inheritedCategory }

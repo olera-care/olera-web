@@ -1,5 +1,7 @@
 "use client";
 
+import type { PriceSource } from "@/components/providers/PriceEstimate";
+
 import { useEffect, useRef } from "react";
 import { useCTAVariant, isCTAPreviewMode } from "@/hooks/use-cta-variant";
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
@@ -16,6 +18,8 @@ export interface CTARouterProps {
   providerName: string;
   providerSlug: string;
   priceRange: string | null;
+  /** Where priceRange came from; drives its label on every surface. */
+  priceSource?: PriceSource;
   reviewCount: number | undefined;
   phone: string | null;
   acceptedPayments: string[];
@@ -134,6 +138,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
     providerName,
     providerSlug,
     priceRange,
+    priceSource,
     reviewCount,
     phone,
     acceptedPayments,
@@ -165,6 +170,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           providerPhone={phone}
           providerImage={providerImage}
           priceRange={priceRange}
+          priceSource={priceSource}
           rating={rating}
           reviewCount={reviewCount}
           services={careTypes}
@@ -186,6 +192,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           providerImage={providerImage}
           careTypes={careTypes}
           priceRange={priceRange}
+          priceSource={priceSource}
           ctaVariant={variant ?? "guide"}
           ctaPreviewMode={isPreview}
         />
@@ -198,6 +205,7 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
           providerName={providerName}
           providerSlug={providerSlug}
           priceRange={priceRange}
+          priceSource={priceSource}
           reviewCount={reviewCount}
           phone={phone}
           acceptedPayments={acceptedPayments}
@@ -224,6 +232,8 @@ export function DesktopCTAVariantRouter(props: CTARouterProps) {
 export interface MobileCTARouterProps {
   providerName: string;
   priceRange: string | null;
+  /** Where priceRange came from; drives its label on every surface. */
+  priceSource?: PriceSource;
   providerId: string;
   providerSlug: string;
   reviewCount: number | undefined;
@@ -260,6 +270,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
   const {
     providerName,
     priceRange,
+    priceSource,
     providerId,
     providerSlug,
     reviewCount,
@@ -292,6 +303,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerPhone={phone}
           providerImage={providerImage}
           priceRange={priceRange}
+          priceSource={priceSource}
           pricingTier={pricingTier}
           pricingDisclaimer={pricingDisclaimer}
           rating={rating}
@@ -315,6 +327,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
           providerImage={providerImage}
           careTypes={careTypes}
           priceRange={priceRange}
+          priceSource={priceSource}
           pricingTier={pricingTier}
           pricingDisclaimer={pricingDisclaimer}
           ctaVariant={variant ?? "guide"}
@@ -327,6 +340,7 @@ export function MobileCTAVariantRouter(props: MobileCTARouterProps) {
         <MobileStickyBottomCTA
           providerName={providerName}
           priceRange={priceRange}
+          priceSource={priceSource}
           pricingTier={pricingTier}
           pricingDisclaimer={pricingDisclaimer}
           providerId={providerId}

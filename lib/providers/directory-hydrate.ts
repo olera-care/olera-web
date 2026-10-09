@@ -1,4 +1,4 @@
-import { SUPABASE_CAT_TO_PROFILE_CATEGORY } from "@/lib/types/provider";
+import { SUPABASE_CAT_TO_PROFILE_CATEGORY, primaryProviderCategory } from "@/lib/types/provider";
 import { getCategoryServices } from "@/lib/provider-utils";
 import { normalizeCareLabel } from "@/lib/provider-highlights";
 import { filterDeadImageUrls, liveImageUrlOrNull } from "@/lib/images/dead-hosts";
@@ -48,7 +48,7 @@ export function parseDirectoryImages(provider_images: string | null | undefined)
  */
 export function directoryHydrationFields(row: DirectoryRowForHydration): DirectoryHydration {
   const category = row.provider_category
-    ? SUPABASE_CAT_TO_PROFILE_CATEGORY[row.provider_category] ?? null
+    ? SUPABASE_CAT_TO_PROFILE_CATEGORY[primaryProviderCategory(row.provider_category)] ?? null
     : null;
   // care_types must be the SAME full list the public provider page renders, so
   // the portal and the public page match exactly: the row's own categories

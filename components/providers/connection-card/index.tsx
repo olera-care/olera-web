@@ -70,6 +70,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
               providerState={props.state}
               careTypes={props.careTypes}
               priceRange={props.priceRange}
+              priceSource={props.priceSource}
               ctaVariant={props.ctaVariant}
             />
           ) : (
@@ -84,6 +85,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
               connectionCount={hook.connectionCount ?? undefined}
               careTypes={props.careTypes}
               priceRange={props.priceRange}
+              priceSource={props.priceSource}
               city={props.city}
               state={props.state}
             />
@@ -100,6 +102,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             careTypes={props.careTypes}
             providerCategory={props.careTypes?.[0] || null}
             priceRange={props.priceRange}
+            priceSource={props.priceSource}
             providerCity={props.city}
             providerState={props.state}
             providerImage={props.providerImage}
@@ -118,6 +121,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             providerImage={props.providerImage}
             careTypes={props.careTypes}
             priceRange={props.priceRange}
+            priceSource={props.priceSource}
             phone={phone}
             requestDate={hook.pendingRequestDate}
             connectionId={hook.connectionId}

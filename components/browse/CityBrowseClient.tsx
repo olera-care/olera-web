@@ -1069,7 +1069,7 @@ export default function CityBrowseClient({
             {seoContent.avgCost && (
               <div className="mb-2">
                 <p className="text-lg font-semibold text-gray-900">
-                  {seoContent.isStateAverage ? "State Avg. Cost" : "Avg. Cost"}: {seoContent.avgCost}
+                  {seoContent.isStateAverage ? "State Avg. Cost" : "Area Avg. Cost"}: {seoContent.avgCost}
                 </p>
                 {seoContent.costNote && (
                   <p className="text-xs text-gray-400 mt-1">{seoContent.costNote}</p>

@@ -391,9 +391,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // CRITICAL: Handle implicit flow magic link tokens BEFORE getSession()
       // Magic links from generateLink() put tokens in the hash fragment (#access_token=...)
       // These must be processed client-side since hash fragments never reach the server
-      const hasAccessToken = typeof window !== "undefined" && window.location.hash.includes("access_token");
-      console.log("[nav-debug] AuthProvider init, hasAccessToken:", hasAccessToken, "path:", window?.location?.pathname);
-      if (hasAccessToken) {
+      if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
         try {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           const accessToken = hashParams.get("access_token");
@@ -464,11 +462,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               }
 
               // Clear hash from URL before redirect
-              console.warn("[nav-debug] HISTORY REPLACE #1 (magic link hash clear)", {
-                from: window.location.href,
-                to: window.location.pathname + window.location.search,
-                historyLength: window.history.length,
-              });
               window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
               // Ensure account exists and claim placeholder profile
@@ -519,11 +512,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               const samePage =
                 onMedjobs && destUrl.pathname === window.location.pathname;
               if (samePage) {
-                console.warn("[nav-debug] HISTORY REPLACE #2 (MedJobs same-page)", {
-                  from: window.location.href,
-                  to: finalDestination,
-                  historyLength: window.history.length,
-                });
                 window.history.replaceState(null, "", finalDestination);
                 // fall through — no return, no reload
               } else {
@@ -539,11 +527,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           console.error("[olera] Hash token handling error:", err);
         }
         // Clear hash even on error to prevent loops
-        console.warn("[nav-debug] HISTORY REPLACE #3 (hash error cleanup)", {
-          from: window.location.href,
-          to: window.location.pathname + window.location.search,
-          historyLength: window.history.length,
-        });
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
       }
 

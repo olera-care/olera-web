@@ -540,8 +540,6 @@ export default function BrowseCard({
   return (
     <Link
       href={linkHref}
-      target="_blank"
-      rel="noopener noreferrer"
       onClick={handleCardClick}
       className={rootClass}
     >

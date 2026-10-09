@@ -95,12 +95,7 @@ export default function HeroSection() {
     const stateSlug = stateName.toLowerCase().replace(/\s+/g, "-");
     const citySlug = city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     const categorySlug = careType === "home-health" ? "home-health-care" : careType;
-    const destination = `/${categorySlug}/${stateSlug}/${citySlug}`;
-    console.log("[nav-debug] HeroSection PUSH to city page", {
-      destination,
-      historyLength: window.history.length,
-    });
-    router.push(destination);
+    router.push(`/${categorySlug}/${stateSlug}/${citySlug}`);
     return true;
   };
 
@@ -138,12 +133,7 @@ export default function HeroSection() {
     if (careType) {
       params.set("type", careType);
     }
-    const destination = `/browse?${params.toString()}`;
-    console.log("[nav-debug] HeroSection PUSH to browse", {
-      destination,
-      historyLength: window.history.length,
-    });
-    router.push(destination);
+    router.push(`/browse?${params.toString()}`);
   };
 
   return (

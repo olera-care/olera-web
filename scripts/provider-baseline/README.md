@@ -49,9 +49,21 @@ change on every load are handled on purpose:
 - **Redirected pages** land on a city page; the chain and destination are
   compared, the city page's pixels are not.
 
+URLs are compared exactly as written, so a preview whose canonical points at
+its own host shows up as a difference. The one exception is the default share
+image on 404 pages, which Next.js builds from the deployment's address.
+
 A screenshot differs when more than 100 pixels change, or its size changes.
 Two runs of the same deployment differ by at most 17 pixels; one changed
 word is several hundred. Each difference writes a red-on-white diff image next to the report.
+
+## Proof it works
+
+- Production against itself, two runs: 58 of 58 captures match.
+- Staging against production (same code, 9 October): 58 of 58 match.
+- Injected changes to a title, canonical, structured data, a redirect code
+  and the card count, and a real re-render with only the price label
+  changed: all caught. The label change is 1,617 pixels.
 
 ## The page set
 

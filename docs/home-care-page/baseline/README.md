@@ -14,8 +14,9 @@ README for how to run a comparison).
   402 and 1,440 wide. Saved at
   `~/Desktop/olera-provider-pages-handoff/baseline/2026-10-09/` (screenshots
   are too large for git: about 80 MB).
-- **Proven clean against itself:** two runs against the same deployment
-  compare with zero differences.
+- **Proven:** two production runs compare with zero differences; staging
+  (same code) against production also compares clean; injected changes,
+  including a price label alone, are all caught.
 
 What the snapshots show about today, before any fix:
 

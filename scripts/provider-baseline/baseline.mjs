@@ -285,8 +285,10 @@ function compare() {
   const B = JSON.parse(fs.readFileSync(path.join(dirB, "snapshot.json"), "utf8"));
   const key = (r) => `${r.slug}.${r.device}`;
   const mapB = new Map(B.results.map((r) => [key(r), r]));
-  // The two runs may hit different hosts (production against a preview).
-  const norm = (o, base) => JSON.parse(JSON.stringify(o ?? null).split(base).join("{base}"));
+  // URLs are compared exactly as written: a preview whose canonical names its
+  // own host is the bug this must catch. The one exception is the default
+  // share image, which Next.js builds from the deployment's own address.
+  const norm = (seo) => (seo && seo.ogImage ? { ...seo, ogImage: seo.ogImage.replace(/^https?:\/\/[^/]+/, "") } : seo ?? null);
 
   const report = [];
   fs.mkdirSync(path.join(dirB, "diffs"), { recursive: true });
@@ -299,7 +301,7 @@ function compare() {
     }
     for (const f of ["status", "finalPath", "redirects", "error", "compareCards"]) diffValues(a[f], b[f], f, differences);
     // SEO tags are identical on both devices, so read them once, from phone.
-    if (a.device === "phone") diffValues(norm(a.seo, A.base), norm(b.seo, B.base), "seo", differences);
+    if (a.device === "phone") diffValues(norm(a.seo), norm(b.seo), "seo", differences);
     if (!seoOnly && a.screenshot && b.screenshot) {
       const s = comparePng(path.join(dirA, a.screenshot), path.join(dirB, b.screenshot));
       if (s.sizeChanged) {

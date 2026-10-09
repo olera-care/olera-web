@@ -74,9 +74,21 @@ floor (2 clicks or 50 impressions a week), so they slightly undercount.
 | 20–26 Sep | 2,808 | 329,037 | 977 | 70,198 | 939 |
 | 27 Sep–3 Oct | 2,731 | 377,718 | 900 | 79,714 | 1,020 |
 
-**Indexed pages: not yet recorded.** It isn't stored in the snapshots, and
-reading it needs Search Console access this machine doesn't have. TJ: Search
-Console, Indexing, Pages, the "Indexed" number for olera.care on 9 October.
+**Indexed pages** (Search Console, Indexing → Pages, read 9 October; Google's
+last update 4 October): **52.9K indexed, 135K not indexed.** Largest reasons
+for not indexed:
+
+| Reason | Pages |
+|---|---:|
+| Crawled, currently not indexed | 37,638 |
+| Alternate page with proper canonical tag | 32,107 |
+| Excluded by noindex tag | 26,444 |
+| Page with redirect | 11,956 |
+| Not found (404) | 5,836 |
+| Soft 404 | 3,941 |
+| Blocked by robots.txt | 965 |
+
+These are site-wide; the report doesn't split provider pages out.
 
 ## 3. Test accounts
 

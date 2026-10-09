@@ -6477,7 +6477,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ### Home Care Page plan (from 9 Oct)
 - **Phase 1: prices that tell the truth** is the top item on the plan (artifact `VWEjSvypK1M2h5HYX3UFuJ`). One branch off staging, all categories. Before review, snapshot the preview with `scripts/provider-baseline/baseline.mjs` and compare against `~/Desktop/olera-provider-pages-handoff/baseline/2026-10-09/`. Only the intended label/price differences may show. The claimed test listing and Hoop Cares's phone bar already show the bug.
-- **Open with TJ:** whether to add "hide all (Test) listings from sitemap, search and Google" to Phase 3. Not added to the plan yet.
+- **Phase 3 now includes hiding test listings** (TJ, 9 Oct): match on a `test-` address (13 live; two lack "(Test)" in the name). Until then they stay public, by TJ's choice.
 
 ### Owed from 19 Sep (city ads / Managed Ads)
 - **Jillanna's email — ours, not Ces's.** Her stored phone `+11214870172` is not a valid NANP number; three SMS have failed since 12 Sep and she has never received one. Email `gracefulllyspeaking2@gmail.com` works (TJ reached her there 13 Sep). Goal of the contact is a working number. She is Medicaid + "this week" + the richest care note in the programme, so she may need the benefits side more than a private agency.

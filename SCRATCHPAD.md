@@ -755,6 +755,15 @@ Free text in `care_type` was **quietly recreating the defect the feature exists 
 
 #### Next Up
 
+### Provider value pilot (9 Oct)
+- Edmonds Villa: rebuild her page around funding (WA Cares registration question first, funding plan per calling family via Benefits Finder), referral list underneath. Verify she's in the WA Cares provider directory; confirm VA rate on VA.gov.
+- Franchil: Olera-side fix waiting on TJ's go: one "Franchil LLC" page with Google NAP (#101D, (254) 322-9251, franchil.com), add map location to 900bf6a1. Old "Central Home Health Care, an Amedisys" name/phone = stale Google import.
+- Edmonds Villa profile says "skilled nursing"; an AFH isn't a licensed SNF. Fix the wording.
+
+### Cortex
+- Wire "hand this off" (and audit visualize / send / approve) for Slack surfaces; make the prompt list only commands that work on the current surface.
+- Optional: rotate the on-call routine token (it passed through a transcript).
+
 ### Cortex on call (#2460) — to go live
 - TJ: reinstall the Olera v2 Alerts app (Slack OAuth page, pick the webhook channel the alerts already use, Allow). The `app_mention` event is saved; the reinstall grants `app_mentions:read`.
 - TJ: on claude.ai, "Cortex on-call builder" → add an API trigger, copy the token to the clipboard; remove the default connectors. Then set `CORTEX_ONCALL_ROUTINE_URL` / `CORTEX_ONCALL_ROUTINE_TOKEN` in Vercel (prod + preview).
@@ -6928,6 +6937,15 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-10-09 (later) — On-call live, reply labels, news-only brief, provider value audits (`plucky-snyder`)
+
+- **Cortex on call LIVE** (#2460 → prod #2466). App renamed "Olera v2 Alerts" → **Cortex** with an icon; `app_mention` + `app_mentions:read` added, reinstalled (#notifications webhook). Routine `trig_01Cv16GZxiS1uVZ47bgac8Ap`: connectors removed, API trigger + token in Vercel prod (`CORTEX_ONCALL_ROUTINE_URL/TOKEN`). Migration 276 applied by TJ. Live test in #cortex passed.
+- **Reply labels** (#2467 → prod #2468): replies tagged plan/gap/done/answer; "go" footer only on plan/gap; "go" with nothing buildable says so; gap plans tell the routine to build a lookup. Eval: 13/13 tagged; 6/8 realistic team questions answered; gaps = leads by source, claims by date, MedJobs.
+- **News-only brief** (#2469 → prod #2470): `lib/war-room/brief-news.ts`; max 2 new facts, model prose with a number check (template fallback), standing items Mondays, moves resurface every 3 days, directory digest only when a person is needed. Revert: `WAR_ROOM_BRIEF_LEGACY=1`. Overrides TJ's 9-28 daily priority lines (approved via 7-morning mock).
+- **Keep:** a routine created through the API inherits every account connector and they can write without asking; remove them in the claude.ai UI.
+- **Keep:** "hand this off" only works on Telegram; in Slack Cortex claimed it fired. Fix not built yet (see Next Up).
+- **Provider value audits** (manual pilot, nothing sent): Franchil audit + parked 30-day review plan https://claude.ai/artifact/Sf2xUXRQyi5VdeU2L8pRY4 (TJ: review nudging "meh"). Assisting Hands Dallas: 8 of last 10 Dallas ad respondents were job seekers; TJ says Robbie doesn't need caregivers and the leads are dead. Edmonds Villa kit https://claude.ai/artifact/1npJ2xGzeV7c4Gg6UyLqoN, then the deeper angle: **funding** (3 of 9 family questions are about payment; WA Cares paying since 1 Jul 2026, $36.5k, AFH covered, registered providers only; VA A&A ~$2,874/mo married veteran; WA Medicaid AFH avg ~$189/day vs her $9,500/mo).
 
 ### 2026-10-08/09 — No LLC/Inc renames; Cortex on call (`plucky-snyder`)
 

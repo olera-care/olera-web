@@ -6475,6 +6475,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+### Home Care Page plan (from 9 Oct)
+- **Phase 1: prices that tell the truth** is the top item on the plan (artifact `VWEjSvypK1M2h5HYX3UFuJ`). One branch off staging, all categories. Before review, snapshot the preview with `scripts/provider-baseline/baseline.mjs` and compare against `~/Desktop/olera-provider-pages-handoff/baseline/2026-10-09/`. Only the intended label/price differences may show. The claimed test listing and Hoop Cares's phone bar already show the bug.
+- **Phase 3 now includes hiding test listings** (TJ, 9 Oct): match on a `test-` address (13 live; two lack "(Test)" in the name). Until then they stay public, by TJ's choice.
+
 ### Owed from 19 Sep (city ads / Managed Ads)
 - **Jillanna's email — ours, not Ces's.** Her stored phone `+11214870172` is not a valid NANP number; three SMS have failed since 12 Sep and she has never received one. Email `gracefulllyspeaking2@gmail.com` works (TJ reached her there 13 Sep). Goal of the contact is a working number. She is Medicaid + "this week" + the richest care note in the programme, so she may need the benefits side more than a private agency.
 - **Legacy Haven is alone on the Charlotte assisted-living list.** Rhonda is the only AL lead and likely the first Ces works. If Legacy Haven lets the 30-minute clock lapse there is no rank 20 behind her, so Rhonda goes straight to unfilled *and* gets the "still looking" text (that path fires once a provider has actually been offered it). Add a second Charlotte AL provider, or hand-route Rhonda.
@@ -7720,3 +7724,18 @@ Quicksave branch: `codex/adboost-oct7-handoff`. Repository change: `SCRATCHPAD.m
 Also copied Claude's `my-move` skill unchanged to personal Codex skills at `~/.codex/skills/my-move/SKILL.md`, added `agents/openai.yaml`, and passed the skill validator. These personal files are installed outside this repository and are not part of the PR. Invoke with `$my-move`.
 
 Validation: documentation diff/whitespace check; operational launch checks recorded above. Next: confirm serving October 12 (Google account Central Time), then update live status/send launch emails; review search terms October 15–17. No reminders scheduled.
+
+## 2026-10-09 — Home Care Page plan, Phase 0: the baseline
+
+Built and merged to staging (#2471, #2472); no app code changed. Review page `XT4szrGssjkeFwS49y3L4o`; plan updated to Phase 0 Done.
+
+- `scripts/provider-baseline/` (own package.json, Playwright WebKit): `page-set.json` (29 real pages: plan QA providers, paying/two-profile/team-login Ad Boost clients, every price state, every category, every status path), `baseline.mjs snapshot|compare`, `test-accounts.mjs create|status|reset`.
+- `docs/home-care-page/baseline/`: README, `numbers-2026-10-09.json`, `snapshot-2026-10-09.json`. Screenshots (80 MB) only at `~/Desktop/olera-provider-pages-handoff/baseline/2026-10-09/`.
+- Numbers, 11 Sep–8 Oct: home care 1.36% of sessions request (phone 2.48%, desktop 0.55%), 274 questions; all provider pages 1.54% (distinct sessions). GSC 9 Oct: 52.9K indexed, 135K not.
+- Test accounts (TJ chose: create all, no test request): `(Test) Baseline Home Care` claimed/unclaimed in College Station; logins `tj+hc-{family,owner,claimer,team,guest}@olera.care`; admin is tj@olera.care.
+
+Decisions and why:
+- Production answers 429 to curl; WebKit passes, so the tool drives WebKit. It aborts every non-GET and analytics call so runs record nothing.
+- Comparison cards are random per render: count compared, cards masked. Screenshot limit is 100 changed pixels, because a share-of-page tolerance missed a relabelled price (1,617 px, 0.04%). URLs compared literally so a preview canonical pointing at itself shows; only the default og:image host is ignored.
+- A claimed insert fires `sync_provider_outreach_on_claim` and a fresh `claimed_at` feeds claim counts and welcome/nudge emails. The test claim is dated 1 Jan 2026 and the tracker row removed; `reset` repeats this.
+- Prod has no test switch on requests: a test request still raises the lead alert. Returning-family state is made on the first QA run.

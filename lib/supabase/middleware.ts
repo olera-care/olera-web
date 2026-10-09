@@ -65,6 +65,10 @@ export async function updateSession(request: NextRequest) {
     if (!isInboxWithToken) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
+      console.log("[nav-debug-server] Auth middleware redirect (no session)", {
+        from: request.nextUrl.pathname,
+        to: "/",
+      });
       return NextResponse.redirect(url);
     }
   }
@@ -166,6 +170,11 @@ export async function updateSession(request: NextRequest) {
             url.pathname = "/welcome";
             url.search = `?next=${encodeURIComponent(originalPath)}`;
           }
+          console.log("[nav-debug-server] Auth middleware onboarding redirect", {
+            from: request.nextUrl.pathname,
+            to: url.pathname + url.search,
+            reason: providerProfile ? "provider onboard" : studentProfile ? "student portal" : "family welcome",
+          });
           return NextResponse.redirect(url);
         }
       } catch {

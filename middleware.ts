@@ -56,6 +56,11 @@ export async function middleware(request: NextRequest) {
     const providerSlug = segments[3];
     const url = request.nextUrl.clone();
     url.pathname = `/provider/${providerSlug}`;
+    console.log("[nav-debug-server] Middleware 301 redirect", {
+      from: request.nextUrl.pathname,
+      to: url.pathname,
+      rule: "v1.0 provider canonical",
+    });
     return NextResponse.redirect(url, 301);
   }
 

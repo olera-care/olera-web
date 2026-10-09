@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/shared/Navbar";
 import ConditionalFooter from "@/components/shared/ConditionalFooter";
@@ -39,6 +40,36 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const { activeProfile } = useAuth();
   const isStandalone = STANDALONE_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`));
   const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const prevPathRef = useRef(pathname);
+
+  // Track navigation events for debugging back button issues
+  useEffect(() => {
+    // Log pathname changes (client-side navigation)
+    if (prevPathRef.current !== pathname) {
+      console.log("[nav-debug] Pathname changed", {
+        from: prevPathRef.current,
+        to: pathname,
+        historyLength: window.history.length,
+        isMobile: window.innerWidth < 768,
+      });
+      prevPathRef.current = pathname;
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    // Log popstate events (back/forward button)
+    const handlePopState = (e: PopStateEvent) => {
+      console.log("[nav-debug] POPSTATE (back/forward)", {
+        newPath: window.location.pathname,
+        state: e.state,
+        historyLength: window.history.length,
+        isMobile: window.innerWidth < 768,
+      });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Check if bottom tabs are visible (provider portal with bottom_tabs variant)
   // Must match Navbar's isProviderPortal logic exactly to avoid spacer without tabs

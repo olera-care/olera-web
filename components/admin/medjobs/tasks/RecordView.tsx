@@ -110,6 +110,7 @@ export default function RecordView({
   onRevertStatus,
   onDelete,
   onClearFlag,
+  onAddNote,
   campus,
   busy,
 }: {
@@ -142,6 +143,8 @@ export default function RecordView({
   onRevertStatus?: () => void;
   /** Take the manager-review flag off, once the team has sorted it. */
   onClearFlag: () => void;
+  /** Add a standalone note to the record's history. Returns true on success. */
+  onAddNote?: (note: string) => Promise<boolean>;
   /** Destroys the record. The caller confirms first. */
   onDelete: () => void;
   /** The university this record sits under — the other end of the drive. */
@@ -329,6 +332,7 @@ export default function RecordView({
             files={files.filter((f) => f.taskId === t.id)}
           />
         ))}
+        {onAddNote && <AddNoteInput onAdd={onAddNote} busy={busy} />}
       </Band>
 
       {ahead.length > 0 && (
@@ -755,6 +759,29 @@ function Row({
   onOpen: () => void;
   files?: AttachmentRow[];
 }) {
+  // Custom notes are standalone entries, not clickable tasks.
+  // They display with a note icon instead of a checkbox and show
+  // the note content directly rather than a task title.
+  const isNote = task.taskType === "custom_note";
+
+  if (isNote) {
+    return (
+      <div className="border-b border-gray-100 py-2 last:border-b-0">
+        <div className="flex items-start gap-2">
+          <span className="mt-0.5 text-[13px] text-gray-400">
+            <HistoryNoteIcon />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] leading-snug text-gray-700">{task.note}</p>
+          </div>
+          <span className="shrink-0 text-[11.5px] text-gray-500">
+            {task.loggedOn ? shortDate(task.loggedOn) : ""}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       <button
@@ -810,6 +837,25 @@ function Row({
         </p>
       )}
     </div>
+  );
+}
+
+/** A small note icon for history entries. */
+function HistoryNoteIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 1H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L8 1Z" />
+      <path d="M8 1v4h4" />
+    </svg>
   );
 }
 
@@ -1264,6 +1310,135 @@ function Chevron({ open }: { open: boolean }) {
       strokeLinejoin="round"
     >
       <path d="M4 2l4 4-4 4" />
+    </svg>
+  );
+}
+
+/**
+ * Input for adding a standalone note to a record's history.
+ *
+ * Collapsed by default — expands when clicked, submits on Enter or button.
+ * After a successful add, clears and collapses so another can be added.
+ * On failure, keeps the form open with the text intact so the user can retry.
+ */
+function AddNoteInput({
+  onAdd,
+  busy,
+}: {
+  onAdd: (note: string) => Promise<boolean>;
+  busy?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const mountedRef = useRef(true);
+
+  // Track mount state to avoid setting state after unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const submit = async () => {
+    const note = text.trim();
+    if (!note || saving) return;
+    setSaving(true);
+    try {
+      const ok = await onAdd(note);
+      // Only clear and close on success, and only if still mounted
+      if (ok && mountedRef.current) {
+        setText("");
+        setOpen(false);
+      }
+    } finally {
+      if (mountedRef.current) {
+        setSaving(false);
+      }
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true);
+          setTimeout(() => inputRef.current?.focus(), 0);
+        }}
+        disabled={busy}
+        className="mt-2 flex items-center gap-1.5 text-[12.5px] font-medium text-primary-700 hover:text-primary-800 hover:underline disabled:opacity-40"
+      >
+        <NoteIcon />
+        Add a note
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 p-2">
+      <textarea
+        ref={inputRef}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submit();
+          }
+          if (e.key === "Escape") {
+            setText("");
+            setOpen(false);
+          }
+        }}
+        placeholder="Call notes, email sent, observation..."
+        rows={2}
+        disabled={saving || busy}
+        className="w-full resize-none rounded border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none disabled:opacity-50"
+      />
+      <div className="mt-1.5 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setText("");
+            setOpen(false);
+          }}
+          disabled={saving}
+          className="rounded px-2 py-1 text-[12px] text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={submit}
+          disabled={!text.trim() || saving || busy}
+          className="rounded bg-primary-600 px-3 py-1 text-[12px] font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Add"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** A small note icon for the "Add a note" button. */
+function NoteIcon() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 1H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L8 1Z" />
+      <path d="M8 1v4h4" />
+      <path d="M5 8h4M5 10.5h2" />
     </svg>
   );
 }

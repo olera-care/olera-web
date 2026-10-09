@@ -37,6 +37,8 @@ export interface MedjobsRequirements {
   background_check?: boolean;
   drug_test?: boolean;
   transportation?: boolean;
+  /** Free-text field for additional requirements not covered by the checkboxes. */
+  other?: string;
 }
 
 export const REQUIREMENT_OPTIONS: { key: keyof MedjobsRequirements; label: string }[] = [

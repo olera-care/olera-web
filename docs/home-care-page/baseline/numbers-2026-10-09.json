@@ -1,0 +1,298 @@
+{
+ "window": {
+  "from": "2026-09-11T00:00:00Z",
+  "to": "2026-10-09T00:00:00Z",
+  "days": 28
+ },
+ "pulled": "2026-10-09",
+ "definitions": {
+  "page_views": "provider_activity rows with event_type page_view, excluding referrer_class olera_internal. Written by ViewTracker in the browser; automated browsers are skipped.",
+  "sessions": "Distinct metadata.session_id among those page views (olera_session cookie, 30 days).",
+  "device": "metadata.ua_class of the session's page views. 'unknown' = the event's session has no provider page view (for requests, mostly ad and city-campaign forms).",
+  "requests": "provider_activity lead_received events (one per request to a provider).",
+  "request_sessions": "Distinct sessions with a lead_received that also have a provider page view in the window. This is the numerator for requests per session.",
+  "questions": "provider_activity question_received events.",
+  "category": "The provider's directory category (olera-providers by slug or provider_id), else its account category. 'Multiple categories' = more than one listed."
+ },
+ "rows": [
+  {
+   "category": "Assisted Living",
+   "device": "desktop",
+   "page_views": 2323,
+   "sessions": 2141,
+   "requests": 7,
+   "request_sessions": 7,
+   "questions": 169
+  },
+  {
+   "category": "Assisted Living",
+   "device": "mobile",
+   "page_views": 1643,
+   "sessions": 1263,
+   "requests": 38,
+   "request_sessions": 38,
+   "questions": 168
+  },
+  {
+   "category": "Assisted Living",
+   "device": "tablet",
+   "page_views": 97,
+   "sessions": 40,
+   "requests": 4,
+   "request_sessions": 3,
+   "questions": 16
+  },
+  {
+   "category": "Assisted Living",
+   "device": "unknown",
+   "page_views": 0,
+   "sessions": 0,
+   "requests": 1,
+   "request_sessions": 0,
+   "questions": 0
+  },
+  {
+   "category": "Home Care (Non-medical)",
+   "device": "desktop",
+   "page_views": 2119,
+   "sessions": 1819,
+   "requests": 15,
+   "request_sessions": 10,
+   "questions": 102
+  },
+  {
+   "category": "Home Care (Non-medical)",
+   "device": "mobile",
+   "page_views": 1756,
+   "sessions": 1331,
+   "requests": 33,
+   "request_sessions": 33,
+   "questions": 158
+  },
+  {
+   "category": "Home Care (Non-medical)",
+   "device": "tablet",
+   "page_views": 27,
+   "sessions": 21,
+   "requests": 0,
+   "request_sessions": 0,
+   "questions": 13
+  },
+  {
+   "category": "Home Care (Non-medical)",
+   "device": "unknown",
+   "page_views": 0,
+   "sessions": 0,
+   "requests": 23,
+   "request_sessions": 0,
+   "questions": 1
+  },
+  {
+   "category": "Home Health Care",
+   "device": "desktop",
+   "page_views": 2163,
+   "sessions": 1993,
+   "requests": 7,
+   "request_sessions": 7,
+   "questions": 89
+  },
+  {
+   "category": "Home Health Care",
+   "device": "mobile",
+   "page_views": 1431,
+   "sessions": 1094,
+   "requests": 20,
+   "request_sessions": 19,
+   "questions": 131
+  },
+  {
+   "category": "Home Health Care",
+   "device": "tablet",
+   "page_views": 19,
+   "sessions": 14,
+   "requests": 1,
+   "request_sessions": 1,
+   "questions": 3
+  },
+  {
+   "category": "Independent Living",
+   "device": "desktop",
+   "page_views": 1519,
+   "sessions": 1291,
+   "requests": 14,
+   "request_sessions": 12,
+   "questions": 150
+  },
+  {
+   "category": "Independent Living",
+   "device": "mobile",
+   "page_views": 2511,
+   "sessions": 1907,
+   "requests": 91,
+   "request_sessions": 90,
+   "questions": 248
+  },
+  {
+   "category": "Independent Living",
+   "device": "tablet",
+   "page_views": 92,
+   "sessions": 61,
+   "requests": 3,
+   "request_sessions": 3,
+   "questions": 23
+  },
+  {
+   "category": "Independent Living",
+   "device": "unknown",
+   "page_views": 0,
+   "sessions": 0,
+   "requests": 1,
+   "request_sessions": 1,
+   "questions": 3
+  },
+  {
+   "category": "Memory Care",
+   "device": "desktop",
+   "page_views": 423,
+   "sessions": 394,
+   "requests": 3,
+   "request_sessions": 3,
+   "questions": 15
+  },
+  {
+   "category": "Memory Care",
+   "device": "mobile",
+   "page_views": 183,
+   "sessions": 143,
+   "requests": 2,
+   "request_sessions": 2,
+   "questions": 16
+  },
+  {
+   "category": "Memory Care",
+   "device": "tablet",
+   "page_views": 2,
+   "sessions": 2,
+   "requests": 0,
+   "request_sessions": 0,
+   "questions": 0
+  },
+  {
+   "category": "Multiple categories",
+   "device": "desktop",
+   "page_views": 280,
+   "sessions": 270,
+   "requests": 1,
+   "request_sessions": 1,
+   "questions": 24
+  },
+  {
+   "category": "Multiple categories",
+   "device": "mobile",
+   "page_views": 121,
+   "sessions": 102,
+   "requests": 6,
+   "request_sessions": 6,
+   "questions": 25
+  },
+  {
+   "category": "Multiple categories",
+   "device": "tablet",
+   "page_views": 1,
+   "sessions": 1,
+   "requests": 0,
+   "request_sessions": 0,
+   "questions": 0
+  },
+  {
+   "category": "Nursing Home",
+   "device": "desktop",
+   "page_views": 1142,
+   "sessions": 1043,
+   "requests": 0,
+   "request_sessions": 0,
+   "questions": 49
+  },
+  {
+   "category": "Nursing Home",
+   "device": "mobile",
+   "page_views": 795,
+   "sessions": 602,
+   "requests": 16,
+   "request_sessions": 15,
+   "questions": 87
+  },
+  {
+   "category": "Nursing Home",
+   "device": "tablet",
+   "page_views": 11,
+   "sessions": 10,
+   "requests": 1,
+   "request_sessions": 1,
+   "questions": 5
+  },
+  {
+   "category": "Nursing Home",
+   "device": "unknown",
+   "page_views": 0,
+   "sessions": 0,
+   "requests": 0,
+   "request_sessions": 0,
+   "questions": 1
+  },
+  {
+   "category": "unknown",
+   "device": "desktop",
+   "page_views": 18,
+   "sessions": 9,
+   "requests": 0,
+   "request_sessions": 0,
+   "questions": 1
+  },
+  {
+   "category": "wellness_center",
+   "device": "desktop",
+   "page_views": 5,
+   "sessions": 5,
+   "requests": 0,
+   "request_sessions": 0,
+   "questions": 2
+  }
+ ],
+ "distinct_totals": {
+  "note": "Distinct sessions across all provider pages. Summing the category rows counts a session once per category it viewed, so use these for site-wide rates.",
+  "all": {
+   "sessions": 15438,
+   "request_sessions": 238,
+   "requests_per_session": 0.0154
+  },
+  "phone": {
+   "sessions": 6406,
+   "request_sessions": 197,
+   "requests_per_session": 0.0308
+  },
+  "desktop": {
+   "sessions": 8886,
+   "request_sessions": 35,
+   "requests_per_session": 0.0039
+  },
+  "tablet": {
+   "sessions": 146,
+   "request_sessions": 6
+  }
+ },
+ "home_care_no_page_view_requests": {
+  "count": 23,
+  "sources": {
+   "ad_handover": 22,
+   "city_lead_offer": 1
+  },
+  "providers": [
+   "hoop-cares-pascagoula-ms (12)",
+   "assisting-hands-home-care-dallas-richardson-surrounding-areas (6)",
+   "colorado-careassist-cimarron-hills-co-rkhm (2)",
+   "miracle-lightstar-llc-cleveland-oh-uisa (2)",
+   "graceful-homecare (1)"
+  ]
+ }
+}

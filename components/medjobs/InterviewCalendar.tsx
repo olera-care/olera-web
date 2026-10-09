@@ -1050,12 +1050,17 @@ function InterviewDetailModal({
                     <p className="text-gray-700">{prnLabel}</p>
                   </div>
                 )}
-                {reqLabels.length > 0 && (
+                {(reqLabels.length > 0 || requirements?.other) && (
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Requirements</p>
-                    <ul className="space-y-0.5 text-gray-700">
-                      {reqLabels.map((r) => (<li key={r}>• {r}</li>))}
-                    </ul>
+                    {reqLabels.length > 0 && (
+                      <ul className="space-y-0.5 text-gray-700">
+                        {reqLabels.map((r) => (<li key={r}>• {r}</li>))}
+                      </ul>
+                    )}
+                    {requirements?.other && (
+                      <p className={`text-gray-700 ${reqLabels.length > 0 ? "mt-2" : ""}`}>{requirements.other}</p>
+                    )}
                   </div>
                 )}
               </div>

@@ -370,11 +370,21 @@ export default function AdminDirectoryDetailPage() {
     staffCareMotivation !== (originalStaff.care_motivation || "") ||
     staffImage !== (originalStaff.image || "");
 
+  // Clean requirements object: remove falsy/empty values for storage and comparison
+  const cleanReqs = (r: MedjobsRequirements): MedjobsRequirements => {
+    const clean: MedjobsRequirements = {};
+    if (r.background_check) clean.background_check = true;
+    if (r.drug_test) clean.drug_test = true;
+    if (r.transportation) clean.transportation = true;
+    if (r.other?.trim()) clean.other = r.other.trim();
+    return clean;
+  };
+
   const isHiringDirty =
     hiringDescription !== (originalHiring.description ?? "") ||
     JSON.stringify([...hiringBuckets].sort()) !== JSON.stringify([...(originalHiring.buckets ?? [])].sort()) ||
     hiringPrn !== originalHiring.prn ||
-    JSON.stringify(hiringReqs) !== JSON.stringify(originalHiring.reqs ?? {});
+    JSON.stringify(cleanReqs(hiringReqs)) !== JSON.stringify(cleanReqs(originalHiring.reqs ?? {}));
 
   const toggleHiringBucket = (b: Bucket) =>
     setHiringBuckets((prev) => (prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]));
@@ -392,14 +402,15 @@ export default function AdminDirectoryDetailPage() {
         prn_open: hiringPrn,
       };
       const hasDemand = demand.job_description || (demand.coverage_buckets && demand.coverage_buckets.length > 0) || demand.prn_open;
-      const hasReqs = Object.values(hiringReqs).some(Boolean);
+      const cleanedReqs = cleanReqs(hiringReqs);
+      const hasReqs = Object.keys(cleanedReqs).length > 0;
       const res = await fetch(`/api/admin/directory/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           _hiring: {
             demand: hasDemand ? demand : undefined,
-            requirements: hasReqs ? hiringReqs : undefined,
+            requirements: hasReqs ? cleanedReqs : undefined,
           },
         }),
       });
@@ -408,7 +419,7 @@ export default function AdminDirectoryDetailPage() {
           description: hiringDescription.trim(),
           buckets: hiringBuckets,
           prn: hiringPrn,
-          reqs: hiringReqs,
+          reqs: cleanedReqs,
         });
         setHiringMessage({ type: "success", text: "Hiring defaults saved." });
         setTimeout(() => setHiringMessage(null), 3000);
@@ -1239,6 +1250,16 @@ export default function AdminDirectoryDetailPage() {
                   {o.label}
                 </label>
               ))}
+            </div>
+            <div className="mt-3">
+              <label className="block text-sm text-gray-600 mb-1">Other requirements (optional)</label>
+              <textarea
+                value={hiringReqs.other ?? ""}
+                onChange={(e) => setHiringReqs((prev) => ({ ...prev, other: e.target.value }))}
+                placeholder="Any additional requirements not covered above..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500 resize-none"
+                rows={2}
+              />
             </div>
           </div>
 

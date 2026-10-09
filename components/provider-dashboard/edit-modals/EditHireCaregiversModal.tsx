@@ -53,7 +53,7 @@ export default function EditHireCaregiversModal({
   const [error, setError] = useState<string | null>(null);
 
   const snapshot = (p?: Prn, b?: Bucket[], r?: MedjobsRequirements, jd?: string) =>
-    JSON.stringify({ p: p ?? null, b: [...(b ?? [])].sort(), r: r ?? {}, jd: jd ?? "" });
+    JSON.stringify({ p: p ?? null, b: [...(b ?? [])].sort(), r: cleanReq(r ?? {}), jd: jd ?? "" });
   const hasChanges =
     snapshot(prn, buckets, req, jobDescription) !==
     snapshot(initialDemand.prn_open, initialDemand.coverage_buckets, initialReq, initialDemand.job_description ?? "");
@@ -62,6 +62,16 @@ export default function EditHireCaregiversModal({
     setBuckets((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
   const toggleReq = (k: keyof MedjobsRequirements) =>
     setReq((prev) => ({ ...prev, [k]: !prev[k] }));
+
+  // Clean requirements object: remove falsy/empty values for storage
+  const cleanReq = (r: MedjobsRequirements): MedjobsRequirements => {
+    const clean: MedjobsRequirements = {};
+    if (r.background_check) clean.background_check = true;
+    if (r.drug_test) clean.drug_test = true;
+    if (r.transportation) clean.transportation = true;
+    if (r.other?.trim()) clean.other = r.other.trim();
+    return clean;
+  };
 
   async function handleSave() {
     if (!hasChanges && !guidedMode) {
@@ -76,9 +86,10 @@ export default function EditHireCaregiversModal({
         coverage_buckets: buckets,
         job_description: jobDescription.trim() || undefined,
       };
+      const cleanedReqs = cleanReq(req);
       const metadataFields: Record<string, unknown> = {
         [DEMAND_PROFILE_KEY]: demand,
-        [REQUIREMENTS_KEY]: req,
+        [REQUIREMENTS_KEY]: Object.keys(cleanedReqs).length > 0 ? cleanedReqs : undefined,
       };
       // Filling the block also marks the screener complete (consistency for
       // providers who never hit the funnel screener).
@@ -163,6 +174,16 @@ export default function EditHireCaregiversModal({
                 {o.label}
               </label>
             ))}
+          </div>
+          <div className="mt-3">
+            <label className="block text-sm text-gray-600 mb-1">Other requirements</label>
+            <textarea
+              value={req.other ?? ""}
+              onChange={(e) => setReq((prev) => ({ ...prev, other: e.target.value }))}
+              placeholder="Any additional requirements not covered above..."
+              className="w-full px-3.5 py-2.5 border border-warm-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+              rows={2}
+            />
           </div>
         </Field>
 

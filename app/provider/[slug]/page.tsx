@@ -87,7 +87,11 @@ export async function generateMetadata({
   }
 
   const name = provider.provider_name;
-  const category = provider.provider_category || "Senior Care";
+  // Claimed profiles store the category as a slug ("home_care_agency"); show
+  // the label a person reads, not the database value.
+  const rawCategory = provider.provider_category;
+  const category = (rawCategory && PROFILE_CAT_TO_SUPABASE_CAT[rawCategory]) || rawCategory || "Senior Care";
+  const article = /^[aeiou]/i.test(category) ? "an" : "a";
   const city = provider.city;
   const state = provider.state;
   const locationComma = [city, state].filter(Boolean).join(", ");
@@ -100,7 +104,7 @@ export async function generateMetadata({
     : `${name}: Pricing & Availability | Olera.care`;
   const description = provider.provider_description
     ? provider.provider_description.slice(0, 160).trimEnd() + (provider.provider_description.length > 160 ? "..." : "")
-    : `Find details, reviews, and pricing for ${name}, a ${category} provider${locationComma ? ` in ${locationComma}` : ""}. Compare options on Olera.`;
+    : `Find details, reviews, and pricing for ${name}, ${article} ${category} provider${locationComma ? ` in ${locationComma}` : ""}. Compare options on Olera.`;
 
   // og:image must never point at a dead host (cdn-api.olera.care, expired
   // Places photoUri): Googlebot-Image fetches it directly and logs the failure
@@ -770,6 +774,7 @@ export default async function ProviderPage({
     })),
   };
 
+  const hasMarkupPrice = priceSource !== "regional_estimate" && priceSource !== "contact_only";
   const localBusinessJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -804,53 +809,36 @@ export default async function ProviderPage({
         ...(parentOrganization.url && { url: parentOrganization.url }),
       },
     }),
-    // Google requires AggregateRating.reviewCount to be a positive integer.
-    // Only emit the block when there's a real rating AND at least one review —
-    // otherwise the entire review snippet is rejected as invalid structured data.
-    ...(googleReviewsData &&
-      googleReviewsData.rating > 0 &&
-      googleReviewsData.review_count != null &&
-      googleReviewsData.review_count > 0 && {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: googleReviewsData.rating,
-        bestRating: 5,
-        worstRating: 1,
-        reviewCount: googleReviewsData.review_count,
-      },
-    }),
-    // Suppress priceRange in schema for Tier 3 unless provider explicitly entered pricing
-    ...(priceRange && (pricingConfig?.tier !== 3 || (meta?.price_min != null)) && { priceRange }),
-    ...(meta?.price_min != null && meta?.price_max != null && {
+    // No AggregateRating and no Review markup. The ratings on this page are
+    // Google's, and Google's review-snippet rules forbid marking up ratings
+    // aggregated from another site. The only reviews the page could mark up
+    // otherwise are demo reviews, which are not real. Stars come back only
+    // from reviews collected on Olera (Home Care Page plan, Phase 2).
+    //
+    // Price markup states only the provider's own price (their entry, or the
+    // directory's listed price), never the area estimate, and in the category's
+    // own unit: home care is hourly, so a missing unit must not become monthly.
+    // Written as "not the estimate, not withheld" so a future price source (a
+    // separate "listed" label) stays in the markup without another edit here.
+    ...(hasMarkupPrice &&
+      priceRange &&
+      (pricingConfig?.tier !== 3 || meta?.price_min != null) && { priceRange }),
+    ...(hasMarkupPrice && meta?.price_min != null && meta?.price_max != null && {
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         priceCurrency: "USD",
         minPrice: meta.price_min,
         maxPrice: meta.price_max,
-        unitText: meta.price_unit || "MONTH",
+        unitText: meta.price_unit || (pricingConfig?.unit === "hour" ? "HOUR" : "MONTH"),
       },
     }),
-    ...(reviewsToShow.length > 0 && {
-      review: reviewsToShow.slice(0, 5).map((r) => ({
-        "@type": "Review",
-        author: { "@type": "Person", name: r.name },
-        reviewRating: {
-          "@type": "Rating",
-          ratingValue: r.rating,
-          bestRating: 5,
-          worstRating: 1,
-        },
-        datePublished: r.date,
-        reviewBody: r.comment,
-      })),
-    }),
-    // OfferCatalog — maps the list of services offered to schema.org Offers.
-    // Uses careServices (real care_types padded with category-inferred defaults).
-    ...(careServices.length > 0 && {
+    // OfferCatalog: only the services the provider or directory lists, never
+    // the category defaults the page pads its services list with.
+    ...(rawCareTypes.length > 0 && {
       hasOfferCatalog: {
         "@type": "OfferCatalog",
         name: "Care Services",
-        itemListElement: careServices.map((service) => ({
+        itemListElement: rawCareTypes.map((service) => ({
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",

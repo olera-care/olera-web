@@ -49,6 +49,11 @@ change on every load are handled on purpose:
 - **Redirected pages** land on a city page; the chain and destination are
   compared, the city page's pixels are not.
 
+- **Live counters** ("69 families checked this month") move between runs and
+  differ between a cached production page and a fresh preview. Their text is
+  recorded; their digits are pinned in screenshots. Add new ones to
+  `LIVE_TEXT`.
+
 URLs are compared exactly as written, so a preview whose canonical points at
 its own host shows up as a difference. The one exception is the default share
 image on 404 pages, which Next.js builds from the deployment's address.

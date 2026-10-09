@@ -62,6 +62,16 @@ export const ROLES = {
   admin: { email: "tj@olera.care", note: "Existing master admin. No new admin is created." },
 };
 
+const TEST_CLAIMED_AT = "2026-01-01T00:00:00Z";
+
+// A claimed insert fires sync_provider_outreach_on_claim, which logs the
+// listing as a new claim in provider_outreach_tracking (the claims dashboard
+// and growth counts read it). Test listings are not claims; remove the row.
+async function forgetOutreachClaims() {
+  const ids = Object.values(LISTINGS).map((l) => l.provider_id);
+  await must(db.from("provider_outreach_tracking").delete().in("provider_id", ids), "remove outreach claim rows");
+}
+
 const BASE_LISTING = {
   provider_category: "Home Care (Non-medical)",
   city: "College Station",
@@ -189,7 +199,10 @@ async function create() {
           verification_state: "verified",
           source: "user_created",
           is_active: true,
-          claimed_at: new Date().toISOString(),
+          // A fixed old date keeps the test claim out of every rolling window:
+          // claim counts on the growth dashboards and the welcome and nudge
+          // emails that fire for claims in the last 30 days.
+          claimed_at: TEST_CLAIMED_AT,
           metadata: { hourly_rate_min: 30, hourly_rate_max: 36, alert_emails: [ROLES.owner.email] },
         })
         .select("id")
@@ -198,6 +211,8 @@ async function create() {
     );
   }
   await must(db.from("accounts").update({ active_profile_id: org.id }).eq("id", ownAcct.id), "set owner active");
+  await must(db.from("business_profiles").update({ claimed_at: TEST_CLAIMED_AT }).eq("id", org.id), "date test claim");
+  await forgetOutreachClaims();
 
   // Team login: a member row only; the account is made on first sign-in.
   const member = await must(
@@ -237,7 +252,8 @@ async function reset() {
     await must(db.from("accounts").update({ active_profile_id: null }).eq("active_profile_id", c.id), "detach claim");
     await must(db.from("business_profiles").delete().eq("id", c.id), "remove claim");
   }
-  console.log(`Removed ${unclaimedClaims.length} claim(s) on the unclaimed listing.`);
+  await forgetOutreachClaims();
+  console.log(`Removed ${unclaimedClaims.length} claim(s) on the unclaimed listing, and any outreach claim rows.`);
   console.log("Requests and questions are left in place: they are the returning-family state and the record of the run.");
 }
 

@@ -258,5 +258,41 @@
    "request_sessions": 0,
    "questions": 2
   }
- ]
+ ],
+ "distinct_totals": {
+  "note": "Distinct sessions across all provider pages. Summing the category rows counts a session once per category it viewed, so use these for site-wide rates.",
+  "all": {
+   "sessions": 15438,
+   "request_sessions": 238,
+   "requests_per_session": 0.0154
+  },
+  "phone": {
+   "sessions": 6406,
+   "request_sessions": 197,
+   "requests_per_session": 0.0308
+  },
+  "desktop": {
+   "sessions": 8886,
+   "request_sessions": 35,
+   "requests_per_session": 0.0039
+  },
+  "tablet": {
+   "sessions": 146,
+   "request_sessions": 6
+  }
+ },
+ "home_care_no_page_view_requests": {
+  "count": 23,
+  "sources": {
+   "ad_handover": 22,
+   "city_lead_offer": 1
+  },
+  "providers": [
+   "hoop-cares-pascagoula-ms (12)",
+   "assisting-hands-home-care-dallas-richardson-surrounding-areas (6)",
+   "colorado-careassist-cimarron-hills-co-rkhm (2)",
+   "miracle-lightstar-llc-cleveland-oh-uisa (2)",
+   "graceful-homecare (1)"
+  ]
+ }
 }

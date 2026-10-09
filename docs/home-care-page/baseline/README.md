@@ -47,12 +47,14 @@ viewed a provider page.
 | Nursing home | 1,948 | 1,655 | 17 | 0.97% | 142 |
 | Independent living | 4,122 | 3,259 | 109 | 3.25% | 424 |
 | Two or more categories | 402 | 373 | 7 | 1.88% | 49 |
-| **All provider pages** | 18,681 | 15,556 | 287 | 1.62% (252) | 1,499 |
+| **All provider pages** | 18,681 | 15,438 | 287 | 1.54% (238) | 1,499 |
 
-Across all categories, phones request at 3.2% of sessions and desktop at
-0.45%. The 23 home care requests with no page view in the session are Ad
+Across all categories, phones request at 3.08% of sessions (197 of 6,406) and
+desktop at 0.39% (35 of 8,886). The all-pages row counts distinct sessions;
+adding up the category rows would count a session once per category it viewed. The 23 home care requests with no page view in the session are Ad
 Boost leads handed to the client (`source` `ad_handover` or `city_lead_offer`,
-mostly Hoop Cares and Assisting Hands), not requests made on the page. The
+all 23 traced: Hoop Cares 12, Assisting Hands 6, Colorado CareAssist 2,
+Miracle Lightstar 2, Graceful Homecare 1), not requests made on the page. The
 page test must leave them out, and those clients are out of the test anyway.
 
 Why these differ slightly from the plan (1.15%, 56 days): a different window,
@@ -103,3 +105,10 @@ to a real provider; the multi-agency "ask several" step must be skipped in
 tests. Production has no test switch on requests: each test request still
 raises the team's lead alert and can enter the family follow-up emails (to
 the tj+ alias). The "(Test)" name marks it. After a claim test, run `reset`.
+
+**Side effects, handled.** Creating a claimed profile fires a database
+trigger that logs a new claim in the outreach tracker, and a recent
+`claimed_at` feeds the growth dashboards' claim counts and the welcome and
+nudge emails. The script dates the test claim 1 January 2026 and removes the
+tracker row; `reset` does the same after a QA claim. Expect the occasional
+automated email to the tj+hc addresses; they reach only TJ.

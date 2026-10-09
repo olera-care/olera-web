@@ -105,45 +105,25 @@ export async function directoryDigestText(db: SupabaseClient, since: Date, perio
   const named = (a: Omit<HealthActionRow, "provider_name" | "slug">): HealthActionRow => ({ ...a, provider_name: names.get(a.provider_id)?.provider_name ?? null, slug: names.get(a.provider_id)?.slug ?? null });
   const applied = appliedBase.map(named);
   const flagged = flaggedBase.map(named);
-  const group = (list: HealthActionRow[]) => {
-    const by = new Map<string, HealthActionRow[]>();
-    for (const a of list) by.set(a.kind, [...(by.get(a.kind) ?? []), a]);
-    return [...by.entries()];
+  // Posts only when a person is needed (TJ, 2026-10-09: "Those long lists
+  // are just overwhelming"). What Cortex did on its own is a count with the
+  // undo link, not a list of names; the Monday post carries the week.
+  if (!flagged.length) return null;
+  const count = (kind: string) => applied.filter((a) => a.kind === kind).length;
+  const n = (value: number, one: string, many: string) => `${value.toLocaleString("en-US")} ${value === 1 ? one : many}`;
+  const did = [
+    count("closed_archived") ? `archived ${n(count("closed_archived"), "closed provider", "closed providers")}` : null,
+    count("rename_applied") ? `fixed ${n(count("rename_applied"), "name", "names")}` : null,
+    deadSites.length ? `queued ${n(deadSites.length, "dead website", "dead websites")} for the next Google check` : null,
+  ].filter(Boolean) as string[];
+  const flaggedName = (a: HealthActionRow) => {
+    const google = a.kind === "rename_flagged" ? (a.evidence as { google?: string } | null)?.google : null;
+    return google ? `${providerLink(a)} (Google calls it ${google})` : providerLink(a);
   };
-  const lines: string[] = [];
-  if (applied.length) {
-    lines.push(`*Directory, ${period}.* What I did:`);
-    for (const [kind, list] of group(applied)) {
-      const shown = list.slice(0, 5).map(providerLink).join(", ");
-      lines.push(`• ${list.length.toLocaleString("en-US")} ${KIND_WORDS[kind] ?? kind.replace(/_/g, " ")}: ${shown}${list.length > 5 ? `, +${(list.length - 5).toLocaleString("en-US")} more` : ""}`);
-    }
-    lines.push(`Undo any of these at <${SITE()}/admin/directory/health|admin › Directory health>.`);
-  }
-  if (deadSites.length) {
-    const checkable = await countWithPlaceId(db, deadSites.map((a) => a.provider_id));
-    const noGoogle = deadSites.length - checkable;
-    lines.push(`${applied.length ? "" : "*Directory.* "}${deadSites.length.toLocaleString("en-US")} provider website${deadSites.length === 1 ? "" : "s"} came back dead. Not a verdict on its own; ${checkable.toLocaleString("en-US")} of them go first in the next free Google check, which archives the closed ones and clears the rest.${noGoogle ? ` ${noGoogle.toLocaleString("en-US")} have no Google listing to check and wait in <${SITE()}/admin/directory/health|admin › Directory health>.` : ""}`);
-  }
-  if (flagged.length) {
-    lines.push(applied.length || deadSites.length ? "What I want a person to decide:" : "*Directory.* Waiting on a person:");
-    for (const [kind, list] of group(flagged)) {
-      const shown = list.slice(0, 5).map(providerLink).join(", ");
-      lines.push(`• ${list.length.toLocaleString("en-US")} ${KIND_WORDS[kind] ?? kind.replace(/_/g, " ")}: ${shown}${list.length > 5 ? `, +${(list.length - 5).toLocaleString("en-US")} more` : ""}`);
-    }
-    if (!applied.length) lines.push(`Done or Open on each at <${SITE()}/admin/directory/health|admin › Directory health>.`);
-  }
-  return lines.join("\n");
-}
-
-/** How many of these providers have a Place ID, i.e. can be asked about on Google. */
-async function countWithPlaceId(db: SupabaseClient, providerIds: string[]): Promise<number> {
-  const ids = [...new Set(providerIds)];
-  let n = 0;
-  for (let i = 0; i < ids.length; i += 500) {
-    const { count } = await db.from("olera-providers").select("provider_id", { count: "exact", head: true }).in("provider_id", ids.slice(i, i + 500)).not("place_id", "is", null);
-    n += count ?? 0;
-  }
-  return n;
+  const shown = flagged.slice(0, 2).map(flaggedName);
+  const more = flagged.length > 2 ? `, and ${n(flagged.length - 2, "more", "more")}` : "";
+  const didText = did.length ? ` I ${did.length > 1 ? `${did.slice(0, -1).join(", ")} and ${did[did.length - 1]}` : did[0]}.` : "";
+  return `*Directory, ${period}.*${didText} ${n(flagged.length, "needs", "need")} you: ${shown.join(shown.length > 1 && !more ? " and " : ", ")}${more}. <${SITE()}/admin/directory/health|Review or undo>`;
 }
 
 /** The weekly state of the directory, said even when nothing moved. */

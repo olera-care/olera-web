@@ -257,8 +257,10 @@ export async function POST(request: NextRequest) {
       // Mirror provider-page CTA events into the normalized growth funnel.
       // The legacy event remains canonical for the A/B dashboard; this row is
       // the page-attribution vocabulary shared with benefits and editorial.
+      // A repeat impression of a card that was already on screen (the
+      // experiment's resolved re-fire) is not a second "visible".
       const growthEvent = event_type === "cta_variant_impression"
-        ? "cta_visible"
+        ? (metadata?.already_visible === true ? null : "cta_visible")
         : event_type === "cta_variant_clicked" || event_type === "cta_click_public"
           ? (metadata?.cta === "phone"
             ? "contact_intent"

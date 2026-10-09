@@ -209,6 +209,7 @@ export default function CityBrowseClient({
         let query = supabase
           .from(PROVIDERS_TABLE)
           .select("*")
+          .not("slug", "like", "test-%") // QA listings stay reachable, never listed
           .or("deleted.is.null,deleted.eq.false");
 
         // Care type filter
@@ -245,6 +246,7 @@ export default function CityBrowseClient({
         let bpQuery = supabase
           .from("business_profiles")
           .select("*")
+          .not("slug", "like", "test-%") // QA listings stay reachable, never listed
           .eq("claim_state", "claimed")
           .eq("is_active", true)
           .eq("type", "organization");

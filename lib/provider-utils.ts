@@ -609,11 +609,17 @@ function processProvidersForMulti(
   return providers.slice(0, limit);
 }
 
+/** Google's rating for ranking; 0 means "no rating yet". */
+function ratingForRank(p: IOSProvider): number {
+  return p.google_reviews_data?.rating || p.google_rating || 0;
+}
+
 export async function getSimilarProviders(
   category: ProfileCategory | null,
   excludeSlug: string,
   state: string | null,
-  limit: number = 3
+  limit: number = 3,
+  near?: { lat: number | null | undefined; lng: number | null | undefined },
 ): Promise<SimilarProvidersResult> {
   if (!category) return { providers: [], isLocal: false };
 
@@ -621,6 +627,46 @@ export async function getSimilarProviders(
   if (!supabaseCategory) return { providers: [], isLocal: false };
 
   const supabase = await createClient();
+
+  // Pass 0: nearby agencies, by distance. Same category within about 30 miles,
+  // then 60. Good ratings first (4.5+, then 4.0+), nearest first within each
+  // band. Before this, "the best local options" were the top-rated rows
+  // anywhere in the state: in California an arbitrary pick from 132 tied at
+  // 5.0, so a Tacoma family could be shown Seattle agencies.
+  if (near?.lat != null && near?.lng != null) {
+    const { lat, lng } = near;
+    for (const miles of [30, 60]) {
+      try {
+        const dLat = miles / 69;
+        const dLng = miles / (69 * Math.max(Math.cos((lat * Math.PI) / 180), 0.2));
+        const { data, error } = await supabase
+          .from(PROVIDERS_TABLE)
+          .select("*")
+          .not("slug", "like", "test-%")
+          .not("deleted", "is", true)
+          .ilike("provider_category", `%${supabaseCategory}%`)
+          .neq("provider_id", excludeSlug)
+          .not("provider_images", "is", null)
+          .gte("lat", lat - dLat)
+          .lte("lat", lat + dLat)
+          .gte("lon", lng - dLng)
+          .lte("lon", lng + dLng)
+          .limit(300);
+        if (error || !data) continue;
+        const band = (r: number) => (r >= 4.5 ? 0 : r >= 4 ? 1 : 2);
+        const ranked = (data as IOSProvider[])
+          .filter((p) => p.lat != null && p.lon != null)
+          .map((p) => ({ p, miles: haversineDistance(lat, lng, p.lat as number, p.lon as number), rating: ratingForRank(p) }))
+          .filter((x) => x.miles <= miles)
+          .sort((a, b) => band(a.rating) - band(b.rating) || a.miles - b.miles);
+        if (ranked.length >= limit || (miles === 60 && ranked.length > 0)) {
+          return { providers: ranked.slice(0, limit).map((x) => toCardFormat(x.p)), isLocal: true };
+        }
+      } catch {
+        // Fall through to the next radius, then the state search
+      }
+    }
+  }
 
   // Pass 1: same state + same category, rating-sorted. When we have any
   // local matches we prefer showing fewer accurate local results over
@@ -630,6 +676,7 @@ export async function getSimilarProviders(
       const { data, error } = await supabase
         .from(PROVIDERS_TABLE)
         .select("*")
+        .not("slug", "like", "test-%")
         .not("deleted", "is", true)
         .ilike("provider_category", `%${supabaseCategory}%`)
         .eq("state", state)
@@ -656,6 +703,7 @@ export async function getSimilarProviders(
     const { data, error } = await supabase
       .from(PROVIDERS_TABLE)
       .select("*")
+      .not("slug", "like", "test-%")
       .not("deleted", "is", true)
       .ilike("provider_category", `%${supabaseCategory}%`)
       .neq("provider_id", excludeSlug)

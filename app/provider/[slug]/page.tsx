@@ -127,6 +127,8 @@ export async function generateMetadata({
   return {
     title,
     description,
+    // QA listings (slug "test-…") stay reachable for testing but out of search.
+    ...(slug.startsWith("test-") && { robots: { index: false, follow: false } }),
     alternates: {
       canonical: `https://olera.care/provider/${slug}`,
     },
@@ -398,7 +400,10 @@ export default async function ProviderPage({
   const priceRange = priceResolution.text;
   const priceSource = priceResolution.source;
 
-  const rating = meta?.rating;
+  // A 0 rating is Google's "no rating yet", never a score to show.
+  const rating = meta?.rating && meta.rating > 0 ? meta.rating : undefined;
+  const shownGoogleRating =
+    googleReviewsData?.rating && googleReviewsData.rating > 0 ? googleReviewsData.rating : undefined;
   // business_profiles.metadata.images was hydrated from the directory at claim
   // time and can still carry dead-host URLs; filter here so the gallery, the
   // JSON-LD image, and the hero fallback all see the same clean list.
@@ -434,7 +439,7 @@ export default async function ProviderPage({
 
     // 2. Similar providers for Compare section AND multi_provider card stack
     // (same data source, transformed for card stack format below)
-    getSimilarProviders(profile.category, profile.source_provider_id || profile.id, profile.state, 3),
+    getSimilarProviders(profile.category, profile.source_provider_id || profile.id, profile.state, 3, { lat: profile.lat, lng: profile.lng }),
 
     // 4. Q&A pairs + review count
     (async () => {
@@ -612,8 +617,13 @@ export default async function ProviderPage({
     if (!rawStaffScreening) return [];
     // If it's already an array, filter to valid non-empty strings and deduplicate
     if (Array.isArray(rawStaffScreening)) {
+      // A screening entry is a short check ("Background checks"). Owners have
+      // pasted whole marketing paragraphs into this list (Assisting Hands, 1,200
+      // characters); those are not checks, so the checklist skips them.
       return [...new Set(
-        rawStaffScreening.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+        rawStaffScreening.filter(
+          (s): s is string => typeof s === "string" && s.trim().length > 0 && s.trim().length <= 80,
+        )
       )];
     }
     // If it's the legacy object format, convert to array
@@ -1013,7 +1023,7 @@ export default async function ProviderPage({
 
                 {/* Row 3: Rating & Reviews box (centered, subtle border) - only shown if reviews exist */}
                 {(() => {
-                  const displayRating = googleReviewsData?.rating ?? rating;
+                  const displayRating = shownGoogleRating ?? rating;
                   const displayReviewCount = googleReviewsData?.review_count ?? 0;
                   const hasReviews = displayRating != null && displayReviewCount > 0;
 
@@ -1703,7 +1713,7 @@ export default async function ProviderPage({
                     providerCity={profile.city}
                     providerState={profile.state}
                     providerImage={images[0] || null}
-                    rating={googleReviewsData?.rating ?? rating}
+                    rating={shownGoogleRating ?? rating}
                     highlights={highlights.map((h) => h.label)}
                     similarProviders={similarProviders.providers.slice(0, 2).map((p) => ({
                       id: p.id,
@@ -1783,7 +1793,7 @@ export default async function ProviderPage({
             providerCity={profile.city}
             providerState={profile.state}
             providerImage={images[0] || null}
-            rating={googleReviewsData?.rating ?? rating}
+            rating={shownGoogleRating ?? rating}
             highlights={highlights.map((h) => h.label)}
             similarProviders={similarProviders.providers.slice(0, 2).map((p) => ({
               id: p.id,

@@ -755,6 +755,22 @@ Free text in `care_type` was **quietly recreating the defect the feature exists 
 
 #### Next Up
 
+### Provider value pilot (9 Oct) — TABLED by TJ
+- **Decision 9 Oct:** "This might be getting away from our bread and butter. Worth revisiting later, but tabling for now." Nothing was sent to any provider.
+- Where it stopped: Edmonds Villa plan https://claude.ai/artifact/1npJ2xGzeV7c4Gg6UyLqoN (offer = a funding plan per inquiry within 24h; the push found WA Cares does NOT help most elderly residents: full $36.5k needs work in 3 of the last 6 years, pre-1968 partial is $3,650/yr contributed; VA A&A fits; Benefits Finder lacks WA Cares and WA rows are duplicated 3x in sbf_state_programs). Franchil audit + parked review plan https://claude.ai/artifact/Sf2xUXRQyi5VdeU2L8pRY4. Assisting Hands Dallas dropped (TJ: leads dead, Robbie doesn't need caregivers).
+- If revisited: start from the Edmonds Villa page; the offer and opening text are drafted.
+- Franchil: Olera-side fix waiting on TJ's go: one "Franchil LLC" page with Google NAP (#101D, (254) 322-9251, franchil.com), add map location to 900bf6a1. Old "Central Home Health Care, an Amedisys" name/phone = stale Google import.
+- Edmonds Villa profile says "skilled nursing"; an AFH isn't a licensed SNF. Fix the wording.
+
+### Cortex
+- Wire "hand this off" (and audit visualize / send / approve) for Slack surfaces; make the prompt list only commands that work on the current surface.
+- Optional: rotate the on-call routine token (it passed through a transcript).
+
+### Cortex on call (#2460) — to go live
+- TJ: reinstall the Olera v2 Alerts app (Slack OAuth page, pick the webhook channel the alerts already use, Allow). The `app_mention` event is saved; the reinstall grants `app_mentions:read`.
+- TJ: on claude.ai, "Cortex on-call builder" → add an API trigger, copy the token to the clipboard; remove the default connectors. Then set `CORTEX_ONCALL_ROUTINE_URL` / `CORTEX_ONCALL_ROUTINE_TOKEN` in Vercel (prod + preview).
+- Merge #2460, then test live on Ces's "Admin Reply" thread in #careseeker-support. First "@Cortex go" also proves `WAR_ROOM_BRIEF_SLACK_USER_ID` is TJ's U-id.
+
 1. **Plan the manual router before writing it.** TJ's sketch differs from the drawn one: type a provider name from scratch, system finds and verifies them and cross-checks distance — which is what was done by hand this morning to build the ranked three.
 2. Tap a chip to correct it; the durable details block on the record header (`app/admin/relationships/families/[seekerId]`).
 3. **Clean up:** `Zz Chip Test (delete me)` (`277a4f34`) and three fictional notes on Test McTest (`b32bb6fd`). Shared DB, so both are visible in production.
@@ -6923,6 +6939,24 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-10-09 (later) — On-call live, reply labels, news-only brief, provider value audits (`plucky-snyder`)
+
+- **Cortex on call LIVE** (#2460 → prod #2466). App renamed "Olera v2 Alerts" → **Cortex** with an icon; `app_mention` + `app_mentions:read` added, reinstalled (#notifications webhook). Routine `trig_01Cv16GZxiS1uVZ47bgac8Ap`: connectors removed, API trigger + token in Vercel prod (`CORTEX_ONCALL_ROUTINE_URL/TOKEN`). Migration 276 applied by TJ. Live test in #cortex passed.
+- **Reply labels** (#2467 → prod #2468): replies tagged plan/gap/done/answer; "go" footer only on plan/gap; "go" with nothing buildable says so; gap plans tell the routine to build a lookup. Eval: 13/13 tagged; 6/8 realistic team questions answered; gaps = leads by source, claims by date, MedJobs.
+- **News-only brief** (#2469 → prod #2470): `lib/war-room/brief-news.ts`; max 2 new facts, model prose with a number check (template fallback), standing items Mondays, moves resurface every 3 days, directory digest only when a person is needed. Revert: `WAR_ROOM_BRIEF_LEGACY=1`. Overrides TJ's 9-28 daily priority lines (approved via 7-morning mock).
+- **Keep:** a routine created through the API inherits every account connector and they can write without asking; remove them in the claude.ai UI.
+- **Keep:** "hand this off" only works on Telegram; in Slack Cortex claimed it fired. Fix not built yet (see Next Up).
+- **Provider value audits** (manual pilot, nothing sent): Franchil audit + parked 30-day review plan https://claude.ai/artifact/Sf2xUXRQyi5VdeU2L8pRY4 (TJ: review nudging "meh"). Assisting Hands Dallas: 8 of last 10 Dallas ad respondents were job seekers; TJ says Robbie doesn't need caregivers and the leads are dead. Edmonds Villa kit https://claude.ai/artifact/1npJ2xGzeV7c4Gg6UyLqoN, then the deeper angle: **funding** (3 of 9 family questions are about payment; WA Cares paying since 1 Jul 2026, $36.5k, AFH covered, registered providers only; VA A&A ~$2,874/mo married veteran; WA Medicaid AFH avg ~$189/day vs her $9,500/mo).
+
+### 2026-10-08/09 — No LLC/Inc renames; Cortex on call (`plucky-snyder`)
+
+- **Directory renames (#2457 → prod via #2458).** A Google name that differs from ours only by a legal suffix, casing or punctuation now changes nothing and raises no flag. A cosmetic rename still applies when Google's name is better: it drops a suffix ours carries, or ours is ALL CAPS and Google's is mixed case (never adopting a suffix Google added or swapping ours). `lib/providers/directory-health.ts`, `scripts/check-directory-health.ts`. All 11 renames already applied were undone through the ledger (`undone_by` = "rule: no legal-suffix renames"); they cannot reapply because `google_name` is stamped.
+- **Cortex on call (#2460, open, not merged).** "@Cortex" in any channel: plan + questions in the thread, each mention revises, only TJ's "@Cortex go" fires the "Cortex on-call builder" routine (`trig_01Cv16GZxiS1uVZ47bgac8Ap`), which stops at a PR to staging with marker `cortex-oncall:<case id>`; cron `cortex-oncall` (10 min) posts the PR back and the merge. One build at a time (queue); a PR stays watched after later mentions. Design + setup: `docs/cortex/ONCALL.md`. Files: `lib/war-room/oncall.ts`, `oncall.server.ts`, `app/api/cron/cortex-oncall/route.ts`, the `app_mention` branch in `app/api/integrations/slack/events/route.ts`, `ONCALL_MODE` in `conversation.server.ts`, migration 276.
+- **Verified:** routine test fire opened PR #2461 in 37s on its own branch via the GitHub MCP tool (closed). Migration 276 applied by TJ; table + CHECK verified. Cortex already ingests #careseeker-support threads (60 replies this month), so `groups:history` exists. Cortex runs as the **Olera v2 Alerts** Slack app (A0AJCRW5H1Q), not a separate app; `app_mention` event saved there.
+- **Keep:** a routine created through the API gets every account connector attached, and `mcp_connections: []` on update does not clear them; remove them in the claude.ai UI.
+- **Keep:** the auto-mode classifier blocks Supabase migrations and bulk prod writes even after TJ says ok in chat; hand him the SQL.
+- **Data pulled for the investor doc:** benefits pages ~2,400 Google clicks/mo (2,241 in 6 Sep–3 Oct), weekly organic users 222 → 821 since mid-June; `/benefits/finder` itself gets ~18 search visitors/mo. Claimed provider orgs: 201 since 1 Sep, 29 on 1–8 Oct, 1,060 all-time (claim dates exist only since 16 Jul).
 
 ### 2026-09-18 — "Looking for work" archive reason (`magical-snyder`, PR #1960 open)
 

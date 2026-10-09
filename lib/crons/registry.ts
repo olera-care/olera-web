@@ -875,6 +875,21 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/inbox",
   },
   {
+    id: "cortex-oncall",
+    name: "Cortex on call: PR back to the thread",
+    description:
+      "Every ten minutes, for each Slack thread where TJ told Cortex to build (cortex_oncall_cases), finds the pull request the build routine opened by the cortex-oncall marker in its body and posts it in the thread; later says when TJ merges or closes it. A build with no pull request after three hours is reported as stalled.",
+    recipientCohort: "(Internal -- replies in the Slack thread where Cortex was mentioned.)",
+    audience: "Data & maintenance",
+    fn: "alert",
+    schedule: "*/10 * * * *",
+    humanSchedule: "Every 10 minutes; silent unless a case moved.",
+    path: "/api/cron/cortex-oncall",
+    emailTypes: [],
+    successSignal: "Cases reaching pr_open and merged (cortex_oncall_cases.status); none stuck in building.",
+    relatedAdminPath: "/admin/war-room",
+  },
+  {
     id: "cortex-tick",
     name: "Cortex judgment tick",
     description:

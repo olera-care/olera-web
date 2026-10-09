@@ -15,10 +15,11 @@ What Cortex may do on its own, what it must ask for, and how it reports. Set wit
 | Action | Why it is safe |
 |---|---|
 | Archive a provider Google marks `CLOSED_PERMANENTLY` | Soft delete with a 301; Undo restores it. A person who restores one is not overruled by the next pass. |
-| Apply a cosmetic rename (case, punctuation, suffix, connective) | `provider_name` only; the old name is in the ledger row. |
+| Apply a cosmetic rename only when Google's name is better: it drops a legal suffix ours carries, or ours is ALL CAPS. Never add LLC/Inc, never change case or punctuation alone (TJ, 8 Oct 2026) | `provider_name` only; the old name is in the ledger row. |
 | Delete Tier-1 out-of-scope listings (the runbook's regex slam-dunks) | Soft delete, reason `data_sweep`, undoable. |
 | Merge confident duplicates (tier 1 of `/dedupe`) | Soft delete keeping the best record. |
 | Scope a product change and open a pull request | Nothing is live until a person merges. The PR and its preview are the artifact. |
+| Plan in any Slack thread where someone mentions it (on call, `docs/cortex/ONCALL.md`) | Words in a thread. A build starts only on TJ's "@Cortex go" and stops at a PR to staging. |
 | Post summaries, digests and state to `#cortex` | Words. |
 
 ## Asks first

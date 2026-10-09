@@ -77,6 +77,11 @@ export async function startVisualRoutine(text: string): Promise<RoutineStart> {
   const url = process.env.CORTEX_VISUAL_ROUTINE_URL?.trim();
   const token = process.env.CORTEX_VISUAL_ROUTINE_TOKEN?.trim();
   if (!url || !token) return { started: false, reason: "the visual routine is not configured on the server yet" };
+  return fireRoutine(url, token, text);
+}
+
+/** Fire any Claude Code routine through its API trigger. The on-call builder uses it too. */
+export async function fireRoutine(url: string, token: string, text: string): Promise<RoutineStart> {
   try {
     const response = await fetch(url, {
       method: "POST",

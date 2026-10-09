@@ -322,7 +322,7 @@ export async function syncSlackHistoryEvidence(db: SupabaseClient) {
 }
 
 /** One channel's bounded page. Never throws: a channel the bot cannot read must not stop the rest. */
-async function slackApi<T>(token: string, method: string, body: Record<string, unknown>): Promise<T> {
+export async function slackApi<T>(token: string, method: string, body: Record<string, unknown>): Promise<T> {
   // Form-encoded, not JSON. Slack accepts JSON bodies only on some methods.
   // conversations.history tolerated it, so ingestion looked healthy, while
   // conversations.replies and users.info rejected every call with

@@ -297,7 +297,9 @@ export async function POST(request: NextRequest) {
       if (dmHandoff !== null && dmTarget && payload.event.channel) {
         const reply = await slackHandoff(db, {
           channel: payload.event.channel, threadTs: payload.event.thread_ts ?? null, note: dmHandoff,
-          user: payload.event.user ?? null, founderId: founderUserId ?? payload.event.user ?? null, botUserId, ownAppId: payload.api_app_id ?? null, source: "a Slack DM",
+          // Strict, unlike answers above: a handoff spends his Claude plan, so
+          // an unverifiable sender is refused, never assumed to be him.
+          user: payload.event.user ?? null, founderId: founderUserId, botUserId, ownAppId: payload.api_app_id ?? null, source: "a Slack DM",
         });
         await sendSlackDirectMessage(dmTarget, reply, { threadTs: payload.event.thread_ts }).catch(() => null);
         return NextResponse.json({ ok: true, handoff: true });

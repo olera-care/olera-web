@@ -19,6 +19,8 @@ import { loadShippedSince, shippedLine } from "@/lib/war-room/shipped.server";
 import { openItems } from "@/lib/war-room/inbox-operator.server";
 import { loadCalendar } from "@/lib/war-room/calendar.server";
 import type { WarRoomDiscoveryRun, WarRoomProbeReading } from "@/lib/war-room/types";
+import Anthropic from "@anthropic-ai/sdk";
+import { briefPrompt, numbersCheck, rememberKeys, renderPlainBrief, renewalFact, selectNews, withDrafts, type BriefFact } from "@/lib/war-room/brief-news";
 
 /**
  * The mouth.
@@ -368,6 +370,36 @@ async function loadUnanswerable(db: SupabaseClient, lastBriefAt: string | null):
   return [...conversation, ...scan];
 }
 
+const NEWS_MODEL = process.env.WAR_ROOM_BRIEF_MODEL || "claude-sonnet-5";
+
+/**
+ * The morning message as plain sentences. The model may only use numbers that
+ * are in the facts; any other number, an empty reply, or an error sends the
+ * template instead (brief-news.ts). A plain brief beats a wrong one.
+ */
+export async function phraseBrief(news: BriefFact[], weekly: string[], nextDate: string | null): Promise<string> {
+  const plain = renderPlainBrief(news, weekly, nextDate);
+  if (!process.env.ANTHROPIC_API_KEY) return plain;
+  try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const reply = await anthropic.messages.create({
+      model: NEWS_MODEL,
+      max_tokens: 2_000,
+      messages: [{ role: "user", content: briefPrompt(news, weekly, nextDate) }],
+    }, { timeout: 40_000, maxRetries: 0 });
+    const text = reply.content.find((block): block is Anthropic.TextBlock => block.type === "text")?.text?.trim() ?? "";
+    if (!text) return plain;
+    const check = numbersCheck(text, [...news.map((fact) => fact.text), ...weekly, nextDate ?? ""]);
+    if (!check.ok) {
+      console.warn("[brief] model draft used numbers not in the facts, sending the template:", check.invented);
+      return plain;
+    }
+    return text.replace(/\s*\u2014\s*/g, ", ");
+  } catch {
+    return plain;
+  }
+}
+
 /**
  * Send the brief for a finished scan (pass its run id), or, on a day without a
  * full scan, the brief built from live data alone (pass `{ briefOnly: true }`).
@@ -387,7 +419,9 @@ export async function deliverWarRoomBrief(
       .select("metadata, last_success_at")
       .eq("source_key", DELIVERY_STATE_KEY)
       .maybeSingle();
-    const delivered = (state?.metadata ?? null) as { run_id?: string; day?: string; brief_only?: boolean } | null;
+    const delivered = (state?.metadata ?? null) as { run_id?: string; day?: string; brief_only?: boolean; news_keys?: string[] } | null;
+    const previousKeys = Array.isArray(delivered?.news_keys) ? delivered!.news_keys : [];
+    let newsKeys = previousKeys;
     if (runId && delivered?.run_id === runId) {
       return { delivered: false, reason: "already delivered for this run" };
     }
@@ -524,7 +558,54 @@ export async function deliverWarRoomBrief(
       watching = investigations.filter((row) => row.status === "watchlist").length;
     }
 
-    const text = buildWarRoomBriefText({
+    // News only (brief-news.ts), unless switched back to the old full brief.
+    // A failed scan keeps the loud failure message either way.
+    const legacy = process.env.WAR_ROOM_BRIEF_LEGACY === "1" || run.status === "failed";
+    let questionShown = Boolean(question);
+    let newsText: string | null = null;
+    if (!legacy) {
+      const facts: BriefFact[] = [];
+      const moveTitle = move?.title ?? null;
+      if (move) facts.push({ key: `move:${chosenKey ?? move.title}`, text: move.line.replace(/^\*|\*$/g, ""), weight: 100, draft: move.draft ?? null });
+      if (question) facts.push({ key: `question:${question.title}`, text: `Only you can answer this. ${withoutStaleRenewalCounts(question.title)}: ${question.question}`, weight: 90 });
+      const renewalNews = renewalFact(renewal, shortDate);
+      if (renewalNews) facts.push(renewalNews);
+      for (const candidate of momentCandidates) {
+        if (candidate.title === moveTitle) continue;
+        facts.push({ key: `moment:${candidate.title}`, text: `New provider email: ${candidate.title}.`, weight: 70 });
+      }
+      const lastBriefAt = (state as { last_success_at?: string | null } | null)?.last_success_at ?? null;
+      for (const reading of readings) {
+        if (reading.movement === "steady" || priorityFor(reading.label) === null) continue;
+        if (lastBriefAt && Date.parse(reading.measuredAt) <= Date.parse(lastBriefAt)) continue;
+        facts.push({ key: `reading:${reading.label}:${reading.headline}`, text: `${reading.label}: ${reading.headline}`, weight: 60 });
+      }
+      for (const row of approvedOpen) if (row.title !== moveTitle) facts.push({ key: `approved:${row.title}`, text: `Approved but not marked done: ${row.title}.`, weight: 50 });
+      for (const row of proposals) if (row.title !== moveTitle) facts.push({ key: `proposal:${row.title}`, text: `Waiting on your decision: ${row.title}.`, weight: 45 });
+      for (const item of unanswerable) facts.push({ key: `gap:${item.slice(0, 160)}`, text: `I couldn't look this up: ${item.slice(0, 240)}`, weight: 20 });
+      const news = selectNews(facts, previousKeys);
+      // The question is only recorded as asked when it was actually said.
+      questionShown = Boolean(question && news.some((fact) => fact.key === `question:${question!.title}`));
+      // Monday (Eastern): the standing picture, once a week.
+      const weekly = easternDay().weekday === 1
+        ? [
+          ...(priorityLines ?? []).map((line) => line.replace(/\*/g, "")),
+          `${open} case${open === 1 ? "" : "s"} open, ${watching} watching.`,
+          ...blindSpots.slice(0, 2).map((item) => `My copy is behind: ${item}`),
+        ]
+        : [];
+      const renewalLine = renewalText(renewal)?.replace(/^_|_$/g, "") ?? null;
+      const nextDate = renewalLine ? `Next date: ${renewalLine}` : null;
+      const prose = await phraseBrief(news, weekly, nextDate);
+      const cost = !briefOnly ? warRoomScanCost(run)?.usd ?? null : null;
+      newsText = [
+        withDrafts(prose, news),
+        `_${link(getSiteUrl(), "/admin/war-room", "Everything I measured")}${cost != null ? ` · scan cost $${cost.toFixed(2)}` : ""}_`,
+      ].join("\n\n");
+      newsKeys = rememberKeys(previousKeys, news);
+    }
+
+    const text = newsText ?? buildWarRoomBriefText({
       run,
       siteUrl: getSiteUrl(),
       readings,
@@ -602,7 +683,7 @@ export async function deliverWarRoomBrief(
     // this message's thread resolves to this exact condition; without it every
     // answer falls back to "whatever was asked most recently", which is wrong
     // as soon as a newer brief lands in between.
-    if (question && runId) await recordFounderAsk(db, question, runId, result.ts ?? null).catch(() => false);
+    if (question && questionShown && runId) await recordFounderAsk(db, question, runId, result.ts ?? null).catch(() => false);
 
     // A brief changes the subject, whether or not it carried a question. Any
     // conversation still counted as "in progress" ends here, or the next thing
@@ -617,7 +698,7 @@ export async function deliverWarRoomBrief(
       last_error: null,
       // Which path actually carried it. Without this a missing chat:write
       // scope looks identical to a successful DM from the outside.
-      metadata: { run_id: runId, day, brief_only: briefOnly, status: run.status, channel, dm_error: dmError, telegram },
+      metadata: { run_id: runId, day, brief_only: briefOnly, status: run.status, channel, dm_error: dmError, telegram, news_keys: newsKeys },
       updated_at: new Date().toISOString(),
     }, { onConflict: "source_key" }).then(() => undefined, () => undefined);
 

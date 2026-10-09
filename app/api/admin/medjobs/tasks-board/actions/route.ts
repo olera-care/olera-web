@@ -95,6 +95,7 @@ type Body =
   | { op: "unarchive_record"; recordId: string }
   | { op: "clear_flag"; recordId: string }
   | { op: "revert_status"; recordId: string }
+  | { op: "add_note"; recordId: string; note: string }
   | { op: "toggle_job_board_visible"; recordId: string; visible: boolean }
   | { op: "delete_record"; recordId: string; reason?: string }
   | {
@@ -1670,6 +1671,36 @@ export async function POST(req: Request) {
       }
 
       return NextResponse.json({ ok: true });
+    }
+
+    // ── add a standalone note ─────────────────────────────────────────────
+    // Creates an instantly-completed "custom_note" task that appears in the
+    // record's history. This lets admins log interactions (calls, emails,
+    // observations) without needing a pending task to complete.
+    case "add_note": {
+      const note = (body.note ?? "").trim();
+      if (!note) {
+        return NextResponse.json({ error: "Note text is required" }, { status: 400 });
+      }
+
+      const now = new Date().toISOString();
+      const { error } = await db.from("student_outreach_tasks").insert({
+        outreach_id: outreach.id,
+        task_type: "custom_note",
+        status: "completed",
+        due_at: now.slice(0, 10),
+        completed_at: now,
+        completed_by: user.id,
+        notes: note,
+        payload: {},
+      });
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      await db.from("student_outreach").update(stamp(user.id)).eq("id", outreach.id);
+      return NextResponse.json({ ok: true, note });
     }
 
     default:

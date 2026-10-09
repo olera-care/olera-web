@@ -228,6 +228,9 @@ export interface BoardTask {
   done: boolean;
   outcome: string | null;
   note: string;
+  /** The underlying task type from the database. Used to identify special
+   *  task types like "custom_note" that don't map to a ladder rung. */
+  taskType?: string;
   /** ISO date it was logged. Null while pending. */
   loggedOn: string | null;
   /** Tasks this one generated, so finishing it can be unwound. */
@@ -1273,6 +1276,8 @@ export function attachmentKind(section: SectionKey): "outreach" | "student" | "j
 
 /** The title shown for a task, follow-up numbering and all. */
 export function taskTitle(task: BoardTask): string {
+  // Custom notes are standalone entries, not ladder rungs.
+  if (task.taskType === "custom_note") return "Note";
   if (task.resched) return `Reschedule round ${task.resched}`;
   const rung = rungAt(task.section, task.step, task.round);
   // An errand names itself. "Something else" on a queue of them tells an

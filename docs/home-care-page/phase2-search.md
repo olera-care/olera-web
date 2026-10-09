@@ -20,13 +20,15 @@ Nothing on the visible page changes. Titles, canonicals and URLs are untouched.
 
 - **Review snippets report:** 2,420 valid items, 0 invalid (Google's update of 7 October).
 - **Search appearance, 90 days:** no rows. Out of 39,100 clicks and 5.9 million
-  impressions, none is attributed to a review-snippet or other rich result. Google
-  accepted the star markup but has not been showing stars in our results.
+  impressions, none is attributed to a review-snippet or other rich result.
+- **Review snippet impressions** (the report's own impressions line): never more
+  than about 3 a day across the whole site. Google accepted the star markup but
+  almost never showed stars in our results.
 - **Clicks and impressions:** see `baseline/README.md` (provider pages about 900
   clicks and 80,000 impressions a week; site 2,700 clicks a week).
 - **Indexed:** 52,900 indexed, 135,000 not (Google's update of 4 October).
 
-Expected effect: none on clicks, because the stars were not showing. The review
+Expected effect: none measurable on clicks, because the stars almost never showed. The review
 snippets report will fall towards zero valid items over the following weeks as
 Google recrawls. That is the intended outcome, not a loss.
 
@@ -50,6 +52,7 @@ recrawls.
 
 ## Bringing stars back
 
-Only from reviews collected on Olera. Today that is 35 published reviews across
-34 providers, averaging 3.2 stars, so stars would appear on few pages and often
-low. Decision for TJ before any are added.
+Only from reviews families leave on Olera (the `reviews` table), never from
+Google. Today that is 35 published reviews across 34 providers, averaging 3.2
+stars, so stars would appear on few pages and often low. Decision for TJ before
+any are added. (Olera Scores are retired and are not a source.)

@@ -774,6 +774,7 @@ export default async function ProviderPage({
     })),
   };
 
+  const hasMarkupPrice = priceSource !== "regional_estimate" && priceSource !== "contact_only";
   const localBusinessJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -817,10 +818,12 @@ export default async function ProviderPage({
     // Price markup states only the provider's own price (their entry, or the
     // directory's listed price), never the area estimate, and in the category's
     // own unit: home care is hourly, so a missing unit must not become monthly.
-    ...(priceSource === "provider_reported" &&
+    // Written as "not the estimate, not withheld" so a future price source (a
+    // separate "listed" label) stays in the markup without another edit here.
+    ...(hasMarkupPrice &&
       priceRange &&
       (pricingConfig?.tier !== 3 || meta?.price_min != null) && { priceRange }),
-    ...(priceSource === "provider_reported" && meta?.price_min != null && meta?.price_max != null && {
+    ...(hasMarkupPrice && meta?.price_min != null && meta?.price_max != null && {
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         priceCurrency: "USD",

@@ -607,7 +607,7 @@ export type ConversationSurface = "slack" | "telegram";
 export function conversationSystem(surface: ConversationSurface): string {
   const questionRule = surface === "telegram"
     ? "You are talking in a Telegram chat on his phone. Ask at most one question, and only when his answer would change what you say next. Never stack questions."
-    : "You are talking in a Slack DM. Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question.";
+    : "You are talking in Slack (a DM or the #cortex channel). Never end your reply with a question. Your replies are delivered into the same channel you read from, and a trailing question mark makes a reply look like a new question. What the system does in Slack: \"hand this off\" works everywhere in Slack. \"visualize\" works only in his DM with you. Sending a note to a teammate (\"send that to <name>\") works only on Telegram. The numbered inbox commands (approve, send, skip, check, later) work in #cortex and on Telegram, not in the DM. Setting a channel description or topic is not something you or the system can do; say so in one sentence. If he asks for a command where it does not work, say in one sentence where it does; never say it will happen here.";
   return CONVERSATION_SYSTEM.replace("{{QUESTION_RULE}}", questionRule);
 }
 

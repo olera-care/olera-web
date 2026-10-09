@@ -66,4 +66,14 @@ assert.ok(footerFor("gap", "UTJ")?.includes("build the lookup"));
 assert.equal(footerFor("answer", "UTJ"), null);
 assert.equal(footerFor("done", "UTJ"), null);
 
-console.log("cortex on-call checks passed");
+// "hand this off" is recognised the same way on every surface; questions about it are not commands.
+import("../lib/war-room/handoff.server").then(({ handoffNote, handoffQuestion }) => {
+  assert.equal(handoffNote("Hand this off"), "");
+  assert.equal(handoffNote("hand this off: the five-checkpoint measures"), "the five-checkpoint measures");
+  assert.equal(handoffNote("should we hand this off to Logan?"), null);
+  assert.equal(handoffNote("Send this off"), null);
+  const q = handoffQuestion("", "Slack #cortex", "TJ: measure interviews begun");
+  assert.ok(q.includes("from Slack #cortex") && q.includes("TJ: measure interviews begun"));
+  assert.ok(handoffQuestion("x").includes("from Telegram"));
+  console.log("cortex on-call checks passed");
+});

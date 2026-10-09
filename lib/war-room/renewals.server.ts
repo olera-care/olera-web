@@ -28,8 +28,16 @@ export type PaidRenewal = {
   source: "stripe" | "flight_end";
 };
 
+/**
+ * Calendar days from today (US Eastern, how the business runs) to the date.
+ * Rounding the hours up said "in 7 days" on 9 Oct for a 15 Oct renewal.
+ */
+const easternDate = (ms: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date(ms));
+// A bare date ("2026-10-20", a flight end) is already a calendar day; only a
+// timestamp is converted, or midnight UTC would read as the day before.
+const calendarDay = (iso: string) => (/^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : easternDate(Date.parse(iso)));
 const daysUntil = (iso: string | null, now: number) =>
-  iso ? Math.ceil((Date.parse(iso) - now) / 86_400_000) : null;
+  iso ? Math.round((Date.parse(calendarDay(iso)) - Date.parse(easternDate(now))) / 86_400_000) : null;
 
 type PaidRow = {
   display_name: string | null;

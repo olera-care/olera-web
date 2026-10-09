@@ -628,14 +628,14 @@ export async function getSimilarProviders(
 
   const supabase = await createClient();
 
-  // Pass 0: nearby agencies, by distance. Same category within about 30 miles,
-  // then 60. Good ratings first (4.5+, then 4.0+), nearest first within each
+  // Pass 0: nearby agencies, by distance. Same category within about 15 miles,
+  // then 30, then 60. Good ratings first (4.5+, then 4.0+), nearest first within each
   // band. Before this, "the best local options" were the top-rated rows
   // anywhere in the state: in California an arbitrary pick from 132 tied at
   // 5.0, so a Tacoma family could be shown Seattle agencies.
   if (near?.lat != null && near?.lng != null) {
     const { lat, lng } = near;
-    for (const miles of [30, 60]) {
+    for (const miles of [15, 30, 60]) {
       try {
         const dLat = miles / 69;
         const dLng = miles / (69 * Math.max(Math.cos((lat * Math.PI) / 180), 0.2));
@@ -651,6 +651,9 @@ export async function getSimilarProviders(
           .lte("lat", lat + dLat)
           .gte("lon", lng - dLng)
           .lte("lon", lng + dLng)
+          // Dense metros hold more than 300 agencies in range; take the
+          // best-rated 300 so the ranking below never works on an arbitrary cut.
+          .order("google_rating", { ascending: false, nullsFirst: false })
           .limit(300);
         if (error || !data) continue;
         const band = (r: number) => (r >= 4.5 ? 0 : r >= 4 ? 1 : 2);

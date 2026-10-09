@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "chosen": "2026-10-09",
+  "note": "Real pages chosen from production data on 9 October 2026 to cover every state the provider page branches on. Views are 28-day page views at selection time. Change this list only on purpose: every later comparison is read against it.",
+  "pages": [
+    {
+      "slug": "family-resource-home-care-wa-tacoma",
+      "group": "home care",
+      "why": "Plan QA provider: unclaimed, photo, listed price, Facebook link"
+    },
+    {
+      "slug": "assisting-hands-home-care-dallas-richardson-surrounding-areas",
+      "group": "home care",
+      "why": "Plan QA provider: claimed, owner price and answers, 66-character name, Ad Boost pilot client"
+    },
+    {
+      "slug": "sequoia-senior-solutions",
+      "group": "home care",
+      "why": "Plan QA provider: unclaimed, no photo, listed price"
+    },
+    {
+      "slug": "quality-life-homecare-baldwin-ny",
+      "group": "home care",
+      "why": "Plan QA provider: unclaimed, no photo, no price, two poor reviews"
+    },
+    {
+      "slug": "hoop-cares-pascagoula-ms",
+      "group": "home care",
+      "why": "Paying Ad Boost client: claimed, owner price, no photo, Facebook link"
+    },
+    {
+      "slug": "franchil-llc-killeen-tx-o4iq",
+      "group": "home care",
+      "why": "Provider with two profiles; page comes from the account only (no directory row); Ad Boost client"
+    },
+    {
+      "slug": "colorado-careassist-cimarron-hills-co-rkhm",
+      "group": "home care",
+      "why": "Team logins: agency with a staff member; Ad Boost client; account slug"
+    },
+    {
+      "slug": "colorado-careassist-cimarron-hills-co",
+      "group": "home care",
+      "why": "Same agency by its directory slug: which record shows for a claimed directory row"
+    },
+    {
+      "slug": "clarity-care-givers",
+      "group": "home care",
+      "why": "Busiest home care page; unclaimed, photo, listed price"
+    },
+    {
+      "slug": "graceful-homecare",
+      "group": "home care",
+      "why": "Claimed with no owner price (Decision 5 case); directory has a listed price"
+    },
+    {
+      "slug": "new-living-options",
+      "group": "home care",
+      "why": "Unclaimed home care with a monthly-sized listed price (3,896): price unit case"
+    },
+    {
+      "slug": "homespark-care-ey5ia",
+      "group": "home care",
+      "why": "Contact for pricing"
+    },
+    {
+      "slug": "always-home-care-nj-newark",
+      "group": "home care",
+      "why": "Placeholder 0 rating with 0 reviews"
+    },
+    {
+      "slug": "beyond-caregiving",
+      "group": "home care",
+      "why": "Unclaimed with a Facebook link and a below-4 rating"
+    },
+    {
+      "slug": "test-baseline-home-care-claimed",
+      "group": "test listings",
+      "why": "Our (Test) listing for owner, team and family roles: verified claim with the owner's own hourly rate. Requests here reach Olera, not an agency"
+    },
+    {
+      "slug": "test-baseline-home-care-unclaimed",
+      "group": "test listings",
+      "why": "Our (Test) listing for the claiming role: unclaimed, listed price, no photo. Requests here reach Olera, not an agency"
+    },
+    {
+      "slug": "central-home-health-care-an-amedisys-company-killeen-tx-bqx2",
+      "group": "other categories",
+      "why": "Franchil's second profile, home health: the other half of the two-profile case"
+    },
+    {
+      "slug": "bluegreen-home-health-care",
+      "group": "other categories",
+      "why": "Home health with Medicare data and a low rating"
+    },
+    {
+      "slug": "tanis-valdez-village",
+      "group": "other categories",
+      "why": "Assisted living with photo and listed price; busy page"
+    },
+    {
+      "slug": "villages-of-jackson-creek-memory-care",
+      "group": "other categories",
+      "why": "Memory care; busy page"
+    },
+    {
+      "slug": "the-pearl-at-fort-lauderdale-rehabilitation-nursing-center",
+      "group": "other categories",
+      "why": "Nursing home with Medicare data, 60-character name, Facebook link"
+    },
+    {
+      "slug": "grundy-tower",
+      "group": "other categories",
+      "why": "Independent living; busiest page in the set"
+    },
+    {
+      "slug": "azalea-gardens-assisted-living-memory-care",
+      "group": "other categories",
+      "why": "Two categories (assisted living and memory care)"
+    },
+    {
+      "slug": "superior-home-care-services",
+      "group": "status",
+      "why": "Directory row deleted in a data sweep but the agency had claimed it: the claimed account still serves the page (200)"
+    },
+    {
+      "slug": "sun-home-healthcare",
+      "group": "status",
+      "why": "Deleted in a data sweep, never claimed: expect a permanent redirect to a city page"
+    },
+    {
+      "slug": "g-m-healthcare-services",
+      "group": "status",
+      "why": "Deleted with no reason recorded: expect a permanent redirect"
+    },
+    {
+      "slug": "avatar-healthcare-home-health-in-home-hospice",
+      "group": "status",
+      "why": "Deleted as a duplicate: expect a permanent redirect"
+    },
+    {
+      "slug": "a-1-home-care-agency-ca-pasadena",
+      "group": "status",
+      "why": "Provider asked to be removed: expect not found, no redirect"
+    },
+    {
+      "slug": "this-provider-does-not-exist-baseline-check",
+      "group": "status",
+      "why": "Unknown slug: expect not found"
+    }
+  ]
+}

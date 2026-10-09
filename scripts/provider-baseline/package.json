@@ -1,0 +1,11 @@
+{
+  "name": "provider-baseline",
+  "private": true,
+  "description": "Snapshot and compare the fixed provider page set. Kept apart from the app's dependencies so the browser never ships with the site.",
+  "type": "module",
+  "dependencies": {
+    "pixelmatch": "5.3.0",
+    "playwright": "1.55.0",
+    "pngjs": "7.0.0"
+  }
+}

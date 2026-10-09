@@ -755,8 +755,10 @@ Free text in `care_type` was **quietly recreating the defect the feature exists 
 
 #### Next Up
 
-### Provider value pilot (9 Oct)
-- Edmonds Villa: rebuild her page around funding (WA Cares registration question first, funding plan per calling family via Benefits Finder), referral list underneath. Verify she's in the WA Cares provider directory; confirm VA rate on VA.gov.
+### Provider value pilot (9 Oct) — TABLED by TJ
+- **Decision 9 Oct:** "This might be getting away from our bread and butter. Worth revisiting later, but tabling for now." Nothing was sent to any provider.
+- Where it stopped: Edmonds Villa plan https://claude.ai/artifact/1npJ2xGzeV7c4Gg6UyLqoN (offer = a funding plan per inquiry within 24h; the push found WA Cares does NOT help most elderly residents: full $36.5k needs work in 3 of the last 6 years, pre-1968 partial is $3,650/yr contributed; VA A&A fits; Benefits Finder lacks WA Cares and WA rows are duplicated 3x in sbf_state_programs). Franchil audit + parked review plan https://claude.ai/artifact/Sf2xUXRQyi5VdeU2L8pRY4. Assisting Hands Dallas dropped (TJ: leads dead, Robbie doesn't need caregivers).
+- If revisited: start from the Edmonds Villa page; the offer and opening text are drafted.
 - Franchil: Olera-side fix waiting on TJ's go: one "Franchil LLC" page with Google NAP (#101D, (254) 322-9251, franchil.com), add map location to 900bf6a1. Old "Central Home Health Care, an Amedisys" name/phone = stale Google import.
 - Edmonds Villa profile says "skilled nursing"; an AFH isn't a licensed SNF. Fix the wording.
 

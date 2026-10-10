@@ -40,6 +40,23 @@ The admin Growth drivers workspace aggregates those rows over the selected repor
 
 The shared route classifier lives in `lib/analytics/content-pages.ts`. Update it when a canonical public route family changes rather than adding path guesses in the collector or UI.
 
+### Does a family hear back?
+
+`marketplace.request_loop` (from 10 Oct 2026; older weeks don't have it) follows the week's provider-page requests (`connections`, type `inquiry`) and questions through each step, read at collection time. Test listings (`test-…`) and archived requests are left out. Requests are split by claimed and unclaimed agency.
+
+| Step | Counted when |
+|---|---|
+| Saved | The request exists |
+| Emailed | A `connection_request`, `ad_boost_lead_delivered` or `first_lead_celebration` email was sent for it, or staff added an address and sent it (`metadata.email_sent_at`) |
+| Delivered, Opened | Resend reported delivery or an open on that email |
+| Answered | The agency wrote in the request's thread (`providerResponded`) |
+| Family told | Answered, or the family was sent "the agency hasn't replied yet" (`family_provider_silent`) |
+| No working address | No address on the account or directory row, or our sender refused it (bounced, mailbox gone) |
+
+`marked_sent_without_email` should be 0: the request says the agency was notified, the agency has an address and isn't unsubscribed, and no email was tried. From 22 Sep to 10 Oct 2026 this was 51 requests (fixed in #2489).
+
+Questions: canonical questions asked that week (repeat taps of the same topic are one), how many have no agency address, how many were answered, and of the askers who left an email on an answered question, how many were told.
+
 ## Cadence
 
 Vercel calls `/api/cron/growth-metrics` every Tuesday at 14:00 UTC, after the usual Search Console delay. The collector chooses the latest completed Sunday-Saturday week and safely skips it if already present.

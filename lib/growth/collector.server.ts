@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { classifyOrganicPage, normalizeOrganicPagePath } from "@/lib/analytics/content-pages";
 import { reportingWindowUtc, validateCompleteWeek } from "./dates";
+import { pullRequestLoop } from "./request-loop.server";
 import {
   GA4_PROPERTY_ID,
   GROWTH_CHANNELS,
@@ -350,11 +351,16 @@ async function pullMarketplace(
   organicUsers: number,
 ): Promise<GrowthMarketplaceMetrics> {
   const { from, to } = reportingWindowUtc(weekStart, weekEnd);
-  const [inquiries, questions, benefits, answerRows] = await Promise.all([
+  const [inquiries, questions, benefits, answerRows, requestLoop] = await Promise.all([
     exactCount(db.from("connections").select("id", { count: "exact", head: true }).eq("type", "inquiry").gte("created_at", from).lt("created_at", to), "Inquiries"),
     exactCount(db.from("provider_activity").select("id", { count: "exact", head: true }).eq("event_type", "question_received").gte("created_at", from).lt("created_at", to), "Questions"),
     exactCount(db.from("seeker_activity").select("id", { count: "exact", head: true }).eq("event_type", "benefits_completed").gte("created_at", from).lt("created_at", to), "Benefits completions"),
     db.from("provider_activity").select("provider_id").eq("event_type", "question_responded").gte("created_at", from).lt("created_at", to).limit(50_000),
+    // Secondary to the acquisition numbers: a failure here must not lose the week.
+    pullRequestLoop(db, from, to).catch((error) => {
+      console.error("[growth] request loop failed:", error);
+      return undefined;
+    }),
   ]);
   if (answerRows.error) throw new Error(`Provider responses query failed: ${answerRows.error.message}`);
   const providersAnswering = new Set((answerRows.data || []).map((row) => row.provider_id).filter(Boolean)).size;
@@ -364,6 +370,7 @@ async function pullMarketplace(
     benefits_completed: benefits,
     providers_answering_questions: providersAnswering,
     organic_users_to_inquiry_rate_directional: organicUsers > 0 ? inquiries / organicUsers : null,
+    request_loop: requestLoop,
   };
 }
 

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:15.352Z
+ * Last updated: 2026-10-10T05:17:44.913Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -992,6 +992,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Elderly households can claim medical expense deductions above $35/month to reduce countable income, gather receipts for prescription costs, Medicare premiums, and other medical bills",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://formsportal.mo.gov/content/forms/af/moa/my-dss/family-support-division/FS-1/fs-1.html"
+          },
           {
             "label": "Apply Online (Missouri DSS)",
             "url": "https://mydss.mo.gov"

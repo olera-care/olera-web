@@ -1041,6 +1041,10 @@
         "tip": "Seniors 60+ should use the Senior SNAP Application rather than the standard Combined Application Form, it's designed specifically for older adults.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://mnbenefits.mn.gov/"
+          },
+          {
             "label": "Apply online (MNbenefits)",
             "url": "https://mnbenefits.mn.gov"
           },

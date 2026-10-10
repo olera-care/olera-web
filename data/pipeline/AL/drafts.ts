@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.949Z
+ * Last updated: 2026-10-10T05:17:44.880Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -3132,6 +3132,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "You do not need to complete the entire application before submitting it. Your parent's name, address, and signature are enough to lock in the filing date, which determines when benefits start if approved. Get the form in as soon as possible.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://mydhr.alabama.gov/"
+          },
           {
             "label": "Alabama DHR Food Assistance page",
             "url": "https://dhr.alabama.gov/food-assistance/"

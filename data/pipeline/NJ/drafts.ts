@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.675Z
+ * Last updated: 2026-10-10T05:17:44.922Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2150,8 +2150,8 @@ export const drafts: PipelineStateDrafts = {
         "tip": "If your parent is in an urgent situation, ask specifically about expedited processing when you call or during the interview. Not everyone qualifies, but if they do, benefits can arrive within 7 days instead of 30.",
         "urls": [
           {
-            "label": "Apply online at NJHelps.gov",
-            "url": "https://www.njhelps.org"
+            "label": "Apply online",
+            "url": "https://www.mynjhelps.gov/"
           },
           {
             "label": "NJ SNAP program overview",
@@ -2257,7 +2257,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "2-1-1",
+      "phone": "1-800-687-9512",
       "sourceUrl": "https://www.nj.gov/humanservices/njsnap/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-10-06",

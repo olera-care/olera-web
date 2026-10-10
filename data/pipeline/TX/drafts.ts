@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:15.090Z
+ * Last updated: 2026-10-10T05:17:44.938Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -849,7 +849,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Seniors get expedited processing if facing immediate food insecurity, mention this during your interview if applicable.",
         "urls": [
           {
-            "label": "Apply online (YourTexasBenefits)",
+            "label": "Apply online",
             "url": "https://yourtexasbenefits.com/Apply/GettingStartedApp?lang=en_US"
           },
           {

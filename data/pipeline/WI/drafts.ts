@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:15.298Z
+ * Last updated: 2026-10-10T05:17:44.946Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1602,6 +1602,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "If your parent has high out-of-pocket medical costs (prescriptions, Medicare premiums, home care copays), ask the caseworker specifically about the medical expense deduction for elderly or disabled household members. This deduction can significantly lower the income figure used to calculate benefits and may be the difference between qualifying and not.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://access.wi.gov/s/?language=en_US"
+          },
           {
             "label": "Apply online: ACCESS Wisconsin",
             "url": "https://access.wi.gov"

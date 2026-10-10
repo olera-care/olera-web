@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NM/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-07T04:20:05.316Z
+ * Last updated: 2026-10-10T05:17:44.923Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1905,7 +1905,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "If your parent has significant out-of-pocket medical expenses (prescriptions, copays, home health costs), make sure to document them. Medical expenses above $35/month can be deducted from the income figure used to calculate the benefit, which can meaningfully increase what your parent receives or push their net income below the eligibility threshold.",
         "urls": [
           {
-            "label": "Apply online via the New Mexico YES portal",
+            "label": "Apply online",
             "url": "https://www.yes.state.nm.us/"
           },
           {

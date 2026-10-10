@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.560Z
+ * Last updated: 2026-10-10T05:17:44.901Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -761,8 +761,8 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Kansas households with elderly members can deduct unlimited medical expenses over $35/month and shelter costs, which can significantly increase benefit amounts.",
         "urls": [
           {
-            "label": "Kansas Benefits Portal",
-            "url": "https://www.benefitsparkansas.org/"
+            "label": "Apply online",
+            "url": "https://cssp.kees.ks.gov/apspssp/sspNonMed.portal"
           },
           {
             "label": "Find Your County DCF Office",

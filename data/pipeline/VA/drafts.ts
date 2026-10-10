@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:15.194Z
+ * Last updated: 2026-10-10T05:17:44.941Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1637,7 +1637,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "When you apply, ask specifically about the medical expense deduction. If your parent pays out-of-pocket for Medicare premiums, prescriptions, or other medical costs, those expenses can reduce their countable net income and increase their benefit amount. Many older adults qualify for more than the minimum benefit once these deductions are applied.",
         "urls": [
           {
-            "label": "Apply online via CommonHelp",
+            "label": "Apply online",
             "url": "https://commonhelp.virginia.gov/access/"
           },
           {

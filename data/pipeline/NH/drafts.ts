@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T09:18:23.564Z
+ * Last updated: 2026-10-10T05:17:44.921Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -939,6 +939,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Medical expenses over $35/month for seniors count as deductions, gather receipts for prescriptions, insurance premiums, and medical bills.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://nheasy.nh.gov/"
+          },
           {
             "label": "NHEasy Online Application",
             "url": "https://www.nheasy.nh.gov"

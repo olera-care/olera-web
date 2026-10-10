@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.900Z
+ * Last updated: 2026-10-10T05:17:44.948Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1458,6 +1458,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Claim the medical-expense deduction. Many families skip it. If your parent pays out-of-pocket for doctor visits, prescriptions, dental care, or medical equipment, those costs can reduce countable net income and increase the monthly benefit amount. Ask the benefit specialist about this during the interview.",
         "urls": [
+          {
+            "label": "Get the paper application",
+            "url": "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap/snap-how-to-apply-and-frequently-used-forms/"
+          },
           {
             "label": "Wyoming DFS SNAP Program Page",
             "url": "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap/"

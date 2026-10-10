@@ -757,6 +757,10 @@
         "tip": "Request to separate your elderly loved one into their own household even if they share meals with family, this often results in higher benefits.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://benefitscal.com/"
+          },
+          {
             "label": "GetCalFresh.org",
             "url": "https://www.getcalfresh.org"
           },

@@ -984,6 +984,10 @@
         "tip": "If all adults in the household are 60+ or disabled, mention ESAP when applying for simplified processing with 36-month certification periods.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://alaskaconnect.ilinx.com/engage/dpa"
+          },
+          {
             "label": "MyAlaska Online Portal",
             "url": "https://health.alaska.gov/dpa"
           },

@@ -938,16 +938,16 @@
         "tip": "Seniors often miss claiming medical expense deductions over $35/month, include prescription costs, Medicare premiums, and transportation to medical appointments to increase your benefits.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://abe.illinois.gov/"
+          },
+          {
             "label": "Illinois SNAP Application",
             "url": "https://www.dhs.state.il.us/page.aspx?item=30357"
           },
           {
             "label": "SNAP Eligibility Calculator",
             "url": "https://fscalc.dhs.illinois.gov/FSCalc/"
-          },
-          {
-            "label": "Application for Benefits Eligibility (ABE)",
-            "url": "https://abe.illinois.gov/"
           }
         ]
       },

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.317Z
+ * Last updated: 2026-10-10T05:17:44.899Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -937,16 +937,16 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Seniors often miss claiming medical expense deductions over $35/month, include prescription costs, Medicare premiums, and transportation to medical appointments to increase your benefits.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://abe.illinois.gov/"
+          },
+          {
             "label": "Illinois SNAP Application",
             "url": "https://www.dhs.state.il.us/page.aspx?item=30357"
           },
           {
             "label": "SNAP Eligibility Calculator",
             "url": "https://fscalc.dhs.illinois.gov/FSCalc/"
-          },
-          {
-            "label": "Application for Benefits Eligibility (ABE)",
-            "url": "https://abe.illinois.gov/"
           }
         ]
       },

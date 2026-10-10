@@ -959,6 +959,10 @@
         "tip": "Because this is for seniors on fixed income, the verification process is streamlined, Social Security and other benefits are often verified automatically without needing additional paperwork.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://gateway.ga.gov/access"
+          },
+          {
             "label": "Senior SNAP application (Form 298)",
             "url": "https://dfcs.georgia.gov/media/16446/download"
           },

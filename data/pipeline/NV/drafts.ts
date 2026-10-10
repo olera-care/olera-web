@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:26:21.212Z
+ * Last updated: 2026-10-10T05:17:44.924Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -212,7 +212,21 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
       "lastVerifiedDate": "2026-09-14",
-      "reviewQueue": null
+      "reviewQueue": [
+        {
+          "field": "phone",
+          "from": [
+            "7756874210",
+            "211",
+            "8005252395"
+          ],
+          "to": "8009920900",
+          "source": "https://www.dss.nv.gov/medical/general-medical-information/2-general-information-1gi/",
+          "severity": "medium",
+          "why": "phone (run with --phones to apply official ones)",
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
+        }
+      ]
     },
     {
       "id": "hcbs-waiver",
@@ -639,19 +653,19 @@ export const drafts: PipelineStateDrafts = {
           "field": "assets_individual",
           "from": 9090,
           "to": 9950,
-          "source": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+          "source": "https://www.dss.nv.gov/siteassets/dwss.nv.gov/content/medical/E-400_TYPES_OF_RESOURCES.pdf",
           "severity": "medium",
           "why": "asset limit (federal figure; applied with the yearly table)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         },
         {
           "field": "assets_couple",
           "from": 13630,
           "to": 14910,
-          "source": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+          "source": "https://www.dss.nv.gov/siteassets/dwss.nv.gov/content/medical/E-400_TYPES_OF_RESOURCES.pdf",
           "severity": "medium",
           "why": "asset limit (federal figure; applied with the yearly table)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         }
       ]
     },
@@ -764,6 +778,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Medical expenses over $35/month increase benefit amounts, include Medicare premiums, prescription costs, and out-of-pocket medical bills.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://accessnevada.nv.gov/public/landing-page"
+          },
           {
             "label": "Access Nevada Online Application",
             "url": "https://accessnevada.nv.gov"
@@ -881,20 +899,20 @@ export const drafts: PipelineStateDrafts = {
         {
           "field": "income_1",
           "from": 2608,
-          "to": 1731,
-          "source": "https://www.dss.nv.gov/access-nv/eligibility-payments-manual/income-limit-charts/",
+          "to": 1552,
+          "source": "https://www.fna.usda.gov/snap-directory-entry/nevada",
           "severity": "high",
-          "why": "value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "why": "value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 200% FPL 2024 or 300% SSI 2022)",
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         },
         {
           "field": "income_2",
           "from": 3526,
-          "to": 2345,
-          "source": "https://www.dss.nv.gov/access-nv/eligibility-payments-manual/income-limit-charts/",
+          "to": 2093,
+          "source": "https://www.fna.usda.gov/snap-directory-entry/nevada",
           "severity": "high",
-          "why": "value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "why": "tier dispute: draft 200% FPL 2026 vs verified 120% FPL 2026",
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         },
         {
           "field": "assets_individual",
@@ -903,7 +921,7 @@ export const drafts: PipelineStateDrafts = {
           "source": "https://www.dss.nv.gov/programs/snap/facts-faq/snap-faqs-4/",
           "severity": "high",
           "why": "asset limit (federal figure; applied with the yearly table)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         },
         {
           "field": "assets_couple",
@@ -912,7 +930,7 @@ export const drafts: PipelineStateDrafts = {
           "source": "https://www.dss.nv.gov/programs/snap/facts-faq/snap-faqs-4/",
           "severity": "high",
           "why": "asset limit (federal figure; applied with the yearly table)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         }
       ]
     },
@@ -1334,19 +1352,19 @@ export const drafts: PipelineStateDrafts = {
           "field": "income_1",
           "from": 2660,
           "to": 1995,
-          "source": "https://housing.nv.gov/programs/weatherization/",
+          "source": "https://housing.nv.gov/programs/Weatherization/",
           "severity": "high",
           "why": "value fits more than one tier (200% FPL 2026 or 200% FPL 2025 or 300% SSI 2023)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         },
         {
           "field": "income_2",
           "from": 3607,
           "to": 2705,
-          "source": "https://housing.nv.gov/programs/weatherization/",
+          "source": "https://housing.nv.gov/programs/Weatherization/",
           "severity": "high",
           "why": "tier dispute: draft 200% FPL 2026 vs verified 150% FPL 2026",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         }
       ]
     },
@@ -2185,20 +2203,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://nvapros.com/our-services/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "reviewQueue": [
-        {
-          "field": "phone",
-          "from": [
-            "7756874210",
-            "211"
-          ],
-          "to": "7027500055",
-          "source": "https://www.bbb.org/us/nv/las-vegas/profile/senior-services/nevada-advocates-1086-90054672",
-          "severity": "medium",
-          "why": "aggregator source",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
-        }
-      ],
+      "reviewQueue": null,
       "dismissedFlags": [
         {
           "field": "phone",
@@ -2520,20 +2525,20 @@ export const drafts: PipelineStateDrafts = {
         {
           "field": "income_1",
           "from": 2763,
-          "to": 27923,
-          "source": "https://www.leg.state.nv.us/Division/Research/Publications/PandPReport/24-SC.pdf",
+          "to": 25477,
+          "source": "https://www.nyecountynv.gov/673/Nevadas-Senior-RX-Program",
           "severity": "high",
           "why": "outside sanity bounds (3x)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         },
         {
           "field": "income_2",
           "from": 3683,
-          "to": 37222,
-          "source": "https://www.leg.state.nv.us/Division/Research/Publications/PandPReport/24-SC.pdf",
+          "to": 33963,
+          "source": "https://www.nyecountynv.gov/673/Nevadas-Senior-RX-Program",
           "severity": "high",
           "why": "outside sanity bounds (3x)",
-          "flaggedAt": "2026-10-05T18:18:48.454Z"
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
         }
       ]
     },
@@ -3677,7 +3682,31 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 992-0900",
       "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/ADRC/ADRCProgram/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-10-06"
+      "draftedAt": "2026-10-06",
+      "reviewQueue": [
+        {
+          "field": "age",
+          "from": 18,
+          "to": 60,
+          "source": "https://adsd.nv.gov/uploadedfiles/adsdnvgov/content/Programs/Grant/ServSpecs/GeneralServiceSpecifications.pdf",
+          "severity": "high",
+          "why": "field age is applied by hand",
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
+        },
+        {
+          "field": "phone",
+          "from": [
+            "8009920900",
+            "7756874210",
+            "211"
+          ],
+          "to": "8778611893",
+          "source": "https://adsd.nv.gov/Programs/Seniors/ADRC/ADRCProgram/",
+          "severity": "medium",
+          "why": "phone (run with --phones to apply official ones)",
+          "flaggedAt": "2026-10-06T12:26:21.063Z"
+        }
+      ]
     }
   ],
   "stateOverview": {

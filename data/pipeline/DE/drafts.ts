@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.159Z
+ * Last updated: 2026-10-10T05:17:44.888Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -922,6 +922,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "SSI recipients are automatically eligible, mention SSI status when applying to speed up the process",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://assist.dhss.delaware.gov/"
+          },
           {
             "label": "Delaware SNAP Online Application",
             "url": "https://mybenefits.delaware.gov"

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.399Z
+ * Last updated: 2026-10-10T05:17:44.883Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -759,6 +759,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Request to separate your elderly loved one into their own household even if they share meals with family, this often results in higher benefits.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://benefitscal.com/"
+          },
           {
             "label": "GetCalFresh.org",
             "url": "https://www.getcalfresh.org"

@@ -3134,6 +3134,10 @@
         "tip": "You do not need to complete the entire application before submitting it. Your parent's name, address, and signature are enough to lock in the filing date, which determines when benefits start if approved. Get the form in as soon as possible.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://mydhr.alabama.gov/"
+          },
+          {
             "label": "Alabama DHR Food Assistance page",
             "url": "https://dhr.alabama.gov/food-assistance/"
           },

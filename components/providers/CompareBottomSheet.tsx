@@ -13,6 +13,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
+import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
 
 export interface CompareProvider {
   id: string;
@@ -733,13 +734,14 @@ export default function CompareBottomSheet({
               </div>
             ) : (
               <EnrichmentState
+                connectionId={selectedCount > 1 ? null : connectionIds[0]}
                 providerName={selectedCount > 1 ? `${selectedCount} providers` : currentProvider.name}
                 providerId={currentProvider.slug}
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
                 providerCategory={currentProvider.category}
-                successTitle={selectedCount > 1 ? `Connected with ${selectedCount} providers` : `Connected with ${currentProvider.name}`}
+                successTitle={selectedCount > 1 ? `Request saved for ${selectedCount} providers` : undefined}
                 providerCity={currentProvider.city}
                 providerState={currentProvider.state}
                 ctaVariant="compare"
@@ -763,7 +765,7 @@ export default function CompareBottomSheet({
               <div>
                 <h3 className="text-lg font-bold text-gray-900">
                   {connectionIds.length === 1
-                    ? `Connected with ${currentProvider.name}`
+                    ? <DeliveryTitle connectionId={connectionIds[0]} providerName={currentProvider.name} />
                     : `Requested ${connectionIds.length} detail${connectionIds.length !== 1 ? "s" : ""}`}
                 </h3>
                 <p className="text-sm text-gray-500">

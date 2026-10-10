@@ -5,6 +5,7 @@ import { useSavedProviders } from "@/hooks/use-saved-providers";
 import NextBestOption from "./NextBestOption";
 import type { PriceSource } from "@/components/providers/PriceEstimate";
 import { isShowablePrice, priceCaption } from "@/components/providers/price-labels";
+import DeliveryTitle from "./DeliveryTitle";
 
 interface ConnectedStateProps {
   providerName: string;
@@ -82,7 +83,7 @@ export default function ConnectedState({
           </svg>
         </div>
         <p className="text-[14px] font-semibold text-gray-900">
-          Connected with {providerName}
+          <DeliveryTitle connectionId={connectionId} providerName={providerName} />
         </p>
       </div>
 

@@ -21,6 +21,7 @@ import {
   URGENCY_LABELS,
 } from "@/components/providers/connection-card/constants";
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
+import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
 
 // ── Mobile email form for new CTA (email-only, no intent questions) ──
 function MobileEmailForm({
@@ -927,6 +928,7 @@ export default function MobileStickyBottomCTA({
         {!hook.isNonFamilyProfile && hook.cardState === "enrichment" && (
           <div className="py-4 animate-step-in">
             <EnrichmentState
+              connectionId={hook.connectionId}
               providerName={providerName}
               providerId={providerSlug}
               onSave={hook.saveEnrichment}
@@ -967,7 +969,7 @@ export default function MobileStickyBottomCTA({
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">
-                  Connected with {providerName}
+                  <DeliveryTitle connectionId={hook.connectionId} providerName={providerName} />
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {dateStr}

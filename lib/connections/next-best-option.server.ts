@@ -49,6 +49,7 @@ interface DirectoryRow {
   provider_category: string | null;
   google_rating: number | null;
   google_reviews_data: { review_count?: number } | null;
+  email: string | null;
 }
 
 function haversineMi(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -161,7 +162,7 @@ export async function findNearbyOptions(
   const dLng = MAX_MILES / (69 * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
   const { data: rows } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, slug, city, state, lat, lon, provider_category, google_rating, google_reviews_data")
+    .select("provider_id, provider_name, slug, city, state, lat, lon, provider_category, google_rating, google_reviews_data, email")
     .eq("deleted", false)
     .gte("lat", lat - dLat)
     .lte("lat", lat + dLat)
@@ -187,8 +188,26 @@ export async function findNearbyOptions(
   const responsive = new Set<string>();
   const { data: profiles } = await db
     .from("business_profiles")
-    .select("id, source_provider_id")
+    .select("id, source_provider_id, email, metadata")
     .in("source_provider_id", candidates.map((c) => c.p.provider_id));
+
+  // Only an agency we can email: offering a second unreachable agency to a family
+  // whose first one couldn't be reached helps no one (Phase 4, 10 Oct 2026).
+  const reachable = new Set<string>();
+  for (const c of candidates) if (c.p.email?.trim()) reachable.add(c.p.provider_id);
+  for (const r of profiles ?? []) {
+    const meta = (r.metadata as Record<string, unknown> | null) ?? {};
+    if (r.email?.trim() && !meta.leads_unsubscribed) reachable.add(r.source_provider_id as string);
+  }
+  for (const r of profiles ?? []) {
+    const meta = (r.metadata as Record<string, unknown> | null) ?? {};
+    if (meta.leads_unsubscribed) reachable.delete(r.source_provider_id as string);
+  }
+  const ranked = candidates.filter((c) => reachable.has(c.p.provider_id));
+  if (!ranked.length) return [];
+  candidates.length = 0;
+  candidates.push(...ranked);
+
   const dirByProfile = new Map((profiles ?? []).map((r) => [r.id as string, r.source_provider_id as string]));
   if (dirByProfile.size) {
     const since = new Date(Date.now() - 60 * 86_400_000).toISOString();

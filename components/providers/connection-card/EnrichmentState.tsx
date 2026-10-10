@@ -9,6 +9,7 @@ import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 import type { CareRecipient } from "./types";
 import type { PriceSource } from "@/components/providers/PriceEstimate";
 import { isShowablePrice, priceInline } from "@/components/providers/price-labels";
+import DeliveryTitle, { DeliveryNote } from "./DeliveryTitle";
 import {
   trackEnrichmentStarted,
   trackEnrichmentStepCompleted,
@@ -59,8 +60,10 @@ interface EnrichmentStateProps {
   careTypes?: string[];
   /** Provider's category (e.g., "Home Care") - used to pre-fill care type and skip that step */
   providerCategory?: string | null;
-  /** Custom success banner title. Defaults to "Sent to {providerName}" */
+  /** Custom success banner title (several providers). Defaults to the request's real delivery state. */
   successTitle?: string;
+  /** The request just sent; lets the banner say whether it reached the agency. */
+  connectionId?: string | null;
   /** Custom success banner subtitle. Defaults to "{priceRange} estimated" if priceRange exists */
   successSubtitle?: string;
   /** Hide the success banner entirely */
@@ -236,6 +239,7 @@ export default function EnrichmentState({
   careTypes: _careTypes,
   providerCategory,
   successTitle,
+  connectionId,
   successSubtitle,
   hideSuccessBanner = false,
   providerCity,
@@ -298,7 +302,7 @@ export default function EnrichmentState({
   const [publishError, setPublishError] = useState<string | null>(null);
 
   // Compute display values for success banner
-  const displayTitle = successTitle ?? `Connected with ${providerName}`;
+  const displayTitle = successTitle ?? <DeliveryTitle connectionId={connectionId} providerName={providerName} withNote={false} />;
 
   // Preload cities on mount
   useEffect(() => {
@@ -575,6 +579,7 @@ export default function EnrichmentState({
               <p className="text-[14px] font-semibold text-gray-900 truncate">
                 {displayTitle}
               </p>
+              {!successTitle && <DeliveryNote connectionId={connectionId} className="text-[12px] leading-snug text-gray-600" />}
               {priceDisplay && (
                 <p className="text-[12px] text-gray-600 truncate">
                   {priceDisplay}

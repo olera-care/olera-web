@@ -12,6 +12,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
+import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
 
 interface GuideBottomSheetProps {
   isOpen: boolean;
@@ -561,12 +562,12 @@ export default function GuideBottomSheet({
           {sheetState === "enrichment" && (
             <>
               <EnrichmentState
+                connectionId={connectionId}
                 providerName={providerName}
                 providerId={providerSlug}
                 onSave={saveEnrichment}
                 onSkip={skipEnrichment}
                 saving={enrichmentSubmitting}
-                successTitle={`Connected with ${providerName}`}
                 providerCity={providerCity}
                 providerState={providerState}
                 providerCategory={providerCategory}
@@ -599,7 +600,7 @@ export default function GuideBottomSheet({
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-[15px] font-bold text-gray-900">Connected with {providerName}</h2>
+                  <h2 className="text-[15px] font-bold text-gray-900"><DeliveryTitle connectionId={connectionId} providerName={providerName} /></h2>
                   <p className="text-[13px] text-gray-500">Checklist downloaded · Sent to email</p>
                 </div>
               </div>

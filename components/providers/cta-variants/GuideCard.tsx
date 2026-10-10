@@ -12,6 +12,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
+import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
 
 type CardState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
 
@@ -651,6 +652,7 @@ export default function GuideCard({
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
         <div className="px-5 pt-5 pb-5">
           <EnrichmentState
+            connectionId={connectionId}
             providerName={providerName}
             providerId={providerSlug}
             onSave={saveEnrichment}
@@ -659,7 +661,6 @@ export default function GuideCard({
             providerCategory={providerCategory}
             priceRange={priceRange}
             priceSource={priceSource}
-            successTitle={`Connected with ${providerName}`}
             providerCity={providerCity}
             providerState={providerState}
             ctaVariant="guide"
@@ -698,7 +699,7 @@ export default function GuideCard({
           </div>
           <div>
             <p className="text-[14px] font-semibold text-gray-900">
-              Connected with {providerName}
+              <DeliveryTitle connectionId={connectionId} providerName={providerName} />
             </p>
             <p className="text-[12px] text-gray-500">
               Checklist sent to your email

@@ -284,9 +284,21 @@ export async function sendProviderLeadNotifications(opts: {
   // `leads_unsubscribed` gates EMAIL only, matching the behaviour this replaced.
   // SMS and WhatsApp carry their own `new_leads` notification preference, so
   // folding them in here would silently widen one opt-out into three.
-  const providerEmail = providerMeta.leads_unsubscribed
+  let providerEmail = providerMeta.leads_unsubscribed
     ? null
     : (provider.email?.trim() || null);
+  // Unclaimed agencies get a seeded profile with no email; their address lives
+  // on the directory row. The request route used this fallback before alerts
+  // were held (22 Sep); without it 51 of 52 such leads were marked "sent" with
+  // no email at all.
+  if (!providerEmail && !providerMeta.leads_unsubscribed && provider.source_provider_id) {
+    const { data: directory } = await db
+      .from("olera-providers")
+      .select("email")
+      .eq("provider_id", provider.source_provider_id)
+      .maybeSingle();
+    providerEmail = directory?.email?.trim() || null;
+  }
 
   let parsed: Record<string, unknown> = {};
   if (connection.message && connection.message.trim().startsWith("{")) {

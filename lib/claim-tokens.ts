@@ -805,8 +805,7 @@ export function generateCityOfferUrl(offerId: string, baseUrl?: string): string 
   return `${base}/p/offer/${generateCityOfferToken(offerId)}`;
 }
 
-// ============================================================
-// City lead thread links (lib/city-ads/thread.server.ts)
+// =====================================================// City lead thread links (lib/city-ads/thread.server.ts)
 // ============================================================
 //
 // A family from a provider's own ad reads and answers the provider's messages
@@ -836,4 +835,85 @@ export function validateCityThreadToken(token: string): { valid: true; leadId: s
 
 export function generateCityThreadUrl(leadId: string, baseUrl: string): string {
   return `${baseUrl.replace(/\/$/, "")}/f/thread/${generateCityThreadToken(leadId)}`;
+}
+
+/**
+ * ── Provider availability tokens ────────────────────────────────────────────
+ *
+ * One-click availability self-report from building emails. Provider clicks
+ * "Yes, we're accepting new clients" or "No, not right now" — the landing page
+ * POSTs on mount (scanner-safe) and stamps metadata.accepting_new_clients.
+ * Same HMAC scheme, distinct "avail:" signature domain.
+ */
+
+export type AvailabilityValue = "yes" | "no";
+
+interface AvailabilityTokenPayload {
+  profileId: string;
+  value: AvailabilityValue;
+  email: string;
+  expiresAt: number;
+}
+
+function availabilitySignatureData(p: AvailabilityTokenPayload): string {
+  return `avail:${p.profileId}:${p.value}:${p.email}:${p.expiresAt}`;
+}
+
+function generateAvailabilitySignature(p: AvailabilityTokenPayload): string {
+  return hmacSignature(availabilitySignatureData(p), tokenSecret());
+}
+
+export function generateAvailabilityToken(
+  profileId: string,
+  value: AvailabilityValue,
+  email: string,
+): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: AvailabilityTokenPayload = { profileId, value, email, expiresAt };
+  const tokenData = { ...payload, signature: generateAvailabilitySignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateAvailabilityToken(
+  token: string,
+):
+  | { valid: true; profileId: string; value: AvailabilityValue; email: string }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as AvailabilityTokenPayload & {
+      signature: string;
+    };
+    const { profileId, value, email, expiresAt, signature } = tokenData;
+    if (!profileId || !value || !email || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (!["yes", "no"].includes(value)) {
+      return { valid: false, error: "Invalid availability value" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    if (!signatureMatches(availabilitySignatureData({ profileId, value, email, expiresAt }), signature)) {
+      return { valid: false, error: "Invalid token signature" };
+    }
+    return { valid: true, profileId, value, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+export function generateAvailabilityUrls(
+  profileId: string,
+  email: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care",
+): { yes: string; no: string } {
+  const yesToken = generateAvailabilityToken(profileId, "yes", email);
+  const noToken = generateAvailabilityToken(profileId, "no", email);
+  return {
+    yes: `${baseUrl}/provider/availability?tok=${yesToken}`,
+    no: `${baseUrl}/provider/availability?tok=${noToken}`,
+  };
 }

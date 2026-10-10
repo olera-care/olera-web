@@ -64,6 +64,7 @@ import {
 } from "@/lib/provider-utils";
 import { normalizeQuestion } from "@/lib/qa-utils";
 import { resolveProviderIdVariants } from "@/lib/provider-id-variants";
+import { acceptingSince, availabilityLabel, type AvailabilityMeta } from "@/lib/provider-comms/availability";
 
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
@@ -690,6 +691,9 @@ export default async function ProviderPage({
   const hasRating = rating != null;
   const hasPriceRange = priceRange != null;
   const hasStaff = staff != null;
+  // "Accepting new clients": only a fresh yes shows (lib/provider-comms/availability.ts).
+  // From the claimed profile when its edits are shown, the same rule as staff above.
+  const acceptingDate = acceptingSince((claimMeta ?? meta) as AvailabilityMeta | null);
   const hasReviews = reviewsToShow.length > 0 || realReviewCount > 0;
   const hasStaffScreening = staffScreeningItems.length > 0;
   const hasAcceptedPayments = acceptedPayments.length > 0;
@@ -992,6 +996,14 @@ export default async function ProviderPage({
                   />
                 </div>
               </div>
+
+              {acceptingDate && (
+                <p className="mt-2 inline-flex items-center gap-2 self-start rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700">
+                  <span className="h-2 w-2 rounded-full bg-primary-600" aria-hidden="true" />
+                  Accepting new clients
+                  <span className="font-normal text-primary-600">· updated {availabilityLabel(acceptingDate)}</span>
+                </p>
+              )}
 
               {/* ── Mobile identity layout ── */}
               <div className="md:hidden">
@@ -1613,10 +1625,12 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── Facility Manager — hidden when no staff data ── */}
+              {/* ── Meet the owner / manager — hidden when no staff data ── */}
               {hasStaff && (
                 <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Facility manager</h2>
+                  {/* "Meet <first name>", not "Facility manager": the same section serves home
+                      care owners and facility directors (TJ, 10 Oct 2026). Role sits under the name. */}
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Meet {staff!.name.trim().split(/\s+/)[0] || staff!.name}</h2>
                   <div className="flex flex-col md:flex-row items-start gap-6">
                     <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center w-full md:w-52 md:flex-shrink-0 shadow-md">
                       <div className="relative mx-auto mb-5 w-24 h-24">
@@ -1654,7 +1668,7 @@ export default async function ProviderPage({
                     <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />
                     </svg>
-                    To help protect your family, the Olera team vet facility managers for information accuracy.
+                    To help protect your family, the Olera team checks this information for accuracy.
                   </div>
                 </div>
               )}

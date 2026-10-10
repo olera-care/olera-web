@@ -23,6 +23,7 @@ import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
+import AvailabilityCard from "./AvailabilityCard";
 import HireCaregiversCard from "./HireCaregiversCard";
 import VerificationStatusCard from "./VerificationStatusCard";
 import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
@@ -634,6 +635,12 @@ function DashboardContent({
               onEdit={() => handleEdit("overview")}
               onVerifyClick={openVerificationModal}
               slug={profile.slug}
+            /> },
+            { id: "availability", node: <AvailabilityCard
+              key="availability"
+              profileId={profile.id}
+              rawMetadata={(profile.metadata || {}) as Record<string, unknown>}
+              onSaved={refreshAccountData}
             /> },
             { id: "gallery", node: <GalleryCard
               key="gallery"

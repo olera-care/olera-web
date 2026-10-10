@@ -20,7 +20,7 @@ import { withSmsSource } from "@/lib/sms/click-source";
 import { quietHoursCheck } from "@/lib/sms/quiet-hours";
 import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
-import { applicationFor, applicationsOf, applyCheckStage, withApplication } from "@/lib/benefits/applications";
+import { appliedForFirstStep, applicationFor, applicationsOf, applyCheckStage, withApplication } from "@/lib/benefits/applications";
 
 /** A family's two-letter state as a name, for SNAP check-ins ("Has Texas called?"). */
 function stateNameFor(code: string | null): string | null {
@@ -1145,7 +1145,7 @@ export async function GET(request: NextRequest) {
           benefitsCascade.first_step_sent_at &&
           !benefitsCascade.check_sent_at &&
           // Applied through the apply-along: rung B3's check-ins follow them.
-          !benefitsCascade.applied &&
+          !appliedForFirstStep(benefitsCascade) &&
           !benefitsCascade.check_sms_queued_for &&
           !benefitsCascade.outcome &&
           !benefitsHeld

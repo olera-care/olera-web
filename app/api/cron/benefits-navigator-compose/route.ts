@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { appliedForFirstStep } from "@/lib/benefits/applications";
 import { getServiceClient } from "@/lib/admin";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
@@ -107,7 +108,7 @@ export async function GET(request: NextRequest) {
       if (meta.nudges_unsubscribed === true) continue;
       if (readBenefitsCascade(meta).first_step_sent_at) continue;
       // Already applied through the apply-along: the B3 check-ins follow them.
-      if (readBenefitsCascade(meta).applied) continue;
+      if (appliedForFirstStep(readBenefitsCascade(meta))) continue;
       if (readBenefitsNavigator(meta).composed_at) continue;
       const attempt = readAttempt(meta);
       if (attempt.result === "no_pick" && (attempt.count ?? 0) >= MAX_NO_PICK_ATTEMPTS) {

@@ -81,3 +81,15 @@ export function applyCheckStage(app: BenefitsApplication, now: number): "letter"
   if (!app.decision_check_at && since >= 35 * DAY && since <= 70 * DAY) return "decision";
   return null;
 }
+
+/**
+ * Did the family already apply for their plan's first step through an
+ * apply-along? Then the first-step letter and its check-in (B1, B2) have
+ * nothing left to ask. The Medicare Savings apply-along was only ever offered
+ * as a first step; SNAP counts only when SNAP was the first step.
+ */
+export function appliedForFirstStep(cascade: BenefitsCascadeMeta): boolean {
+  return applicationsOf(cascade).some(
+    (a) => a.route === "ssa_extra_help" || (!!cascade.first_step_program_id && a.program_id === cascade.first_step_program_id),
+  );
+}

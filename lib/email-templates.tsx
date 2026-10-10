@@ -6543,7 +6543,8 @@ function buildingParagraph(text: string, bottom = 20): string {
 function buildingSignoff(providerSlug?: string): string {
   return `
     <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.65;font-weight:600;">Logan</p>
+    ${authorBylineBlock()}
     ${offRampBlock(providerSlug)}`;
 }
 

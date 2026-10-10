@@ -89,6 +89,13 @@ export const STUDY_VERSIONS: StudyVersion[] = [
     summary: "Apply for Medicare Savings through Social Security's Extra Help form with Olera's answer sheet beside you. Check-ins at one and five weeks, and a person steps in if the answer is no or something is stuck.",
     prs: [2448, 2436],
   },
+  {
+    id: "1.1",
+    releasedAt: "2026-10-10T13:05:15Z",
+    changed: ["apply_follow_up"],
+    summary: "Apply for SNAP with a short guided flow from the SNAP row of the plan: what to have nearby, which costs to list, and the state's own application. Check-ins about the interview call and the decision.",
+    prs: [2497, 2495],
+  },
 ];
 
 export const CURRENT_STUDY_VERSION = STUDY_VERSIONS[STUDY_VERSIONS.length - 1].id;

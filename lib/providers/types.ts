@@ -28,6 +28,9 @@ export interface ProviderView {
   cmsData: CMSData | null;
   aiTrustSignals: AiTrustSignals | null;
   parentOrganization: { name: string; url?: string } | null;
+  /** Facebook page from the website sweep, already checked by safeFacebookUrl
+   *  (null when missing or junk). Directory-side, like the fields above. */
+  facebookUrl: string | null;
 }
 
 /**

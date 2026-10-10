@@ -269,6 +269,7 @@ export async function fetchPowerPageData(opts: {
   let query = supabase
     .from(PROVIDERS_TABLE)
     .select("*", { count: "exact" })
+    .not("slug", "like", "test-%") // QA listings stay reachable, never listed
     .eq("provider_category", category)
     .or("deleted.is.null,deleted.eq.false");
 
@@ -294,6 +295,7 @@ export async function fetchPowerPageData(opts: {
     ? supabase
         .from("business_profiles")
         .select("*", { count: "exact" })
+        .not("slug", "like", "test-%") // QA listings stay reachable, never listed
         .eq("claim_state", "claimed")
         .eq("is_active", true)
         .eq("type", "organization")

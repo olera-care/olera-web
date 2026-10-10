@@ -692,7 +692,9 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     ...(isPriceHidden(provider) && { contact_for_pricing: true }),
     amenities: [categoryDisplay],
     // Prefer fresh Google API rating over legacy google_rating
-    rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? undefined,
+    // Google returns 0 for "no rating yet" (8,626 listings): that is no rating,
+    // never "0.0 on Google".
+    rating: (provider.google_reviews_data?.rating || provider.google_rating) || undefined,
     review_count: provider.google_reviews_data?.review_count ?? undefined,
     images: allImages,
   };

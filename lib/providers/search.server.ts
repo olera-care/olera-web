@@ -63,6 +63,7 @@ async function queryOleraProviders(
   const fullPhraseQuery = db
     .from("olera-providers")
     .select(columns)
+    .not("slug", "like", "test-%") // QA listings stay reachable, never listed
     .not("deleted", "is", true)
     .or(`provider_name.ilike.${fullPattern},city.ilike.${fullPattern}`)
     .order("provider_name", { ascending: true })
@@ -73,6 +74,7 @@ async function queryOleraProviders(
       ? db
           .from("olera-providers")
           .select(columns)
+          .not("slug", "like", "test-%") // QA listings stay reachable, never listed
           .not("deleted", "is", true)
           .ilike("provider_name", `%${strategies.nameWords}%`)
           .ilike("city", `%${strategies.lastWord}%`)
@@ -119,6 +121,7 @@ async function queryBusinessProfiles(
   const fullPhraseQuery = db
     .from("business_profiles")
     .select(columns)
+    .not("slug", "like", "test-%") // QA listings stay reachable, never listed
     .in("type", ["organization", "caregiver"])
     .or(`display_name.ilike.${fullPattern},city.ilike.${fullPattern}`)
     .or(notGuest)
@@ -130,6 +133,7 @@ async function queryBusinessProfiles(
       ? db
           .from("business_profiles")
           .select(columns)
+          .not("slug", "like", "test-%") // QA listings stay reachable, never listed
           .in("type", ["organization", "caregiver"])
           .ilike("display_name", `%${strategies.nameWords}%`)
           .ilike("city", `%${strategies.lastWord}%`)

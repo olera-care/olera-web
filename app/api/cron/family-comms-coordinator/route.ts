@@ -20,6 +20,13 @@ import { withSmsSource } from "@/lib/sms/click-source";
 import { quietHoursCheck } from "@/lib/sms/quiet-hours";
 import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
+import { applicationFor, applicationsOf, applyCheckStage, withApplication } from "@/lib/benefits/applications";
+
+/** A family's two-letter state as a name, for SNAP check-ins ("Has Texas called?"). */
+function stateNameFor(code: string | null): string | null {
+  const c = (code || "").toUpperCase();
+  return US_STATES.find((s) => s.value === c)?.label ?? null;
+}
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import {
   findAlternativeProviders,
@@ -1209,32 +1216,28 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // ── Rung B3: apply-along check-ins. The family told us they sent Social
-        //    Security's Extra Help form through Olera (benefits_cascade.applied,
-        //    lib/benefits/apply-along.ts), which also starts the state's Medicare
-        //    Savings application. About a week later: has a letter come? About
-        //    five weeks later: what was decided? Each once, each inside a window
-        //    so a stale stamp can't fire months later, and none once they've told
-        //    us an answer (approved, denied, stuck). Both link to the plan page,
-        //    where a tap records the answer; texted replies are read too. ──
-        const applied = benefitsCascade.applied;
-        if (applied?.at && !benefitsHeld) {
-          const sinceApplied = now - new Date(applied.at).getTime();
-          const settled = applied.decision === "approved" || applied.decision === "denied" || applied.decision === "stuck";
-          const stage: "letter" | "decision" | null = settled
-            ? null
-            : !applied.letter_check_at && !applied.decision_check_at && sinceApplied >= 7 * DAY && sinceApplied <= 21 * DAY
-              ? "letter"
-              : !applied.decision_check_at && sinceApplied >= 35 * DAY && sinceApplied <= 70 * DAY
-                ? "decision"
-                : null;
-          if (stage) {
+        // ── Rung B3: apply-along check-ins. The family told us they sent an
+        //    application through Olera's apply-along: Social Security's Extra
+        //    Help form, which also starts Medicare Savings, or the state's SNAP
+        //    form (lib/benefits/applications.ts holds both). First: has a letter
+        //    come (Extra Help, about a week in) or the interview call (SNAP,
+        //    about five days in)? Then, about five weeks in: what was decided?
+        //    One check-in per run; each links to the plan page, where a tap
+        //    records the answer, and texted replies are read too. ──
+        const dueApply = benefitsHeld
+          ? undefined
+          : applicationsOf(benefitsCascade)
+              .map((app) => ({ app, stage: applyCheckStage(app, now) }))
+              .find((x) => x.stage);
+        if (dueApply) {
+          const applied = dueApply.app;
+          const stage = dueApply.stage!;
             const phone = fp?.phone ?? null;
             const familyState = fp?.state ?? null;
             const stampKey = stage === "letter" ? "letter_check_at" : "decision_check_at";
             const stampApplied = async (at: string) => {
               const current = readBenefitsCascade(familyMeta);
-              familyMeta.benefits_cascade = { ...current, applied: { ...(current.applied || applied), [stampKey]: at } };
+              familyMeta.benefits_cascade = withApplication(current, { ...(applicationFor(current, applied.route) || applied), [stampKey]: at });
               await db.from("business_profiles").update({ metadata: { ...familyMeta } }).eq("id", fam.familyId);
             };
             const planUrlFor = async (source: string | null) => {
@@ -1253,7 +1256,7 @@ export async function GET(request: NextRequest) {
               if (!smsEligible || !phone || companionActive(familyMeta, companionSettings)) return null;
               const url = await planUrlFor("benefits_apply_check_sms");
               if (!url) return null;
-              const body = benefitsApplyCheckSms({ stage, url });
+              const body = benefitsApplyCheckSms({ stage, url, route: applied.route, stateName: stateNameFor(familyState) });
               const quiet = quietHoursCheck({ state: familyState });
               if (!quiet.allowed) {
                 const sendAfter = (quiet.sendAfter ?? new Date()).toISOString();
@@ -1291,13 +1294,15 @@ export async function GET(request: NextRequest) {
             return {
               rung: "benefits_apply_check",
               emailType: "benefits_apply_check",
-              subject: benefitsApplyCheckSubject(stage),
-              metadata: { stage, program_id: applied.program_id || null },
+              subject: benefitsApplyCheckSubject(stage, applied.route),
+              metadata: { stage, route: applied.route, program_id: applied.program_id || null },
               buildHtml: async (eid) => {
                 const url = (await planUrlFor(null)) || `${siteUrl}/portal`;
                 return benefitsApplyCheckEmail({
                   familyName,
                   stage,
+                  route: applied.route,
+                  stateName: stateNameFor(familyState),
                   planUrl: `${siteUrl}${appendTrackingParams(url.replace(siteUrl, ""), eid)}`,
                   unsubscribeId: fam.familyId,
                 });
@@ -1306,7 +1311,6 @@ export async function GET(request: NextRequest) {
               smsOnlySend: sendApplySms,
               stamp: async (sentAt) => { await stampApplied(sentAt); },
             };
-          }
         }
 
         // ── Rung 6: completion track (Track 2 / Option B) — the SINGLE owner of the

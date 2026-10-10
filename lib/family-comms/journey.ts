@@ -144,9 +144,9 @@ const BENEFITS_CASCADE: CommsJourney = {
     {
       key: "b3",
       title: "B3 · Apply-along check-ins (email and/or text)",
-      timing: "Applied +7–21d, then +35–70d",
+      timing: "Extra Help: applied +7–21d; SNAP: +5–14d; then +35–70d",
       description:
-        "After the family tells us they sent Social Security's Extra Help form through the apply-along (which also starts the state's Medicare Savings application), Olera asks whether a letter came, then what was decided. Text understands APPROVED, DENIED, WAITING, or STUCK; email links to the plan, where one tap records it. Families who applied get no first-step letter or B2.",
+        "After the family tells us they sent an application through an apply-along, Olera checks in. Extra Help (which also starts the state's Medicare Savings application): has a letter come? SNAP: has the state called to set up the interview, since a missed interview ends the application? Then, for both, what was decided. One check-in per run when a family has both. Text understands APPROVED, DENIED, WAITING, or STUCK and records it on the application last asked about; email links to the plan, where one tap records it. Families who applied for Extra Help get no first-step letter or B2.",
       emailType: "benefits_apply_check",
       smsType: "benefits_apply_check_sms",
       emailSampleId: "benefits_apply_check",

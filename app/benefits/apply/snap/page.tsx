@@ -1,46 +1,40 @@
 import { getEnrichedProgram, getStateSlug } from "@/lib/program-data";
 import { US_STATES } from "@/lib/us-states";
-import { buildApplyAlong, startsWithExtraHelp, type ApplyHousehold } from "@/lib/benefits/apply-along";
+import type { ApplyHousehold } from "@/lib/benefits/apply-along";
+import { buildSnapApplyAlong, snapStateFacts } from "@/lib/benefits/apply-along-snap";
 import { parseCuts } from "@/lib/benefits/cut";
 import type { FinderWho } from "@/lib/benefits/finder-answers";
 import ApplyAlongView from "@/components/benefits/apply/ApplyAlongView";
 
 /**
- * /benefits/apply/extra-help?st=PA&p=<program id>&w=spouse&h=couple&i=under2500&ic=under:2455&s=under10000&sc=over:3000[&t=<plan token>]
+ * /benefits/apply/snap?st=TX&p=<program id>&w=parent&h=alone&i=under1500&ic=under:1330[&t=<plan token>]
  *
- * The answers come in the link (no personal data: ranges, who, household), so
- * the plan, the saved plan page and a texted link all open the same sheet.
- * `t` is the saved plan's token, which lets "we submitted it" be recorded.
+ * The SNAP apply-along (lib/benefits/apply-along-snap.ts). Same link shape as
+ * the Medicare Savings one: answers as ranges, no personal data; `t` lets
+ * "we sent it" be recorded on the family's plan.
  */
 const WHO = ["me", "parent", "spouse", "other"];
 const HOUSEHOLD = ["alone", "couple", "family"];
 const INCOME = ["under1000", "under1500", "under2500", "under4000", "over4000"];
-const SAVINGS = ["under2000", "under10000", "over10000"];
 
-export default async function ApplyAlongPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function SnapApplyPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const q = await searchParams;
   const pick = (v: string | undefined, allowed: string[]) => (v && allowed.includes(v) ? v : null);
   const stateCode = (q.st || "").toUpperCase();
   const stateName = US_STATES.find((s) => s.value === stateCode)?.label ?? null;
   const stateSlug = stateName ? getStateSlug(stateCode) ?? null : null;
   const program = stateSlug && q.p ? getEnrichedProgram(stateSlug, q.p) : undefined;
-  const mspName = program && startsWithExtraHelp(program.name) && !/extra help|low[- ]income subsidy/i.test(program.name)
-    ? (program.shortName || program.name).replace(/\s*\([^)]*\)/g, "").trim()
-    : "Medicare Savings";
 
   const who = pick(q.w, WHO) as FinderWho | null;
   const household = pick(q.h, HOUSEHOLD) as ApplyHousehold;
   const income = pick(q.i, INCOME);
-  const savings = pick(q.s, SAVINGS);
-  const sheet = buildApplyAlong({
+  const sheet = buildSnapApplyAlong({
     who,
     household,
     income,
     incomeCut: parseCuts(q.ic) ? q.ic! : null,
-    savings,
-    savingsCut: parseCuts(q.sc) ? q.sc! : null,
     stateName: stateName ?? "your state",
-    mspName,
+    state: stateName ? snapStateFacts(stateCode) : null,
   });
 
   return (

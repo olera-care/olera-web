@@ -413,6 +413,23 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     }),
   },
   {
+    id: "benefits_apply_check_snap", audience: "family", group: "Family · Benefits cascade",
+    label: "B3 · Apply-along check-in, SNAP (interview call came?)", subject: benefitsApplyCheckSubject("letter", "state_snap"),
+    emailType: "benefits_apply_check", cron: "family-comms-coordinator",
+    timing: "B3 · about five days after the SNAP application, then about five weeks",
+    situation: "The family told us they sent their state's SNAP application through the apply-along.",
+    who: "Benefits families with a state_snap entry in benefits_cascade.applications, no decision reported yet; each stage once.",
+    why: "A missed interview is the most common way a senior SNAP application ends. One button to the plan, where a tap records approved / waiting / denied / stuck; denied and stuck reach a person.",
+    render: () => benefitsApplyCheckEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName,
+      stage: "letter",
+      route: "state_snap",
+      stateName: "Texas",
+      planUrl: "https://olera.care/m/sample",
+    }),
+  },
+  {
     id: "paying_for_care", audience: "family", group: "Family · Compare cascade",
     label: "Paying for care + self-sort — retired", subject: payingForCareSubject("Texas", "memory care"),
     emailType: "paying_for_care", cron: "family-comms-coordinator",

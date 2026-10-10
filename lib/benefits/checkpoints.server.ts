@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { applicationsOf } from "./applications";
+import type { BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
 import { familyProgress, type CheckpointEvent, type CheckpointRecord, type FamilyProgress } from "./checkpoints";
 
 /**
@@ -30,16 +32,22 @@ export async function loadCheckpointFamilies(db: SupabaseClient, from = CHECKPOI
     if (!data || data.length < 1000) { truncated = false; break; }
   }
 
-  // Families who told us an application went in. Few rows: the field exists
-  // only for families who used an apply-along.
-  const { data: profiles, error } = await db
-    .from("business_profiles")
-    .select("id, account_id, state, metadata")
-    .eq("type", "family")
-    .not("metadata->benefits_cascade->applied", "is", null)
-    .limit(5000);
-  if (error) throw new Error(`checkpoints_records_failed:${error.message}`);
-  const rows = (profiles ?? []) as Array<{ id: string; account_id: string | null; state: string | null; metadata: Meta | null }>;
+  // Families who told us an application went in. Few rows: the fields exist
+  // only for families who used an apply-along. Medicare Savings sits at
+  // `applied`, every other apply-along in `applications`.
+  type Row = { id: string; account_id: string | null; state: string | null; metadata: Meta | null };
+  const byId = new Map<string, Row>();
+  for (const field of ["applied", "applications"]) {
+    const { data: profiles, error } = await db
+      .from("business_profiles")
+      .select("id, account_id, state, metadata")
+      .eq("type", "family")
+      .not(`metadata->benefits_cascade->${field}`, "is", null)
+      .limit(5000);
+    if (error) throw new Error(`checkpoints_records_failed:${error.message}`);
+    for (const r of (profiles ?? []) as Row[]) byId.set(r.id, r);
+  }
+  const rows = [...byId.values()];
 
   const sessions = new Map<string, Set<string>>(rows.map((r) => [r.id, new Set<string>()]));
   const add = (profileId: string, s: unknown) => {
@@ -64,15 +72,14 @@ export async function loadCheckpointFamilies(db: SupabaseClient, from = CHECKPOI
 
   const records: CheckpointRecord[] = rows.map((r) => {
     const meta = r.metadata ?? {};
-    const cascade = (meta.benefits_cascade as Meta | undefined) ?? {};
-    const applied = cascade.applied as CheckpointRecord["applied"];
+    const cascade = ((meta.benefits_cascade as BenefitsCascadeMeta | undefined) ?? {}) as BenefitsCascadeMeta;
     return {
       profileId: r.id,
       sessions: [...(sessions.get(r.id) ?? [])],
       state: r.state,
       studyCohort: typeof meta.study_cohort === "string" ? meta.study_cohort : null,
       // familyProgress drops dates before `from`.
-      applied: applied ?? null,
+      applications: applicationsOf(cascade),
     };
   });
 

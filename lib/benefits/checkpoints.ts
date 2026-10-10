@@ -71,7 +71,8 @@ export type CheckpointRecord = {
   sessions: string[];
   state: string | null;
   studyCohort: string | null;
-  applied: { at: string; decision?: string | null; decision_at?: string | null } | null;
+  /** Every application the family told us went in (lib/benefits/applications.ts). */
+  applications: Array<{ at: string; decision?: string | null; decision_at?: string | null }>;
 };
 
 export type FamilyProgress = {
@@ -138,14 +139,16 @@ export function familyProgress(events: CheckpointEvent[], records: CheckpointRec
   }
 
   for (const r of records) {
-    if (!r.applied?.at) continue;
+    if (!r.applications.length) continue;
     if (r.sessions.some((s) => excluded.has(s))) continue;
     const session = r.sessions.find((s) => families.has(s)) ?? r.sessions[0];
     const f = get(session ?? `record:${r.profileId}`);
     if (r.studyCohort) f.study = true;
     if (r.state && !f.state) f.state = r.state;
-    reach(f, "submitted", r.applied.at);
-    if (r.applied.decision === "approved") reach(f, "accepted", r.applied.decision_at || r.applied.at);
+    for (const a of r.applications) {
+      reach(f, "submitted", a.at);
+      if (a.decision === "approved") reach(f, "accepted", a.decision_at || a.at);
+    }
   }
 
   return [...families.values()].map(({ splitArm, study, ...f }) => {

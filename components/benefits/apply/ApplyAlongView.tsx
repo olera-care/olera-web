@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SSA_EXTRA_HELP_URL, SSA_PHONE, type ApplyAlong, type ApplyHousehold } from "@/lib/benefits/apply-along";
+import type { ApplyAlong, ApplyHousehold } from "@/lib/benefits/apply-along";
 import { incomeRangeFromFinder, relationshipFromFinder, type FinderIncome, type FinderWho } from "@/lib/benefits/finder-answers";
 import { telHref } from "@/lib/benefits/call-script";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
@@ -9,9 +9,10 @@ import { studyCohort } from "@/lib/benefits/study-cohort";
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 
 /**
- * The apply-along sheet (lib/benefits/apply-along.ts): Social Security's
- * Extra Help form, section by section, with the family's answers filled in.
- * They submit on Social Security's site; here they tell us they did, so the
+ * The apply-along sheet: Social Security's Extra Help form
+ * (lib/benefits/apply-along.ts) or the state's SNAP application
+ * (lib/benefits/apply-along-snap.ts), with the family's answers filled in.
+ * They submit on the official site; here they tell us they did, so the
  * check-ins can ask what came back. A plan token records it on the family;
  * without one, they give a number or email first (the plan save).
  */
@@ -28,7 +29,6 @@ interface Props {
 }
 
 const TRACKING_KEY = "benefits-finder";
-const VARIANT = "apply_along_v1";
 const FINDER_KEY = "olera-finder-v2";
 
 type Phase = "sheet" | "contact" | "done";
@@ -57,10 +57,10 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
       stateName: null,
       providerName: null,
       providerSlug: TRACKING_KEY,
-      variant: VARIANT,
+      variant: sheet.variant,
       stepName,
       stepNumber: 0,
-      entrySource: "/benefits/apply/extra-help",
+      entrySource: sheet.route === "state_snap" ? "/benefits/apply/snap" : "/benefits/apply/extra-help",
     });
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
     const res = await fetch("/api/families/benefits-journey", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: t, action: "applied", programId: program?.id, stateId: stateSlug }),
+      body: JSON.stringify({ token: t, action: "applied", route: sheet.route, programId: program?.id, stateId: stateSlug }),
     });
     if (!res.ok) throw new Error("We couldn't save that just now. Please try again.");
   };
@@ -139,7 +139,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
           phone: isEmail ? undefined : value,
           relationship: relationshipFromFinder(who),
           householdSize: household === "alone" ? "1" : household === "couple" ? "2" : household === "family" ? "3" : undefined,
-          entrySource: "/benefits/apply/extra-help",
+          entrySource: sheet.route === "state_snap" ? "/benefits/apply/snap" : "/benefits/apply/extra-help",
           sessionId: getOrCreateSessionId(),
           visitId: getOrCreateVisitId(),
           matchedPrograms: [{ programId: program.id, stateId: stateSlug, name: program.name, shortName: program.shortName ?? undefined, programType: "benefit" }],
@@ -185,7 +185,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
         )}
         {recorded && purpose === "applied" ? (
           <p className="m-0 text-[15px] text-gray-600">
-            We&apos;ll check in{savedTo ? ` by ${savedTo === "email" ? "email" : "text"}` : ""} in about a week to see what came in the mail. A person on our team reads every reply.
+            We&apos;ll check in{savedTo ? ` by ${savedTo === "email" ? "email" : "text"}` : ""} {sheet.doneCheckin}. A person on our team reads every reply.
           </p>
         ) : purpose === "applied" && savedTo ? (
           <p className="m-0 text-[15px] text-gray-600">
@@ -205,7 +205,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
         </h1>
         <p className="m-0 text-[16px] text-gray-600">
           {purpose === "applied"
-            ? "We'll ask in about a week whether a letter came, and help if something's stuck."
+            ? sheet.contactLine
             : "A link that opens this list with your answers filled in, for when you're together."}
         </p>
         <input
@@ -258,18 +258,26 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
         <div className="flex gap-3">
           <Num n={1} />
           <div className="flex flex-col gap-3 min-w-0 flex-1">
-            <p className="m-0 text-[18px] font-semibold text-gray-900">Open Social Security&apos;s form</p>
+            <p className="m-0 text-[18px] font-semibold text-gray-900">{sheet.open.title}</p>
             <p className="m-0 text-[16px] text-gray-600">{sheet.formLine}</p>
             <div className="flex items-center gap-3 text-[15px] text-gray-600"><Obj name="id-card" size={32} />{sheet.gatherLine}</div>
-            <a
-              href={SSA_EXTRA_HELP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => track("benefits_step_completed", "ssa_opened")}
-              className="min-h-[56px] rounded-2xl bg-primary-800 text-white text-[17px] font-semibold flex items-center justify-center no-underline"
-            >
-              Open the Social Security form
-            </a>
+            {sheet.open.href ? (
+              <a
+                href={sheet.open.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => track("benefits_step_completed", sheet.route === "ssa_extra_help" ? "ssa_opened" : "form_opened")}
+                className="min-h-[56px] rounded-2xl bg-primary-800 text-white text-[17px] font-semibold flex items-center justify-center text-center px-4 no-underline"
+              >
+                {sheet.open.label}
+              </a>
+            ) : null}
+            {sheet.shortForm ? (
+              <p className="m-0 text-[15px] text-gray-600">
+                {sheet.shortForm.text}
+                {sheet.shortForm.href ? <> <a href={sheet.shortForm.href} target="_blank" rel="noopener noreferrer" className="text-primary-800 font-medium">About it</a></> : null}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -277,13 +285,14 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
           <Num n={2} />
           <div className="flex flex-col min-w-0 flex-1">
             <p className="m-0 text-[18px] font-semibold text-gray-900">Answer its questions</p>
-            <p className="m-0 mt-2 mb-1 text-[16px] text-gray-600">Three of them are about money. Here&apos;s what you told us, to check against:</p>
+            <p className="m-0 mt-2 mb-1 text-[16px] text-gray-600">{sheet.moneyIntro}</p>
             {sheet.money.map((r) => (
-              <div key={r.title} className="grid grid-cols-[40px_1fr] gap-3.5 py-3.5 border-t border-gray-200 first-of-type:border-t-0 items-start">
+              <div key={r.title} className={`grid grid-cols-[40px_1fr] gap-3.5 py-3.5 items-start ${r.key ? "my-1 rounded-2xl bg-primary-50 px-3" : "border-t border-gray-200 first-of-type:border-t-0"}`}>
                 <Obj name={r.icon} />
                 <div className="min-w-0">
-                  <p className={`m-0 text-[17px] font-semibold ${r.icon === "check-mark" ? "text-primary-800" : "text-gray-900"}`}>{r.title}</p>
+                  <p className={`m-0 text-[17px] font-semibold ${r.icon === "check-mark" || r.key ? "text-primary-800" : "text-gray-900"}`}>{r.title}</p>
                   <p className="m-0 mt-0.5 text-[15px] text-gray-600">{r.text}</p>
+                  {r.flag ? <p className="m-0 mt-1.5 text-[13px] font-semibold text-primary-700">{r.flag}</p> : null}
                 </div>
               </div>
             ))}
@@ -294,7 +303,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
           <Num n={3} />
           <div className="flex flex-col gap-3 min-w-0 flex-1">
             <p className="m-0 text-[18px] font-semibold text-gray-900">Send it, then tell us</p>
-            <p className="m-0 text-[16px] text-gray-600">We&apos;ll check in by text or email after about a week, and again after about five.</p>
+            <p className="m-0 text-[16px] text-gray-600">{sheet.checkinLine}</p>
             <button
               type="button"
               onClick={() => void submitted()}
@@ -310,8 +319,10 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
 
       <section className="flex flex-col gap-3 border-t border-gray-200 pt-5">
         <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-[15px] font-medium">
-          <button type="button" onClick={() => setMore(more === "screens" ? null : "screens")} aria-expanded={more === "screens"} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">See every screen</button>
-          <button type="button" onClick={() => { setMore(more === "phone" ? null : "phone"); if (more !== "phone") track("benefits_step_completed", "phone_opened"); }} aria-expanded={more === "phone"} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">Rather call?</button>
+          <button type="button" onClick={() => setMore(more === "screens" ? null : "screens")} aria-expanded={more === "screens"} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">{sheet.route === "state_snap" ? "See what it asks" : "See every screen"}</button>
+          {sheet.phone ? (
+            <button type="button" onClick={() => { setMore(more === "phone" ? null : "phone"); if (more !== "phone") track("benefits_step_completed", "phone_opened"); }} aria-expanded={more === "phone"} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">Rather call?</button>
+          ) : null}
           {program ? (
             <button type="button" onClick={() => { setPurpose("later"); setPhase("contact"); setError(null); track("benefits_step_completed", "later"); }} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">Do it later</button>
           ) : null}
@@ -327,10 +338,11 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
             ))}
           </ol>
         ) : null}
-        {more === "phone" ? (
+        {more === "phone" && sheet.phone ? (
           <div className="flex flex-col gap-2 pt-1">
-            <a href={telHref(SSA_PHONE)} className="text-[17px] font-semibold text-primary-800 no-underline">Call Social Security, {SSA_PHONE}</a>
-            <p className="m-0 text-[15px] text-gray-700">&ldquo;{sheet.phoneScript}&rdquo;</p>
+            <a href={telHref(sheet.phone.number)} className="text-[17px] font-semibold text-primary-800 no-underline">{sheet.phone.label}</a>
+            {sheet.phone.note ? <p className="m-0 text-[15px] text-gray-600">{sheet.phone.note}</p> : null}
+            {sheet.phone.script ? <p className="m-0 text-[15px] text-gray-700">&ldquo;{sheet.phone.script}&rdquo;</p> : null}
           </div>
         ) : null}
       </section>

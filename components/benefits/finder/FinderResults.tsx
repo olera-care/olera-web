@@ -13,6 +13,7 @@ import {
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import FinderIcon from "@/components/benefits/finder/FinderIcon";
 import { applyAlongHref, startsWithExtraHelp } from "@/lib/benefits/apply-along";
+import { isSnapProgram, snapApplyHref } from "@/lib/benefits/snap-match";
 import type { FinderState } from "@/hooks/use-finder";
 
 /**
@@ -291,7 +292,7 @@ function FirstStep({ p, callFor, cardRef, applyHref }: { p: FinderProgram; callF
 
 // ── Program rows ───────────────────────────────────────────────────────────
 
-function ProgramRow({ p }: { p: FinderProgram }) {
+function ProgramRow({ p, applyHref }: { p: FinderProgram; applyHref?: string | null }) {
   const [open, setOpen] = useState(false);
   return (
     <li className="border-t border-gray-200">
@@ -323,11 +324,20 @@ function ProgramRow({ p }: { p: FinderProgram }) {
           </div>
         </div>
       )}
+      {/* SNAP's apply-along (lib/benefits/apply-along-snap.ts), shown on its
+          row since SNAP is rarely the first step. */}
+      {applyHref ? (
+        <div className="pl-[58px] pb-3.5 -mt-1">
+          <a href={applyHref} className="inline-flex min-h-[40px] items-center rounded-full border-[1.5px] border-primary-800 px-4 text-[14px] font-semibold text-primary-800 no-underline">
+            Apply with us
+          </a>
+        </div>
+      ) : null}
     </li>
   );
 }
 
-function Group({ title, items, total }: { title: string; items: FinderProgram[]; total: number }) {
+function Group({ title, items, total, snapHref }: { title: string; items: FinderProgram[]; total: number; snapHref?: (programId: string) => string }) {
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col">
@@ -336,7 +346,7 @@ function Group({ title, items, total }: { title: string; items: FinderProgram[];
       </h3>
       <ul className="m-0 p-0 list-none">
         {items.map((p) => (
-          <ProgramRow key={p.id} p={p} />
+          <ProgramRow key={p.id} p={p} applyHref={snapHref && isSnapProgram(p.name, p.id) ? snapHref(p.id) : null} />
         ))}
       </ul>
     </section>
@@ -348,6 +358,15 @@ function Group({ title, items, total }: { title: string; items: FinderProgram[];
 export default function FinderResults({ f }: { f: FinderState }) {
   const [showAll, setShowAll] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const household = f.answers.household === "1" ? "alone" : f.answers.household === "2" ? "couple" : f.answers.household === "3" ? "family" : null;
+  const snapHref = (programId: string) => snapApplyHref({
+    stateCode: f.result?.stateCode ?? null,
+    programId,
+    who: f.answers.who,
+    household,
+    income: f.answers.income,
+    incomeCut: f.answers.incomeCut,
+  });
   const [cardAbove, setCardAbove] = useState(false);
   const [endInView, setEndInView] = useState(false);
   const barVisible = cardAbove && !endInView;
@@ -451,7 +470,9 @@ export default function FinderResults({ f }: { f: FinderState }) {
             p={r.firstStep}
             callFor={v.callFor}
             cardRef={cardRef}
-            applyHref={r.firstStep.id !== "local-agency" && startsWithExtraHelp(r.firstStep.name)
+            applyHref={r.firstStep.id !== "local-agency" && isSnapProgram(r.firstStep.name, r.firstStep.id)
+              ? snapHref(r.firstStep.id)
+              : r.firstStep.id !== "local-agency" && startsWithExtraHelp(r.firstStep.name)
               ? applyAlongHref({
                   stateCode: r.stateCode,
                   programId: r.firstStep.id,
@@ -484,8 +505,8 @@ export default function FinderResults({ f }: { f: FinderState }) {
           )}
         </div>
 
-        <Group title="Likely to qualify" items={likelyShown} total={likely.length} />
-        <Group title="Worth checking" items={checkShown} total={check.length} />
+        <Group title="Likely to qualify" items={likelyShown} total={likely.length} snapHref={snapHref} />
+        <Group title="Worth checking" items={checkShown} total={check.length} snapHref={snapHref} />
         {hidden > 0 && (
           <button
             type="button"

@@ -6023,7 +6023,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-        ${escapeHtml(familyRef)} reached out a few days ago about ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun}'s still hoping to hear back.
+        ${escapeHtml(familyRef)} reached out a few days ago about ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun === "They" ? "They're" : `${pronouns.pronoun}'s`} still hoping to hear back.
       </p>`;
   }
 

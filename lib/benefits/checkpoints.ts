@@ -27,9 +27,12 @@ export type Checkpoint = (typeof CHECKPOINTS)[number];
 export type CheckpointArm = "form" | "conversation" | "study" | "other";
 export const CHECKPOINT_ARMS: CheckpointArm[] = ["form", "conversation", "study", "other"];
 
-/** The finder's two interviews; anything else on the key is not an interview. */
-const INTERVIEW_VARIANTS = new Set(["finder_v2", "conversation_v1"]);
-const APPLY_ALONG_VARIANTS = new Set(["apply_along_v1"]);
+/**
+ * Matched by family, not exact name, so a new version (conversation_v2) or the
+ * next apply-along (senior SNAP) counts without touching this file.
+ */
+const isInterview = (variant: string) => variant.startsWith("finder_") || variant.startsWith("conversation_");
+const isApplyAlong = (variant: string) => variant.startsWith("apply_along");
 
 /** Families reach production only. Events carry their site from 10 Oct 2026; older rows have none. */
 const PRODUCTION_HOSTS = new Set(["olera.care", "www.olera.care", "olera2-web.vercel.app"]);
@@ -115,8 +118,8 @@ export function familyProgress(events: CheckpointEvent[], records: CheckpointRec
       continue;
     }
     const variant = m.variant ?? "";
-    const interview = INTERVIEW_VARIANTS.has(variant);
-    const applyAlong = APPLY_ALONG_VARIANTS.has(variant);
+    const interview = isInterview(variant);
+    const applyAlong = isApplyAlong(variant);
     if (!interview && !applyAlong) continue;
     if (applyAlong && e.created_at < APPLY_ALONG_LIVE_AT) continue;
     const f = get(session);

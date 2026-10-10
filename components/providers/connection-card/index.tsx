@@ -94,6 +94,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
         {hook.cardState === "enrichment" && (
           <EnrichmentState
+            connectionId={hook.connectionId}
             providerName={providerName}
             providerId={props.providerSlug}
             onSave={hook.saveEnrichment}

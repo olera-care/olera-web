@@ -12,7 +12,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
-import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
+import DeliveryTitle, { DeliveryMark, useDeliveryUnreachable } from "@/components/providers/connection-card/DeliveryTitle";
 
 type CardState = "initial" | "email_capture" | "submitting" | "enrichment" | "success" | "provider_email_block";
 
@@ -74,6 +74,7 @@ export default function GuideCard({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
   const [connectionId, setConnectionId] = useState<string | null>(null);
+  const deliveryUnreachable = useDeliveryUnreachable(connectionId);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const clickFiredRef = useRef(false);
 
@@ -691,12 +692,14 @@ export default function GuideCard({
     <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">
       <div className="px-5 pt-5 pb-5">
         {/* Success banner */}
-        <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 rounded-xl mb-4 border border-emerald-100">
-          <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-4 border ${deliveryUnreachable ? "bg-amber-50 border-amber-100" : "bg-emerald-50 border-emerald-100"}`}>
+          <DeliveryMark connectionId={connectionId} circleClassName="w-8 h-8" iconClassName="w-4 h-4">
+            <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </DeliveryMark>
           <div>
             <p className="text-[14px] font-semibold text-gray-900">
               <DeliveryTitle connectionId={connectionId} providerName={providerName} />

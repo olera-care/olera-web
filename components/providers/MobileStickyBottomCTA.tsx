@@ -21,7 +21,7 @@ import {
   URGENCY_LABELS,
 } from "@/components/providers/connection-card/constants";
 import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
-import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
+import DeliveryTitle, { DeliveryMark, useDeliveryUnreachable } from "@/components/providers/connection-card/DeliveryTitle";
 
 // ── Mobile email form for new CTA (email-only, no intent questions) ──
 function MobileEmailForm({
@@ -285,6 +285,7 @@ export default function MobileStickyBottomCTA({
     ctaSurface,
     ctaPreviewMode,
   });
+  const deliveryUnreachable = useDeliveryUnreachable(hook.connectionId);
 
   // ── Logged-in family user: direct action from sticky bar (no sheet) ──
   const { isSaved, toggleSave } = useSavedProviders();
@@ -951,22 +952,24 @@ export default function MobileStickyBottomCTA({
         {/* ── Connected: success banner ── */}
         {!hook.isNonFamilyProfile && hook.cardState === "connected" && (
           <div className="py-4 animate-step-in">
-            <div className="flex items-center gap-3 px-4 py-4 bg-emerald-50 rounded-[10px] border border-emerald-100">
-              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-emerald-600"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
+            <div className={`flex items-center gap-3 px-4 py-4 rounded-[10px] border ${deliveryUnreachable ? "bg-amber-50 border-amber-100" : "bg-emerald-50 border-emerald-100"}`}>
+              <DeliveryMark connectionId={hook.connectionId} circleClassName="w-10 h-10" iconClassName="w-5 h-5">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-emerald-600"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+              </DeliveryMark>
               <div>
                 <p className="text-sm font-semibold text-gray-900">
                   <DeliveryTitle connectionId={hook.connectionId} providerName={providerName} />

@@ -9,7 +9,7 @@ import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 import type { CareRecipient } from "./types";
 import type { PriceSource } from "@/components/providers/PriceEstimate";
 import { isShowablePrice, priceInline } from "@/components/providers/price-labels";
-import DeliveryTitle, { DeliveryNote } from "./DeliveryTitle";
+import DeliveryTitle, { DeliveryMark, DeliveryNote, useDeliveryUnreachable } from "./DeliveryTitle";
 import {
   trackEnrichmentStarted,
   trackEnrichmentStepCompleted,
@@ -302,6 +302,7 @@ export default function EnrichmentState({
   const [publishError, setPublishError] = useState<string | null>(null);
 
   // Compute display values for success banner
+  const unreachable = useDeliveryUnreachable(successTitle ? null : connectionId);
   const displayTitle = successTitle ?? <DeliveryTitle connectionId={connectionId} providerName={providerName} withNote={false} />;
 
   // Preload cities on mount
@@ -555,24 +556,26 @@ export default function EnrichmentState({
     <div>
       {/* Success banner - shown on steps 1-6, hidden on Go Live step */}
       {step !== "goLive" && !hideSuccessBanner && (
-        <div className="mb-4 bg-emerald-50/70 rounded-xl px-4 py-3 border border-emerald-100">
+        <div className={`mb-4 rounded-xl px-4 py-3 border ${unreachable ? "bg-amber-50 border-amber-100" : "bg-emerald-50/70 border-emerald-100"}`}>
           <div className="flex items-center gap-2.5">
             {/* Checkmark icon */}
-            <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-white"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
+            <DeliveryMark connectionId={connectionId} circleClassName="w-5 h-5" iconClassName="w-3 h-3">
+              <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-white"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+            </DeliveryMark>
 
             {/* Text content */}
             <div className="min-w-0 flex-1">

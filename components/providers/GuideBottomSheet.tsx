@@ -12,7 +12,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
-import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
+import DeliveryTitle, { DeliveryMark } from "@/components/providers/connection-card/DeliveryTitle";
 
 interface GuideBottomSheetProps {
   isOpen: boolean;
@@ -594,11 +594,13 @@ export default function GuideBottomSheet({
             <>
               {/* Success header */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+                <DeliveryMark connectionId={connectionId} circleClassName="w-10 h-10" iconClassName="w-5 h-5">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </DeliveryMark>
                 <div>
                   <h2 className="text-[15px] font-bold text-gray-900"><DeliveryTitle connectionId={connectionId} providerName={providerName} /></h2>
                   <p className="text-[13px] text-gray-500">Checklist downloaded · Sent to email</p>

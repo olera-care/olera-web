@@ -13,7 +13,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import LoggedInFamilyCTA from "@/components/providers/LoggedInFamilyCTA";
-import DeliveryTitle from "@/components/providers/connection-card/DeliveryTitle";
+import DeliveryTitle, { DeliveryMark } from "@/components/providers/connection-card/DeliveryTitle";
 
 export interface CompareProvider {
   id: string;
@@ -757,11 +757,13 @@ export default function CompareBottomSheet({
           <div className="flex-1 flex flex-col px-5 py-6">
             {/* Success banner */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
+              <DeliveryMark connectionId={connectionIds.length === 1 ? connectionIds[0] : null} circleClassName="w-12 h-12" iconClassName="w-6 h-6">
+                <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </DeliveryMark>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">
                   {connectionIds.length === 1

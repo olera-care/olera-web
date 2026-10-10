@@ -85,6 +85,35 @@ export interface GrowthMarketplaceMetrics {
   benefits_completed: number;
   providers_answering_questions: number;
   organic_users_to_inquiry_rate_directional: number | null;
+  /** Absent on weeks collected before 10 Oct 2026. */
+  request_loop?: GrowthRequestLoop;
+}
+
+export interface GrowthLoopSide {
+  saved: number;
+  emailed: number;
+  delivered: number;
+  opened: number;
+  answered: number;
+  family_told: number;
+  /** No address, or one our sender refuses (bounced, mailbox gone). */
+  no_address: number;
+}
+
+export interface GrowthRequestLoop {
+  requests: {
+    claimed: GrowthLoopSide;
+    unclaimed: GrowthLoopSide;
+    /** Marked notified, agency has an address, no email went. Should be 0. */
+    marked_sent_without_email: number;
+  };
+  questions: {
+    asked: number;
+    no_address: number;
+    answered: number;
+    answered_askers_with_email: number;
+    answered_askers_told: number;
+  };
 }
 
 export interface GrowthSnapshot {

@@ -64,6 +64,26 @@ function report(current: GrowthSnapshot, previous: GrowthSnapshot | null): strin
       ? "Organic users to inquiry: unavailable"
       : `Organic users to inquiry (directional): ${(current.marketplace.organic_users_to_inquiry_rate_directional * 100).toFixed(2)}%`,
   ];
+  const loop = current.marketplace.request_loop;
+  if (loop) {
+    const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : "—");
+    const row = (label: string, s: typeof loop.requests.claimed) =>
+      `| ${label} | ${s.saved} | ${s.emailed} (${pct(s.emailed, s.saved)}) | ${s.opened} | ${s.answered} (${pct(s.answered, s.saved)}) | ${s.family_told} (${pct(s.family_told, s.saved)}) | ${s.no_address} |`;
+    lines.push(
+      "",
+      "## Does a family hear back?",
+      "",
+      "| Requests to | Saved | Emailed | Opened | Answered | Family told | No working address |",
+      "|---|---:|---:|---:|---:|---:|---:|",
+      row("Claimed agencies", loop.requests.claimed),
+      row("Unclaimed agencies", loop.requests.unclaimed),
+      "",
+      `Questions: ${loop.questions.asked} asked, ${loop.questions.answered} answered (${pct(loop.questions.answered, loop.questions.asked)}), ${loop.questions.no_address} with no agency address; ${loop.questions.answered_askers_told} of ${loop.questions.answered_askers_with_email} askers with an email were told.`,
+    );
+    if (loop.requests.marked_sent_without_email > 0) {
+      lines.push("", `ALERT: ${loop.requests.marked_sent_without_email} requests are marked "sent" with no email to an agency that has an address.`);
+    }
+  }
   if (topOrganicSources) lines.push(`Top organic sources: ${topOrganicSources}`);
   if (nonBrandedShare != null) {
     lines.push(`Non-branded share of classified search clicks: ${(nonBrandedShare * 100).toFixed(1)}%`);

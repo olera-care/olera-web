@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ApplyAlong, ApplyHousehold } from "@/lib/benefits/apply-along";
-import { incomeRangeFromFinder, relationshipFromFinder, type FinderIncome, type FinderWho } from "@/lib/benefits/finder-answers";
+import type { FinderWho } from "@/lib/benefits/finder-answers";
+import { parseContact, recordApplied as recordAppliedOn, savePlan } from "@/components/benefits/apply/apply-record";
 import { telHref } from "@/lib/benefits/call-script";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
-import { studyCohort } from "@/lib/benefits/study-cohort";
-import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
 
 /**
- * The apply-along sheet: Social Security's Extra Help form
- * (lib/benefits/apply-along.ts) or the state's SNAP application
- * (lib/benefits/apply-along-snap.ts), with the family's answers filled in.
- * They submit on the official site; here they tell us they did, so the
+ * The Medicare Savings apply-along sheet (lib/benefits/apply-along.ts):
+ * Social Security's Extra Help form, section by section, with the family's
+ * answers filled in. (SNAP has its own flow: SnapApplyFlow.tsx.)
+ * They submit on Social Security's site; here they tell us they did, so the
  * check-ins can ask what came back. A plan token records it on the family;
  * without one, they give a number or email first (the plan save).
  */
@@ -29,7 +29,6 @@ interface Props {
 }
 
 const TRACKING_KEY = "benefits-finder";
-const FINDER_KEY = "olera-finder-v2";
 
 type Phase = "sheet" | "contact" | "done";
 
@@ -60,7 +59,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
       variant: sheet.variant,
       stepName,
       stepNumber: 0,
-      entrySource: sheet.route === "state_snap" ? "/benefits/apply/snap" : "/benefits/apply/extra-help",
+      entrySource: "/benefits/apply/extra-help",
     });
 
   useEffect(() => {
@@ -70,14 +69,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const recordApplied = async (t: string) => {
-    const res = await fetch("/api/families/benefits-journey", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: t, action: "applied", route: sheet.route, programId: program?.id, stateId: stateSlug }),
-    });
-    if (!res.ok) throw new Error("We couldn't save that just now. Please try again.");
-  };
+  const recordApplied = (t: string) => recordAppliedOn(t, sheet.route, program?.id ?? null, stateSlug);
 
   const submitted = async () => {
     track("benefits_step_completed", "applied");
@@ -102,9 +94,8 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
 
   /** The plan save: creates the family's record and texts or emails the plan. */
   const save = async () => {
-    const value = contact.trim();
-    const isEmail = value.includes("@");
-    if (!isEmail && value.replace(/\D/g, "").length < 10) {
+    const parsed = parseContact(contact);
+    if (!parsed) {
       setError("Enter a 10-digit mobile number or an email address.");
       return;
     }
@@ -114,51 +105,19 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
     }
     setBusy(true);
     setError(null);
-    // The family's whole plan, when this browser still holds it, so their saved
-    // plan isn't cut down to this one program.
-    let planIds: string[] = [];
     try {
-      const saved = JSON.parse(localStorage.getItem(FINDER_KEY) || "null");
-      const r = saved?.result;
-      if (r && r.stateCode === stateCode) planIds = [r.firstStep, ...(r.programs || [])].filter((p: { id?: string } | null) => p?.id && p.id !== "local-agency").map((p: { id: string }) => p.id);
-    } catch {
-      // No saved plan in this browser.
-    }
-    const ids = [program.id, ...planIds.filter((id) => id !== program.id)].slice(0, 30);
-    try {
-      const res = await fetch("/api/benefits/save-results", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          careNeed: "payingForCare",
-          careNeedSource: "stated",
-          incomeRange: incomeRangeFromFinder(income as FinderIncome | null),
-          stateCode,
-          contactChannel: isEmail ? "email" : "sms",
-          email: isEmail ? value : undefined,
-          phone: isEmail ? undefined : value,
-          relationship: relationshipFromFinder(who),
-          householdSize: household === "alone" ? "1" : household === "couple" ? "2" : household === "family" ? "3" : undefined,
-          entrySource: sheet.route === "state_snap" ? "/benefits/apply/snap" : "/benefits/apply/extra-help",
-          sessionId: getOrCreateSessionId(),
-          visitId: getOrCreateVisitId(),
-          matchedPrograms: [{ programId: program.id, stateId: stateSlug, name: program.name, shortName: program.shortName ?? undefined, programType: "benefit" }],
-          matchCount: ids.length,
-          firstStepProgramId: program.id,
-          finderProgramIds: ids,
-          cohort: studyCohort() ?? undefined,
-        }),
+      const { token: newToken } = await savePlan({
+        contact: parsed, program, stateCode, stateSlug, who, household, income,
+        entrySource: "/benefits/apply/extra-help",
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "We couldn't save that just now. Please try again.");
       // A returning family's record isn't changed from an unverified browser;
       // their plan still goes to what's on file.
-      if (purpose === "applied" && body.token) {
-        await recordApplied(body.token);
+      if (purpose === "applied" && newToken) {
+        await recordApplied(newToken);
         setRecorded(true);
       }
       track("benefits_step_completed", purpose === "applied" ? "applied_saved" : "saved_for_later");
-      setSavedTo(isEmail ? "email" : "sms");
+      setSavedTo(parsed.email ? "email" : "sms");
       setPhase("done");
     } catch (e) {
       setError(e instanceof Error ? e.message : "We couldn't save that just now.");
@@ -266,17 +225,11 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
                 href={sheet.open.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => track("benefits_step_completed", sheet.route === "ssa_extra_help" ? "ssa_opened" : "form_opened")}
+                onClick={() => track("benefits_step_completed", "ssa_opened")}
                 className="min-h-[56px] rounded-2xl bg-primary-800 text-white text-[17px] font-semibold flex items-center justify-center text-center px-4 no-underline"
               >
                 {sheet.open.label}
               </a>
-            ) : null}
-            {sheet.shortForm ? (
-              <p className="m-0 text-[15px] text-gray-600">
-                {sheet.shortForm.text}
-                {sheet.shortForm.href ? <> <a href={sheet.shortForm.href} target="_blank" rel="noopener noreferrer" className="text-primary-800 font-medium">About it</a></> : null}
-              </p>
             ) : null}
           </div>
         </div>
@@ -287,12 +240,11 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
             <p className="m-0 text-[18px] font-semibold text-gray-900">Answer its questions</p>
             <p className="m-0 mt-2 mb-1 text-[16px] text-gray-600">{sheet.moneyIntro}</p>
             {sheet.money.map((r) => (
-              <div key={r.title} className={`grid grid-cols-[40px_1fr] gap-3.5 py-3.5 items-start ${r.key ? "my-1 rounded-2xl bg-primary-50 px-3" : "border-t border-gray-200 first-of-type:border-t-0"}`}>
+              <div key={r.title} className="grid grid-cols-[40px_1fr] gap-3.5 py-3.5 border-t border-gray-200 first-of-type:border-t-0 items-start">
                 <Obj name={r.icon} />
                 <div className="min-w-0">
-                  <p className={`m-0 text-[17px] font-semibold ${r.icon === "check-mark" || r.key ? "text-primary-800" : "text-gray-900"}`}>{r.title}</p>
+                  <p className={`m-0 text-[17px] font-semibold ${r.icon === "check-mark" ? "text-primary-800" : "text-gray-900"}`}>{r.title}</p>
                   <p className="m-0 mt-0.5 text-[15px] text-gray-600">{r.text}</p>
-                  {r.flag ? <p className="m-0 mt-1.5 text-[13px] font-semibold text-primary-700">{r.flag}</p> : null}
                 </div>
               </div>
             ))}
@@ -319,7 +271,7 @@ export default function ApplyAlongView({ sheet, token, stateCode, stateSlug, pro
 
       <section className="flex flex-col gap-3 border-t border-gray-200 pt-5">
         <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-[15px] font-medium">
-          <button type="button" onClick={() => setMore(more === "screens" ? null : "screens")} aria-expanded={more === "screens"} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">{sheet.route === "state_snap" ? "See what it asks" : "See every screen"}</button>
+          <button type="button" onClick={() => setMore(more === "screens" ? null : "screens")} aria-expanded={more === "screens"} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">See every screen</button>
           {sheet.phone ? (
             <button type="button" onClick={() => { setMore(more === "phone" ? null : "phone"); if (more !== "phone") track("benefits_step_completed", "phone_opened"); }} aria-expanded={more === "phone"} className="bg-transparent border-none p-0 text-primary-800 cursor-pointer">Rather call?</button>
           ) : null}

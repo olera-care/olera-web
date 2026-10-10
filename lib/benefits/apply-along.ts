@@ -53,12 +53,9 @@ export interface ApplyStep {
 
 /** One of the money questions, with the family's own answer to check against. */
 export interface MoneyRow {
-  icon: "money-bag" | "receipt" | "check-mark" | "pot-of-food" | "stethoscope" | "house-with-garden";
+  icon: "money-bag" | "receipt" | "check-mark";
   title: string;
   text: string;
-  /** The row most people get wrong: drawn as the one to look at. */
-  key?: boolean;
-  flag?: string;
 }
 
 /** Which form the family applied with. Each route gets its own check-ins. */
@@ -79,8 +76,7 @@ export interface ApplyAlong {
   contactLine: string;
   /** "Rather call?": the number, what it can do, and what to say. */
   phone: { number: string; label: string; note: string | null; script: string | null } | null;
-  /** A shorter form some older households can use, shown under step 1. */
-  shortForm: { text: string; href: string | null } | null;
+
   /** Small label above the heading: what this is. */
   eyebrow: string;
   heading: string;
@@ -253,7 +249,6 @@ export function buildApplyAlong(input: ApplyAlongInput): ApplyAlong {
       note: null,
       script: `Hi, I'd like to apply for Extra Help ${v.callFor}, and have it sent to the state for Medicare Savings too.`,
     },
-    shortForm: null,
     eyebrow: "Medicare Savings application",
     heading: "Apply for help paying Medicare costs",
     lede: `${generic ? "It's called the Medicare Savings Program." : `${knownState ? a.stateName : "Your state"} calls it ${a.mspName}.`} It pays the $${PART_B_PREMIUM.toFixed(2)} Medicare Part B premium every month, and it brings Extra Help with prescriptions too.`,

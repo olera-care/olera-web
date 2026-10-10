@@ -1,16 +1,16 @@
 import { getEnrichedProgram, getStateSlug } from "@/lib/program-data";
 import { US_STATES } from "@/lib/us-states";
 import type { ApplyHousehold } from "@/lib/benefits/apply-along";
-import { buildSnapApplyAlong, snapStateFacts } from "@/lib/benefits/apply-along-snap";
-import { parseCuts } from "@/lib/benefits/cut";
+import { snapStateFacts } from "@/lib/benefits/apply-along-snap";
 import type { FinderWho } from "@/lib/benefits/finder-answers";
-import ApplyAlongView from "@/components/benefits/apply/ApplyAlongView";
+import SnapApplyFlow from "@/components/benefits/apply/SnapApplyFlow";
 
 /**
  * /benefits/apply/snap?st=TX&p=<program id>&w=parent&h=alone&i=under1500&ic=under:1330[&t=<plan token>]
  *
- * The SNAP apply-along (lib/benefits/apply-along-snap.ts). Same link shape as
- * the Medicare Savings one: answers as ranges, no personal data; `t` lets
+ * The SNAP apply-along (components/benefits/apply/SnapApplyFlow.tsx), with the
+ * state's verified door from lib/benefits/apply-along-snap.ts. Same link shape
+ * as the Medicare Savings one: answers as ranges, no personal data; `t` lets
  * "we sent it" be recorded on the family's plan.
  */
 const WHO = ["me", "parent", "spouse", "other"];
@@ -28,25 +28,18 @@ export default async function SnapApplyPage({ searchParams }: { searchParams: Pr
   const who = pick(q.w, WHO) as FinderWho | null;
   const household = pick(q.h, HOUSEHOLD) as ApplyHousehold;
   const income = pick(q.i, INCOME);
-  const sheet = buildSnapApplyAlong({
-    who,
-    household,
-    income,
-    incomeCut: parseCuts(q.ic) ? q.ic! : null,
-    stateName: stateName ?? "your state",
-    state: stateName ? snapStateFacts(stateCode) : null,
-  });
+  const facts = stateName ? snapStateFacts(stateCode) : null;
 
   return (
-    <ApplyAlongView
-      sheet={sheet}
-      token={q.t && /^[A-Za-z0-9_-]{16}$/.test(q.t) ? q.t : null}
-      stateCode={stateName ? stateCode : null}
+    <SnapApplyFlow
+      state={facts ? { code: facts.code, name: facts.name, applyUrl: facts.applyUrl, phone: facts.phone, phoneApplies: facts.phoneApplies, seniorForm: facts.seniorForm, paperOnly: facts.paperOnly, paperUrl: facts.paperUrl } : null}
+      stateName={stateName}
       stateSlug={stateSlug}
       program={program && stateSlug ? { id: program.id, name: program.name, shortName: program.shortName || null } : null}
       who={who}
       household={household}
       income={income}
+      token={q.t && /^[A-Za-z0-9_-]{16}$/.test(q.t) ? q.t : null}
     />
   );
 }

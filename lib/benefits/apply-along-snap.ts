@@ -198,11 +198,13 @@ export function buildSnapApplyAlong(input: SnapApplyInput): ApplyAlong {
     lede: `${calledLine} It puts money for groceries on a card every month. For someone 60 or older, medical and housing costs lower the income ${state} counts.`,
     formLine: st?.paperOnly
       ? `${State} has no online application. Fill in the paper form with the answers below, then mail, fax, email or bring it to your local office.`
-      : `You apply on ${state}'s own site. It works on a phone, and you can fill it in ${self ? "yourself" : `for ${v.subject}`}.`,
-    gatherLine: `Have ${their} Social Security number, income amounts, and recent bills nearby.`,
+      : `You apply on ${state}'s own site. It works on a phone, and you can fill it in ${self ? "yourself" : input.who === "spouse" ? "together" : `for ${v.subject}`}.`,
+    gatherLine: couple
+      ? "Have both Social Security numbers, your income amounts, and recent bills nearby."
+      : `Have ${their} Social Security number, income amounts, and recent bills nearby.`,
     money: [household, incomeRow, medical, housing],
     gather: [
-      `${Their} Social Security number`,
+      couple ? "Both Social Security numbers" : `${Their} Social Security number`,
       "Monthly amounts of Social Security, pensions and any wages",
       "Rent or mortgage, utility and medical bills",
     ],

@@ -455,6 +455,13 @@ export async function sendProviderLeadNotifications(opts: {
       });
     }
 
+    // A late email-only catch-up (the 22 Sep – 10 Oct directory-email gap) must
+    // not text the agency or ping the care team a second time.
+    if (metadata.provider_notify_email_only) {
+      await finish("sent");
+      return { sent: true };
+    }
+
     // ── SMS ──
     try {
       let providerPhone = provider.phone || null;

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.610Z
+ * Last updated: 2026-10-10T05:17:44.886Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -596,6 +596,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "If you're 60+ and have high medical or housing costs, make sure to document these expenses, they can significantly lower your countable income and increase your benefit amount.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://www.connect.ct.gov/access/jsp/access/Home.jsp"
+          },
           {
             "label": "Apply Online",
             "url": "https://portal.ct.gov/Apply"

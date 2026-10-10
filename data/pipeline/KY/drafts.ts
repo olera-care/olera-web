@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.366Z
+ * Last updated: 2026-10-10T05:17:44.903Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -852,7 +852,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Track medical expenses like Medicare premiums and prescription costs, these deductions can significantly increase your loved one's benefit amount.",
         "urls": [
           {
-            "label": "kynect Kentucky Benefits Portal",
+            "label": "Apply online",
             "url": "https://kynect.ky.gov/s/?language=en_US"
           },
           {

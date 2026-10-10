@@ -37,6 +37,14 @@ export const NUDGE_EMAIL_TYPES = new Set<string>([
   "provider_followup_day3",
   "provider_followup_day6",
   "provider_followup", // Catch-all for any provider followup variants
+  // Not here, on purpose: the five building_* emails (Provider Comms Phase 2)
+  // and the onboarding emails. They are once-only sequences, metadata-gated and
+  // spaced days apart, and each building email already waits 3-5 days after a
+  // digest. Inside the cap they could take the weekly digest's slot, the best
+  // provider email we send (TJ's Phase 1 decision, applied to Phase 2 on
+  // 10 Oct 2026). They also file under the profile UUID, not the canonical
+  // slug, so listing them here would only make the code claim a cap it doesn't
+  // apply.
 ]);
 
 /** True when this email_type is a governed nudge (subject to the per-provider weekly cap). */

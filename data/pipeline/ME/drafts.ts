@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ME/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.522Z
+ * Last updated: 2026-10-10T05:17:44.908Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -308,6 +308,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Report medical expenses over $35/month, this can significantly increase your loved one's monthly benefit amount.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://www.mymaineconnection.gov/benefits/s/"
+          },
           {
             "label": "Apply online at MyMaineConnection",
             "url": "https://www.mymaineconnection.gov"

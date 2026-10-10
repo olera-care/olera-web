@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { applyAlongHref, startsWithExtraHelp } from "@/lib/benefits/apply-along";
+import { isSnapProgram, snapApplyHref } from "@/lib/benefits/apply-along-snap";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
@@ -230,6 +231,15 @@ export default async function BenefitsResultsPage({
       ? displayName.split(/\s+/)[0]
       : null;
 
+  const applyWho = relationshipToWho(relationship);
+  const applyHousehold = meta.household_size === 1 ? "alone" : meta.household_size === 2 ? "couple" : meta.household_size === 3 ? "family" : null;
+  // SNAP is on most older families' plans but rarely their first step, so its
+  // apply-along hangs off the SNAP row wherever it sits (lib/benefits/apply-along-snap.ts).
+  const snapMatch = matches.find((m) => isSnapProgram(m.name, m.id));
+  const snapHref = snapMatch
+    ? snapApplyHref({ stateCode: bundle.token.state_code, programId: snapMatch.id, who: applyWho, household: applyHousehold, token })
+    : null;
+
   return (
     <BenefitsHome
       token={token}
@@ -260,11 +270,14 @@ export default async function BenefitsResultsPage({
         ? applyAlongHref({
             stateCode: bundle.token.state_code,
             programId: firstStep.programId,
-            who: relationshipToWho(relationship),
-            household: meta.household_size === 1 ? "alone" : meta.household_size === 2 ? "couple" : meta.household_size === 3 ? "family" : null,
+            who: applyWho,
+            household: applyHousehold,
             token,
           })
-        : null}
+        : firstStep && isSnapProgram(firstStep.name, firstStep.programId)
+          ? snapApplyHref({ stateCode: bundle.token.state_code, programId: firstStep.programId, who: applyWho, household: applyHousehold, token })
+          : null}
+      snapApply={snapMatch && snapHref ? { programId: snapMatch.id, href: snapHref } : null}
     />
   );
 }

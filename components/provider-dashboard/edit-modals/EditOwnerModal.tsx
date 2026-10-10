@@ -131,7 +131,7 @@ export default function EditOwnerModal({
     <Modal
       isOpen
       onClose={onClose}
-      title="Edit Facility Manager"
+      title="Edit Owner or Manager"
       size="2xl"
       footer={
         <ModalFooter

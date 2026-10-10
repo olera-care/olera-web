@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AZ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.059Z
+ * Last updated: 2026-10-10T05:17:44.882Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -784,8 +784,8 @@ export const drafts: PipelineStateDrafts = {
         "tip": "If your loved one has high medical expenses, make sure to document them, these are deducted from income and could make them eligible even with higher gross income.",
         "urls": [
           {
-            "label": "Arizona Self-Help Portal",
-            "url": "https://arizonaselfhelp.org"
+            "label": "Apply online",
+            "url": "https://www.healthearizonaplus.gov/Login/Default"
           }
         ]
       },

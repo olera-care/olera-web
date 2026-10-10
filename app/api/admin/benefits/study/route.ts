@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { applicationsOf } from "@/lib/benefits/applications";
+import type { BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
 import { STUDY_VERSIONS, versionAt, versionsSince } from "@/lib/benefits/study-versions";
 
 /**
@@ -116,8 +118,7 @@ export async function GET() {
       const meta = (r.metadata as Meta) || {};
       const tag = (meta.study_cohort as { id?: string; at?: string } | undefined) ?? {};
       const results = (meta.benefits_results as Meta | undefined) ?? {};
-      const cascade = (meta.benefits_cascade as Meta | undefined) ?? {};
-      const applied = (cascade.applied as { at?: string; decision?: string; decision_at?: string } | undefined) ?? null;
+      const applications = applicationsOf(((meta.benefits_cascade as BenefitsCascadeMeta | undefined) ?? {}) as BenefitsCascadeMeta);
       const myEvents = [...(sessionsOf.get(r.id) ?? [])]
         .flatMap((s) => eventsBySession.get(s) ?? [])
         .sort((a, b) => a.created_at.localeCompare(b.created_at));
@@ -159,7 +160,7 @@ export async function GET() {
         joinedAt,
         planVersion: (results.product_version as string | undefined) ?? (typeof results.completed_at === "string" ? versionAt(results.completed_at) : null),
         firstStep: ((results.finder_first_step as { program_id?: string } | undefined)?.program_id) ?? null,
-        applied: applied?.at ? { at: applied.at, decision: applied.decision ?? null, decisionAt: applied.decision_at ?? null } : null,
+        applications: applications.map((a) => ({ route: a.route, at: a.at, decision: a.decision ?? null, decisionAt: a.decision_at ?? null })),
         exposure,
         changedSinceJoined: versionsSince(joinedAt).map((v) => v.id),
       };

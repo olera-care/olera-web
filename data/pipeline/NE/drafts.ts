@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.796Z
+ * Last updated: 2026-10-10T05:17:44.920Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -772,6 +772,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Gather medical expense receipts over $35/month, these reduce your countable income and can significantly increase your benefit amount",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://iserve.nebraska.gov/apply/start"
+          },
           {
             "label": "Apply Online - AccessNebraska",
             "url": "https://accessnebraska.ne.gov"

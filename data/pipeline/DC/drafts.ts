@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.109Z
+ * Last updated: 2026-10-10T05:17:44.888Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1448,6 +1448,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Medical expenses matter for older adults. Out-of-pocket medical costs your parent pays (prescriptions, copays, transportation to medical appointments) can be deducted from gross income when calculating the net income test. Reporting these expenses accurately can lower countable income, improve eligibility, and increase the monthly benefit amount. Ask the caseworker about the medical expense deduction when you apply.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://districtdirect.dc.gov"
+          },
           {
             "label": "Apply online through District Direct (DC DHS public benefits portal)",
             "url": "https://dhs.dc.gov/service/snap-eligibility-requirements"

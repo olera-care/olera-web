@@ -818,6 +818,10 @@
         "tip": "Gather all medical expense receipts before applying, prescriptions, Medicare premiums, and out-of-pocket costs over $35/month significantly reduce countable income for seniors.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://access.arkansas.gov/Learn/Home"
+          },
+          {
             "label": "Access Arkansas Online Application",
             "url": "https://access.arkansas.gov"
           },

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.006Z
+ * Last updated: 2026-10-10T05:17:44.881Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -822,6 +822,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Gather all medical expense receipts before applying, prescriptions, Medicare premiums, and out-of-pocket costs over $35/month significantly reduce countable income for seniors.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://access.arkansas.gov/Learn/Home"
+          },
           {
             "label": "Access Arkansas Online Application",
             "url": "https://access.arkansas.gov"

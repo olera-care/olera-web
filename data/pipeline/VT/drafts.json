@@ -896,6 +896,10 @@
         "tip": "If your loved one receives SSI, mention this upfront, they automatically qualify and may be eligible for cash benefits instead of just food assistance.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://mybenefits.ahs.state.vt.us/Login.aspx?ReturnUrl=/selfservice/Default.aspx"
+          },
+          {
             "label": "3SquaresVT Online Application",
             "url": "https://dcf.vermont.gov/benefits/3SquaresVT/SNAP"
           }
@@ -2951,6 +2955,10 @@
         "waitlist": null,
         "tip": "Medical expenses are a commonly missed deduction. If your parent pays out of pocket for prescriptions, doctor visits, dental care, or health insurance premiums not already covered, those costs can reduce their countable income and increase their monthly benefit. Ask specifically about the medical expense deduction when you apply.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://mybenefits.ahs.state.vt.us/Login.aspx?ReturnUrl=/selfservice/Default.aspx"
+          },
           {
             "label": "Apply online through Vermont myBenefits",
             "url": "https://dcf.vermont.gov/benefits/3SquaresVT"

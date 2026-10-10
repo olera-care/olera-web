@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.349Z
+ * Last updated: 2026-10-10T05:17:44.885Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -746,7 +746,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Seniors over 60 can often qualify even if their Social Security puts them over the standard income limit, always apply if your loved one's monthly income is under $3,000.",
         "urls": [
           {
-            "label": "Colorado PEAK Application Portal",
+            "label": "Apply online",
             "url": "https://www.colorado.gov/PEAK"
           },
           {

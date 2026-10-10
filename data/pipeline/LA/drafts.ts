@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-07T04:20:05.288Z
+ * Last updated: 2026-10-10T05:17:44.905Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -984,7 +984,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Seniors often qualify for ESAP (Elderly Simplified Application Project) which extends certification to 36 months instead of annual renewal if you have no earned income.",
         "urls": [
           {
-            "label": "Louisiana SNAP application (CAFE Customer Portal)",
+            "label": "Apply online",
             "url": "https://sspweb.ie.dcfs.la.gov/selfservice/"
           }
         ]

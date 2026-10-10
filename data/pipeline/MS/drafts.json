@@ -725,6 +725,10 @@
         "tip": "If your loved one receives SSI, they may be required to use the Mississippi Combined Application Project (MSCAP) instead of regular SNAP or ESAP.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://www.access.ms.gov/consumer/home"
+          },
+          {
             "label": "SNAP for Elderly/Disabled",
             "url": "https://www.mdhs.ms.gov/help/snap/special/"
           }

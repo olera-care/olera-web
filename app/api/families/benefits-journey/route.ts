@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { readBenefitsCascade, type BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
+import { applicationFor, applicationsOf, isApplyRoute, withApplication, withDecision } from "@/lib/benefits/applications";
 
 /**
  * Journey writes for the /m/{token} living page (plans/benefits-living-journey.md).
@@ -14,11 +15,13 @@ import { readBenefitsCascade, type BenefitsCascadeMeta } from "@/lib/family-comm
  * POST /api/families/benefits-journey
  *   { token, action: "call_made", programId? }
  *   { token, action: "doc_toggle", doc, checked }
- *   { token, action: "applied", programId?, stateId? } — submitted Social
- *     Security's Extra Help form through the apply-along, which also starts
- *     the state's Medicare Savings application (lib/benefits/apply-along.ts)
- *   { token, action: "decision", value: "approved"|"waiting"|"denied"|"stuck" }
- *     — what came back, tapped on the plan's apply-along card
+ *   { token, action: "applied", route?, programId?, stateId? } — sent an
+ *     application through an apply-along. route "ssa_extra_help" (default):
+ *     Social Security's Extra Help form, which also starts Medicare Savings
+ *     (lib/benefits/apply-along.ts); "state_snap": the state's SNAP form
+ *     (lib/benefits/apply-along-snap.ts)
+ *   { token, action: "decision", value: "approved"|"waiting"|"denied"|"stuck", route? }
+ *     — what came back, tapped on the plan's card for that application
  *
  * `call_made` deliberately does NOT set cascade.outcome — that field stays the
  * family's check-in self-report; first_step_done_at is the page-observed act.
@@ -69,29 +72,38 @@ export async function POST(request: NextRequest) {
         application_status_at: now,
       };
     } else if (action === "applied") {
-      const programId = typeof body.programId === "string" ? body.programId.slice(0, 120) : cascade.first_step_program_id;
+      const route = isApplyRoute(body.route) ? body.route : "ssa_extra_help";
+      const programId = typeof body.programId === "string" ? body.programId.slice(0, 120) : route === "ssa_extra_help" ? cascade.first_step_program_id : undefined;
       const stateId = typeof body.stateId === "string" ? body.stateId.slice(0, 40) : cascade.first_step_state_id;
+      // Medicare Savings is a plan's first step; SNAP rarely is, so only the
+      // first marks the first step done.
+      const firstStep = route === "ssa_extra_help"
+        ? { first_step_done_at: cascade.first_step_done_at || now, first_step_done_program_id: cascade.first_step_done_program_id || programId }
+        : {};
       next = {
         ...cascade,
-        first_step_done_at: cascade.first_step_done_at || now,
-        first_step_done_program_id: cascade.first_step_done_program_id || programId,
+        ...firstStep,
         application_status: "applied",
         application_status_at: now,
-        // The first submission is the one the check-ins count from.
-        applied: cascade.applied || { at: now, route: "ssa_extra_help", program_id: programId, state_id: stateId },
       };
-    } else if (action === "decision") {
+      // The first submission is the one the check-ins count from.
+      if (!applicationFor(cascade, route)) {
+        next = withApplication(next, { at: now, route, program_id: programId, state_id: stateId });
+      }
+        } else if (action === "decision") {
       const value = body.value;
       if (!["approved", "waiting", "denied", "stuck"].includes(value)) {
         return NextResponse.json({ error: "Invalid value" }, { status: 400 });
       }
-      if (!cascade.applied) return NextResponse.json({ error: "No application recorded" }, { status: 409 });
+      const route = isApplyRoute(body.route) ? body.route : null;
+      if (route ? !applicationFor(cascade, route) : !applicationsOf(cascade).length) {
+        return NextResponse.json({ error: "No application recorded" }, { status: 409 });
+      }
       const status = value === "denied" ? "not_eligible" : value;
       next = {
-        ...cascade,
+        ...withDecision(cascade, value, now, route),
         application_status: status,
         application_status_at: now,
-        applied: { ...cascade.applied, decision: value, decision_at: now },
         // The same outcome a text reply would set, so the admin queue and the
         // cascade read it the same way.
         // A denial is where a person helps most (appeal, or the next program),
@@ -124,6 +136,7 @@ export async function POST(request: NextRequest) {
       firstStepDoneAt: next.first_step_done_at || null,
       docsChecked: next.docs_checked || [],
       applied: next.applied || null,
+      applications: applicationsOf(next),
     });
   } catch (err) {
     console.error("[benefits-journey] error:", err);

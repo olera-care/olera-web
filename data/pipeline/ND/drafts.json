@@ -1384,6 +1384,10 @@
         "tip": "Apply before you have every document. North Dakota allows you to file first and provide verification afterward. Waiting until the file is complete can delay the benefit start date by weeks.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://dhsbenefits.dhs.nd.gov/SSPPortal/public/?userType=client"
+          },
+          {
             "label": "Apply online (ND Self-Service Portal)",
             "url": "https://www.applyforhelp.nd.gov"
           },
@@ -1496,7 +1500,7 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "1-866-614-6005",
       "sourceUrl": "https://www.hhs.nd.gov/applyforhelp/snap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-10-06",

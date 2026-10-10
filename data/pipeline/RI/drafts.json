@@ -935,6 +935,10 @@
         "tip": "Medical expenses over $35/month can significantly increase your loved one's benefits, keep receipts for prescriptions, insurance premiums, and doctor visits.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://healthyrhode.ri.gov/"
+          },
+          {
             "label": "Rhode Island DHS SNAP Portal",
             "url": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"
           }

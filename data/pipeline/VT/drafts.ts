@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:15.244Z
+ * Last updated: 2026-10-10T05:17:44.942Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -894,6 +894,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "If your loved one receives SSI, mention this upfront, they automatically qualify and may be eligible for cash benefits instead of just food assistance.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://mybenefits.ahs.state.vt.us/Login.aspx?ReturnUrl=/selfservice/Default.aspx"
+          },
           {
             "label": "3SquaresVT Online Application",
             "url": "https://dcf.vermont.gov/benefits/3SquaresVT/SNAP"
@@ -2950,6 +2954,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Medical expenses are a commonly missed deduction. If your parent pays out of pocket for prescriptions, doctor visits, dental care, or health insurance premiums not already covered, those costs can reduce their countable income and increase their monthly benefit. Ask specifically about the medical expense deduction when you apply.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://mybenefits.ahs.state.vt.us/Login.aspx?ReturnUrl=/selfservice/Default.aspx"
+          },
           {
             "label": "Apply online through Vermont myBenefits",
             "url": "https://dcf.vermont.gov/benefits/3SquaresVT"

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.665Z
+ * Last updated: 2026-10-10T05:17:44.909Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1650,6 +1650,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "If your parent is 60 or older, ask MDHHS or a MiCAFE site specifically about the medical expense deduction. Out-of-pocket costs for doctors, prescriptions, transportation to medical appointments, and health insurance premiums can be deducted from countable income, which sometimes makes the difference between qualifying and not qualifying.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://newmibridges.michigan.gov/s/isd-landing-page?language=en_US"
+          },
           {
             "label": "Apply online at MI Bridges",
             "url": "https://www.michigan.gov/MIBridges"

@@ -984,6 +984,10 @@
         "tip": "Keep receipts for medical expenses over $35/month, they're subtracted from income and can help you qualify.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://benefits.ohio.gov/"
+          },
+          {
             "label": "Ohio Benefits Online Application",
             "url": "https://benefits.ohio.gov"
           }

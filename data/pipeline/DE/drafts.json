@@ -918,6 +918,10 @@
         "tip": "SSI recipients are automatically eligible, mention SSI status when applying to speed up the process",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://assist.dhss.delaware.gov/"
+          },
+          {
             "label": "Delaware SNAP Online Application",
             "url": "https://mybenefits.delaware.gov"
           },

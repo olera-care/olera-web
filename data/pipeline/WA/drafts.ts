@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:15.423Z
+ * Last updated: 2026-10-10T05:17:44.944Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1099,6 +1099,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Submit all documents at once to avoid delays. Income limits are based on gross income before taxes, not take-home pay.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://www.washingtonconnection.org/eapplication/home.go?action=Introduction"
+          },
           {
             "label": "Washington Connection Online Application",
             "url": "https://www.washingtonconnection.org"

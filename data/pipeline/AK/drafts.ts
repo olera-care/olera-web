@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.291Z
+ * Last updated: 2026-10-10T05:17:44.877Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -988,6 +988,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "If all adults in the household are 60+ or disabled, mention ESAP when applying for simplified processing with 36-month certification periods.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://alaskaconnect.ilinx.com/engage/dpa"
+          },
           {
             "label": "MyAlaska Online Portal",
             "url": "https://health.alaska.gov/dpa"

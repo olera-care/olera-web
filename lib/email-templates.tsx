@@ -2210,7 +2210,8 @@ export function benefitsCheckInEmail(opts: {
 
 /** Apply-along check-in subjects. No names, no program a stranger could read
  *  as a diagnosis. */
-export function benefitsApplyCheckSubject(stage: "letter" | "decision"): string {
+export function benefitsApplyCheckSubject(stage: "letter" | "decision", route: "ssa_extra_help" | "state_snap" = "ssa_extra_help"): string {
+  if (route === "state_snap") return stage === "letter" ? "Has the interview call come?" : "Any word on your SNAP application?";
   return stage === "letter" ? "Has a letter come from Social Security?" : "Any word on Extra Help or Medicare Savings?";
 }
 
@@ -2226,10 +2227,19 @@ export function benefitsApplyCheckEmail(opts: {
   stage: "letter" | "decision";
   planUrl: string;
   unsubscribeId?: string;
+  /** Which application: Extra Help (default) or the state's SNAP form. */
+  route?: "ssa_extra_help" | "state_snap";
+  stateName?: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const btn = `<a href="${opts.planUrl}" style="display:block;text-align:center;padding:13px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;">Tell us what came back</a>`;
-  const body = opts.stage === "letter"
+  const state = escapeHtml(opts.stateName || "the state");
+  const snap = opts.route === "state_snap";
+  const body = snap
+    ? opts.stage === "letter"
+      ? `It's been a few days since you applied for SNAP. ${state} should call or write soon to set up a short interview, usually by phone. The interview matters: if it's missed, the application ends. Has anyone been in touch?`
+      : `It's been about five weeks since you applied for SNAP. ${state} has 30 days to decide, so you've probably heard. What did they say?`
+    : opts.stage === "letter"
     ? `It's been about a week since you sent the Extra Help form. Social Security usually mails a decision within a few weeks, and the state writes separately about Medicare Savings. Has anything come yet?`
     : `It's been about five weeks since you sent the Extra Help form. By now Social Security has usually decided, and the state should have been in touch about Medicare Savings. What did you hear?`;
   return layout(
@@ -2245,7 +2255,9 @@ export function benefitsApplyCheckEmail(opts: {
     </p>
     ${careUnsubscribeFooter(opts.unsubscribeId)}
   `,
-    opts.stage === "letter" ? "Has a letter come from Social Security yet?" : "What did you hear about Extra Help and Medicare Savings?",
+    snap
+      ? opts.stage === "letter" ? "Has the interview call come yet?" : "What did you hear about SNAP?"
+      : opts.stage === "letter" ? "Has a letter come from Social Security yet?" : "What did you hear about Extra Help and Medicare Savings?",
   );
 }
 
@@ -6510,6 +6522,211 @@ export function providerWelcomeEmail(opts: {
     </p>
     ${offRampBlock(opts.providerSlug)}
   `, `Your ${name} page is officially yours to manage.`);
+}
+
+/** Provider category type for the care services suggestions. */
+export type ProviderCategory = "home_health_agency" | "home_care_agency" | "assisted_living" | "memory_care" | "nursing_home" | "independent_living";
+
+/*
+ * Building stage emails (Provider Comms Phase 2). Chantel's sequence and
+ * timing; copy rewritten 10 Oct 2026 (TJ). Each email opens on something real
+ * about the provider's own families, not on a form to fill in: provider emails
+ * about a specific family or number got 39-53% clicks over 60 days, generic
+ * asks 24-25%. Subjects live here too, so the crons, the gallery samples and
+ * the email_log reservation all say the same thing.
+ */
+
+function buildingParagraph(text: string, bottom = 20): string {
+  return `<p style="font-size:15px;color:#374151;margin:0 0 ${bottom}px;line-height:1.65;">${text}</p>`;
+}
+
+function buildingSignoff(providerSlug?: string): string {
+  return `
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    ${offRampBlock(providerSlug)}`;
+}
+
+function buildingGreeting(firstName: string | null): string {
+  return buildingParagraph(firstName ? `Hi ${escapeHtml(firstName)},` : "Hi there,");
+}
+
+/** Building email 1 subject: names the family's question when there is one. */
+export function buildingPaymentSubject(providerName: string, hasFamilyQuestion: boolean): string {
+  return hasFamilyQuestion
+    ? `A family asked how they'd pay for ${providerName}`
+    : `How families pay for care at ${providerName}`;
+}
+
+/**
+ * Building Email 1: Payment. Sent 5 days after the notification setup nudge,
+ * only when accepted_payments is empty. With a payment question from the
+ * provider's own page it quotes it word for word; otherwise it opens on the
+ * Olera-wide fact (about one in four family questions are about cost:
+ * 3,532 of 13,561 in the 180 days to 10 Oct 2026) and, when the cron could
+ * count it, how often the most common one was asked.
+ *
+ * CTA deep-links to /api/claim-complete?section=payment, which signs the
+ * provider in and opens the payment editor.
+ */
+export function buildingPaymentInsuranceEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  paymentUrl: string;
+  providerSlug?: string;
+  /** A payment question a family asked on this provider's page, verbatim. */
+  familyQuestion?: string | null;
+  /** Times "Does Medicare or Medicaid cover the stay?" was asked in 180 days. */
+  commonQuestionCount?: number | null;
+}): string {
+  const question = opts.familyQuestion?.trim();
+  const opening = question
+    ? `${buildingParagraph("A family on your Olera page asked:", 12)}
+    <p style="font-size:15px;color:#111827;margin:0 0 20px;line-height:1.65;font-style:italic;border-left:3px solid ${BRAND_COLOR};padding-left:14px;">&ldquo;${escapeHtml(question)}&rdquo;</p>
+    ${buildingParagraph("It&rsquo;s one of the most common things families ask. About one in four questions on Olera are about cost.")}`
+    : `${buildingParagraph("About one in four questions families ask on Olera are about cost: Medicaid, insurance, private pay.")}
+    ${opts.commonQuestionCount && opts.commonQuestionCount >= 50
+      ? buildingParagraph(`&ldquo;Does Medicare or Medicaid cover the stay?&rdquo; alone was asked ${opts.commonQuestionCount.toLocaleString("en-US")} times in the last six months.`)
+      : ""}`;
+  return layout(`
+    ${buildingGreeting(opts.firstName)}
+    ${opening}
+    ${buildingParagraph(`Add the ways families can pay, and every family who visits your page sees the answer before they call.`, 24)}
+    <div style="margin:0 0 24px;">${button("Add payment options", opts.paymentUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, question ? "Their question is on your Olera page." : `The question families ask about ${opts.providerName} before they call.`);
+}
+
+export const BUILDING_AVAILABILITY_SUBJECT = "Are you taking new clients right now?";
+
+/**
+ * Building Email 2: Availability. Every provider gets it. Yes / No link to
+ * /provider/availability?tok=<signed token>, which POSTs on mount
+ * (scanner-safe). A yes puts a dated "Accepting new clients" mark on their
+ * page for 90 days (lib/provider-comms/availability.ts); a no changes nothing
+ * a family sees. Either way the provider can switch it from the dashboard.
+ */
+export function buildingAvailabilityEmail(opts: {
+  firstName: string | null;
+  yesUrl: string;
+  noUrl: string;
+  providerSlug?: string;
+}): string {
+  const yesButton = `<a href="${opts.yesUrl}" style="display:block;padding:14px 0;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;">Yes, we are</a>`;
+  const noButton = `<a href="${opts.noUrl}" style="display:block;padding:14px 0;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;border:1px solid #d1d5db;">Not right now</a>`;
+  return layout(`
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("Families can now see on your Olera page whether you&rsquo;re taking new clients. Many ask before they call.", 24)}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+      <td width="50%" style="padding-right:6px;">${yesButton}</td>
+      <td width="50%" style="padding-left:6px;">${noButton}</td>
+    </tr></table>
+    ${buildingParagraph("Say yes and your page shows <strong>Accepting new clients</strong> with today&rsquo;s date. You can change it anytime from your dashboard.", 24)}
+    ${buildingSignoff(opts.providerSlug)}
+  `, "Families will see your answer on your page.");
+}
+
+/** Building email 3 subject. Home care is about the owner; a facility about whoever runs it. */
+export function buildingOwnerSubject(providerName: string, isFacility: boolean): string {
+  return isFacility ? `Put a face on ${providerName}` : `Put your face on ${providerName}`;
+}
+
+/**
+ * Building Email 3: Meet the owner (email_type building_facility_manager is
+ * kept from the first version). The public page shows this section as
+ * "Meet <first name>" with a Message button under the photo. Skips when the
+ * section is filled or the profile is 80%+ complete. CTA opens the owner
+ * editor via /api/claim-complete?section=owner.
+ */
+export function buildingFacilityManagerEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  ctaUrl: string;
+  providerSlug?: string;
+  isFacility: boolean;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const ask = opts.isFacility
+    ? `Add the person who runs ${name}: a photo and a few lines about why they do this work. It sits on your page with a button families can use to message them directly.`
+    : `Add your photo and a few lines about why you do this work. It sits on your page with a button families can use to message you directly.`;
+  return layout(`
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("Families choosing care want to know who&rsquo;s behind it.")}
+    ${buildingParagraph(ask, 24)}
+    <div style="margin:0 0 24px;">${button(opts.isFacility ? "Add their photo" : "Add your photo", opts.ctaUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, "Families want to know who's behind the care.");
+}
+
+export function buildingCareServicesSubject(providerName: string): string {
+  return `What's included at ${providerName}?`;
+}
+
+/**
+ * Building Email 4: Services. Three category suggestions as a starting point;
+ * one button into the services editor (TJ, 10 Oct 2026: the provider stays in
+ * control, so nothing is written for them). "What's included in the monthly
+ * cost?" was asked 1,297 times in the 180 days to 10 Oct 2026. Skips when
+ * services are listed or the profile is 80%+ complete.
+ */
+export function buildingCareServicesEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  services: string[];
+  editUrl: string;
+  isFacility: boolean;
+  providerSlug?: string;
+}): string {
+  const serviceItems = opts.services.map((s) =>
+    `<p style="font-size:15px;color:#374151;font-weight:600;margin:0 0 8px;line-height:1.6;">&#10003;&nbsp;&nbsp;${escapeHtml(s)}</p>`
+  ).join("\n      ");
+  return layout(`
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("&ldquo;What&rsquo;s included?&rdquo; is one of the questions families ask most on Olera. Your page doesn&rsquo;t list your services yet.")}
+    <div style="background:#f7f8fa;border-radius:10px;padding:18px 22px 10px;margin:0 0 20px;">
+      <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.4;">${opts.isFacility ? "Communities" : "Agencies"} like yours usually start with:</p>
+      ${serviceItems}
+    </div>
+    ${buildingParagraph("Add these and anything else you offer.", 24)}
+    <div style="margin:0 0 24px;">${button("Add your services", opts.editUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, "One of the questions families ask most.");
+}
+
+export function buildingPhotosSubject(providerName: string): string {
+  return `Show families inside ${providerName}`;
+}
+
+/**
+ * Building Email 5: Photos (final building email). Facilities only, fewer
+ * than 3 photos. Page views appear only at 10+ in the last 30 days (the
+ * median across the first cohort was 2), so a small number is never said.
+ * After this email the provider graduates to the growth stage.
+ */
+export function buildingPhotosEmail(opts: {
+  firstName: string | null;
+  providerName: string;
+  photoCount: number;
+  monthlyViews?: number | null;
+  ctaUrl: string;
+  providerSlug?: string;
+}): string {
+  const photoText = opts.photoCount === 1 ? "1 photo" : `${opts.photoCount} photos`;
+  const hasViews = Boolean(opts.monthlyViews && opts.monthlyViews >= 10);
+  const photos = opts.photoCount === 0
+    ? (hasViews ? "It doesn&rsquo;t have any photos yet." : "Your page doesn&rsquo;t have any photos yet.")
+    : (hasViews ? `It has ${photoText}.` : `Your page has ${photoText} right now.`);
+  const views = hasViews
+    ? `Families looked at your page ${opts.monthlyViews!.toLocaleString("en-US")} times in the last 30 days. ${photos}`
+    : photos;
+  return layout(`
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("Families choosing a home for a parent want to see where they&rsquo;ll live.")}
+    ${buildingParagraph(views)}
+    ${buildingParagraph("Five is enough to start: a room, the dining area, a common space, outside, and your team. Take them on your phone and upload them in a few minutes.", 24)}
+    <div style="margin:0 0 24px;">${button("Add photos", opts.ctaUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, "Five photos is enough to start.");
 }
 
 /**

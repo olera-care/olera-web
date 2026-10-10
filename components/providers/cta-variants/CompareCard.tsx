@@ -626,13 +626,14 @@ export default function CompareCard({
             </div>
           ) : (
             <EnrichmentState
+              connectionId={providerCountDisplay > 1 ? null : connectionIds[0]}
               providerName={providerCountDisplay > 1 ? `${providerCountDisplay} providers` : currentProvider.name}
               providerId={currentProvider.slug}
               onSave={saveEnrichment}
               onSkip={skipEnrichment}
               saving={enrichmentSubmitting}
               providerCategory={currentProvider.category}
-              successTitle={providerCountDisplay > 1 ? `Connected with ${providerCountDisplay} providers` : `Connected with ${currentProvider.name}`}
+              successTitle={providerCountDisplay > 1 ? `Request saved for ${providerCountDisplay} providers` : undefined}
               providerCity={currentProvider.city}
               providerState={currentProvider.state}
               ctaVariant="compare"

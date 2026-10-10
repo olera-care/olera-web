@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.473Z
+ * Last updated: 2026-10-10T05:17:44.907Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1196,6 +1196,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Don't miss reporting medical expenses if you're 60+, they're deductible from income and can significantly increase your benefits or help you qualify.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://marylandbenefits.gov/home/#/"
+          },
           {
             "label": "myDHR Online Application Portal",
             "url": "https://mydhrbenefits.dhr.state.md.us"

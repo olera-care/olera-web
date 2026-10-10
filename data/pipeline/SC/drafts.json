@@ -786,6 +786,10 @@
         "tip": "Medical expenses over $35/month (prescriptions, Medicare premiums, doctor visits) can be deducted from your income calculation, potentially increasing your benefit amount.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://benefitsportal.dss.sc.gov/#/login"
+          },
+          {
             "label": "SC DSS SNAP Application Portal",
             "url": "https://dss.sc.gov/assistance-programs/snap/"
           },

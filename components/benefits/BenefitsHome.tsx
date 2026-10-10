@@ -4,6 +4,8 @@ import { CARE_NEED_LABEL, type CareNeed } from "@/lib/benefits/match-care-need";
 import type { FirstStepPick, BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
 import JourneyActions, { type NextStepInfo } from "@/components/benefits/JourneyActions";
 import ApplyStatusCard from "@/components/benefits/ApplyStatusCard";
+import { applicationsOf } from "@/lib/benefits/applications";
+import { isSnapProgram } from "@/lib/benefits/snap-match";
 import FactChips, { type KnownFacts } from "@/components/benefits/FactChips";
 import { benefitAmountLabel } from "@/lib/benefits/savings-label";
 import { switchLine } from "@/lib/benefits/switch-line";
@@ -59,6 +61,8 @@ export interface BenefitsHomeProps {
   /** The apply-along link when the first step is Medicare Savings or Extra
    *  Help (lib/benefits/apply-along.ts), carrying this plan's token. */
   applyHref?: string | null;
+  /** The SNAP apply-along for the SNAP program on this plan, wherever it sits. */
+  snapApply?: { programId: string; href: string } | null;
 }
 
 const APPLICATION_STATUS_COPY: Partial<
@@ -162,7 +166,11 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     cascade,
     textTjNumber,
     applyHref,
+    snapApply,
   } = props;
+  const applications = applicationsOf(cascade);
+  const appliedSnap = applications.some((a) => a.route === "state_snap");
+  const firstIsSnap = !!firstStep && isSnapProgram(firstStep.name, firstStep.programId);
 
   // Family-language chips, not taxonomy: "Paying for care" is our enum label
   // and confused real families (TJ QA, 2026-07-28). Play back their situation
@@ -321,10 +329,10 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
             nextStep={nextStepInfo}
           />
         ) : null}
-        {cascade.applied?.at ? (
-          <ApplyStatusCard token={token} appliedAt={cascade.applied.at} initial={cascade.applied.decision ?? null} />
-        ) : null}
-        {firstStep && applyHref && !cascade.applied ? (
+        {applications.map((a) => (
+          <ApplyStatusCard key={a.route} token={token} route={a.route} appliedAt={a.at} initial={a.decision ?? null} />
+        ))}
+        {firstStep && applyHref && !(firstIsSnap ? appliedSnap : cascade.applied) ? (
           <a
             href={applyHref}
             className="mt-3 flex min-h-[52px] items-center justify-center rounded-2xl border-[1.5px] border-primary-800 text-[16px] font-semibold text-primary-800 no-underline"
@@ -412,6 +420,14 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
                             </span>
                           )}
                         </Link>
+                        {snapApply && p.id === snapApply.programId && !appliedSnap ? (
+                          <a
+                            href={snapApply.href}
+                            className="mt-2 inline-flex min-h-[40px] items-center rounded-full border-[1.5px] border-primary-800 px-4 text-[14px] font-semibold text-primary-800 no-underline"
+                          >
+                            Apply with us
+                          </a>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

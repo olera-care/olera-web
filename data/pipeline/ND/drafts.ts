@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ND/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.621Z
+ * Last updated: 2026-10-10T05:17:44.918Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1389,6 +1389,10 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Apply before you have every document. North Dakota allows you to file first and provide verification afterward. Waiting until the file is complete can delay the benefit start date by weeks.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://dhsbenefits.dhs.nd.gov/SSPPortal/public/?userType=client"
+          },
+          {
             "label": "Apply online (ND Self-Service Portal)",
             "url": "https://www.applyforhelp.nd.gov"
           },
@@ -1501,7 +1505,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "1-866-614-6005",
       "sourceUrl": "https://www.hhs.nd.gov/applyforhelp/snap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-10-06",

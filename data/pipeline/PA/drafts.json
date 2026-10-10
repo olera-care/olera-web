@@ -917,6 +917,10 @@
         "tip": "Seniors over the gross income limit can still qualify through net income rules, don't assume you make too much without applying.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://www.compass.dhs.pa.gov/home/#/"
+          },
+          {
             "label": "COMPASS Application Portal",
             "url": "https://www.compass.state.pa.us"
           },

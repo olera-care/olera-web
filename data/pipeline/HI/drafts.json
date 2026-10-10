@@ -882,6 +882,10 @@
         "tip": "Don't forget to report medical expenses over $35/month, this deduction can significantly increase your loved one's monthly benefits.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://pais.dhs.hawaii.gov/PAIS/#!/"
+          },
+          {
             "label": "Apply Online",
             "url": "https://www.mybenefitshawaii.org"
           },

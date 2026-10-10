@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.732Z
+ * Last updated: 2026-10-10T05:17:44.917Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -789,6 +789,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Medical expenses are key for seniors, gather all receipts for medications, doctor visits, insurance premiums, and medical equipment from the past 3 months",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://epass.nc.gov/"
+          },
           {
             "label": "NC ePASS Online Application",
             "url": "https://epass.nc.gov"

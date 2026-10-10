@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.214Z
+ * Last updated: 2026-10-10T05:17:44.891Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -957,6 +957,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Because this is for seniors on fixed income, the verification process is streamlined, Social Security and other benefits are often verified automatically without needing additional paperwork.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://gateway.ga.gov/access"
+          },
           {
             "label": "Senior SNAP application (Form 298)",
             "url": "https://dfcs.georgia.gov/media/16446/download"

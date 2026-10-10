@@ -935,6 +935,10 @@
         "tip": "Medical expenses over $35/month for seniors count as deductions, gather receipts for prescriptions, insurance premiums, and medical bills.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://nheasy.nh.gov/"
+          },
+          {
             "label": "NHEasy Online Application",
             "url": "https://www.nheasy.nh.gov"
           },

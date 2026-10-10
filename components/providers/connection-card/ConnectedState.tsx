@@ -5,6 +5,7 @@ import { useSavedProviders } from "@/hooks/use-saved-providers";
 import NextBestOption from "./NextBestOption";
 import type { PriceSource } from "@/components/providers/PriceEstimate";
 import { isShowablePrice, priceCaption } from "@/components/providers/price-labels";
+import DeliveryTitle, { DeliveryMark, useDeliveryUnreachable } from "./DeliveryTitle";
 
 interface ConnectedStateProps {
   providerName: string;
@@ -43,6 +44,7 @@ export default function ConnectedState({
 }: ConnectedStateProps) {
   const { isSaved, toggleSave } = useSavedProviders();
   const providerIsSaved = isSaved(providerSlug);
+  const unreachable = useDeliveryUnreachable(connectionId);
 
   const careLabel = careTypes.length > 0 ? careTypes[0] : null;
   const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
@@ -65,24 +67,26 @@ export default function ConnectedState({
   return (
     <div>
       {/* Success banner */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 rounded-xl mb-4 border border-emerald-100">
-        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-emerald-600"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-4 border ${unreachable ? "bg-amber-50 border-amber-100" : "bg-emerald-50 border-emerald-100"}`}>
+        <DeliveryMark connectionId={connectionId} circleClassName="w-8 h-8" iconClassName="w-4 h-4">
+          <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-emerald-600"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        </DeliveryMark>
         <p className="text-[14px] font-semibold text-gray-900">
-          Connected with {providerName}
+          <DeliveryTitle connectionId={connectionId} providerName={providerName} />
         </p>
       </div>
 

@@ -15,6 +15,7 @@
  * sequence timeline) — keep that in sync when this path changes.
  */
 import { companionActive } from "@/lib/family-comms/benefits-companion.server";
+import { appliedForFirstStep } from "@/lib/benefits/applications";
 import { inOleraVoice } from "@/lib/family-comms/olera-voice";
 import { getBenefitsCompanionSettings } from "@/lib/analytics/benefits-companion-settings";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -305,7 +306,7 @@ async function deliverNavigatorLetter(
    * The coordinator's apply-along check-ins (B3) follow them instead. TJ's
    * button still sends, for a person who has read the case.
    */
-  if (opts.trigger !== "admin" && readBenefitsCascade(meta).applied) {
+  if (opts.trigger !== "admin" && appliedForFirstStep(readBenefitsCascade(meta))) {
     return { ok: false, conflict: true, error: "This family already applied through the apply-along; its check-ins follow up instead." };
   }
   /**

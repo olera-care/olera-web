@@ -994,6 +994,10 @@
         "tip": "Elderly households can claim medical expense deductions above $35/month to reduce countable income, gather receipts for prescription costs, Medicare premiums, and other medical bills",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://formsportal.mo.gov/content/forms/af/moa/my-dss/family-support-division/FS-1/fs-1.html"
+          },
+          {
             "label": "Apply Online (Missouri DSS)",
             "url": "https://mydss.mo.gov"
           }

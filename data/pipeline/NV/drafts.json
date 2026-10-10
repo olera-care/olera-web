@@ -774,6 +774,10 @@
         "tip": "Medical expenses over $35/month increase benefit amounts, include Medicare premiums, prescription costs, and out-of-pocket medical bills.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://accessnevada.nv.gov/public/landing-page"
+          },
+          {
             "label": "Access Nevada Online Application",
             "url": "https://accessnevada.nv.gov"
           },

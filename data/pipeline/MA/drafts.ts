@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:22:31.165Z
+ * Last updated: 2026-10-10T05:17:44.906Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -394,19 +394,10 @@ export const drafts: PipelineStateDrafts = {
           "field": "age",
           "from": 65,
           "to": 60,
-          "source": "https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants",
+          "source": "https://www.mass.gov/doc/frail-elder-waiver-fact-sheet-0/download",
           "severity": "high",
           "why": "field age is applied by hand",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
-        },
-        {
-          "field": "assets_couple",
-          "from": 154140,
-          "to": 162660,
-          "source": "https://www.mass.gov/doc/frail-elder-waiver-fact-sheet-0/download",
-          "severity": "medium",
-          "why": "asset limit (federal figure; applied with the yearly table)",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
         }
       ]
     },
@@ -632,7 +623,7 @@ export const drafts: PipelineStateDrafts = {
           "source": "https://www.mass.gov/doc/pace-brochure-english/download",
           "severity": "medium",
           "why": "phone (run with --phones to apply official ones)",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
         }
       ]
     },
@@ -755,6 +746,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Seniors can report changes in medical expenses anytime during their benefit period to potentially increase their monthly benefit amount.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://dtaconnect.eohhs.mass.gov/"
+          },
           {
             "label": "SNAP Application for Seniors",
             "url": "https://www.mass.gov/lists/snap-application-for-seniors"
@@ -1044,7 +1039,21 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.mass.gov/info-details/weatherization-assistance-program-wap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "reviewQueue": null,
+      "reviewQueue": [
+        {
+          "field": "phone",
+          "from": [
+            "6173576000",
+            "9784590551",
+            "6175731100"
+          ],
+          "to": "211",
+          "source": "https://www.mass.gov/info-details/weatherization-assistance-program-wap",
+          "severity": "medium",
+          "why": "not a 10-digit number",
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
+        }
+      ],
       "appliedCorrections": [
         {
           "field": "phone_added",
@@ -1371,10 +1380,10 @@ export const drafts: PipelineStateDrafts = {
             "8009856000"
           ],
           "to": "8002434636",
-          "source": "https://www.umass.edu/agriculture-food-environment/nutrition/publications-resources/food-access-resources",
+          "source": "https://www.mass.gov/doc/senior-nutrition-program-flyer/download",
           "severity": "medium",
-          "why": "aggregator source",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
+          "why": "phone (run with --phones to apply official ones)",
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
         }
       ]
     },
@@ -1726,11 +1735,11 @@ export const drafts: PipelineStateDrafts = {
             "5088602241",
             "211"
           ],
-          "to": "6175424180",
-          "source": "https://www.mass.gov/doc/operation-able-2024-2028-wioa-public-listening-session/download",
+          "to": "4137876124",
+          "source": "https://www.springfield-ma.gov/hhs/fileadmin/elder_affairs_files/SCSEP_Enrollment_Application_Form_-_Update_October_2020.pdf",
           "severity": "medium",
-          "why": "source dated 2024",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
+          "why": "source dated 2020",
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
         }
       ]
     },
@@ -2217,20 +2226,20 @@ export const drafts: PipelineStateDrafts = {
         {
           "field": "income_1",
           "from": 1761,
-          "to": 35910,
-          "source": "https://www.mass.gov/doc/prescription-advantage-rate-schedule-guide-for-members-eligible-for-medicare-1/download",
+          "to": 59400,
+          "source": "https://www.marlborough-ma.gov/DocumentCenter/View/384/Prescription-Advantage-PDF",
           "severity": "high",
           "why": "outside sanity bounds (3x)",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
         },
         {
           "field": "income_2",
           "from": 2379,
-          "to": 48690,
-          "source": "https://www.mass.gov/doc/prescription-advantage-rate-schedule-guide-for-members-eligible-for-medicare-1/download",
+          "to": 80100,
+          "source": "https://www.marlborough-ma.gov/DocumentCenter/View/384/Prescription-Advantage-PDF",
           "severity": "high",
           "why": "outside sanity bounds (3x)",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
         }
       ]
     },
@@ -2459,7 +2468,26 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.mass.gov/home-modification-loan-program-hmlp",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "reviewQueue": null,
+      "reviewQueue": [
+        {
+          "field": "assets_individual",
+          "from": 75000,
+          "to": 175000,
+          "source": "https://www.wamc.org/news/2025-12-09/a-state-grant-can-help-berkshire-residents-with-accessibility-needs-make-crucial-home-improvements?_amp=true",
+          "severity": "high",
+          "why": "aggregator source",
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
+        },
+        {
+          "field": "assets_couple",
+          "from": 75000,
+          "to": 175000,
+          "source": "https://www.wamc.org/news/2025-12-09/a-state-grant-can-help-berkshire-residents-with-accessibility-needs-make-crucial-home-improvements?_amp=true",
+          "severity": "high",
+          "why": "aggregator source",
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
+        }
+      ],
       "appliedCorrections": [
         {
           "field": "phone_added",
@@ -2881,7 +2909,7 @@ export const drafts: PipelineStateDrafts = {
           "source": "https://www.mass.gov/doc/summary-document-state-programs-and-services-for-alzheimers-and-dementia/download",
           "severity": "medium",
           "why": "phone (run with --phones to apply official ones)",
-          "flaggedAt": "2026-10-02T07:38:36.005Z"
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
         }
       ]
     },
@@ -3097,7 +3125,22 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.mass.gov/senior-care-options",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "reviewQueue": null,
+      "reviewQueue": [
+        {
+          "field": "phone",
+          "from": [
+            "8008412900",
+            "8006334227",
+            "8007721213",
+            "8885375816"
+          ],
+          "to": "8888850484",
+          "source": "https://www.mass.gov/info-details/senior-care-options-eligibility",
+          "severity": "medium",
+          "why": "phone (run with --phones to apply official ones)",
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
+        }
+      ],
       "appliedCorrections": [
         {
           "field": "phone_added",
@@ -4159,7 +4202,18 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 243-4636",
       "sourceUrl": "https://www.mass.gov/info-details/family-caregiver-support-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-10-06"
+      "draftedAt": "2026-10-06",
+      "reviewQueue": [
+        {
+          "field": "age",
+          "from": 18,
+          "to": 55,
+          "source": "https://www.mass.gov/info-details/aging-services-network",
+          "severity": "high",
+          "why": "field age is applied by hand",
+          "flaggedAt": "2026-10-06T12:22:31.017Z"
+        }
+      ]
     }
   ],
   "stateOverview": {

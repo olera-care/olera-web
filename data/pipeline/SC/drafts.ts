@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.987Z
+ * Last updated: 2026-10-10T05:17:44.934Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -784,6 +784,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Medical expenses over $35/month (prescriptions, Medicare premiums, doctor visits) can be deducted from your income calculation, potentially increasing your benefit amount.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://benefitsportal.dss.sc.gov/#/login"
+          },
           {
             "label": "SC DSS SNAP Application Portal",
             "url": "https://dss.sc.gov/assistance-programs/snap/"

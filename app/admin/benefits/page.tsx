@@ -1287,6 +1287,7 @@ export default function AdminBenefitsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-4">
             <h1 className="text-display-xs font-bold text-gray-900 font-serif">Benefits</h1>
+            <Link href="/admin/benefits/checkpoints" className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800">Checkpoints</Link>
             <Link href="/admin/benefits/study" className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800">CARE-NAV study</Link>
           </div>
           <div className="flex rounded-lg border border-gray-200 overflow-hidden">

@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const { data: config, error: configError } = await db.from("cron_config")
       .select("enabled").eq("job_id", "building-availability").maybeSingle();
-    if (configError || config?.enabled !== true) return { status: "held", reason: "Building availability email requires explicit enablement", dry_run: dryRun };
+    // A dry run reserves and sends nothing, so it may run while paused.
+    if (!dryRun && (configError || config?.enabled !== true)) return { status: "held", reason: "Building availability email requires explicit enablement", dry_run: dryRun };
     const now = new Date();
     const started = Date.now();
     const counts = { sent: 0, suppressed: 0, errors: 0, wouldSend: 0, processed: 0, skipped: {} as Record<string, number> };
@@ -64,6 +65,12 @@ export async function GET(request: NextRequest) {
           ? meta.building_payment_insurance_attempted_at : null;
         const nudgeAt = typeof meta.notification_nudge_attempted_at === "string"
           ? meta.notification_nudge_attempted_at : null;
+        // "No payment email yet" only means skipped when its skip rule applies
+        // (payment options already listed). Otherwise the payment email is
+        // still due, and at launch the whole backlog would get emails 1 and 2
+        // in the same run.
+        const hasPayments = Array.isArray(meta.accepted_payments) && meta.accepted_payments.length > 0;
+        if (!paymentAt && !hasPayments) { skip("waiting_for_payment_email"); continue; }
         const anchor = paymentAt || nudgeAt;
         if (!anchor) { skip("no_anchor_timestamp"); continue; }
         const elapsed = now.getTime() - new Date(anchor).getTime();
@@ -105,5 +112,5 @@ export async function GET(request: NextRequest) {
       if (profiles.length < 100) break;
     }
     return { status: "ok", dry_run: dryRun, ...counts };
-  });
+  }, { ignorePause: dryRun });
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServiceClient } from "@/lib/admin";
 import { validateAvailabilityToken } from "@/lib/claim-tokens";
 
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Fetch profile to verify email match
     const { data: profile, error: fetchError } = await db
       .from("business_profiles")
-      .select("id, email, metadata")
+      .select("id, email, slug, metadata")
       .eq("id", profileId)
       .single();
 
@@ -63,6 +64,10 @@ export async function POST(request: NextRequest) {
       console.error("[api/provider/availability] Update error:", updateError);
       return NextResponse.json({ ok: false, error: "Failed to update availability" }, { status: 500 });
     }
+
+    // The public page is cached for an hour; the thank-you page says the mark
+    // is there now, so refresh this provider's page.
+    if (profile.slug) revalidatePath(`/provider/${profile.slug}`);
 
     // Log activity
     await db.from("provider_activity").insert({

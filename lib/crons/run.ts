@@ -30,6 +30,11 @@ type Summary = Record<string, unknown>;
 interface CronRunOpts {
   /** Who triggered this run. Defaults to "cron" (the Vercel scheduler). Pass "admin:<email>" for manual fires. */
   triggeredBy?: string;
+  /**
+   * Run even while paused. Only for a dry run that reserves and sends nothing,
+   * so a paused email can be checked before anyone switches it on.
+   */
+  ignorePause?: boolean;
 }
 
 interface PauseState {
@@ -179,7 +184,7 @@ export async function withCronRun(
 ): Promise<Response> {
   const triggeredBy = opts.triggeredBy ?? "cron";
 
-  const pause = await readPauseState(jobId);
+  const pause = opts.ignorePause ? { paused: false, reason: null, pausedUntil: null } : await readPauseState(jobId);
   if (pause.paused) {
     await insertRun(jobId, triggeredBy, "skipped_paused", {
       reason: pause.reason,

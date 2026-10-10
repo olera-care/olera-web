@@ -8,6 +8,7 @@ import { resolveBuildingCategory, isFacilityCategory } from "@/lib/provider-comm
 import { generateCompletionUrl } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
 import type { Profile } from "@/lib/types";
+import { calculateProfileCompleteness } from "@/lib/profile-completeness";
 
 const EMAIL_TYPE = "building_photos";
 
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const { data: config, error: configError } = await db.from("cron_config")
       .select("enabled").eq("job_id", "building-photos").maybeSingle();
-    if (configError || config?.enabled !== true) return { status: "held", reason: "Building photos email requires explicit enablement", dry_run: dryRun };
+    // A dry run reserves and sends nothing, so it may run while paused.
+    if (!dryRun && (configError || config?.enabled !== true)) return { status: "held", reason: "Building photos email requires explicit enablement", dry_run: dryRun };
     const now = new Date();
     const started = Date.now();
     const counts = { sent: 0, suppressed: 0, errors: 0, wouldSend: 0, processed: 0, skipped: {} as Record<string, number> };
@@ -68,6 +70,14 @@ export async function GET(request: NextRequest) {
           ? meta.building_facility_manager_attempted_at : null;
         const availAt = typeof meta.building_availability_attempted_at === "string"
           ? meta.building_availability_attempted_at : null;
+        // An earlier email with no attempt only counts as skipped when its own
+        // skip rule applies; otherwise it is still due, and photos waits.
+        const completeness = calculateProfileCompleteness(profile as unknown as Profile, meta);
+        const below80 = completeness.overall < 80;
+        const staff = meta.staff as { name?: string } | undefined;
+        const hasServices = Array.isArray(profile.care_types) && profile.care_types.length > 0;
+        if (!fmAt && !staff?.name && below80) { skip("waiting_for_owner_email"); continue; }
+        if (!careAt && !hasServices && below80) { skip("waiting_for_services_email"); continue; }
         const anchor = careAt || fmAt || availAt;
         if (!anchor) { skip("no_anchor_timestamp"); continue; }
         if (now.getTime() - new Date(anchor).getTime() < DELAY_MS) { skip("too_soon"); continue; }
@@ -129,5 +139,5 @@ export async function GET(request: NextRequest) {
       if (profiles.length < 100) break;
     }
     return { status: "ok", dry_run: dryRun, ...counts };
-  });
+  }, { ignorePause: dryRun });
 }

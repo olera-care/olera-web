@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const { data: config, error: configError } = await db.from("cron_config")
       .select("enabled").eq("job_id", "building-payment-insurance").maybeSingle();
-    if (configError || config?.enabled !== true) return { status: "held", reason: "Building payment email requires explicit enablement", dry_run: dryRun };
+    // A dry run reserves and sends nothing, so it may run while paused.
+    if (!dryRun && (configError || config?.enabled !== true)) return { status: "held", reason: "Building payment email requires explicit enablement", dry_run: dryRun };
     const now = new Date();
     const started = Date.now();
     const counts = { sent: 0, suppressed: 0, errors: 0, wouldSend: 0, processed: 0, skipped: {} as Record<string, number> };
@@ -104,5 +105,5 @@ export async function GET(request: NextRequest) {
       if (profiles.length < 100) break;
     }
     return { status: "ok", dry_run: dryRun, ...counts };
-  });
+  }, { ignorePause: dryRun });
 }

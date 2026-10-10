@@ -356,7 +356,11 @@ async function pullMarketplace(
     exactCount(db.from("provider_activity").select("id", { count: "exact", head: true }).eq("event_type", "question_received").gte("created_at", from).lt("created_at", to), "Questions"),
     exactCount(db.from("seeker_activity").select("id", { count: "exact", head: true }).eq("event_type", "benefits_completed").gte("created_at", from).lt("created_at", to), "Benefits completions"),
     db.from("provider_activity").select("provider_id").eq("event_type", "question_responded").gte("created_at", from).lt("created_at", to).limit(50_000),
-    pullRequestLoop(db, from, to),
+    // Secondary to the acquisition numbers: a failure here must not lose the week.
+    pullRequestLoop(db, from, to).catch((error) => {
+      console.error("[growth] request loop failed:", error);
+      return undefined;
+    }),
   ]);
   if (answerRows.error) throw new Error(`Provider responses query failed: ${answerRows.error.message}`);
   const providersAnswering = new Set((answerRows.data || []).map((row) => row.provider_id).filter(Boolean)).size;

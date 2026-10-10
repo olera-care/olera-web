@@ -16,7 +16,8 @@ import type { GrowthLoopSide, GrowthRequestLoop } from "./types";
  * notified, the agency has an address, and no email went. From 22 Sep to
  * 10 Oct 2026 that was 51 requests and nobody saw it for 18 days.
  *
- * Test listings (slug "test-…") and archived requests are left out.
+ * Test listings (slug "test-…") and archived requests are left out; archived
+ * questions stay in.
  */
 
 // Any email that hands the agency this request. The first-lead celebration
@@ -95,6 +96,8 @@ export async function pullRequestLoop(db: SupabaseClient, from: string, to: stri
       .from("email_log")
       .select("email_type, status, delivered_at, first_opened_at, metadata")
       .in("metadata->>connection_id", ids)
+      // No index on connection_id; every email about a request is newer than it.
+      .gte("created_at", from)
       .limit(20_000);
     if (error) throw new Error(`Request loop email query failed: ${error.message}`);
     for (const row of (data || []) as Array<{ email_type: string; status: string; delivered_at: string | null; first_opened_at: string | null; metadata: Record<string, unknown> | null }>) {
@@ -148,7 +151,8 @@ export async function pullRequestLoop(db: SupabaseClient, from: string, to: stri
     .limit(50_000);
   if (qError) throw new Error(`Question loop query failed: ${qError.message}`);
   const questions = ((rawQuestions || []) as Array<{ id: string; provider_id: string | null; status: string | null; metadata: Record<string, unknown> | null }>)
-    .filter((q) => !(q.provider_id || "").startsWith("test-") && q.status !== "archived");
+    // Questions to agencies that opted out are still families asking (plan: every question counts).
+    .filter((q) => !(q.provider_id || "").startsWith("test-"));
   const answeredIds = new Set(questions.filter((q) => q.status === "answered").map((q) => q.id));
 
   let askersWithEmail = 0;

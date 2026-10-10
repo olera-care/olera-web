@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     let cursor = "";
     while (Date.now() - started < 45_000 && counts.sent + counts.suppressed + counts.errors < 100) {
       let query = db.from("business_profiles")
-        .select("id,slug,type,email,metadata,state,display_name,city,provider_category,description,care_types,images,image")
+        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url")
         .eq("type", "organization").not("account_id", "is", null)
         // Must have received the availability email (every provider gets it)
         .not("metadata->>building_availability_attempt_id", "is", null)

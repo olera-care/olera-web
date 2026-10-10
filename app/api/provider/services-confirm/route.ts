@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Fetch profile to verify email match and check completeness for graduation
     const { data: profile, error: fetchError } = await db
       .from("business_profiles")
-      .select("id, email, care_types, metadata, display_name, description, images, image, slug, provider_category, city, state, type")
+      .select("id, email, care_types, metadata, lifecycle_stage, display_name, description, image_url, slug, category, city, address, state, type")
       .eq("id", profileId)
       .single();
 
@@ -71,9 +71,10 @@ export async function POST(request: NextRequest) {
     const meta = (profile.metadata || {}) as Record<string, unknown>;
     const updatedProfile = { ...profile, care_types: merged };
     const completeness = calculateProfileCompleteness(updatedProfile as unknown as Profile, meta);
-    if (completeness.overall >= 80 && meta.lifecycle_stage === "building") {
+    // The stage is the lifecycle_stage column (migration 197), not metadata.
+    if (completeness.overall >= 80 && (profile as { lifecycle_stage?: string | null }).lifecycle_stage === "building") {
       await db.from("business_profiles")
-        .update({ metadata: { ...meta, lifecycle_stage: "growth", graduated_at: new Date().toISOString() } })
+        .update({ lifecycle_stage: "growth" })
         .eq("id", profileId)
         .then(({ error: gradError }) => {
           if (gradError) console.error("[api/provider/services-confirm] Graduation error:", gradError);

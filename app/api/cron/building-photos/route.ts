@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, appendTrackingParams } from "@/lib/email";
 import { buildingPhotosEmail } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
+import { buildingCategory } from "@/lib/provider-comms/category";
 import { generateCompletionUrl } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
 import type { Profile } from "@/lib/types";
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     let cursor = "";
     while (Date.now() - started < 45_000 && counts.sent + counts.suppressed + counts.errors < 100) {
       let query = db.from("business_profiles")
-        .select("id,slug,type,email,metadata,state,display_name,city,provider_category,description,care_types,images,image")
+        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url")
         .eq("type", "organization").not("account_id", "is", null)
         // Must have received the availability email (every provider gets it)
         .not("metadata->>building_availability_attempt_id", "is", null)
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
         const meta = (profile.metadata || {}) as Record<string, unknown>;
 
         // Only facility-based categories
-        const category = profile.provider_category as string | null;
+        const category = buildingCategory(profile.category as string | null);
         if (!category || !FACILITY_CATEGORIES.has(category)) { skip("not_facility_category"); continue; }
 
         // Gate: 7 days after care services, facility manager, or availability (whichever is most recent)
@@ -112,13 +113,10 @@ export async function GET(request: NextRequest) {
             counts.sent++;
             // Graduate provider to growth stage — this is the final building email
             await db.from("business_profiles")
-              .update({
-                metadata: {
-                  ...meta,
-                  lifecycle_stage: "growth",
-                  graduated_at: new Date().toISOString(),
-                },
-              })
+              // The stage is a column (migration 197), and only the column: a
+              // metadata write here would also put back the copy read before
+              // reserve_building_photos stamped the once-only flag, erasing it.
+              .update({ lifecycle_stage: "growth" })
               .eq("id", profile.id)
               .then(({ error: gradError }) => {
                 if (gradError) console.error("[building-photos] Graduation error:", profile.id, gradError);

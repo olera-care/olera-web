@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, appendTrackingParams } from "@/lib/email";
 import { buildingCareServicesEmail, type ProviderCategory } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
+import { buildingCategory } from "@/lib/provider-comms/category";
 import { generateServicesUrls } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
 import { calculateProfileCompleteness } from "@/lib/profile-completeness";
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
     let cursor = "";
     while (Date.now() - started < 45_000 && counts.sent + counts.suppressed + counts.errors < 100) {
       let query = db.from("business_profiles")
-        .select("id,slug,type,email,metadata,state,display_name,city,provider_category,description,care_types,images,image")
+        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url")
         .eq("type", "organization").not("account_id", "is", null)
         // Must have received the availability email (every provider gets it)
         .not("metadata->>building_availability_attempt_id", "is", null)
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
         if (completeness.overall >= COMPLETION_SKIP_THRESHOLD) { skip("profile_above_80_pct"); continue; }
 
         // Skip if no recognized category (can't suggest services)
-        const category = profile.provider_category as string | null;
+        const category = buildingCategory(profile.category as string | null);
         if (!category || !CATEGORY_SERVICES[category]) { skip("unknown_category"); continue; }
 
         if (!notificationBusinessHours(now, profile.state)) { skip("outside_business_hours"); continue; }

@@ -541,7 +541,11 @@ export async function GET(request: NextRequest) {
         counts.skipReasons.already_at_stage++;
         continue;
       }
-      if (daysSinceInquiry > 7 && currentStage < 3) {
+      // Judged by when the family asked, not when we first emailed: a lead whose
+      // email went out late (staff added it, or a catch-up send) would otherwise get
+      // "a family reached out yesterday" about a request weeks old.
+      const daysSinceFamilyAsked = Math.floor((now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSinceFamilyAsked > 7 && currentStage < 3) {
         counts.skipped++;
         counts.skipReasons.stale++;
         continue;

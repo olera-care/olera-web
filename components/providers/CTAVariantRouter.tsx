@@ -84,6 +84,10 @@ function useImpressionTracking(
     const resolved = variant !== null;
     const dedupeKey = `${rendered}|${resolved}`;
     if (firedRef.current.has(dedupeKey)) return;
+    // Same card already reported on screen (the resolved repeat of the legacy
+    // default). Kept for the A/B arms, but flagged so the growth funnel counts
+    // one "visible" per card shown, not two for 77% of first visits.
+    const alreadyVisible = [...firedRef.current].some((k) => k.startsWith(`${rendered}|`));
     firedRef.current.add(dedupeKey);
     // Fire-and-forget POST to the activity tracking endpoint.
     // Using navigator.sendBeacon would be nice but is overkill for an
@@ -100,6 +104,7 @@ function useImpressionTracking(
           variant: rendered,
           /** false = fired before the weights fetch resolved, showing the legacy default */
           variant_resolved: resolved,
+          ...(alreadyVisible && { already_visible: true }),
           surface,
           visit_id: getOrCreateVisitId(),
           page_path: `/provider/${providerSlug}`,

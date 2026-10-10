@@ -48,6 +48,7 @@ export default function TopProvidersSection({ geoState, geoCity }: TopProvidersS
           let q = supabase
             .from(PROVIDERS_TABLE)
             .select("*")
+            .not("slug", "like", "test-%") // QA listings stay reachable, never listed
             .not("deleted", "is", true)
             .not("google_rating", "is", null)
             .gte("google_rating", 3.5)

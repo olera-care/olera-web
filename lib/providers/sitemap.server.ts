@@ -94,6 +94,7 @@ export async function getActiveProvidersForSitemapShard(
       const { data } = await db
         .from("olera-providers")
         .select(providerSelect)
+        .not("slug", "like", "test-%") // QA listings stay reachable, never listed
         .or("deleted.is.null,deleted.eq.false")
         .range(from, to);
       providers = data as SitemapProviderRow[] | null;
@@ -120,6 +121,7 @@ export async function getActiveClaimedProviderSlugs(
     const { data } = await db
       .from("business_profiles")
       .select("slug")
+      .not("slug", "like", "test-%") // QA listings stay reachable, never listed
       .in("type", ["organization", "caregiver"])
       .eq("is_active", true);
     return (data ?? []).map((r) => (r as { slug: string | null }).slug);

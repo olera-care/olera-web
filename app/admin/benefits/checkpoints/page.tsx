@@ -142,14 +142,15 @@ export default function CheckpointsPage() {
             <section className="mb-10">
               <h2 className="text-base font-semibold text-gray-900 mb-1">Conversation against form</h2>
               <p className="text-sm text-gray-500 mb-3">Randomized families only, since the split began on 7 Oct.</p>
+              <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead>
                   <tr className="text-gray-400">
                     <th className="font-normal pb-2" />
-                    <th className="font-normal pb-2 text-right">Begun</th>
-                    <th className="font-normal pb-2 text-right">Reached a plan</th>
-                    <th className="font-normal pb-2 text-right">Started an application</th>
-                    <th className="font-normal pb-2 text-right">Submitted</th>
+                    <th className="font-normal pb-2 pl-4 text-right">Begun</th>
+                    <th className="font-normal pb-2 pl-4 text-right">Reached a plan</th>
+                    <th className="font-normal pb-2 pl-4 text-right">Started an application</th>
+                    <th className="font-normal pb-2 pl-4 text-right">Submitted</th>
                   </tr>
                 </thead>
                 <tbody className="tabular-nums divide-y divide-gray-100 border-y border-gray-100">
@@ -158,15 +159,16 @@ export default function CheckpointsPage() {
                     return (
                       <tr key={arm}>
                         <td className="py-2 text-gray-900 capitalize">{arm}</td>
-                        <td className="py-2 text-right">{c.begun}</td>
-                        <td className="py-2 text-right">{c.completed} <span className="text-gray-400">({rate(c.completed, c.begun)})</span></td>
-                        <td className="py-2 text-right">{c.started} <span className="text-gray-400">({rate(c.started, c.begun)})</span></td>
-                        <td className="py-2 text-right">{c.submitted} <span className="text-gray-400">({rate(c.submitted, c.begun)})</span></td>
+                        <td className="py-2 pl-4 text-right whitespace-nowrap">{c.begun}</td>
+                        <td className="py-2 pl-4 text-right whitespace-nowrap">{c.completed} <span className="text-gray-400">({rate(c.completed, c.begun)})</span></td>
+                        <td className="py-2 pl-4 text-right whitespace-nowrap">{c.started} <span className="text-gray-400">({rate(c.started, c.begun)})</span></td>
+                        <td className="py-2 pl-4 text-right whitespace-nowrap">{c.submitted} <span className="text-gray-400">({rate(c.submitted, c.begun)})</span></td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
+              </div>
             </section>
           )}
 

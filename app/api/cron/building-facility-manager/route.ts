@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, appendTrackingParams } from "@/lib/email";
-import { buildingFacilityManagerEmail } from "@/lib/email-templates";
+import { buildingFacilityManagerEmail, buildingOwnerSubject } from "@/lib/email-templates";
+import { resolveBuildingCategory, isFacilityCategory } from "@/lib/provider-comms/category";
 import { withCronRun } from "@/lib/crons/run";
 import { generateCompletionUrl } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     let cursor = "";
     while (Date.now() - started < 45_000 && counts.sent + counts.suppressed + counts.errors < 100) {
       let query = db.from("business_profiles")
-        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url")
+        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url,source_provider_id")
         .eq("type", "organization").not("account_id", "is", null)
         // Must have received the availability email (every provider gets it)
         .not("metadata->>building_availability_attempt_id", "is", null)
@@ -68,7 +69,10 @@ export async function GET(request: NextRequest) {
         if (!profile.email) { skip("no_email"); continue; }
         if (dryRun) { counts.wouldSend++; continue; }
         // Reserve atomically
-        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_facility_manager", { p_profile_id: profile.id, p_email: profile.email });
+        const providerName = profile.display_name || "your organization";
+        const isFacility = isFacilityCategory(await resolveBuildingCategory(db, profile));
+        const subject = buildingOwnerSubject(providerName, isFacility);
+        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_facility_manager", { p_profile_id: profile.id, p_email: profile.email, p_subject: subject });
         if (reserveError) throw new Error(`Building facility manager reservation failed: ${reserveError.message}`);
         if (!emailLogId) { skip("ineligible_or_digest_deferral"); continue; }
         try {
@@ -76,12 +80,13 @@ export async function GET(request: NextRequest) {
           const firstName = contactName ? contactName.split(/\s+/)[0] : null;
           const url = appendTrackingParams(generateCompletionUrl(profile.slug, profile.email!, "owner"), emailLogId);
           const result = await sendEmail({
-            to: profile.email!, subject: `Put a face behind ${profile.display_name || "your community"}`,
+            to: profile.email!, subject,
             html: buildingFacilityManagerEmail({
               firstName: firstName || null,
-              providerName: profile.display_name || "your organization",
+              providerName,
               ctaUrl: url,
               providerSlug: profile.slug,
+              isFacility,
             }),
             emailType: EMAIL_TYPE, recipientType: "provider", providerId: profile.id,
             recipientProfileId: profile.id, emailLogId,

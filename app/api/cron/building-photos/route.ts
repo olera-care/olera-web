@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, appendTrackingParams } from "@/lib/email";
-import { buildingPhotosEmail } from "@/lib/email-templates";
+import { buildingPhotosEmail, buildingPhotosSubject } from "@/lib/email-templates";
+import { monthlyPageViews } from "@/lib/provider-comms/page-views";
 import { withCronRun } from "@/lib/crons/run";
-import { buildingCategory } from "@/lib/provider-comms/category";
+import { resolveBuildingCategory, isFacilityCategory } from "@/lib/provider-comms/category";
 import { generateCompletionUrl } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
 import type { Profile } from "@/lib/types";
 
 const EMAIL_TYPE = "building_photos";
 
-/** Facility-based categories that have a physical space to photograph. */
-const FACILITY_CATEGORIES = new Set([
-  "assisted_living",
-  "memory_care",
-  "nursing_home",
-  "independent_living",
-]);
 
 /** 7 days after care services email (or previous anchor if skipped). */
 const DELAY_MS = 7 * 24 * 3600_000;
@@ -44,7 +38,7 @@ export async function GET(request: NextRequest) {
     let cursor = "";
     while (Date.now() - started < 45_000 && counts.sent + counts.suppressed + counts.errors < 100) {
       let query = db.from("business_profiles")
-        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url")
+        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url,source_provider_id")
         .eq("type", "organization").not("account_id", "is", null)
         // Must have received the availability email (every provider gets it)
         .not("metadata->>building_availability_attempt_id", "is", null)
@@ -64,8 +58,8 @@ export async function GET(request: NextRequest) {
         const meta = (profile.metadata || {}) as Record<string, unknown>;
 
         // Only facility-based categories
-        const category = buildingCategory(profile.category as string | null);
-        if (!category || !FACILITY_CATEGORIES.has(category)) { skip("not_facility_category"); continue; }
+        const category = await resolveBuildingCategory(db, profile);
+        if (!isFacilityCategory(category)) { skip("not_facility_category"); continue; }
 
         // Gate: 7 days after care services, facility manager, or availability (whichever is most recent)
         const careAt = typeof meta.building_care_services_attempted_at === "string"
@@ -87,20 +81,24 @@ export async function GET(request: NextRequest) {
         if (dryRun) { counts.wouldSend++; continue; }
 
         // Reserve atomically
-        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_photos", { p_profile_id: profile.id, p_email: profile.email });
+        const providerName = profile.display_name || "your community";
+        const subject = buildingPhotosSubject(providerName);
+        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_photos", { p_profile_id: profile.id, p_email: profile.email, p_subject: subject });
         if (reserveError) throw new Error(`Building photos reservation failed: ${reserveError.message}`);
         if (!emailLogId) { skip("ineligible_or_digest_deferral"); continue; }
         try {
           const contactName = typeof meta.contact_name === "string" ? meta.contact_name : null;
           const firstName = contactName ? contactName.split(/\s+/)[0] : null;
           const photoCount = images.length;
+          const monthlyViews = await monthlyPageViews(db, [profile.id, profile.slug, profile.source_provider_id as string | null]);
           const url = appendTrackingParams(generateCompletionUrl(profile.slug, profile.email!, "gallery"), emailLogId);
           const result = await sendEmail({
-            to: profile.email!, subject: "Your Olera page is missing photos",
+            to: profile.email!, subject,
             html: buildingPhotosEmail({
               firstName: firstName || null,
-              providerName: profile.display_name || "your community",
+              providerName,
               photoCount,
+              monthlyViews,
               ctaUrl: url,
               providerSlug: profile.slug,
             }),

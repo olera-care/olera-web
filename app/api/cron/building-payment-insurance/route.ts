@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, appendTrackingParams } from "@/lib/email";
-import { buildingPaymentInsuranceEmail } from "@/lib/email-templates";
+import { buildingPaymentInsuranceEmail, buildingPaymentSubject } from "@/lib/email-templates";
+import { latestPaymentQuestion, commonPaymentQuestionCount } from "@/lib/provider-comms/payment-questions";
 import { withCronRun } from "@/lib/crons/run";
 import { generateCompletionUrl } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
@@ -28,10 +29,12 @@ export async function GET(request: NextRequest) {
     const started = Date.now();
     const counts = { sent: 0, suppressed: 0, errors: 0, wouldSend: 0, processed: 0, skipped: {} as Record<string, number> };
     const skip = (reason: string) => { counts.skipped[reason] = (counts.skipped[reason] ?? 0) + 1; };
+    // Once per run: how often families asked the most common payment question.
+    const commonQuestionCount = await commonPaymentQuestionCount(db);
     let cursor = "";
     while (Date.now() - started < 45_000 && counts.sent + counts.suppressed + counts.errors < 100) {
       let query = db.from("business_profiles")
-        .select("id,slug,type,email,metadata,state,display_name")
+        .select("id,slug,type,email,metadata,state,display_name,source_provider_id")
         .eq("type", "organization").not("account_id", "is", null)
         // Must have completed onboarding through notification nudge
         .not("metadata->>notification_nudge_attempt_id", "is", null)
@@ -59,8 +62,12 @@ export async function GET(request: NextRequest) {
         if (!notificationBusinessHours(now, profile.state)) { skip("outside_business_hours"); continue; }
         if (!profile.email) { skip("no_email"); continue; }
         if (dryRun) { counts.wouldSend++; continue; }
+        // A payment question a family asked on this provider's own page, if any.
+        const familyQuestion = await latestPaymentQuestion(db, [profile.id, profile.slug, profile.source_provider_id]);
+        const providerName = profile.display_name || "your organization";
+        const subject = buildingPaymentSubject(providerName, Boolean(familyQuestion));
         // Reserve atomically
-        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_payment_insurance", { p_profile_id: profile.id, p_email: profile.email });
+        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_payment_insurance", { p_profile_id: profile.id, p_email: profile.email, p_subject: subject });
         if (reserveError) throw new Error(`Building payment reservation failed: ${reserveError.message}`);
         if (!emailLogId) { skip("ineligible_or_digest_deferral"); continue; }
         try {
@@ -68,12 +75,14 @@ export async function GET(request: NextRequest) {
           const firstName = contactName ? contactName.split(/\s+/)[0] : null;
           const url = appendTrackingParams(generateCompletionUrl(profile.slug, profile.email!, "payment"), emailLogId);
           const result = await sendEmail({
-            to: profile.email!, subject: "Get more qualified leads with Olera",
+            to: profile.email!, subject,
             html: buildingPaymentInsuranceEmail({
               firstName: firstName || null,
-              providerName: profile.display_name || "your organization",
+              providerName,
               paymentUrl: url,
               providerSlug: profile.slug,
+              familyQuestion,
+              commonQuestionCount,
             }),
             emailType: EMAIL_TYPE, recipientType: "provider", providerId: profile.id,
             recipientProfileId: profile.id, emailLogId,

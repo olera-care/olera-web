@@ -6512,196 +6512,209 @@ export function providerWelcomeEmail(opts: {
   `, `Your ${name} page is officially yours to manage.`);
 }
 
+/** Provider category type for the care services suggestions. */
+export type ProviderCategory = "home_health_agency" | "home_care_agency" | "assisted_living" | "memory_care" | "nursing_home" | "independent_living";
+
+/*
+ * Building stage emails (Provider Comms Phase 2). Chantel's sequence and
+ * timing; copy rewritten 10 Oct 2026 (TJ). Each email opens on something real
+ * about the provider's own families, not on a form to fill in: provider emails
+ * about a specific family or number got 39-53% clicks over 60 days, generic
+ * asks 24-25%. Subjects live here too, so the crons, the gallery samples and
+ * the email_log reservation all say the same thing.
+ */
+
+function buildingParagraph(text: string, bottom = 20): string {
+  return `<p style="font-size:15px;color:#374151;margin:0 0 ${bottom}px;line-height:1.65;">${text}</p>`;
+}
+
+function buildingSignoff(providerSlug?: string): string {
+  return `
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
+    ${offRampBlock(providerSlug)}`;
+}
+
+function buildingGreeting(firstName: string | null): string {
+  return buildingParagraph(firstName ? `Hi ${escapeHtml(firstName)},` : "Hi there,");
+}
+
+/** Building email 1 subject: names the family's question when there is one. */
+export function buildingPaymentSubject(providerName: string, hasFamilyQuestion: boolean): string {
+  return hasFamilyQuestion
+    ? `A family asked how they'd pay for ${providerName}`
+    : `How families pay for care at ${providerName}`;
+}
+
 /**
- * Building Email 1: Payment & insurance. Sent 5 days after the notification
- * setup nudge (onboarding email 4). Only fires when accepted_payments is empty.
+ * Building Email 1: Payment. Sent 5 days after the notification setup nudge,
+ * only when accepted_payments is empty. With a payment question from the
+ * provider's own page it quotes it word for word; otherwise it opens on the
+ * Olera-wide fact (about one in four family questions are about cost:
+ * 3,532 of 13,561 in the 180 days to 10 Oct 2026) and, when the cron could
+ * count it, how often the most common one was asked.
  *
- * CTA deep-links to /api/claim-complete?section=payment, which authenticates
- * the provider and opens the payment editor on arrival.
+ * CTA deep-links to /api/claim-complete?section=payment, which signs the
+ * provider in and opens the payment editor.
  */
 export function buildingPaymentInsuranceEmail(opts: {
   firstName: string | null;
   providerName: string;
   paymentUrl: string;
   providerSlug?: string;
+  /** A payment question a family asked on this provider's page, verbatim. */
+  familyQuestion?: string | null;
+  /** Times "Does Medicare or Medicaid cover the stay?" was asked in 180 days. */
+  commonQuestionCount?: number | null;
 }): string {
-  const name = escapeHtml(opts.providerName);
-  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
+  const question = opts.familyQuestion?.trim();
+  const opening = question
+    ? `${buildingParagraph("A family on your Olera page asked:", 12)}
+    <p style="font-size:15px;color:#111827;margin:0 0 20px;line-height:1.65;font-style:italic;border-left:3px solid ${BRAND_COLOR};padding-left:14px;">&ldquo;${escapeHtml(question)}&rdquo;</p>
+    ${buildingParagraph("It&rsquo;s one of the most common things families ask. About one in four questions on Olera are about cost.")}`
+    : `${buildingParagraph("About one in four questions families ask on Olera are about cost: Medicaid, insurance, private pay.")}
+    ${opts.commonQuestionCount && opts.commonQuestionCount >= 50
+      ? buildingParagraph(`&ldquo;Does Medicare or Medicaid cover the stay?&rdquo; alone was asked ${opts.commonQuestionCount.toLocaleString("en-US")} times in the last six months.`)
+      : ""}`;
   return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
-      Payment is one of the biggest factors families consider when choosing a care provider.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      Whether you accept private pay, Medicaid, or other payment options, adding this information helps families understand if ${name} is a fit.
-    </p>
-    <div style="margin:0 0 24px;">${button("Add your payment options", opts.paymentUrl)}</div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      The more we know about ${name}, the easier it is to match you with qualified families looking for care.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
-    ${offRampBlock(opts.providerSlug)}
-  `, "Help the right families find you.");
+    ${buildingGreeting(opts.firstName)}
+    ${opening}
+    ${buildingParagraph(`Add the ways families can pay, and every family who visits your page sees the answer before they call.`, 24)}
+    <div style="margin:0 0 24px;">${button("Add payment options", opts.paymentUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, question ? "Their question is on your Olera page." : `The question families ask about ${opts.providerName} before they call.`);
+}
+
+export const BUILDING_AVAILABILITY_SUBJECT = "Are you taking new clients right now?";
+
+/**
+ * Building Email 2: Availability. Every provider gets it. Yes / No link to
+ * /provider/availability?tok=<signed token>, which POSTs on mount
+ * (scanner-safe). A yes puts a dated "Accepting new clients" mark on their
+ * page for 90 days (lib/provider-comms/availability.ts); a no changes nothing
+ * a family sees. Either way the provider can switch it from the dashboard.
+ */
+export function buildingAvailabilityEmail(opts: {
+  firstName: string | null;
+  yesUrl: string;
+  noUrl: string;
+  providerSlug?: string;
+}): string {
+  const yesButton = `<a href="${opts.yesUrl}" style="display:block;padding:14px 0;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;">Yes, we are</a>`;
+  const noButton = `<a href="${opts.noUrl}" style="display:block;padding:14px 0;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;border:1px solid #d1d5db;">Not right now</a>`;
+  return layout(`
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("Families can now see on your Olera page whether you&rsquo;re taking new clients. Many ask before they call.", 24)}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+      <td width="50%" style="padding-right:6px;">${yesButton}</td>
+      <td width="50%" style="padding-left:6px;">${noButton}</td>
+    </tr></table>
+    ${buildingParagraph("Say yes and your page shows <strong>Accepting new clients</strong> with today&rsquo;s date. You can change it anytime from your dashboard.", 24)}
+    ${buildingSignoff(opts.providerSlug)}
+  `, "Families will see your answer on your page.");
+}
+
+/** Building email 3 subject. Home care is about the owner; a facility about whoever runs it. */
+export function buildingOwnerSubject(providerName: string, isFacility: boolean): string {
+  return isFacility ? `Put a face on ${providerName}` : `Put your face on ${providerName}`;
 }
 
 /**
- * Building Email 3: Facility Manager.
- * Asks providers to add their facility manager (name, photo, bio).
- * Skips if profile >= 80% complete or facility manager already filled out.
- * CTA deep links to /provider?edit=owner via claim-complete auth.
+ * Building Email 3: Meet the owner (email_type building_facility_manager is
+ * kept from the first version). The public page shows this section as
+ * "Meet <first name>" with a Message button under the photo. Skips when the
+ * section is filled or the profile is 80%+ complete. CTA opens the owner
+ * editor via /api/claim-complete?section=owner.
  */
 export function buildingFacilityManagerEmail(opts: {
   firstName: string | null;
   providerName: string;
   ctaUrl: string;
   providerSlug?: string;
+  isFacility: boolean;
 }): string {
   const name = escapeHtml(opts.providerName);
-  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
+  const ask = opts.isFacility
+    ? `Add the person who runs ${name}: a photo and a few lines about why they do this work. It sits on your page with a button families can use to message them directly.`
+    : `Add your photo and a few lines about why you do this work. It sits on your page with a button families can use to message you directly.`;
   return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
-      Families aren\u2019t just choosing a provider. They\u2019re choosing who they trust with their loved one\u2019s care.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      Adding a facility manager to your Olera page puts a face behind ${name} and helps families get to know who\u2019s leading your community.
-    </p>
-    <div style="margin:0 0 24px;">${button("Introduce your team \u2192", opts.ctaUrl)}</div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      Share their name, photo, and a little about their background to build trust before a family ever reaches out.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
-    ${offRampBlock(opts.providerSlug)}
-  `, "Help families get to know your team.");
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("Families choosing care want to know who&rsquo;s behind it.")}
+    ${buildingParagraph(ask, 24)}
+    <div style="margin:0 0 24px;">${button(opts.isFacility ? "Add their photo" : "Add your photo", opts.ctaUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, "Families want to know who's behind the care.");
+}
+
+export function buildingCareServicesSubject(providerName: string): string {
+  return `What's included at ${providerName}?`;
 }
 
 /**
- * Building Email 5: Photos (final building email).
- * Asks facility-based providers to add photos of their community.
- * Only sent to assisted living, memory care, nursing homes, independent living.
- * Skips if provider already has 3+ photos.
- * After this email is sent, provider graduates to growth stage.
- */
-export function buildingPhotosEmail(opts: {
-  firstName: string | null;
-  providerName: string;
-  photoCount: number;
-  ctaUrl: string;
-  providerSlug?: string;
-}): string {
-  const name = escapeHtml(opts.providerName);
-  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
-  const photoText = opts.photoCount === 1 ? "1 photo" : `${opts.photoCount} photos`;
-  return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
-      Families want to see where their loved one will be living.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      Right now, your page has ${photoText}. Adding photos of your apartments, team, amenities, and everyday life can strengthen your profile and help families get to know ${name}.
-    </p>
-    <div style="margin:0 0 24px;">${button("Add photos to my page \u2192", opts.ctaUrl)}</div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      You can upload them straight from your phone. It only takes a few minutes.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
-    ${offRampBlock(opts.providerSlug)}
-  `, "Give families more reasons to choose you.");
-}
-
-/** Provider category type for the care services email template. */
-export type ProviderCategory = "home_health_agency" | "home_care_agency" | "assisted_living" | "memory_care" | "nursing_home" | "independent_living";
-
-/**
- * Building Email 4: Care Services.
- * Shows 3 category-specific services and asks provider to confirm or edit.
- * "Yes, confirm" writes services instantly via signed token landing page.
- * "Edit services" opens the care services editor in the portal.
- * Skips if profile >= 80% complete or care_types already filled.
+ * Building Email 4: Services. Three category suggestions as a starting point;
+ * one button into the services editor (TJ, 10 Oct 2026: the provider stays in
+ * control, so nothing is written for them). "What's included in the monthly
+ * cost?" was asked 1,297 times in the 180 days to 10 Oct 2026. Skips when
+ * services are listed or the profile is 80%+ complete.
  */
 export function buildingCareServicesEmail(opts: {
   firstName: string | null;
   providerName: string;
   services: string[];
-  category: ProviderCategory;
-  confirmUrl: string;
   editUrl: string;
+  isFacility: boolean;
   providerSlug?: string;
 }): string {
-  const name = escapeHtml(opts.providerName);
-  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
   const serviceItems = opts.services.map((s) =>
-    `<p style="font-size:15px;color:#374151;font-weight:600;margin:0 0 10px;line-height:1.6;">&#10003;&nbsp;&nbsp;${escapeHtml(s)}</p>`
-  ).join("\n            ");
-  const confirmButton = `<a href="${opts.confirmUrl}" style="display:inline-block;padding:14px 28px;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;">Yes, confirm</a>`;
-  const editButton = `<a href="${opts.editUrl}" style="display:inline-block;padding:14px 28px;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;border:1.5px solid #e5e7eb;">Edit services</a>`;
+    `<p style="font-size:15px;color:#374151;font-weight:600;margin:0 0 8px;line-height:1.6;">&#10003;&nbsp;&nbsp;${escapeHtml(s)}</p>`
+  ).join("\n      ");
   return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      Help us match ${name} with families looking for the services you offer.
-    </p>
-    <div style="background:#f7f8fa;border-radius:10px;padding:20px 24px;margin:0 0 6px;">
-      <p style="font-size:15px;color:#374151;margin:0 0 14px;line-height:1.4;">We think these services may apply to ${name}:</p>
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("&ldquo;What&rsquo;s included?&rdquo; is one of the questions families ask most on Olera. Your page doesn&rsquo;t list your services yet.")}
+    <div style="background:#f7f8fa;border-radius:10px;padding:18px 22px 10px;margin:0 0 20px;">
+      <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.4;">${opts.isFacility ? "Communities" : "Agencies"} like yours usually start with:</p>
       ${serviceItems}
     </div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">Are these correct?</p>
-    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
-      <td>${confirmButton}</td>
-      <td width="12"></td>
-      <td>${editButton}</td>
-    </tr></table>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
-    ${offRampBlock(opts.providerSlug)}
-  `, "Help us match you with the right families.");
+    ${buildingParagraph("Add these and anything else you offer.", 24)}
+    <div style="margin:0 0 24px;">${button("Add your services", opts.editUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, "One of the questions families ask most.");
+}
+
+export function buildingPhotosSubject(providerName: string): string {
+  return `Show families inside ${providerName}`;
 }
 
 /**
- * Building Email 2: Availability check.
- * Universal — every provider gets this. Two buttons (Yes / No) link to
- * /provider/availability?tok=<signed_token> which POSTs on mount (scanner-safe)
- * and sets metadata.accepting_new_clients.
+ * Building Email 5: Photos (final building email). Facilities only, fewer
+ * than 3 photos. Page views appear only at 10+ in the last 30 days (the
+ * median across the first cohort was 2), so a small number is never said.
+ * After this email the provider graduates to the growth stage.
  */
-export function buildingAvailabilityEmail(opts: {
+export function buildingPhotosEmail(opts: {
   firstName: string | null;
   providerName: string;
-  city: string | null;
-  yesUrl: string;
-  noUrl: string;
+  photoCount: number;
+  monthlyViews?: number | null;
+  ctaUrl: string;
   providerSlug?: string;
 }): string {
-  const name = escapeHtml(opts.providerName);
-  const cityText = opts.city ? ` in ${escapeHtml(opts.city)}` : "";
-  const greeting = opts.firstName ? `Hi ${escapeHtml(opts.firstName)},` : "Hi there,";
-  const yesButton = `<a href="${opts.yesUrl}" style="display:block;padding:14px 0;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;box-shadow:0 2px 4px rgba(25,128,135,0.25);">Yes, I am</a>`;
-  const noButton = `<a href="${opts.noUrl}" style="display:block;padding:14px 0;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;text-align:center;border:1px solid #d1d5db;box-shadow:0 1px 3px rgba(0,0,0,0.06);">Not right now</a>`;
-  const preheader = opts.city
-    ? `Families in ${opts.city} are looking for care.`
-    : "Families are looking for care in your area.";
+  const photoText = opts.photoCount === 1 ? "1 photo" : `${opts.photoCount} photos`;
+  const hasViews = Boolean(opts.monthlyViews && opts.monthlyViews >= 10);
+  const photos = opts.photoCount === 0
+    ? (hasViews ? "It doesn&rsquo;t have any photos yet." : "Your page doesn&rsquo;t have any photos yet.")
+    : (hasViews ? `It has ${photoText}.` : `Your page has ${photoText} right now.`);
+  const views = hasViews
+    ? `Families looked at your page ${opts.monthlyViews!.toLocaleString("en-US")} times in the last 30 days. ${photos}`
+    : photos;
   return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">${greeting}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
-      Keeping your availability up to date helps us match ${name} with families actively looking for care${cityText}.
-    </p>
-    <div style="background:#f7f8fa;border-radius:12px;padding:28px 24px;margin:0 0 24px;border:1px solid #eef0f3;">
-      <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.4;text-align:center;">
-        Are you currently accepting new clients?
-      </p>
-      <table width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td width="50%" style="padding-right:6px;">${yesButton}</td>
-        <td width="50%" style="padding-left:6px;">${noButton}</td>
-      </tr></table>
-    </div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
-      One quick update helps us understand your current capacity and connect you with families when you\u2019re ready to accept new clients.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">With care,</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;font-weight:600;">Logan</p>
-    ${offRampBlock(opts.providerSlug)}
-  `, preheader);
+    ${buildingGreeting(opts.firstName)}
+    ${buildingParagraph("Families choosing a home for a parent want to see where they&rsquo;ll live.")}
+    ${buildingParagraph(views)}
+    ${buildingParagraph("Five is enough to start: a room, the dining area, a common space, outside, and your team. Take them on your phone and upload them in a few minutes.", 24)}
+    <div style="margin:0 0 24px;">${button("Add photos", opts.ctaUrl)}</div>
+    ${buildingSignoff(opts.providerSlug)}
+  `, "Five photos is enough to start.");
 }
 
 /**

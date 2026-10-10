@@ -25,15 +25,15 @@ export default function OwnerCard({ metadata, onEdit }: OwnerCardProps) {
 
   return (
     <DashboardSectionCard
-      title="Facility Manager"
+      title="Owner or Manager"
       id="owner"
       onEdit={onEdit}
     >
       {!staff?.name ? (
         <SectionEmptyState
           icon="info"
-          message="No facility manager info"
-          subMessage="Add your name, photo, and care motivation to build trust with families."
+          message="No one added yet"
+          subMessage="Add a photo and why you do this work. Families see your name and photo, with a button to message you."
         />
       ) : (
         <div className="flex items-start gap-4">

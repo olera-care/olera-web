@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, appendTrackingParams } from "@/lib/email";
-import { buildingAvailabilityEmail } from "@/lib/email-templates";
+import { buildingAvailabilityEmail, BUILDING_AVAILABILITY_SUBJECT } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { generateAvailabilityUrls } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
         if (!profile.email) { skip("no_email"); continue; }
         if (dryRun) { counts.wouldSend++; continue; }
         // Reserve atomically
-        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_availability", { p_profile_id: profile.id, p_email: profile.email });
+        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_availability", { p_profile_id: profile.id, p_email: profile.email, p_subject: BUILDING_AVAILABILITY_SUBJECT });
         if (reserveError) throw new Error(`Building availability reservation failed: ${reserveError.message}`);
         if (!emailLogId) { skip("ineligible_or_digest_deferral"); continue; }
         try {
@@ -84,11 +84,9 @@ export async function GET(request: NextRequest) {
           const yesUrl = appendTrackingParams(urls.yes, emailLogId);
           const noUrl = appendTrackingParams(urls.no, emailLogId);
           const result = await sendEmail({
-            to: profile.email!, subject: "Are you accepting new clients?",
+            to: profile.email!, subject: BUILDING_AVAILABILITY_SUBJECT,
             html: buildingAvailabilityEmail({
               firstName: firstName || null,
-              providerName: profile.display_name || "your organization",
-              city: profile.city || null,
               yesUrl,
               noUrl,
               providerSlug: profile.slug,

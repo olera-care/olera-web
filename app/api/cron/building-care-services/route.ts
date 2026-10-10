@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, appendTrackingParams } from "@/lib/email";
-import { buildingCareServicesEmail, type ProviderCategory } from "@/lib/email-templates";
+import { buildingCareServicesEmail, buildingCareServicesSubject } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
-import { buildingCategory } from "@/lib/provider-comms/category";
-import { generateServicesUrls } from "@/lib/claim-tokens";
+import { resolveBuildingCategory, isFacilityCategory } from "@/lib/provider-comms/category";
+import { generateCompletionUrl } from "@/lib/claim-tokens";
 import { notificationBusinessHours } from "@/lib/provider-comms/notifications";
 import { calculateProfileCompleteness } from "@/lib/profile-completeness";
 import type { Profile } from "@/lib/types";
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     let cursor = "";
     while (Date.now() - started < 45_000 && counts.sent + counts.suppressed + counts.errors < 100) {
       let query = db.from("business_profiles")
-        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url")
+        .select("id,slug,type,email,metadata,state,display_name,city,address,category,description,care_types,image_url,source_provider_id")
         .eq("type", "organization").not("account_id", "is", null)
         // Must have received the availability email (every provider gets it)
         .not("metadata->>building_availability_attempt_id", "is", null)
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
         if (completeness.overall >= COMPLETION_SKIP_THRESHOLD) { skip("profile_above_80_pct"); continue; }
 
         // Skip if no recognized category (can't suggest services)
-        const category = buildingCategory(profile.category as string | null);
+        const category = await resolveBuildingCategory(db, profile);
         if (!category || !CATEGORY_SERVICES[category]) { skip("unknown_category"); continue; }
 
         if (!notificationBusinessHours(now, profile.state)) { skip("outside_business_hours"); continue; }
@@ -94,25 +94,25 @@ export async function GET(request: NextRequest) {
         if (dryRun) { counts.wouldSend++; continue; }
 
         // Reserve atomically
-        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_care_services", { p_profile_id: profile.id, p_email: profile.email });
+        const providerName = profile.display_name || "your organization";
+        const subject = buildingCareServicesSubject(providerName);
+        const { data: emailLogId, error: reserveError } = await db.rpc("reserve_building_care_services", { p_profile_id: profile.id, p_email: profile.email, p_subject: subject });
         if (reserveError) throw new Error(`Building care services reservation failed: ${reserveError.message}`);
         if (!emailLogId) { skip("ineligible_or_digest_deferral"); continue; }
         try {
           const contactName = typeof meta.contact_name === "string" ? meta.contact_name : null;
           const firstName = contactName ? contactName.split(/\s+/)[0] : null;
           const services = CATEGORY_SERVICES[category];
-          const urls = generateServicesUrls(profile.id, services, profile.email!, profile.slug);
-          const confirmUrl = appendTrackingParams(urls.confirm, emailLogId);
-          const editUrl = appendTrackingParams(urls.edit, emailLogId);
+          // One button into the services editor; nothing is written for them (TJ, 10 Oct 2026).
+          const editUrl = appendTrackingParams(generateCompletionUrl(profile.slug, profile.email!, "services"), emailLogId);
           const result = await sendEmail({
-            to: profile.email!, subject: `Do you offer these services?`,
+            to: profile.email!, subject,
             html: buildingCareServicesEmail({
               firstName: firstName || null,
-              providerName: profile.display_name || "your organization",
+              providerName,
               services,
-              category: category as ProviderCategory,
-              confirmUrl,
               editUrl,
+              isFacility: isFacilityCategory(category),
               providerSlug: profile.slug,
             }),
             emailType: EMAIL_TYPE, recipientType: "provider", providerId: profile.id,

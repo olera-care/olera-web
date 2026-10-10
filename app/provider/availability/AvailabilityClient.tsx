@@ -62,18 +62,18 @@ export default function AvailabilityClient({ tok }: { tok: string }) {
             </span>
           </div>
           <h1 className="font-serif text-2xl text-gray-900 mb-3">
-            {accepting ? "Great, we\u2019ve updated your page" : "Thanks for letting us know"}
+            {accepting ? "Done. Your page now shows Accepting new clients." : "Got it. Nothing changes on your page."}
           </h1>
           <p className="text-gray-500 mb-8 leading-relaxed">
             {accepting
-              ? "Families can now see that you\u2019re accepting new clients. This helps them feel confident reaching out."
-              : "We\u2019ll check back in a few months in case anything changes."}
+              ? "Families see it on your page with today\u2019s date. You can switch it off anytime from your dashboard."
+              : "If that changes, you can switch it on from your dashboard."}
           </p>
           <Link
-            href="/"
+            href="/provider"
             className="inline-block px-8 py-4 bg-[#198087] text-white font-medium rounded-2xl hover:opacity-90 transition-opacity"
           >
-            Go to Olera
+            Go to your dashboard
           </Link>
         </div>
       </div>

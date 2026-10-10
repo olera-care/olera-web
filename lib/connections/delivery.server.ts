@@ -60,5 +60,11 @@ export async function getDeliveryStatus(
   }
   // Tried and refused: the address is dead.
   if (rows.length > 0) return { state: "unreachable", phone };
+  // The sender has finished and nothing went out: the agency was never emailed
+  // (the 22 Sep - 10 Oct gap left 51 such requests marked "sent").
+  const notifyState = connection.metadata?.provider_notify_state;
+  if (notifyState === "sent" || notifyState === "skipped" || notifyState === "failed") {
+    return { state: "unreachable", phone };
+  }
   return { state: "sending", phone };
 }

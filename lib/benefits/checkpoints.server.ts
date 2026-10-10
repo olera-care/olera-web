@@ -71,10 +71,10 @@ export async function loadCheckpointFamilies(db: SupabaseClient, from = CHECKPOI
       sessions: [...(sessions.get(r.id) ?? [])],
       state: r.state,
       studyCohort: typeof meta.study_cohort === "string" ? meta.study_cohort : null,
-      // Apply-along launched 7 Oct, after any window start, so no date filter.
+      // familyProgress drops dates before `from`.
       applied: applied ?? null,
     };
   });
 
-  return { families: familyProgress(events, records), truncated };
+  return { families: familyProgress(events, records, from), truncated };
 }

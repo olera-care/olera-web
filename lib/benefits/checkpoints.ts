@@ -83,7 +83,11 @@ function earliest(current: string | undefined, at: string) {
   return !current || at < current ? at : current;
 }
 
-export function familyProgress(events: CheckpointEvent[], records: CheckpointRecord[]): FamilyProgress[] {
+/**
+ * `from` bounds the record dates the same way the event query is bounded, so
+ * a weekly read doesn't count an application submitted last month.
+ */
+export function familyProgress(events: CheckpointEvent[], records: CheckpointRecord[], from = ""): FamilyProgress[] {
   type Acc = FamilyProgress & { splitArm: CheckpointArm | null; study: boolean };
   const families = new Map<string, Acc>();
   const get = (key: string) => {
@@ -95,14 +99,21 @@ export function familyProgress(events: CheckpointEvent[], records: CheckpointRec
     return f;
   };
   const reach = (f: Acc, cp: Checkpoint, at: string) => {
+    if (at < from) return;
     f.reached[cp] = earliest(f.reached[cp], at);
   };
+  // Browsers that are ours: their events are dropped, and so is any record
+  // they created (QA on a preview records an application on a real row).
+  const excluded = new Set<string>(KNOWN_TEST_SESSIONS);
 
   for (const e of events) {
     const m = e.metadata ?? {};
     const session = m.session_id;
-    if (!session || KNOWN_TEST_SESSIONS.has(session)) continue;
-    if (m.host && !PRODUCTION_HOSTS.has(m.host)) continue;
+    if (!session || excluded.has(session)) continue;
+    if (m.host && !PRODUCTION_HOSTS.has(m.host)) {
+      excluded.add(session);
+      continue;
+    }
     const variant = m.variant ?? "";
     const interview = INTERVIEW_VARIANTS.has(variant);
     const applyAlong = APPLY_ALONG_VARIANTS.has(variant);
@@ -125,6 +136,7 @@ export function familyProgress(events: CheckpointEvent[], records: CheckpointRec
 
   for (const r of records) {
     if (!r.applied?.at) continue;
+    if (r.sessions.some((s) => excluded.has(s))) continue;
     const session = r.sessions.find((s) => families.has(s)) ?? r.sessions[0];
     const f = get(session ?? `record:${r.profileId}`);
     if (r.studyCohort) f.study = true;

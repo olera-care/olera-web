@@ -17,17 +17,36 @@ interface Status {
   phone: string | null;
 }
 
-// One lookup per request, shared by every title on the page.
+// One lookup per request, shared by every title on the page. Only an answer is
+// kept: a refusal is retried, because right after a guest's first send the
+// session can land a moment after the card asks (seen on a phone, 10 Oct).
 const lookups = new Map<string, Promise<Status | null>>();
+const RETRY_MS = [1500, 4000, 9000];
+
+async function fetchStatus(connectionId: string): Promise<Status | null> {
+  for (let attempt = 0; attempt <= RETRY_MS.length; attempt += 1) {
+    try {
+      const res = await fetch(`/api/connections/delivery?connectionId=${encodeURIComponent(connectionId)}`, {
+        cache: "no-store",
+      });
+      if (res.ok) return (await res.json()) as Status;
+      // Not the family's request: retrying won't change that.
+      if (res.status === 403 || res.status === 404) return null;
+    } catch {
+      /* network: retry */
+    }
+    if (attempt < RETRY_MS.length) await new Promise((r) => setTimeout(r, RETRY_MS[attempt]));
+  }
+  return null;
+}
 
 function lookup(connectionId: string): Promise<Status | null> {
   let pending = lookups.get(connectionId);
   if (!pending) {
-    pending = fetch(`/api/connections/delivery?connectionId=${encodeURIComponent(connectionId)}`, {
-      cache: "no-store",
-    })
-      .then((res) => (res.ok ? (res.json() as Promise<Status>) : null))
-      .catch(() => null);
+    pending = fetchStatus(connectionId).then((status) => {
+      if (!status) lookups.delete(connectionId);
+      return status;
+    });
     lookups.set(connectionId, pending);
   }
   return pending;

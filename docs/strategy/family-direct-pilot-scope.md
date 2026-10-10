@@ -1,6 +1,7 @@
 # Family-direct pilot: what it takes to launch by mid-October
 
 **Date:** 2026-10-01
+**Current state:** `not-an-agency-initiative.md`
 **Follows:** `not-an-agency-caregiver-marketplace.md` (the memo, sections 6 to 8)
 **Question:** can a minimal family-direct pilot be live by mid-October, so the January application carries traction and not just a plan?
 

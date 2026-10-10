@@ -1,5 +1,7 @@
 # "Not an agency": families finding non-medical caregivers through Olera
 
+**Current state of the initiative: `not-an-agency-initiative.md`.**
+
 A thinking memo, not a plan. Written 2026-09-30 from TJ's Telegram question to Cortex, the Cortex handoff that followed, Chantel Wright's September competitive research, and the committed CRP documents. No code, schema or CRP document is changed by it.
 
 **Evidence strength** follows `docs/crp/evidence-ledger.md`: **verified** (record in hand), **pullable** (instrumented, query needed), **records-exist** (scattered), **unsupported** (no source located), **overstated** (source contradicts the wording). "Unsourced" below means an assumption or general knowledge that nobody has checked for Olera.

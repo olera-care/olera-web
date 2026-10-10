@@ -66,7 +66,7 @@ export function DeliveryNote({
   const digits = status.phone?.replace(/[^\d+]/g, "");
   return (
     <span className={`block ${className}`}>
-      They don&apos;t list an email, so the fastest way is a call
+      We don&apos;t have a working email for them, so the fastest way is a call
       {status.phone && digits ? (
         <>
           :{" "}

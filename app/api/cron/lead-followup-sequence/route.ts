@@ -201,6 +201,9 @@ export async function GET(request: NextRequest) {
     const siteUrl = getSiteUrl();
     const now = Date.now();
     const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+    // The sequence ends on day 5. Reading every inquiry ever, oldest first, with a
+    // 500 cap meant the same 500 old rows every day and ~1 email (Oct 2026).
+    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const counts = {
       connections_processed: 0,
@@ -211,6 +214,8 @@ export async function GET(request: NextRequest) {
         connected: 0,  // Provider clicked phone/email
         responded: 0,  // Provider sent message, marked replied, or already connected
         no_email: 0,
+        leads_unsubscribed: 0, // Provider opted out of lead emails
+        stale: 0, // More than 7 days into the sequence: never start a late "last note"
         already_at_stage: 0,
         sequence_stopped: 0,
         send_failed: 0,
@@ -244,7 +249,8 @@ export async function GET(request: NextRequest) {
       )
       .eq("type", "inquiry")
       .lte("created_at", oneDayAgo)
-      .order("created_at", { ascending: true })
+      .gte("created_at", thirtyDaysAgo)
+      .order("created_at", { ascending: false })
       .limit(limit);
 
     if (fetchError) {
@@ -351,6 +357,22 @@ export async function GET(request: NextRequest) {
     // Group eligible leads by provider
     const providerGroups = new Map<string, ProviderGroup>();
 
+    // Directory addresses for profiles without one (unclaimed agencies).
+    const directoryEmails = new Map<string, string>();
+    const missingIds = [...new Set(connections
+      .map((c) => (Array.isArray(c.to_profile) ? c.to_profile[0] : c.to_profile))
+      .filter((p) => p && !p.email?.trim() && p.source_provider_id)
+      .map((p) => p!.source_provider_id as string))];
+    for (let i = 0; i < missingIds.length; i += 200) {
+      const { data: rows } = await db
+        .from("olera-providers")
+        .select("provider_id, email")
+        .in("provider_id", missingIds.slice(i, i + 200));
+      for (const row of rows ?? []) {
+        if (row.email?.trim()) directoryEmails.set(row.provider_id, row.email.trim());
+      }
+    }
+
     for (const conn of connections) {
       counts.connections_processed++;
 
@@ -430,6 +452,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      if (toProfileMeta.leads_unsubscribed === true) {
+        counts.skipped++;
+        counts.skipReasons.leads_unsubscribed++;
+        continue;
+      }
+
       // Check if provider has connected via phone/email click
       const hasClickedContact = connectedConnectionIds.has(conn.id);
 
@@ -484,7 +512,10 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if provider has email
-      const providerEmail = toProfile?.email?.trim();
+      // Unclaimed agencies' address is on the directory row (as in the first lead email).
+      const providerEmail =
+        toProfile?.email?.trim() ||
+        (toProfile?.source_provider_id ? directoryEmails.get(toProfile.source_provider_id) : undefined);
       if (!providerEmail) {
         counts.skipped++;
         counts.skipReasons.no_email++;
@@ -508,6 +539,11 @@ export async function GET(request: NextRequest) {
       if (daysSinceInquiry > 30 && currentStage >= 3) {
         counts.skipped++;
         counts.skipReasons.already_at_stage++;
+        continue;
+      }
+      if (daysSinceInquiry > 7 && currentStage < 3) {
+        counts.skipped++;
+        counts.skipReasons.stale++;
         continue;
       }
 

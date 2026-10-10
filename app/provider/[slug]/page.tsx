@@ -617,12 +617,14 @@ export default async function ProviderPage({
     if (!rawStaffScreening) return [];
     // If it's already an array, filter to valid non-empty strings and deduplicate
     if (Array.isArray(rawStaffScreening)) {
-      // A screening entry is a short check ("Background checks"). Owners have
-      // pasted whole marketing paragraphs into this list (Assisting Hands, 1,200
-      // characters); those are not checks, so the checklist skips them.
+      // A screening entry is a check ("Background checks"), sometimes a long
+      // one (115 characters: "Annual Continued Education (Alzheimer's /
+      // Dementia, …)"). Owners have also pasted whole marketing paragraphs into
+      // this list (625–1,403 characters, e.g. Assisting Hands); those are not
+      // checks, so the checklist skips anything over 200 characters.
       return [...new Set(
         rawStaffScreening.filter(
-          (s): s is string => typeof s === "string" && s.trim().length > 0 && s.trim().length <= 80,
+          (s): s is string => typeof s === "string" && s.trim().length > 0 && s.trim().length <= 200,
         )
       )];
     }

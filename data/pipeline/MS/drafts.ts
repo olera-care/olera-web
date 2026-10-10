@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T06:44:48.388Z
+ * Last updated: 2026-10-10T05:17:44.915Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -729,6 +729,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "If your loved one receives SSI, they may be required to use the Mississippi Combined Application Project (MSCAP) instead of regular SNAP or ESAP.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://www.access.ms.gov/consumer/home"
+          },
           {
             "label": "SNAP for Elderly/Disabled",
             "url": "https://www.mdhs.ms.gov/help/snap/special/"

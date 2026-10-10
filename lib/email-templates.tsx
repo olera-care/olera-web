@@ -2210,7 +2210,8 @@ export function benefitsCheckInEmail(opts: {
 
 /** Apply-along check-in subjects. No names, no program a stranger could read
  *  as a diagnosis. */
-export function benefitsApplyCheckSubject(stage: "letter" | "decision"): string {
+export function benefitsApplyCheckSubject(stage: "letter" | "decision", route: "ssa_extra_help" | "state_snap" = "ssa_extra_help"): string {
+  if (route === "state_snap") return stage === "letter" ? "Has the interview call come?" : "Any word on your SNAP application?";
   return stage === "letter" ? "Has a letter come from Social Security?" : "Any word on Extra Help or Medicare Savings?";
 }
 
@@ -2226,10 +2227,19 @@ export function benefitsApplyCheckEmail(opts: {
   stage: "letter" | "decision";
   planUrl: string;
   unsubscribeId?: string;
+  /** Which application: Extra Help (default) or the state's SNAP form. */
+  route?: "ssa_extra_help" | "state_snap";
+  stateName?: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const btn = `<a href="${opts.planUrl}" style="display:block;text-align:center;padding:13px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;">Tell us what came back</a>`;
-  const body = opts.stage === "letter"
+  const state = escapeHtml(opts.stateName || "the state");
+  const snap = opts.route === "state_snap";
+  const body = snap
+    ? opts.stage === "letter"
+      ? `It's been a few days since you applied for SNAP. ${state} should call or write soon to set up a short interview, usually by phone. The interview matters: if it's missed, the application ends. Has anyone been in touch?`
+      : `It's been about five weeks since you applied for SNAP. ${state} has 30 days to decide, so you've probably heard. What did they say?`
+    : opts.stage === "letter"
     ? `It's been about a week since you sent the Extra Help form. Social Security usually mails a decision within a few weeks, and the state writes separately about Medicare Savings. Has anything come yet?`
     : `It's been about five weeks since you sent the Extra Help form. By now Social Security has usually decided, and the state should have been in touch about Medicare Savings. What did you hear?`;
   return layout(
@@ -2245,7 +2255,9 @@ export function benefitsApplyCheckEmail(opts: {
     </p>
     ${careUnsubscribeFooter(opts.unsubscribeId)}
   `,
-    opts.stage === "letter" ? "Has a letter come from Social Security yet?" : "What did you hear about Extra Help and Medicare Savings?",
+    snap
+      ? opts.stage === "letter" ? "Has the interview call come yet?" : "What did you hear about SNAP?"
+      : opts.stage === "letter" ? "Has a letter come from Social Security yet?" : "What did you hear about Extra Help and Medicare Savings?",
   );
 }
 

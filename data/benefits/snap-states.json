@@ -1,0 +1,1097 @@
+{
+ "checked": "2026-10-10",
+ "note": "Verified from official state and USDA sources on 10 Oct 2026 (see each state's sources). Re-check yearly, and when a state changes agency or portal.",
+ "states": [
+  {
+   "code": "AK",
+   "name": "SNAP",
+   "applyUrl": "https://alaskaconnect.ilinx.com/engage/dpa",
+   "phone": "800-478-7778",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://health.alaska.gov/en/education/elderly-simplified-application-project-esap/"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/snap-nutrition-assistance/",
+    "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/",
+    "https://health.alaska.gov/en/education/elderly-simplified-application-project-esap/",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "AL",
+   "name": "Food Assistance",
+   "applyUrl": "https://mydhr.alabama.gov/",
+   "phone": "1-833-822-2202",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application (AESAP)",
+    "url": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://dhr.alabama.gov/food-assistance/",
+    "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/",
+    "https://dhr.alabama.gov/wp-content/uploads/2026/06/AESAP-Criteria-Project-Information-Rev.-06-26.pdf",
+    "https://dhr.alabama.gov/wp-content/uploads/2026/09/Form-DHR-FSD-2198-AESAP-Application-Rev.-09.2026-.pdf"
+   ]
+  },
+  {
+   "code": "AR",
+   "name": "SNAP",
+   "applyUrl": "https://access.arkansas.gov/Learn/Home",
+   "phone": "855-372-1084",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": null
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://humanservices.arkansas.gov/divisions-shared-services/county-operations/supplemental-nutrition-assistance-snap/snap-overview-and-how-to-apply/",
+    "https://humanservices.arkansas.gov/divisions-shared-services/county-operations/supplemental-nutrition-assistance-snap/",
+    "https://humanservices.arkansas.gov/wp-content/uploads/Quick-Reference-SNAP-Eligibility-Chart-FY2026.pdf",
+    "https://humanservices.arkansas.gov/wp-content/uploads/FFY26-NBI-Chart-Oct-2025-September-2026-05.18.2026.pdf"
+   ]
+  },
+  {
+   "code": "AZ",
+   "name": "Nutrition Assistance",
+   "applyUrl": "https://www.healthearizonaplus.gov/Login/Default",
+   "phone": "1-855-432-7587",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application (form FAA-1821)",
+    "url": "https://des.az.gov/esap"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://des.az.gov/node/10274",
+    "https://des.az.gov/esap",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "CA",
+   "name": "CalFresh",
+   "applyUrl": "https://benefitscal.com/",
+   "phone": "1-877-847-3663",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the CalFresh Elderly Simplified Application (CF 485)",
+    "url": null
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://dpss.lacounty.gov/en/food/calfresh.html",
+    "https://ssa.ocgov.com/sites/ssa/files/2026-08/CF485.pdf",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf",
+    "web search of the official agency page, 10 Oct 2026"
+   ]
+  },
+  {
+   "code": "CO",
+   "name": "SNAP",
+   "applyUrl": "https://www.colorado.gov/PEAK",
+   "phone": "1-855-855-4626",
+   "phoneApplies": true,
+   "phoneNote": "Hunger Free Colorado, the state's SNAP outreach partner, can fill in the application with you on this line.",
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://peak.my.site.com/peak/s/peak-landing-page",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf",
+    "web search of the official agency page, 10 Oct 2026"
+   ]
+  },
+  {
+   "code": "CT",
+   "name": "SNAP",
+   "applyUrl": "https://www.connect.ct.gov/access/jsp/access/Home.jsp",
+   "phone": "1-855-626-6632",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://portal.ct.gov/dss/find-benefits-and-support/food-assistance/elderly-simplified-application-project"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://portal.ct.gov/dss/snap/supplemental-nutrition-assistance-program---snap/apply",
+    "https://portal.ct.gov/dss/snap/supplemental-nutrition-assistance-program---snap",
+    "https://portal.ct.gov/dss/find-benefits-and-support/food-assistance/elderly-simplified-application-project",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "DC",
+   "name": "SNAP",
+   "applyUrl": "https://districtdirect.dc.gov",
+   "phone": "202-727-5355",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://dhs.dc.gov/service/snap-eligibility-requirements"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://dhs.dc.gov/service/supplemental-nutrition-assistance-program-snap",
+    "https://dhs.dc.gov/page/public-benefits",
+    "https://dhs.dc.gov/service/snap-eligibility-requirements",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "DE",
+   "name": "the Food Supplement Program",
+   "applyUrl": "https://assist.dhss.delaware.gov/",
+   "phone": "1-866-843-7212",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://assist.dhss.delaware.gov/",
+    "https://assist.dhss.delaware.gov/PDF/CPQRG.pdf",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf",
+    "web search of the official agency page, 10 Oct 2026"
+   ]
+  },
+  {
+   "code": "FL",
+   "name": "Food Assistance",
+   "applyUrl": "https://myaccess.myflfamilies.com",
+   "phone": "850-300-4323",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap",
+    "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/snap-eligibility/",
+    "https://www.myflfamilies.com/services/public-assistance/",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "GA",
+   "name": "SNAP",
+   "applyUrl": "https://gateway.ga.gov/access",
+   "phone": "877-423-4746",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "Senior SNAP",
+    "url": "https://dfcs.georgia.gov/services/snap/senior-snap"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://dfcs.georgia.gov/services/snap",
+    "https://dfcs.georgia.gov/services/snap/senior-snap",
+    "https://pamms.dhs.ga.gov/dfcs/snap/3614/",
+    "https://pamms.dhs.ga.gov/dfcs/snap/3725/"
+   ]
+  },
+  {
+   "code": "HI",
+   "name": "SNAP",
+   "applyUrl": "https://pais.dhs.hawaii.gov/PAIS/#!/",
+   "phone": "1-855-643-1643",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://humanservices.hawaii.gov/bessd/snap/",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "IA",
+   "name": "SNAP",
+   "applyUrl": "https://hhsservices.iowa.gov/apspssp/ssp.portal",
+   "phone": "1-877-347-5678",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://hhs.iowa.gov/assistance-programs/food-assistance/snap",
+    "https://hhs.iowa.gov/assistance-programs/food-assistance/snap/apply-snap",
+    "https://hhs.iowa.gov/assistance-programs/food-assistance/snap/faqs",
+    "https://hhs.iowa.gov/media/19458/download"
+   ]
+  },
+  {
+   "code": "ID",
+   "name": "SNAP",
+   "applyUrl": "https://idalink.idaho.gov/",
+   "phone": "1-877-456-1233",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://healthandwelfare.idaho.gov/services-programs/food-assistance",
+    "https://healthandwelfare.idaho.gov/services-programs/food-assistance/apply-snap",
+    "https://healthandwelfare.idaho.gov/services-programs/food-assistance/about-snap",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "IL",
+   "name": "SNAP",
+   "applyUrl": "https://abe.illinois.gov/",
+   "phone": "1-800-843-6154",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://www.dhs.state.il.us/page.aspx?item=30357",
+    "https://www.dhs.state.il.us/page.aspx?item=33698",
+    "https://www.dhs.state.il.us/page.aspx?item=15070",
+    "https://www.dhs.state.il.us/page.aspx?item=16142"
+   ]
+  },
+  {
+   "code": "IN",
+   "name": "SNAP",
+   "applyUrl": "https://fssabenefits.in.gov/bp/#/",
+   "phone": "1-800-403-0864",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://secure.in.gov/fssa/dfr/files/2200.pdf"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://www.in.gov/fssa/dfr/snap-food-assistance/",
+    "https://faqs.in.gov/hc/en-us/articles/360042514611-What-are-the-SNAP-asset-resource-limits",
+    "https://secure.in.gov/fssa/dfr/files/3000.pdf",
+    "https://secure.in.gov/fssa/dfr/files/2200.pdf"
+   ]
+  },
+  {
+   "code": "KS",
+   "name": "Food Assistance",
+   "applyUrl": "https://cssp.kees.ks.gov/apspssp/sspNonMed.portal",
+   "phone": "1-888-369-4777",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx",
+    "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistanceFAQs.aspx",
+    "https://www.dcf.ks.gov/services/ees/Pages/HelpfulTips.aspx",
+    "https://content.dcf.ks.gov/EES/KEESM/Appendix/F-2%20FA%20Program%20Standards.pdf"
+   ]
+  },
+  {
+   "code": "KY",
+   "name": "SNAP",
+   "applyUrl": "https://kynect.ky.gov/s/?language=en_US",
+   "phone": "1-855-306-8959",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://www.chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/esap.aspx"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.chfs.ky.gov/agencies/dcbs/dfs/Pages/default.aspx",
+    "https://www.chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/default.aspx",
+    "https://www.chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/esap.aspx",
+    "https://www.chfs.ky.gov/agencies/dcbs/dfs/Documents/OMVOLII.pdf"
+   ]
+  },
+  {
+   "code": "LA",
+   "name": "SNAP",
+   "applyUrl": "https://sspweb.ie.dcfs.la.gov/selfservice/",
+   "phone": "1-888-524-3578",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application (ESAP 1)",
+    "url": "https://ldh.la.gov/assets/SNAP/Applications/ESAP-1-frm.pdf"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://ldh.la.gov/page/how-to-apply",
+    "https://ldh.la.gov/page/snap-eligibility-application",
+    "https://ldh.la.gov/supplemental-nutrition-assistance-program",
+    "https://ldh.la.gov/page/esap"
+   ]
+  },
+  {
+   "code": "MA",
+   "name": "SNAP",
+   "applyUrl": "https://dtaconnect.eohhs.mass.gov/",
+   "phone": "877-382-2363",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the SNAP Application for Seniors",
+    "url": "https://www.mass.gov/doc/snap-application-for-seniors-snap-app-seniors/download"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.mass.gov/how-to/supplemental-nutrition-assistance-program-snap-formerly-known-as-food-stamps",
+    "https://www.mass.gov/department-of-transitional-assistance-seniors",
+    "https://www.mass.gov/info-details/department-of-transitional-assistance-snap-senior-assistance-office",
+    "https://www.mass.gov/doc/snap-application-for-seniors-snap-app-seniors/download"
+   ]
+  },
+  {
+   "code": "MD",
+   "name": "SNAP",
+   "applyUrl": "https://marylandbenefits.gov/home/#/",
+   "phone": "1-800-332-6347",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://dhs.maryland.gov/documents/FIA/Manuals/Supplemental%20Nutrition%20Assistance%20Program%20(SNAP)/107%20ESAP%20and%20MSNAP_20/107-ESAP-and-MSNAP_JULY%202023.docx"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://dhs.maryland.gov/supplemental-nutrition-assistance-program/",
+    "https://dhs.maryland.gov/supplemental-nutrition-assistance-program/applying-for-the-food-supplement-program/",
+    "https://dhs.maryland.gov/supplemental-nutrition-assistance-program/eligibility-rules/",
+    "https://dhs.maryland.gov/supplemental-nutrition-assistance-program/food-supplement-program-manual/"
+   ]
+  },
+  {
+   "code": "ME",
+   "name": "SNAP",
+   "applyUrl": "https://www.mymaineconnection.gov/benefits/s/",
+   "phone": "1-855-797-4357",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement",
+    "https://www.mymaineconnection.gov/benefits/s/",
+    "https://www.maine.gov/dhhs/ofi/applications-forms",
+    "https://www.maine.gov/sos/rulemaking/agency-rules/department-health-and-human-services-rules"
+   ]
+  },
+  {
+   "code": "MI",
+   "name": "the Food Assistance Program",
+   "applyUrl": "https://newmibridges.michigan.gov/s/isd-landing-page?language=en_US",
+   "phone": "517-241-3740",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.michigan.gov/mdhhs/assistance-programs/food",
+    "https://www.michigan.gov/mdhhs/assistance-programs/food/eligibility",
+    "https://www.michigan.gov/mdhhs/assistance-programs/food/application-process",
+    "https://www.michigan.gov/mdhhs/assistance-programs/other-help/food/michigan-combined-application-project-micap"
+   ]
+  },
+  {
+   "code": "MN",
+   "name": "SNAP",
+   "applyUrl": "https://mnbenefits.mn.gov/",
+   "phone": "651-431-4050",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the SNAP Application for Seniors (DHS-5223F)",
+    "url": "https://edocs.dhs.state.mn.us/lfserver/Public/DHS-5223F-ENG"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://dcyf.mn.gov/snap",
+    "https://dcyf.mn.gov/apply-benefits",
+    "https://dcyf.mn.gov/individuals-and-families/basic-needs/food-and-nutrition",
+    "https://dcyf.mn.gov/snap-frequently-asked-questions"
+   ]
+  },
+  {
+   "code": "MO",
+   "name": "SNAP",
+   "applyUrl": "https://formsportal.mo.gov/content/forms/af/moa/my-dss/family-support-division/FS-1/fs-1.html",
+   "phone": "855-373-4636",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": "Missouri calls for the interview. If you miss the call, call back at 855-373-4636 right away.",
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://dss.mo.gov/food-assistance",
+    "https://dss.mo.gov/food-assistance/food-stamp-program",
+    "https://mydss.mo.gov/food-assistance/apply-for-snap",
+    "https://mydss.mo.gov/snap-medical-deductions-elderly-and-disabled-missourians"
+   ]
+  },
+  {
+   "code": "MS",
+   "name": "SNAP",
+   "applyUrl": "https://www.access.ms.gov/consumer/home",
+   "phone": "800-948-3050",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Simplified Application for the Elderly",
+    "url": "https://www.mdhs.ms.gov/wp-content/uploads/2023/12/904-ESAP-Application.pdf"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.mdhs.ms.gov/economic-assistance/snap/",
+    "https://www.mdhs.ms.gov/help/snap/apply/",
+    "https://www.mdhs.ms.gov/help/snap/esap/",
+    "https://www.mdhs.ms.gov/help/snap/mscap/"
+   ]
+  },
+  {
+   "code": "MT",
+   "name": "SNAP",
+   "applyUrl": "https://apply.mt.gov",
+   "phone": "1-888-706-1535",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://dphhs.mt.gov/HCSD/SNAP/",
+    "https://www.dphhs.mt.gov/assets/hcsd/snapmanual/SNAP103.1.pdf",
+    "https://www.dphhs.mt.gov/assets/hcsd/snapmanual/SNAP304.1.pdf",
+    "https://dphhs.mt.gov/assets/MedicaidTribalConsultation/December2025/SupplementalNutritionAssistanceProgram.pdf"
+   ]
+  },
+  {
+   "code": "NC",
+   "name": "Food and Nutrition Services",
+   "applyUrl": "https://epass.nc.gov/",
+   "phone": "1-800-662-7030",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
+    "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps/apply-food-and-nutrition-services-food-stamps",
+    "https://epass.nc.gov/",
+    "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps/simplified-nutritional-assistance-program-snap"
+   ]
+  },
+  {
+   "code": "ND",
+   "name": "SNAP",
+   "applyUrl": "https://dhsbenefits.dhs.nd.gov/SSPPortal/public/?userType=client",
+   "phone": "1-866-614-6005",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.hhs.nd.gov/applyforhelp/snap",
+    "https://dhsbenefits.dhs.nd.gov/SSPPortal/public/?userType=client",
+    "https://www.nd.gov/dhs/policymanuals/SNAP/Content/Policy%20Update%20Documentation/2026/SNAP%20Release%2026.7%20Effective%2010.1.2026.pdf",
+    "https://www.nd.gov/dhs/policymanuals/SNAP/Content/Policy%20Update%20Documentation/2025/SNAP%20Release%2025.4%20Effective%20August.25.2025.pdf"
+   ]
+  },
+  {
+   "code": "NE",
+   "name": "SNAP",
+   "applyUrl": "https://iserve.nebraska.gov/apply/start",
+   "phone": "800-383-4278",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://dhhs.ne.gov/Pages/SNAP.aspx (via https://web.archive.org/web/20261005063259/https://dhhs.ne.gov/Pages/SNAP.aspx)",
+    "https://dhhs.ne.gov/Pages/ACCESSNebraska.aspx (via https://web.archive.org/web/20261008231158/https://dhhs.ne.gov/Pages/ACCESSNebraska.aspx)",
+    "https://dhhs.ne.gov/Guidance%20Docs/SNAP%20Program%20Standards.pdf (via https://web.archive.org/web/20251031030248/https://dhhs.ne.gov/Guidance%20Docs/SNAP%20Program%20Standards.pdf)",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "NH",
+   "name": "SNAP",
+   "applyUrl": "https://nheasy.nh.gov/",
+   "phone": "603-271-9700",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "low",
+   "sources": [
+    "https://fns-prod.azureedge.us/snap-directory-entry/new-hampshire",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf",
+    "https://fns-prod.azureedge.us/snap/allotment/cola",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/BBCE-States-Chart-June2026.pdf"
+   ]
+  },
+  {
+   "code": "NJ",
+   "name": "SNAP",
+   "applyUrl": "https://www.mynjhelps.gov/",
+   "phone": "1-800-687-9512",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.nj.gov/humanservices/njsnap/apply/ways/",
+    "https://www.nj.gov/humanservices/njsnap/apply/app/",
+    "https://www.nj.gov/humanservices/njsnap/apply/eligibility/",
+    "https://www.njhelps.gov/"
+   ]
+  },
+  {
+   "code": "NM",
+   "name": "SNAP",
+   "applyUrl": "https://www.yes.state.nm.us/",
+   "phone": "855-309-3766",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": null
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://fns-prod.azureedge.us/snap-directory-entry/new-mexico",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf",
+    "https://www.srca.nm.gov/parts/title08/08.139.0510.html",
+    "https://www.srca.nm.gov/parts/title08/08.139.0420.html"
+   ]
+  },
+  {
+   "code": "NV",
+   "name": "SNAP",
+   "applyUrl": "https://accessnevada.nv.gov/public/landing-page",
+   "phone": "702-486-1646",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://www.dss.nv.gov/programs/snap/",
+    "https://accessnevada.nv.gov/public/landing-page",
+    "https://www.dss.nv.gov/contact/",
+    "https://www.dss.nv.gov/contact/welfare-district-offices-south/"
+   ]
+  },
+  {
+   "code": "NY",
+   "name": "SNAP",
+   "applyUrl": "https://mybenefits.ny.gov",
+   "phone": "1-800-342-3009",
+   "phoneApplies": true,
+   "phoneNote": "In New York City, call HRA at 718-557-1399 instead.",
+   "seniorForm": {
+    "name": "the Elderly Simplified Application (LDSS-5166)",
+    "url": "https://www.nyc.gov/assets/hra/downloads/pdf/services/snap/f-5166.pdf"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": "In New York City, HRA won't call you: after applying, call 718-557-1399 yourself to do the interview.",
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://www.nyc.gov/site/hra/help/snap-benefits-food-program.page",
+    "https://www.nyc.gov/site/hra/help/snap-application-frequently-asked-questions.page",
+    "https://www.nyc.gov/site/hra/help/snap-application-documents.page",
+    "https://www.nyc.gov/assets/hra/downloads/pdf/services/snap/f-5166.pdf"
+   ]
+  },
+  {
+   "code": "OH",
+   "name": "Food Assistance",
+   "applyUrl": "https://benefits.ohio.gov/",
+   "phone": "1-844-640-6446",
+   "phoneApplies": true,
+   "phoneNote": "Your county Job and Family Services office can take the application by phone.",
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": null
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://jfs.ohio.gov/public-assistance/food-assistance",
+    "https://jfs.ohio.gov/public-assistance/food-assistance/how-to-apply-for-food-assistance",
+    "https://benefits.ohio.gov/",
+    "https://benefits.ohio.gov/help-center"
+   ]
+  },
+  {
+   "code": "OK",
+   "name": "SNAP",
+   "applyUrl": "https://www.okdhslive.org/",
+   "phone": "405-522-5050",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://oklahoma.gov/okdhs/services/snap.html",
+    "https://oklahoma.gov/okdhs/contact-us.html",
+    "https://oklahoma.gov/content/dam/ok/en/okdhs/documents/searchcenter/okdhsformresults/c-3.pdf",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "OR",
+   "name": "SNAP",
+   "applyUrl": "https://one.oregon.gov/",
+   "phone": "800-699-9075",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://www.oregon.gov/odhs/food/pages/snap.aspx",
+    "https://www.oregon.gov/odhs/benefits/pages/default.aspx",
+    "https://www.oregon.gov/odhs/about/legislativeinformation/2025-wm-ssp-snap.pdf",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "PA",
+   "name": "SNAP",
+   "applyUrl": "https://www.compass.dhs.pa.gov/home/#/",
+   "phone": "1-800-692-7462",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Simple Application (PA 1935)",
+    "url": "https://www.pa.gov/content/dam/copapwp-pagov/en/dhs/documents/services/assistance/documents/benefits-applications/PA%201935.pdf"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.pa.gov/services/dhs/apply-for-the-supplemental-nutrition-assistance-program-snap",
+    "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults",
+    "https://www.pa.gov/agencies/dhs/programs-services/apply-for-benefits",
+    "http://services.dpw.state.pa.us/oimpolicymanuals/snap/540_Resources/540_1_General_Policy.htm"
+   ]
+  },
+  {
+   "code": "RI",
+   "name": "SNAP",
+   "applyUrl": "https://healthyrhode.ri.gov/",
+   "phone": "1-855-697-4347",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap/supplemental-nutrition-7"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://rules.sos.ri.gov/regulations/part/218-20-00-1",
+    "https://web.archive.org/web/20260110235254/https://dhs.ri.gov/apply-now",
+    "https://web.archive.org/web/20260606013038/https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "SC",
+   "name": "SNAP",
+   "applyUrl": "https://benefitsportal.dss.sc.gov/#/login",
+   "phone": "1-800-616-1309",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "medium",
+   "sources": [
+    "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/",
+    "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/",
+    "https://dss.sc.gov/assistance-programs/snap/faq/",
+    "https://dss.sc.gov/contact-dss/"
+   ]
+  },
+  {
+   "code": "SD",
+   "name": "SNAP",
+   "applyUrl": "https://eaportal.sd.gov/",
+   "phone": "1-877-999-5612",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://dss.sd.gov/economicassistance/snap.aspx",
+    "https://dss.sd.gov/docs/economicassistance/snap/snapmanual.pdf",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "TN",
+   "name": "SNAP",
+   "applyUrl": "https://onedhs.tn.gov/csp",
+   "phone": "1-833-772-8347",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap.html",
+    "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap/supplemental-nutrition-assistance-program-snap-eligibility-information.html",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "TX",
+   "name": "SNAP",
+   "applyUrl": "https://yourtexasbenefits.com/Apply/GettingStartedApp?lang=en_US",
+   "phone": "877-541-7905",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Texas Simplified Application (TSAP)",
+    "url": "https://www.hhs.texas.gov/services/food/snap-food-benefits/texas-simplified-application-project-tsap-snap-food-benefits"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.hhs.texas.gov/services/food/snap-food-benefits",
+    "https://www.hhs.texas.gov/services/food/snap-food-benefits/texas-simplified-application-project-tsap-snap-food-benefits",
+    "https://www.hhs.texas.gov/handbooks/texas-works-handbook/a-1220-limits",
+    "https://www.hhs.texas.gov/handbooks/texas-works-handbook/a-1420-types-deductions"
+   ]
+  },
+  {
+   "code": "UT",
+   "name": "SNAP",
+   "applyUrl": "https://jobs.utah.gov/mycase",
+   "phone": "1-866-435-7414",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://jobs.utah.gov/customereducation/services/foodstamps/requirements.html"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://jobs.utah.gov/customereducation/services/foodstamps/index.html",
+    "https://jobs.utah.gov/customereducation/services/foodstamps/requirements.html",
+    "https://jobs.utah.gov/customereducation/services/foodstamps/deductions.html",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "VA",
+   "name": "SNAP",
+   "applyUrl": "https://commonhelp.virginia.gov/access/",
+   "phone": "833-522-5582",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://www.dss.virginia.gov/relief/food-assistance/snap/"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.dss.virginia.gov/relief/food-assistance/snap/",
+    "https://www.dss.virginia.gov/relief/food-assistance/snap/snap-requirements-faqs/",
+    "https://commonhelp.virginia.gov/",
+    "https://www.dss.virginia.gov/media/vdss/benefit-programs/documents/snap/snap-manual/Part_ii.pdf"
+   ]
+  },
+  {
+   "code": "VT",
+   "name": "3SquaresVT",
+   "applyUrl": "https://mybenefits.ahs.state.vt.us/Login.aspx?ReturnUrl=/selfservice/Default.aspx",
+   "phone": "1-800-479-6151",
+   "phoneApplies": null,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "3SquaresVT in a SNAP! (form 202-3SNP)",
+    "url": "https://dcf.vermont.gov/benefits/3SquaresVT/SNAP"
+   },
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://dcf.vermont.gov/benefits/3SquaresVT",
+    "https://dcf.vermont.gov/benefits/3SquaresVT/SNAP",
+    "https://dcf.vermont.gov/esd/applicants/mybenefits",
+    "https://outside.vermont.gov/dept/DCF/Shared%20Documents/ESD/Forms/120.pdf"
+   ]
+  },
+  {
+   "code": "WA",
+   "name": "Basic Food",
+   "applyUrl": "https://www.washingtonconnection.org/eapplication/home.go?action=Introduction",
+   "phone": "1-877-501-2233",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": {
+    "name": "the Elderly Simplified Application",
+    "url": "https://manuals.dshs.wa.gov/node/35870"
+   },
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.dshs.wa.gov/family-food-and-housing-services/food-assistance/basic-food-benefits",
+    "https://www.washingtonconnection.org/home/",
+    "https://manuals.dshs.wa.gov/node/35870",
+    "https://app.leg.wa.gov/wac/default.aspx?cite=388-470-0005"
+   ]
+  },
+  {
+   "code": "WI",
+   "name": "FoodShare",
+   "applyUrl": "https://access.wi.gov/s/?language=en_US",
+   "phone": "800-362-3002",
+   "phoneApplies": true,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://www.dhs.wisconsin.gov/foodshare/index.htm",
+    "https://www.dhs.wisconsin.gov/forwardhealth/apply.htm",
+    "https://www.dhs.wisconsin.gov/foodshare/eligibility.htm",
+    "https://www.dhs.wisconsin.gov/foodshare/fpl.htm"
+   ]
+  },
+  {
+   "code": "WV",
+   "name": "SNAP",
+   "applyUrl": "https://www.wvpath.wv.gov/",
+   "phone": "1-877-716-1212",
+   "phoneApplies": false,
+   "phoneNote": null,
+   "seniorForm": null,
+   "medicalDeduction": "actual",
+   "interviewNote": null,
+   "paperOnly": false,
+   "paperUrl": null,
+   "confidence": "high",
+   "sources": [
+    "https://bfa.wv.gov/snap",
+    "https://bfa.wv.gov/media/40005/download?inline",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  },
+  {
+   "code": "WY",
+   "name": "SNAP",
+   "applyUrl": null,
+   "phone": "1-307-777-8550",
+   "phoneApplies": false,
+   "phoneNote": "This is the interview line. Wyoming takes applications on paper only.",
+   "seniorForm": null,
+   "medicalDeduction": "standard",
+   "interviewNote": null,
+   "paperOnly": true,
+   "paperUrl": "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap/snap-how-to-apply-and-frequently-used-forms/",
+   "confidence": "high",
+   "sources": [
+    "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap/snap-how-to-apply-and-frequently-used-forms/",
+    "https://dfs.wyo.gov/assistance-programs/food-assistance/supplemental-nutrition-assistance-program-snap/snap-do-i-qualify/",
+    "https://dfs.wyo.gov/about/policy-manuals/snap-and-power-policy-manual/",
+    "https://fns-prod.azureedge.us/sites/default/files/resource-files/snap-stateOptionsReport-17edition-120925.pdf"
+   ]
+  }
+ ]
+}

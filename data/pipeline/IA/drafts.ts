@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.268Z
+ * Last updated: 2026-10-10T05:17:44.897Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -739,6 +739,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Seniors often qualify for higher deductions, include all medical expenses over $35/month, including Medicare premiums, prescription costs, and medical equipment.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://hhsservices.iowa.gov/apspssp/ssp.portal"
+          },
           {
             "label": "Iowa SNAP Application Portal",
             "url": "https://hhs.iowa.gov/assistance-programs/food-assistance/snap"

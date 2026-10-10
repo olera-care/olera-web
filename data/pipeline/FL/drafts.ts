@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T06:44:48.371Z
+ * Last updated: 2026-10-10T05:17:44.889Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -826,6 +826,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Emphasize all medical expenses over $35/month during the interview, prescription costs, Medicare premiums, and out-of-pocket medical bills significantly reduce countable income for seniors",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://myaccess.myflfamilies.com"
+          },
           {
             "label": "MyACCESS Portal (apply online)",
             "url": "https://myaccess.myflfamilies.com/"

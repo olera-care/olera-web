@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/RI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.937Z
+ * Last updated: 2026-10-10T05:17:44.933Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -939,6 +939,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Medical expenses over $35/month can significantly increase your loved one's benefits, keep receipts for prescriptions, insurance premiums, and doctor visits.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://healthyrhode.ri.gov/"
+          },
           {
             "label": "Rhode Island DHS SNAP Portal",
             "url": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap"

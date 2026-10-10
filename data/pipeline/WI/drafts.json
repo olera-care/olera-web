@@ -1598,6 +1598,10 @@
         "tip": "If your parent has high out-of-pocket medical costs (prescriptions, Medicare premiums, home care copays), ask the caseworker specifically about the medical expense deduction for elderly or disabled household members. This deduction can significantly lower the income figure used to calculate benefits and may be the difference between qualifying and not.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://access.wi.gov/s/?language=en_US"
+          },
+          {
             "label": "Apply online: ACCESS Wisconsin",
             "url": "https://access.wi.gov"
           },

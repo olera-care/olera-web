@@ -3,7 +3,7 @@ import { US_STATES } from "@/lib/us-states";
 import { buildApplyAlong, startsWithExtraHelp, type ApplyHousehold } from "@/lib/benefits/apply-along";
 import { parseCuts } from "@/lib/benefits/cut";
 import type { FinderWho } from "@/lib/benefits/finder-answers";
-import ApplyAlongView from "./ApplyAlongView";
+import ApplyAlongView from "@/components/benefits/apply/ApplyAlongView";
 
 /**
  * /benefits/apply/extra-help?st=PA&p=<program id>&w=spouse&h=couple&i=under2500&ic=under:2455&s=under10000&sc=over:3000[&t=<plan token>]

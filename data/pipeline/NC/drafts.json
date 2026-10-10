@@ -791,6 +791,10 @@
         "tip": "Medical expenses are key for seniors, gather all receipts for medications, doctor visits, insurance premiums, and medical equipment from the past 3 months",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://epass.nc.gov/"
+          },
+          {
             "label": "NC ePASS Online Application",
             "url": "https://epass.nc.gov"
           },

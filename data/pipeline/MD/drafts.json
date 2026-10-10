@@ -1192,6 +1192,10 @@
         "tip": "Don't miss reporting medical expenses if you're 60+, they're deductible from income and can significantly increase your benefits or help you qualify.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://marylandbenefits.gov/home/#/"
+          },
+          {
             "label": "myDHR Online Application Portal",
             "url": "https://mydhrbenefits.dhr.state.md.us"
           },

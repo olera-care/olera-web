@@ -86,7 +86,13 @@ export function benefitsCheckInSms(p: {
  *  told us they sent Social Security's Extra Help form, which also starts the
  *  state's Medicare Savings application. Every reply word is one the inbound
  *  parser already reads (WAITING, DENIED as not eligible, STUCK) plus APPROVED. */
-export function benefitsApplyCheckSms(p: { stage: "letter" | "decision"; url: string }): string {
+export function benefitsApplyCheckSms(p: { stage: "letter" | "decision"; url: string; route?: "ssa_extra_help" | "state_snap"; stateName?: string | null }): string {
+  if (p.route === "state_snap") {
+    const state = p.stateName || "the state";
+    return p.stage === "letter"
+      ? `Olera: It's been a few days since you applied for SNAP. Has ${state} called or written to set up the interview? Missing it ends the application. Reply WAITING if not yet, or STUCK. Plan: ${p.url} Reply STOP to opt out.`
+      : `Olera: Any word on SNAP from ${state}? Reply APPROVED, DENIED, WAITING, or STUCK. Plan: ${p.url} Reply STOP to opt out.`;
+  }
   return p.stage === "letter"
     ? `Olera: It's been about a week since you sent the Extra Help form. Has a letter come from Social Security? Reply WAITING if not yet, APPROVED or DENIED if it came, or STUCK. Plan: ${p.url} Reply STOP to opt out.`
     : `Olera: Any word on Extra Help or Medicare Savings? Reply APPROVED, DENIED, WAITING, or STUCK. Plan: ${p.url} Reply STOP to opt out.`;

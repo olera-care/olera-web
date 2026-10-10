@@ -86,24 +86,35 @@ export interface BenefitsCascadeMeta {
    *  durable status the living plan can show back to the family. */
   application_status?: BenefitsApplicationStatus;
   application_status_at?: string;
-  /** The family said they submitted an application through Olera's
-   *  apply-along (lib/benefits/apply-along.ts). `route` "ssa_extra_help":
-   *  Social Security's Extra Help form, which also starts the state's
-   *  Medicare Savings application. The check-ins about the decision read this. */
-  applied?: {
-    at: string;
-    route: "ssa_extra_help";
-    program_id?: string;
-    state_id?: string;
-    /** The coordinator's B3 check-ins: about a week, then about five weeks after `at`. */
-    letter_check_at?: string;
-    decision_check_at?: string;
-    /** What came back, from a text reply or a tap on the plan. */
-    decision?: "approved" | "denied" | "waiting" | "stuck";
-    decision_at?: string;
-  };
+  /** The family said they submitted Social Security's Extra Help form
+   *  through Olera's apply-along (lib/benefits/apply-along.ts), which also
+   *  starts the state's Medicare Savings application. Other apply-alongs go
+   *  in `applications`; read both through lib/benefits/applications.ts. */
+  applied?: BenefitsApplication;
+  /** Every other apply-along (senior SNAP, 10 Oct 2026), one per route. */
+  applications?: BenefitsApplication[];
   last_sms_reply?: string;
   last_sms_reply_at?: string;
+}
+
+/**
+ * One application sent through an apply-along. `route` "ssa_extra_help":
+ * Social Security's Extra Help form; "state_snap": the state's SNAP
+ * application. The coordinator's B3 check-ins read these.
+ */
+export interface BenefitsApplication {
+  at: string;
+  route: "ssa_extra_help" | "state_snap";
+  program_id?: string;
+  state_id?: string;
+  /** B3's first check-in (Extra Help: did a letter come, about a week in;
+   *  SNAP: did the interview call come, about five days in). */
+  letter_check_at?: string;
+  /** B3's second check-in: what was decided, about five weeks in. */
+  decision_check_at?: string;
+  /** What came back, from a text reply or a tap on the plan. */
+  decision?: "approved" | "denied" | "waiting" | "stuck";
+  decision_at?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-07T04:20:05.323Z
+ * Last updated: 2026-10-10T05:17:44.931Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -771,6 +771,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "If your loved one is 60+, document all out-of-pocket medical expenses, even small copays and prescription costs add up to reduce countable income and increase benefits.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://one.oregon.gov/"
+          },
           {
             "label": "Oregon SNAP Application",
             "url": "https://www.oregon.gov/odhs/food/pages/snap.aspx"

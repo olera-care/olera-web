@@ -767,6 +767,10 @@
         "tip": "If your loved one is 60+, document all out-of-pocket medical expenses, even small copays and prescription costs add up to reduce countable income and increase benefits.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://one.oregon.gov/"
+          },
+          {
             "label": "Oregon SNAP Application",
             "url": "https://www.oregon.gov/odhs/food/pages/snap.aspx"
           }

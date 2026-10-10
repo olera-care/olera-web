@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T06:44:48.389Z
+ * Last updated: 2026-10-10T05:17:44.916Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1158,7 +1158,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "If your loved one has medical bills over $35/month, gather those receipts, they can significantly lower countable income and increase benefit amount.",
         "urls": [
           {
-            "label": "Montana SNAP Online Application",
+            "label": "Apply online",
             "url": "https://apply.mt.gov"
           },
           {

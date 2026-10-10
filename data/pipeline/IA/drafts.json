@@ -735,6 +735,10 @@
         "tip": "Seniors often qualify for higher deductions, include all medical expenses over $35/month, including Medicare premiums, prescription costs, and medical equipment.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://hhsservices.iowa.gov/apspssp/ssp.portal"
+          },
+          {
             "label": "Iowa SNAP Application Portal",
             "url": "https://hhs.iowa.gov/assistance-programs/food-assistance/snap"
           }

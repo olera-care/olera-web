@@ -780,6 +780,10 @@
         "tip": "Submit your application first, then gather documents. Your benefit start date is protected once DoHS receives your application.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://www.wvpath.wv.gov/"
+          },
+          {
             "label": "WV PATH Online Application",
             "url": "https://wvpath.wv.gov"
           }

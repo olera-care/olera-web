@@ -822,6 +822,10 @@
         "tip": "Emphasize all medical expenses over $35/month during the interview, prescription costs, Medicare premiums, and out-of-pocket medical bills significantly reduce countable income for seniors",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://myaccess.myflfamilies.com"
+          },
+          {
             "label": "MyACCESS Portal (apply online)",
             "url": "https://myaccess.myflfamilies.com/"
           },

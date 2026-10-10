@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/HI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:13.454Z
+ * Last updated: 2026-10-10T05:17:44.893Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -880,6 +880,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Don't forget to report medical expenses over $35/month, this deduction can significantly increase your loved one's monthly benefits.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://pais.dhs.hawaii.gov/PAIS/#!/"
+          },
           {
             "label": "Apply Online",
             "url": "https://www.mybenefitshawaii.org"

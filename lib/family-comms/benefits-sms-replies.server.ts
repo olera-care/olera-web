@@ -2,6 +2,7 @@ import type {
   BenefitsCascadeMeta,
   BenefitsApplicationStatus,
 } from "@/lib/family-comms/benefits-cascade.server";
+import { withDecision, type ApplicationDecision } from "@/lib/benefits/applications";
 
 export interface BenefitsSmsReplyResult {
   cascade: BenefitsCascadeMeta;
@@ -32,6 +33,13 @@ function withStatus(
  * The webhook remains responsible for persistence and human alerts; keeping
  * this interpretation pure makes the family-facing contract easy to test.
  */
+/** A reply word records a decision on the application we last asked about
+ *  (lib/benefits/applications.ts). No application: nothing changes. */
+function decided(existing: BenefitsCascadeMeta, decision: ApplicationDecision, at: string): Pick<BenefitsCascadeMeta, "applied" | "applications"> {
+  const next = withDecision(existing, decision, at);
+  return { applied: next.applied, applications: next.applications };
+}
+
 export function interpretBenefitsSmsReply(
   keyword: string,
   existing: BenefitsCascadeMeta,
@@ -84,7 +92,7 @@ export function interpretBenefitsSmsReply(
     case "WAITING":
       return {
         cascade: withStatus(existing, "waiting", keyword, at, {
-          ...(existing.applied ? { applied: { ...existing.applied, decision: "waiting" as const, decision_at: at } } : {}),
+          ...decided(existing, "waiting", at),
           first_step_done_at: firstStepDone,
           first_step_done_program_id: firstStepDoneProgram,
           outcome: "moving",
@@ -101,7 +109,7 @@ export function interpretBenefitsSmsReply(
           first_step_done_program_id: firstStepDoneProgram,
           outcome: "moving",
           outcome_at: at,
-          ...(existing.applied ? { applied: { ...existing.applied, decision: "approved" as const, decision_at: at } } : {}),
+          ...decided(existing, "approved", at),
         }),
         response: "Olera: That's wonderful news. We marked it approved. If anything about it doesn't look right, reply STUCK and a person will help.",
         needsHuman: false,
@@ -110,7 +118,7 @@ export function interpretBenefitsSmsReply(
     case "NOTELIGIBLE":
       return {
         cascade: withStatus(existing, "not_eligible", keyword, at, {
-          ...(existing.applied ? { applied: { ...existing.applied, decision: "denied" as const, decision_at: at } } : {}),
+          ...decided(existing, "denied", at),
           outcome: "wrong_program",
           outcome_at: at,
           outcome_reason: "not_eligible",
@@ -122,7 +130,7 @@ export function interpretBenefitsSmsReply(
     case "STUCK":
       return {
         cascade: withStatus(existing, "stuck", keyword, at, {
-          ...(existing.applied ? { applied: { ...existing.applied, decision: "stuck" as const, decision_at: at } } : {}),
+          ...decided(existing, "stuck", at),
           outcome: "wants_help",
           outcome_at: at,
         }),

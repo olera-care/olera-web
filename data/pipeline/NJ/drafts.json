@@ -2154,8 +2154,8 @@
         "tip": "If your parent is in an urgent situation, ask specifically about expedited processing when you call or during the interview. Not everyone qualifies, but if they do, benefits can arrive within 7 days instead of 30.",
         "urls": [
           {
-            "label": "Apply online at NJHelps.gov",
-            "url": "https://www.njhelps.org"
+            "label": "Apply online",
+            "url": "https://www.mynjhelps.gov/"
           },
           {
             "label": "NJ SNAP program overview",
@@ -2261,7 +2261,7 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "2-1-1",
+      "phone": "1-800-687-9512",
       "sourceUrl": "https://www.nj.gov/humanservices/njsnap/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-10-06",

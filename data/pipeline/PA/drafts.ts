@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/PA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.884Z
+ * Last updated: 2026-10-10T05:17:44.932Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -921,6 +921,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Seniors over the gross income limit can still qualify through net income rules, don't assume you make too much without applying.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://www.compass.dhs.pa.gov/home/#/"
+          },
           {
             "label": "COMPASS Application Portal",
             "url": "https://www.compass.state.pa.us"

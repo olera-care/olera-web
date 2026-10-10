@@ -976,6 +976,10 @@
         "tip": "Elderly households often qualify for expedited processing if they have less than $150 in monthly gross income and liquid resources.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://fssabenefits.in.gov/bp/#/"
+          },
+          {
             "label": "ACCESS Indiana Portal",
             "url": "https://www.in.gov/fssa/dfr/snap-food-assistance/"
           }

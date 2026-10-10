@@ -1095,6 +1095,10 @@
         "tip": "Submit all documents at once to avoid delays. Income limits are based on gross income before taxes, not take-home pay.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://www.washingtonconnection.org/eapplication/home.go?action=Introduction"
+          },
+          {
             "label": "Washington Connection Online Application",
             "url": "https://www.washingtonconnection.org"
           }

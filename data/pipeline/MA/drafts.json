@@ -742,6 +742,10 @@
         "tip": "Seniors can report changes in medical expenses anytime during their benefit period to potentially increase their monthly benefit amount.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://dtaconnect.eohhs.mass.gov/"
+          },
+          {
             "label": "SNAP Application for Seniors",
             "url": "https://www.mass.gov/lists/snap-application-for-seniors"
           },

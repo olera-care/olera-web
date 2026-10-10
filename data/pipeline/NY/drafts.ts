@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:26:42.819Z
+ * Last updated: 2026-10-10T05:17:44.925Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -205,7 +205,18 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.health.ny.gov/health_care/medicaid/",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-07",
+      "reviewQueue": [
+        {
+          "field": "assets_individual",
+          "from": 33038,
+          "to": 30182,
+          "source": "https://www.medicaidplanningassistance.org/medicaid-eligibility-new-york/",
+          "severity": "medium",
+          "why": "aggregator source",
+          "flaggedAt": "2026-10-06T12:26:42.678Z"
+        }
+      ]
     },
     {
       "id": "hcbs-developmental-disabilities-waiver",
@@ -389,21 +400,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://opwdd.ny.gov/providers/home-and-community-based-services-waiver",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "reviewQueue": [
-        {
-          "field": "phone",
-          "from": [
-            "8669469733",
-            "211",
-            "8005412831"
-          ],
-          "to": "5184745271",
-          "source": "https://www.health.ny.gov/forms/doh-5729",
-          "severity": "medium",
-          "why": "phone (run with --phones to apply official ones)",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
-        }
-      ],
+      "reviewQueue": null,
       "appliedCorrections": [
         {
           "field": "phone_added",
@@ -865,20 +862,20 @@ export const drafts: PipelineStateDrafts = {
         {
           "field": "income_1",
           "from": 2494,
-          "to": 1846,
-          "source": "https://aging.ny.gov/medicare-savings-program",
+          "to": 1856,
+          "source": "https://aging.ny.gov/system/files/documents/2026/03/2026-nysofa-hiicap-notebook-module-9-medicare-savings-programs.pdf",
           "severity": "high",
-          "why": "value fits more than one tier (133% FPL 2026 or 135% FPL 2026 or 138% FPL 2026 or 138% FPL 2025)",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
+          "why": "value fits more than one tier (135% FPL 2026 or 138% FPL 2026 or 138% FPL 2025)",
+          "flaggedAt": "2026-10-06T12:26:42.678Z"
         },
         {
           "field": "income_2",
           "from": 3375,
           "to": 2509,
-          "source": "https://aging.ny.gov/medicare-savings-program",
+          "source": "https://aging.ny.gov/system/files/documents/2026/03/2026-nysofa-hiicap-notebook-module-9-medicare-savings-programs.pdf",
           "severity": "high",
           "why": "value fits more than one tier (135% FPL 2026 or 138% FPL 2026 or 138% FPL 2025)",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
+          "flaggedAt": "2026-10-06T12:26:42.678Z"
         }
       ],
       "appliedCorrections": [
@@ -1021,7 +1018,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "If your loved one receives SSI and lives alone, they may be automatically enrolled in NYSCAP without applying.",
         "urls": [
           {
-            "label": "Apply Online",
+            "label": "Apply online",
             "url": "https://mybenefits.ny.gov"
           },
           {
@@ -1125,20 +1122,20 @@ export const drafts: PipelineStateDrafts = {
         {
           "field": "income_1",
           "from": 1663,
-          "to": 2660,
+          "to": 1496,
           "source": "https://www.ny.gov/services/apply-snap",
-          "severity": "high",
+          "severity": "medium",
           "why": "value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 130% FPL 2024 or 133% FPL 2024 or 135% FPL 2024 or 133% FPL 2023 or 135% FPL 2023 or 138% FPL 2023 or 150% FPL 2022)",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
+          "flaggedAt": "2026-10-06T12:26:42.678Z"
         },
         {
           "field": "income_2",
           "from": 2254,
-          "to": 3607,
+          "to": 2028,
           "source": "https://www.ny.gov/services/apply-snap",
-          "severity": "high",
+          "severity": "medium",
           "why": "value fits more than one tier (120% FPL 2026 or 125% FPL 2026 or 125% FPL 2025 or 130% FPL 2025 or 130% FPL 2024 or 133% FPL 2024 or 135% FPL 2024 or 133% FPL 2023 or 135% FPL 2023 or 138% FPL 2023 or 150% FPL 2022)",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
+          "flaggedAt": "2026-10-06T12:26:42.678Z"
         }
       ]
     },
@@ -1538,11 +1535,11 @@ export const drafts: PipelineStateDrafts = {
             "7166619430",
             "211"
           ],
-          "to": "8003423009",
+          "to": "8003429871",
           "source": "https://ag.ny.gov/sites/default/files/publications/Senior_Housing_Guide.pdf",
           "severity": "medium",
           "why": "phone (run with --phones to apply official ones)",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
+          "flaggedAt": "2026-10-06T12:26:42.678Z"
         }
       ]
     },
@@ -2224,11 +2221,11 @@ export const drafts: PipelineStateDrafts = {
         {
           "field": "income_1",
           "from": 1663,
-          "to": 1575,
+          "to": 1578,
           "source": "https://aging.ny.gov/senior-community-service-employment-program-scsep",
           "severity": "medium",
           "why": "value fits more than one tier (120% FPL 2026 or 120% FPL 2025 or 125% FPL 2025)",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
+          "flaggedAt": "2026-10-06T12:26:42.678Z"
         }
       ],
       "appliedCorrections": [
@@ -2412,17 +2409,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://aging.ny.gov/legal-services-initiative",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "reviewQueue": [
-        {
-          "field": "age",
-          "from": 60,
-          "to": 55,
-          "source": "https://www.elderjusticeny.org/",
-          "severity": "high",
-          "why": "aggregator source",
-          "flaggedAt": "2026-10-05T18:19:09.800Z"
-        }
-      ],
+      "reviewQueue": null,
       "appliedCorrections": [
         {
           "field": "phone_added",

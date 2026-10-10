@@ -58,7 +58,25 @@ export interface MoneyRow {
   text: string;
 }
 
+/** Which form the family applied with. Each route gets its own check-ins. */
+export type ApplyRoute = "ssa_extra_help" | "state_snap";
+
 export interface ApplyAlong {
+  route: ApplyRoute;
+  /** Analytics variant (the caseworker checkpoints count any "apply_along*"). */
+  variant: string;
+  /** Step 1: where the form lives. `href` null when there is no online form. */
+  open: { title: string; href: string | null; label: string };
+  /** Step 2's lead-in above the money rows. */
+  moneyIntro: string;
+  /** Step 3: when we'll check in, and the same promise once it's recorded. */
+  checkinLine: string;
+  doneCheckin: string;
+  /** The contact screen's line when they've applied. */
+  contactLine: string;
+  /** "Rather call?": the number, what it can do, and what to say. */
+  phone: { number: string; label: string; note: string | null; script: string | null } | null;
+
   /** Small label above the heading: what this is. */
   eyebrow: string;
   heading: string;
@@ -74,8 +92,6 @@ export interface ApplyAlong {
   /** Every section of Social Security's form, for "See every screen". */
   steps: ApplyStep[];
   next: string[];
-  /** Said on the phone to Social Security instead. */
-  phoneScript: string;
   /** The same caution our texts carry (lib/sms/templates.ts), plus who we
    *  aren't: the page sends people to a government form. */
   disclaimer: string;
@@ -220,6 +236,19 @@ export function buildApplyAlong(input: ApplyAlongInput): ApplyAlong {
   ];
 
   return {
+    route: "ssa_extra_help",
+    variant: "apply_along_v1",
+    open: { title: "Open Social Security's form", href: SSA_EXTRA_HELP_URL, label: "Open the Social Security form" },
+    moneyIntro: "Three of them are about money. Here's what you told us, to check against:",
+    checkinLine: "We'll check in by text or email after about a week, and again after about five.",
+    doneCheckin: "in about a week to see what came in the mail",
+    contactLine: "We'll ask in about a week whether a letter came, and help if something's stuck.",
+    phone: {
+      number: SSA_PHONE,
+      label: `Call Social Security, ${SSA_PHONE}`,
+      note: null,
+      script: `Hi, I'd like to apply for Extra Help ${v.callFor}, and have it sent to the state for Medicare Savings too.`,
+    },
     eyebrow: "Medicare Savings application",
     heading: "Apply for help paying Medicare costs",
     lede: `${generic ? "It's called the Medicare Savings Program." : `${knownState ? a.stateName : "Your state"} calls it ${a.mspName}.`} It pays the $${PART_B_PREMIUM.toFixed(2)} Medicare Part B premium every month, and it brings Extra Help with prescriptions too.`,
@@ -235,7 +264,6 @@ export function buildApplyAlong(input: ApplyAlongInput): ApplyAlong {
     ],
     steps,
     next,
-    phoneScript: `Hi, I'd like to apply for Extra Help ${v.callFor}, and have it sent to the state for Medicare Savings too.`,
     disclaimer: `Olera is a free service and isn't part of Social Security or ${knownState ? `the state of ${a.stateName}` : "your state"}. We share free information and can get things wrong, so please confirm anything important with Social Security or the state. They make every decision.`,
   };
 }

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:14.572Z
+ * Last updated: 2026-10-10T05:17:44.912Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1039,6 +1039,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Seniors 60+ should use the Senior SNAP Application rather than the standard Combined Application Form, it's designed specifically for older adults.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://mnbenefits.mn.gov/"
+          },
           {
             "label": "Apply online (MNbenefits)",
             "url": "https://mnbenefits.mn.gov"

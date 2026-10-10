@@ -768,6 +768,10 @@
         "tip": "Gather medical expense receipts over $35/month, these reduce your countable income and can significantly increase your benefit amount",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://iserve.nebraska.gov/apply/start"
+          },
+          {
             "label": "Apply Online - AccessNebraska",
             "url": "https://accessnebraska.ne.gov"
           }

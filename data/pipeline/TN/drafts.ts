@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:32:15.036Z
+ * Last updated: 2026-10-10T05:17:44.937Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -324,6 +324,10 @@ export const drafts: PipelineStateDrafts = {
         "waitlist": null,
         "tip": "Seniors often qualify for higher benefits than expected due to medical expense deductions, include all out-of-pocket costs over $35/month including Medicare premiums.",
         "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://onedhs.tn.gov/csp"
+          },
           {
             "label": "Tennessee DHS Online Application",
             "url": "https://www.tn.gov/humanservices"

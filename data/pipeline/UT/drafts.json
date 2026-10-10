@@ -720,6 +720,10 @@
         "tip": "Seniors can deduct medical expenses over $35/month and high shelter costs from gross income, gather these receipts to potentially qualify with higher income.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://jobs.utah.gov/mycase"
+          },
+          {
             "label": "Apply online at mycase.utah.gov",
             "url": "https://jobs.utah.gov/customereducation/services/foodstamps/"
           }

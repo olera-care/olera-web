@@ -886,6 +886,10 @@
         "tip": "Emphasize all medical expenses over $35 monthly and high shelter costs during your interview, these deductions often make the difference between qualifying and not qualifying.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://idalink.idaho.gov/"
+          },
+          {
             "label": "Idaho DHW SNAP Application",
             "url": "https://healthandwelfare.idaho.gov/services-programs/food-assistance/apply-snap"
           }

@@ -8,6 +8,7 @@ import { questionCopy, shortName, type ConversationTurn, type ConversationProgra
 import type { FactKey, KnownFacts } from "@/lib/benefits/question-engine";
 import { addCut } from "@/lib/benefits/cut";
 import { applyAlongHref, startsWithExtraHelp } from "@/lib/benefits/apply-along";
+import { isSnapProgram, snapApplyHref } from "@/lib/benefits/snap-match";
 import { emptyFinderAnswers, finderVoice, type FinderAnswers, type FinderNeed, type FinderProgram, type FinderResult, type FinderWho } from "@/lib/benefits/finder-answers";
 import { telHref } from "@/lib/benefits/call-script";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
@@ -167,6 +168,7 @@ export default function BenefitsConversationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewName]);
   const completed = (name: string) => track("benefits_step_completed", name, history.length + 1);
+  const snapHref = (programId: string) => snapApplyHref({ stateCode, programId, who, household: facts.household, income: facts.income, incomeCut: facts.incomeCut });
 
   const ask = useCallback(async (f: KnownFacts, a: FactKey[], before: ConversationProgram[] | null) => {
     if (!stateCode) return;
@@ -477,7 +479,10 @@ export default function BenefitsConversationPage() {
             onCall={() => completed("call")}
             applyHref={plan.firstStep && plan.firstStep.id !== "local-agency" && startsWithExtraHelp(plan.firstStep.name)
               ? applyAlongHref({ stateCode, programId: plan.firstStep.id, who, household: facts.household, income: facts.income, incomeCut: facts.incomeCut, savings: facts.savings, savingsCut: facts.savingsCut })
-              : null}
+              : plan.firstStep && isSnapProgram(plan.firstStep.name, plan.firstStep.id)
+                ? snapHref(plan.firstStep.id)
+                : null}
+            snapHref={snapHref}
             onApply={() => completed("apply_along")}
           />
       )}
@@ -526,7 +531,7 @@ function Thinking({ text }: { text: string }) {
   );
 }
 
-function ResultView({ plan, callFor, onBack, onTextMe, onCall, applyHref, onApply }: { plan: FinderResult; callFor: string; onBack: () => void; onTextMe: () => void; onCall: () => void; applyHref: string | null; onApply: () => void }) {
+function ResultView({ plan, callFor, onBack, onTextMe, onCall, applyHref, snapHref, onApply }: { plan: FinderResult; callFor: string; onBack: () => void; onTextMe: () => void; onCall: () => void; applyHref: string | null; snapHref: (programId: string) => string; onApply: () => void }) {
   const [open, setOpen] = useState<"say" | "ready" | "more" | "moreLikely" | null>(null);
   const first: FinderProgram | null = plan.firstStep;
   // Four is a list someone can take in; the rest fold away (a Michigan plan
@@ -577,13 +582,13 @@ function ResultView({ plan, callFor, onBack, onTextMe, onCall, applyHref, onAppl
       {likelyRest.length ? (
         <section className="flex flex-col">
           <h2 className="text-[15px] font-semibold text-gray-900 m-0 mb-1">Also likely</h2>
-          {likelyRest.map((p) => <Row key={p.id} p={p} />)}
+          {likelyRest.map((p) => <Row key={p.id} p={p} applyHref={isSnapProgram(p.name, p.id) ? snapHref(p.id) : null} onApply={onApply} />)}
           {likelyMore.length ? (
             <>
               <button type="button" onClick={() => setOpen(open === "moreLikely" ? null : "moreLikely")} aria-expanded={open === "moreLikely"} className="text-left bg-transparent border-none p-0 py-3 text-[15px] text-gray-500 cursor-pointer">
                 {likelyMore.length} more that look likely {open === "moreLikely" ? "▴" : "▾"}
               </button>
-              {open === "moreLikely" ? likelyMore.map((p) => <Row key={p.id} p={p} />) : null}
+              {open === "moreLikely" ? likelyMore.map((p) => <Row key={p.id} p={p} applyHref={isSnapProgram(p.name, p.id) ? snapHref(p.id) : null} onApply={onApply} />) : null}
             </>
           ) : null}
         </section>
@@ -594,7 +599,7 @@ function ResultView({ plan, callFor, onBack, onTextMe, onCall, applyHref, onAppl
           <button type="button" onClick={() => setOpen(open === "more" ? null : "more")} aria-expanded={open === "more"} className="text-left bg-transparent border-none p-0 py-3 text-[15px] text-gray-500 cursor-pointer">
             {checkRest.length} more worth checking {open === "more" ? "▴" : "▾"}
           </button>
-          {open === "more" ? checkRest.map((p) => <Row key={p.id} p={p} />) : null}
+          {open === "more" ? checkRest.map((p) => <Row key={p.id} p={p} applyHref={isSnapProgram(p.name, p.id) ? snapHref(p.id) : null} onApply={onApply} />) : null}
         </section>
       ) : null}
     </div>
@@ -613,14 +618,23 @@ function Fold({ label, open, onToggle, children }: { label: string; open: boolea
   );
 }
 
-function Row({ p }: { p: FinderProgram }) {
+function Row({ p, applyHref, onApply }: { p: FinderProgram; applyHref?: string | null; onApply?: () => void }) {
   return (
-    <a href={p.url} className="flex items-center gap-3 py-3 border-t border-gray-200 no-underline">
-      <Obj name={iconFor(p.name)} size={32} />
-      <span className="flex-1 min-w-0">
-        <span className="block text-[16px] text-gray-900">{p.shortName}</span>
-        {p.what ? <span className="block text-[13px] text-gray-500 truncate">{p.what}</span> : null}
-      </span>
-    </a>
+    <div className="flex items-center gap-3 py-3 border-t border-gray-200">
+      <a href={p.url} className="flex flex-1 min-w-0 items-center gap-3 no-underline">
+        <Obj name={iconFor(p.name)} size={32} />
+        <span className="flex-1 min-w-0">
+          <span className="block text-[16px] text-gray-900">{p.shortName}</span>
+          {p.what ? <span className="block text-[13px] text-gray-500 truncate">{p.what}</span> : null}
+        </span>
+      </a>
+      {/* SNAP's apply-along (lib/benefits/apply-along-snap.ts): on its row,
+          since SNAP is likely for most older families but rarely the first call. */}
+      {applyHref ? (
+        <a href={applyHref} onClick={onApply} className="shrink-0 min-h-[40px] px-3.5 rounded-full border-[1.5px] border-primary-800 text-primary-800 text-[14px] font-semibold flex items-center no-underline">
+          Apply with us
+        </a>
+      ) : null}
+    </div>
   );
 }

@@ -304,6 +304,10 @@
         "tip": "Report medical expenses over $35/month, this can significantly increase your loved one's monthly benefit amount.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://www.mymaineconnection.gov/benefits/s/"
+          },
+          {
             "label": "Apply online at MyMaineConnection",
             "url": "https://www.mymaineconnection.gov"
           },

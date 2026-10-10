@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-10-06T12:27:19.659Z
+ * Last updated: 2026-10-10T05:17:44.930Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -387,17 +387,7 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
       "lastVerifiedDate": "2026-09-28",
-      "reviewQueue": [
-        {
-          "field": "assets_couple",
-          "from": 3000,
-          "to": 2000,
-          "source": "https://www.medicaidplanningassistance.org/oklahoma-advantage-waiver/amp/",
-          "severity": "high",
-          "why": "aggregator source",
-          "flaggedAt": "2026-10-05T18:19:43.263Z"
-        }
-      ]
+      "reviewQueue": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -857,19 +847,19 @@ export const drafts: PipelineStateDrafts = {
           "field": "assets_individual",
           "from": 9090,
           "to": 9950,
-          "source": "https://oklahoma.gov/content/dam/ok/en/okdhs/documents/searchcenter/okdhsformresults/c-1.pdf",
+          "source": "https://www.kff.org/medicare/state-indicator/eligibility-for-medicare-savings-programs-for-qualified-medicare-beneficiaries-qmbs/",
           "severity": "medium",
-          "why": "asset limit (federal figure; applied with the yearly table)",
-          "flaggedAt": "2026-10-05T18:19:43.263Z"
+          "why": "aggregator source",
+          "flaggedAt": "2026-10-06T12:27:19.515Z"
         },
         {
           "field": "assets_couple",
           "from": 13630,
           "to": 14910,
-          "source": "https://oklahoma.gov/content/dam/ok/en/okdhs/documents/searchcenter/okdhsformresults/c-1.pdf",
+          "source": "https://www.kff.org/medicare/state-indicator/eligibility-for-medicare-savings-programs-for-qualified-medicare-beneficiaries-qmbs/",
           "severity": "medium",
-          "why": "asset limit (federal figure; applied with the yearly table)",
-          "flaggedAt": "2026-10-05T18:19:43.263Z"
+          "why": "aggregator source",
+          "flaggedAt": "2026-10-06T12:27:19.515Z"
         }
       ],
       "dismissedFlags": [
@@ -1032,7 +1022,7 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Seniors 60+ should emphasize medical expenses over $35/month, these are deducted from income and can significantly increase your benefit amount.",
         "urls": [
           {
-            "label": "OKDHSLive! Online Application",
+            "label": "Apply online",
             "url": "https://www.okdhslive.org/"
           },
           {
@@ -1151,7 +1141,7 @@ export const drafts: PipelineStateDrafts = {
           "source": "https://www.fna.usda.gov/snap/recipient/eligibility",
           "severity": "high",
           "why": "value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025)",
-          "flaggedAt": "2026-10-05T18:19:43.263Z"
+          "flaggedAt": "2026-10-06T12:27:19.515Z"
         },
         {
           "field": "income_2",
@@ -1160,7 +1150,7 @@ export const drafts: PipelineStateDrafts = {
           "source": "https://www.fna.usda.gov/snap/recipient/eligibility",
           "severity": "high",
           "why": "value fits more than one tier (125% FPL 2026 or 130% FPL 2026 or 133% FPL 2026 or 130% FPL 2025 or 133% FPL 2025 or 135% FPL 2025)",
-          "flaggedAt": "2026-10-05T18:19:43.263Z"
+          "flaggedAt": "2026-10-06T12:27:19.515Z"
         }
       ],
       "appliedCorrections": [
@@ -2829,7 +2819,18 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-211-2116",
       "sourceUrl": "https://oklahoma.gov/okdhs/library/policy/current/oac-340/chapter-105/subchapter-10/parts-7/national-family-caregiver-support-program.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-10-06"
+      "draftedAt": "2026-10-06",
+      "reviewQueue": [
+        {
+          "field": "age",
+          "from": 60,
+          "to": 55,
+          "source": "https://oklahoma.gov/content/dam/ok/en/okdhs/documents/okdhs-pdf-library/community-living-aging-and-protective-services/OklahomaAgingandDisabilityPrograms_cap_20251125.pdf",
+          "severity": "high",
+          "why": "field age is applied by hand",
+          "flaggedAt": "2026-10-06T12:27:19.515Z"
+        }
+      ]
     }
   ],
   "stateOverview": {

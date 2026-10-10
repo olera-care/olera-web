@@ -24,7 +24,7 @@ type Participant = {
   joinedAt: string;
   planVersion: string | null;
   firstStep: string | null;
-  applied: { at: string; decision: string | null; decisionAt: string | null } | null;
+  applications: { route: "ssa_extra_help" | "state_snap"; at: string; decision: string | null; decisionAt: string | null }[];
   exposure: Exposure[];
   changedSinceJoined: string[];
 };
@@ -42,6 +42,8 @@ const DECISION: Record<string, string> = {
   denied: "Told no",
   stuck: "Stuck",
 };
+
+const ROUTE: Record<string, string> = { ssa_extra_help: "Medicare Savings", state_snap: "SNAP" };
 
 function day(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -105,7 +107,7 @@ export default function StudyPage() {
                         <button onClick={() => setOpen(isOpen ? null : p.profileId)} className="w-full text-left flex items-baseline gap-3">
                           <span className="font-medium text-gray-900">{p.name || "A family"}</span>
                           <span className="text-sm text-gray-500 truncate">
-                            {[p.cohort, p.state, `joined ${day(p.joinedAt)}`, p.applied ? (p.applied.decision ? DECISION[p.applied.decision] ?? p.applied.decision : `applied ${day(p.applied.at)}`) : null].filter(Boolean).join(" · ")}
+                            {[p.cohort, p.state, `joined ${day(p.joinedAt)}`, ...p.applications.map((a) => `${ROUTE[a.route]} ${a.decision ? (DECISION[a.decision] ?? a.decision).toLowerCase() : `applied ${day(a.at)}`}`)].filter(Boolean).join(" · ")}
                           </span>
                           <span className="ml-auto text-sm text-gray-500 shrink-0">
                             {p.changedSinceJoined.length ? `${p.changedSinceJoined.length} ${p.changedSinceJoined.length === 1 ? "change" : "changes"} since` : "No changes since"}
@@ -135,7 +137,9 @@ export default function StudyPage() {
                             </table>
                             <p className="text-gray-500">
                               Plan saved on version {p.planVersion ?? "unknown"}
-                              {p.applied && <> · applied {day(p.applied.at)}{p.applied.decision && <>, {DECISION[p.applied.decision]?.toLowerCase() ?? p.applied.decision} {p.applied.decisionAt ? day(p.applied.decisionAt) : ""}</>}</>}
+                              {p.applications.map((a) => (
+                                <span key={a.route}> · {ROUTE[a.route]} applied {day(a.at)}{a.decision && <>, {DECISION[a.decision]?.toLowerCase() ?? a.decision} {a.decisionAt ? day(a.decisionAt) : ""}</>}</span>
+                              ))}
                             </p>
                             {p.changedSinceJoined.length > 0 && (
                               <div>

@@ -1444,6 +1444,10 @@
         "tip": "Medical expenses matter for older adults. Out-of-pocket medical costs your parent pays (prescriptions, copays, transportation to medical appointments) can be deducted from gross income when calculating the net income test. Reporting these expenses accurately can lower countable income, improve eligibility, and increase the monthly benefit amount. Ask the caseworker about the medical expense deduction when you apply.",
         "urls": [
           {
+            "label": "Apply online",
+            "url": "https://districtdirect.dc.gov"
+          },
+          {
             "label": "Apply online through District Direct (DC DHS public benefits portal)",
             "url": "https://dhs.dc.gov/service/snap-eligibility-requirements"
           },

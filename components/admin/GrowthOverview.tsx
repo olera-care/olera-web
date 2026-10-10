@@ -9,6 +9,7 @@ import DateRangePopover, {
   type DateRangePresetOption,
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
+import type { GrowthLoopSide, GrowthRequestLoop } from "@/lib/growth/types";
 import GrowthDrivers from "@/components/admin/GrowthDrivers";
 
 interface GrowthWeek {
@@ -42,6 +43,7 @@ interface GrowthWeek {
     benefits_completed: number;
     providers_answering_questions: number;
     organic_users_to_inquiry_rate_directional: number | null;
+    request_loop?: GrowthRequestLoop;
   };
   source_status: { ga4: string; gsc: string; supabase: string };
   anomalies: Array<{ label: string; change: number }>;
@@ -360,6 +362,7 @@ export default function GrowthOverview() {
           <Signal label="Inquiries" value={latest.marketplace.inquiries} prior={prior?.marketplace.inquiries ?? null} source="Olera" />
           <Signal label="Providers answering" value={latest.marketplace.providers_answering_questions} prior={prior?.marketplace.providers_answering_questions ?? null} source="Olera" />
         </div>
+        {latest.marketplace.request_loop && <RequestLoop loop={latest.marketplace.request_loop} />}
         </>}
       </div>
 
@@ -377,6 +380,60 @@ export default function GrowthOverview() {
         onToggle={() => toggleSection("acquisition")}
       />
     </section>
+  );
+}
+
+function RequestLoop({ loop }: { loop: GrowthRequestLoop }) {
+  const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : "—");
+  const steps: Array<[string, keyof GrowthLoopSide]> = [
+    ["Saved", "saved"],
+    ["Emailed", "emailed"],
+    ["Opened", "opened"],
+    ["Answered", "answered"],
+    ["Family told", "family_told"],
+  ];
+  const sides: Array<[string, GrowthLoopSide]> = [
+    ["Claimed agencies", loop.requests.claimed],
+    ["Unclaimed agencies", loop.requests.unclaimed],
+  ];
+  const q = loop.questions;
+  return (
+    <div className="border-t border-gray-100 px-5 py-4 sm:px-6">
+      <p className="text-xs font-medium text-gray-500">Does a family hear back? · requests this week, read at collection</p>
+      {loop.requests.marked_sent_without_email > 0 && (
+        <p className="mt-2 rounded-xl bg-rose-50 px-3.5 py-2.5 text-xs leading-relaxed text-rose-900">
+          <span className="font-semibold">{loop.requests.marked_sent_without_email} requests</span> are marked sent, but no email went to an agency that has an address.
+        </p>
+      )}
+      <div className="mt-2 overflow-x-auto">
+        <table className="w-full min-w-[520px] text-xs tabular-nums">
+          <thead>
+            <tr className="text-left text-gray-400">
+              <th className="py-1.5 pr-3 font-medium">Requests to</th>
+              {steps.map(([label]) => <th key={label} className="py-1.5 pr-3 text-right font-medium">{label}</th>)}
+              <th className="py-1.5 text-right font-medium">No working address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sides.map(([label, side]) => (
+              <tr key={label} className="border-t border-gray-100 text-gray-900">
+                <td className="py-1.5 pr-3 text-gray-600">{label}</td>
+                {steps.map(([step, key]) => (
+                  <td key={step} className="py-1.5 pr-3 text-right">
+                    {side[key]}
+                    {key !== "saved" && <span className="ml-1 text-gray-400">{pct(side[key], side.saved)}</span>}
+                  </td>
+                ))}
+                <td className="py-1.5 text-right">{side.no_address}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-xs text-gray-500">
+        Questions: {q.asked} asked · {q.answered} answered ({pct(q.answered, q.asked)}) · {q.no_address} with no agency address · {q.answered_askers_told} of {q.answered_askers_with_email} askers with an email told
+      </p>
+    </div>
   );
 }
 

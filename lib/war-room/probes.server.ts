@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { directoryHealthSummary } from "@/lib/providers/directory-health.server";
+import { summarizeCheckpoints } from "@/lib/benefits/checkpoints";
+import { loadCheckpointFamilies } from "@/lib/benefits/checkpoints.server";
 
 /**
  * Read-only investigation probes.
@@ -466,7 +468,19 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
       });
     };
 
-    const [arms, now, prior, firstStep, firstStepPrior, checkIn, checkInPrior, firstStepSms, checkInSms, companion, companionPrior] = await Promise.all([
+    // The caseworker's checkpoints (lib/benefits/checkpoints.ts). A failure here
+    // drops the line; it never takes the rest of the Benefits reading with it.
+    const checkpoints = async () => {
+      try {
+        return summarizeCheckpoints((await loadCheckpointFamilies(db, weekAgo)).families).total.all;
+      } catch (err) {
+        console.error("[war-room] checkpoints failed:", err);
+        return null;
+      }
+    };
+
+    const [cp, arms, now, prior, firstStep, firstStepPrior, checkIn, checkInPrior, firstStepSms, checkInSms, companion, companionPrior] = await Promise.all([
+      checkpoints(),
       split(),
       tokens(weekAgo, null), tokens(twoWeeksAgo, weekAgo),
       emails("benefits_first_step", weekAgo, null), emails("benefits_first_step", twoWeeksAgo, weekAgo),
@@ -483,7 +497,7 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
 
     return {
       headline: `${n(now.families)} families finished the Benefits Finder in the last 7 days, ${n(prior.families)} the week before. ${n(firstStep)} first-step letters and ${n(checkIn)} check-ins went out.${splitLine}`,
-      detail: `Finder vs conversation this week: form ${n(form.started)} started, ${n(form.plan)} reached a plan, ${n(form.sent)} asked for it by text or email; conversation ${n(conversation.started)} started, ${n(conversation.plan)} reached a plan, ${n(conversation.sent)} asked for it. Half of new families get the conversation and keep it; only randomized browsers count, so study links, crawlers and drafts from before the split stay out. ${n(now.runs)} finder runs this week (${n(prior.runs)} prior); a family can finish it more than once. Letters the week before: ${n(firstStepPrior)} first-step, ${n(checkInPrior)} check-ins. By text: ${n(firstStepSms)} first-step and ${n(checkInSms)} check-in messages this week, and ${n(companion)} text-companion answers (${n(companionPrior)} prior). A finish is a results page the family could open; it says nothing about whether they applied for anything.`,
+      detail: `Finder vs conversation this week: form ${n(form.started)} started, ${n(form.plan)} reached a plan, ${n(form.sent)} asked for it by text or email; conversation ${n(conversation.started)} started, ${n(conversation.plan)} reached a plan, ${n(conversation.sent)} asked for it. Half of new families get the conversation and keep it; only randomized browsers count, so study links, crawlers and drafts from before the split stay out. ${n(now.runs)} finder runs this week (${n(prior.runs)} prior); a family can finish it more than once. Letters the week before: ${n(firstStepPrior)} first-step, ${n(checkInPrior)} check-ins. By text: ${n(firstStepSms)} first-step and ${n(checkInSms)} check-in messages this week, and ${n(companion)} text-companion answers (${n(companionPrior)} prior). ${cp ? `Caseworker checkpoints this week (/admin/benefits/checkpoints): ${n(cp.begun)} begun, ${n(cp.completed)} completed, ${n(cp.started)} applications started, ${n(cp.submitted)} submitted, ${n(cp.accepted)} accepted.` : "Caseworker checkpoints could not be read this scan."}`,
       rows: [
         { measure: "Families finished", this_week: now.families, prior_week: prior.families },
         { measure: "Finder runs", this_week: now.runs, prior_week: prior.runs },
@@ -492,8 +506,9 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
         { measure: "Text-companion answers", this_week: companion, prior_week: companionPrior },
         { measure: "Form: started / reached a plan", this_week: `${form.started} / ${form.plan}`, prior_week: "" },
         { measure: "Conversation: started / reached a plan", this_week: `${conversation.started} / ${conversation.plan}`, prior_week: "" },
+        ...(cp ? [{ measure: "Applications started / submitted / accepted", this_week: `${cp.started} / ${cp.submitted} / ${cp.accepted}`, prior_week: "" }] : []),
       ],
-      caveat: "Counts what Olera sent, not what families did with it. Nothing here measures an application started or an award received.",
+      caveat: "Applications are what families tell us: submitted when they say it went in, accepted when they say they were approved. Only the Medicare Savings apply-along records them so far.",
     };
   },
 

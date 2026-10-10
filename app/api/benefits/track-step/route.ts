@@ -63,6 +63,15 @@ export async function POST(request: Request) {
     const cardFlow: string | null = isProgramCardFlow(body.cardFlow) ? body.cardFlow : null;
     const splitArm: string | null = isSplitArm(body.splitArm) ? body.splitArm : null;
     const studyCohort: string | null = isCohortId(body.studyCohort) ? body.studyCohort.toLowerCase() : null;
+    // Previews and staging write to this same database. The site an event came
+    // from keeps their QA out of the caseworker's checkpoints (lib/benefits/checkpoints.ts).
+    let host: string | null = null;
+    try {
+      const origin = request.headers.get("origin") || request.headers.get("referer");
+      host = origin ? new URL(origin).host : null;
+    } catch {
+      host = null;
+    }
 
     const db = getServiceDb();
     const writes: Array<PromiseLike<unknown>> = [];
@@ -89,6 +98,7 @@ export async function POST(request: Request) {
           product_version: CURRENT_STUDY_VERSION,
           entry_source: entrySource,
           visit_id: visitId,
+          host,
         },
       }));
     }

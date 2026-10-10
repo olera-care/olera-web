@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-10-10 — Benefits caseworker: checkpoints page + senior SNAP apply-along, both IN PROD (`clever-knuth`)
+
+**Read the founding doc first: https://claude.ai/artifact/APdQ3n36UeTbSLhqUu1kGJ (v1.8).** Its "Where to pick up" list is the plan; take the top buildable item. Source backup: `~/Desktop/hub-feedback/benefits-caseworker-src/`.
+
+**Shipped today (all in prod via TJ's promotions #2492 / #2497):**
+- **Checkpoints (#2488).** `/admin/benefits/checkpoints` + daily brief line. `lib/benefits/checkpoints.ts` (pure) + `.server.ts`. Five checkpoints per browser session; test traffic excluded by `metadata.host` (track-step stamps it), apply-along opens before 2026-10-07T13:30Z, and 3 known screenshot sessions. Variants matched by prefix (`finder_`, `conversation_`, `apply_along*`).
+- **Senior SNAP apply-along (#2495).** `/benefits/apply/snap` = `components/benefits/apply/SnapApplyFlow.tsx`, a five-screen guided flow (welcome, have these nearby, costs to list by tapping, three things true everywhere + state senior form, their list + the state's door, did it go through, sent). "Apply with us" on every SNAP row (conversation result, form results, `/m/{token}`). Save/record calls shared with Medicare Savings in `components/benefits/apply/apply-record.ts`.
+- **Records hold several applications.** Medicare Savings stays at `benefits_cascade.applied`; other routes go in `benefits_cascade.applications`. Read/write ONLY through `lib/benefits/applications.ts`. B3 check-ins: SNAP interview check 5–14 days, decision 35–70 days; text replies record on the application last asked about.
+- **SNAP links fixed in all 51 states.** `data/benefits/snap-states.json` (verified 10 Oct, official sources) + `scripts/benefits-snap-portals.js` (Kansas had pointed to an Arkansas site, NJ to a dead domain, WY is paper only).
+- **Study version 1.1** dated to the promotion (#2497, 13:05:15Z): #2498 merged to staging, **needs TJ's next promotion** before prod stamps 1.1.
+
+**Decisions (TJ, 10 Oct):** the SNAP flow stays general (specific only on federal rules, the family's own answers and the verified state door; no dollar figures about the family; keep the senior short-form line). Family flows are Typeform/Airbnb, one thing per screen, not document pages; prototype before building (memory `feedback_delivery_over_content`). Button pinned under the thumb on phones, under the content on desktop.
+
+**Next Up**
+1. Promote #2498 (study version 1.1) with the next staging → main.
+2. Read the conversation-vs-form split ~14 Oct (daily brief). Since the split went live: 26 conversation vs 15 form entries (p≈0.12, watch).
+3. **Build next: care waivers' special income limit** (doc pickup item 3).
+4. Watch both apply-alongs on `/admin/benefits/checkpoints` (10 Oct: 109 begun, 87 plan, 2 started, 0 submitted).
+5. Gaps: South Dakota has no SNAP program in the catalog; checkpoints lack family type and the CARE-NAV survey.
+
 ### 2026-10-08 — Cortex night runner live; home care provider page redesign in review (`graceful-franklin`)
 
 **Cortex Mac runner (IN STAGING, #2447 merged).** `scripts/cortex-runner.ts` + launchd `com.olera.cortex.runner` (01:00 Mac time) builds approved `cortex_handoffs` briefs into PRs to staging; merge/migrations/messaging denied at the tool level; `~/cortex-runner/STOP` is the off switch. TJ approved it as a class via an autoMode environment rule in `~/.claude/settings.json`. First supervised run built brief 858c51f4 in 22 min → PR #2449. #2451 (open): runner runs pre-test before the PR, writes a review page to `~/cortex-runner/review/`, logs stream-json. Tracking page: claude.ai/artifact/FQvZDTyDaXu19W1qW71kGK (check-ins 8, 10, 14 Oct).
@@ -6923,6 +6943,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-10-10 — Caseworker checkpoints + senior SNAP apply-along (`clever-knuth`, #2488 #2495 #2498)
+
+- #2488 checkpoints page; #2495 SNAP apply-along (flow, multi-application records, SNAP check-ins, 51-state verified links); #2498 study version 1.1. All merged to staging; #2488 and #2495 in prod.
+- **Keep:** preview and staging write to the production database. 8 of the first 9 apply-along opens were our own QA. Any count of family behaviour must exclude non-production hosts.
+- **Keep:** our drafted program links were wrong in places; a page whose job is "go here" needs each door verified against the state's own site.
+- **Keep:** TJ's bar for family flows is delivery, not just content: one thing per screen, tap not type, prototype first. And stay general where specifics can't be kept current.
+- **Watch:** a stray `node_modules 2` symlink (macOS rename) made `tsc` scan a second copy of Next and run out of memory. Remove it; never `ln -s node_modules` into a worktree that already has one.
 
 ### 2026-09-18 — "Looking for work" archive reason (`magical-snyder`, PR #1960 open)
 
